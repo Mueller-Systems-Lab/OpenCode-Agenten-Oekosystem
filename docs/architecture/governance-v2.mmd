@@ -1,0 +1,13 @@
+flowchart TD
+  I[Owner Intent] --> C[Task Capsule]
+  C --> E[Effect Classification]
+  E --> A{Authorization}
+  A -->|Policy / Intent / Capsule| X[A Autonomous]
+  A -->|Lease / Receipt| L[B Reuse]
+  A -->|External / Irreversible| P[C Owner Decision Packet]
+  A -->|Unknown / Forbidden| D[D Technical Block]
+  P --> G[Task Graph waits only dependent nodes]
+  X --> V[Outcome Evidence]
+  L --> V
+  G --> V
+  V --> F[VERIFIED_IN_SCOPE]

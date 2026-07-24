@@ -1,0 +1,41 @@
+ M .opencode/agents/issue-orchestrator.md
+ M .opencode/policies/evidence-gates.json
+ M .opencode/policies/mcp-trust-tiers.json
+ M .opencode/policies/working-method.json
+ M .opencode/policies/write-protection.json
+ M .opencode/skills/context-engineering/SKILL.md
+ M .opencode/skills/owner-approval-gate/SKILL.md
+ M .opencode/skills/risk-tier-routing/SKILL.md
+ M AGENTS.md
+ M WORKING-METHOD.md
+ M ecosystem.manifest.json
+ M governance-install.json
+ M opencode.jsonc
+ M scripts/install-governance.mjs
+ M scripts/lib/gates/classifications.mjs
+ M scripts/validate-ecosystem.mjs
+ M test/validation/working-method.test.mjs
+?? .opencode/agents/approval-coordinator.md
+?? .opencode/agents/executor.md
+?? PROMPT-KERNEL.md
+?? docs/adr/ADR-effect-based-approvals.md
+?? docs/adr/ADR-governance-v2-thin-prompt-thick-runtime.md
+?? docs/adr/ADR-minimal-owner-consent.md
+?? docs/architecture/approval-engine.md
+?? docs/architecture/governance-v2.md
+?? docs/architecture/governance-v2.mmd
+?? docs/migration/
+?? docs/reports/approval-minimization-report.md
+?? docs/reports/governance-v2-validation-report.md
+?? docs/reports/open-pr-compatibility-report.md
+?? governance/
+?? runtime/
+?? scripts/check-governance-drift.mjs
+?? scripts/evaluate-governance-v2.mjs
+?? scripts/evaluate-prompt-governance.mjs
+?? scripts/generate-governance.mjs
+?? scripts/lib/gates/completion.mjs
+?? scripts/run-governance-e2e.mjs
+?? test/approval-v2/
+?? test/fixtures/governance-scenarios/
+?? test/prompt-governance/

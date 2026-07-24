@@ -25,6 +25,8 @@ test("root URL-only discovery contract is published and self-referential", async
   assert.match(guide, /dry-run/i)
   assert.match(guide, /second apply/i)
   assert.match(readme, /Do not invent raw URLs or example paths/i)
+  assert.match(readme, /Never read target .*secret files/i)
+  assert.match(guide, /Never read target .*secret files/i)
   assert.match(guide, /bootstrap\.mjs/)
   assert.match(await read("llms.txt"), /AI-BOOTSTRAP\.md/)
 })

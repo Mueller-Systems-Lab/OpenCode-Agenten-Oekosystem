@@ -934,6 +934,18 @@ async function verifySourceFingerprint(repoRoot, storedCommit) {
   return currentCommit === storedCommit
 }
 
+async function isIdempotentInstallation(targetRoot, previousInstallation, sourceCommit) {
+  if (!previousInstallation?.source_commit || previousInstallation.source_commit !== sourceCommit) return false
+  const expectedHashes = previousInstallation.file_hashes || {}
+  const entries = Object.entries(expectedHashes)
+  if (entries.length === 0) return false
+  for (const [relative, expectedHash] of entries) {
+    const currentHash = await hashIfFile(path.join(targetRoot, relative))
+    if (!currentHash || currentHash !== expectedHash) return false
+  }
+  return true
+}
+
 function isSourceDowngrade(sourceRoot, currentCommit, previousCommit) {
   if (!currentCommit || !previousCommit || currentCommit === previousCommit) return false
   try {
@@ -1024,6 +1036,25 @@ async function runApplyPhase(args) {
   if (previousInstallation?.source_commit && isSourceDowngrade(repoRoot, sourceCommit, previousInstallation.source_commit)) {
     console.error(`RED_BLOCK: Refusing a silent downgrade from ${previousInstallation.source_commit} to ${sourceCommit}.`)
     process.exit(2)
+  }
+
+  if (await isIdempotentInstallation(targetRoot, previousInstallation, sourceCommit)) {
+    const postValidation = await validatePostApply(targetRoot)
+    if (postValidation.classification === "GREEN_SAFE") {
+      const result = {
+        classification: "GREEN_SAFE",
+        mode: "NOOP_IDEMPOTENT",
+        source_commit: sourceCommit,
+        files: [],
+        backup_root: null,
+        post_validation: postValidation,
+        idempotence: "PASS",
+        exit_code: 0,
+      }
+      if (args.json) console.log(safeSerialize(result, REDACTION_OPTIONS))
+      else console.log("No changes required; installation is already current (idempotent apply).")
+      process.exit(0)
+    }
   }
 
   // Phase 3: Check existing installation for fingerprint match

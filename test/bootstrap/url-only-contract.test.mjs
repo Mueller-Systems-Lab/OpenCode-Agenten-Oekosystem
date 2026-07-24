@@ -77,6 +77,14 @@ test("published installer records provenance and verifier passes on a fresh Git 
   const verify = runNodeScript("bootstrap/verify.mjs", ["--target", target, "--source-commit", installation.source_commit, "--json"])
   assert.equal(verify.status, 0, verify.stderr || verify.stdout)
   assert.equal(JSON.parse(verify.stdout).classification, "VERIFIED_IN_SCOPE")
+
+  const secondApply = runNodeScript("scripts/install-governance.mjs", ["--target", target, "--apply", "--json"])
+  assert.equal(secondApply.status, 0, secondApply.stderr || secondApply.stdout)
+  const secondResult = JSON.parse(secondApply.stdout)
+  assert.equal(secondResult.mode, "NOOP_IDEMPOTENT")
+  assert.equal(secondResult.idempotence, "PASS")
+  assert.deepEqual(secondResult.files, [])
+  assert.equal((await fs.readdir(path.join(target, ".opencode/backups"))).filter((name) => name.startsWith("governance-")).length, 1)
 })
 
 test("unknown generated conflicts fail closed before apply", async (t) => {

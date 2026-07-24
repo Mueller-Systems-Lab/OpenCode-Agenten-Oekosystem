@@ -3,7 +3,7 @@
 import fs from "node:fs/promises"
 import fsSync from "node:fs"
 import path from "node:path"
-import { execFileSync, spawnSync } from "node:child_process"
+import { execSync, spawnSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import { validateBootstrapManifest, containsPrivateAbsolutePath } from "./lib/contract.mjs"
 
@@ -95,7 +95,10 @@ export async function verifyInstallation({ targetRoot, sourceRoot: source = sour
 
 function gitValue(cwd, args) {
   try {
-    return execFileSync("git", args, { cwd, encoding: "utf8", timeout: 10000 }).trim() || null
+    // Use the same controlled Git read path as the installer. The managed
+    // runtime may deny direct execFileSync even for read-only Git commands.
+    const command = `git ${args.map((arg) => JSON.stringify(arg)).join(" ")}`
+    return execSync(command, { cwd, encoding: "utf8", timeout: 10000 }).trim() || null
   } catch {
     return null
   }

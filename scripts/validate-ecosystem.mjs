@@ -37,6 +37,11 @@ async function main() {
 
   const requiredFiles = [
     "BOOTSTRAP.md",
+    "AI-BOOTSTRAP.md",
+    "bootstrap/manifest.json",
+    "bootstrap/manifest.schema.json",
+    "bootstrap/verify.mjs",
+    "bootstrap/lib/contract.mjs",
     "README.md",
     "AGENTS.md",
     "CONTRIBUTING.md",
@@ -136,6 +141,7 @@ async function main() {
     "runtime/approval/approval-audit.mjs",
     "runtime/approval/capability-registry.mjs",
     "scripts/evaluate-governance-v2.mjs",
+    "scripts/install-governance.mjs",
   ]))
 
   issues.push(...await validateNoAbsoluteUserPaths())
@@ -816,7 +822,7 @@ async function collectTextFiles(root) {
  */
 function runTestSuite() {
   try {
-    const result = spawnSync("node", ["--test", "--test-reporter=spec"], {
+    const result = spawnSync("node", ["--test", "--test-reporter=spec", "--test-concurrency=1"], {
       cwd: repoRoot,
       encoding: "utf8",
       timeout: 120000,
@@ -825,9 +831,9 @@ function runTestSuite() {
 
     // Parse test summary
     const output = result.stdout + result.stderr
-    const passMatch = output.match(/ℹ pass (\d+)/)
-    const failMatch = output.match(/ℹ fail (\d+)/)
-    const testsMatch = output.match(/ℹ tests (\d+)/)
+    const passMatch = output.match(/(?:ℹ|#) pass (\d+)/)
+    const failMatch = output.match(/(?:ℹ|#) fail (\d+)/)
+    const testsMatch = output.match(/(?:ℹ|#) tests (\d+)/)
 
     const passCount = passMatch ? parseInt(passMatch[1], 10) : 0
     const failCount = failMatch ? parseInt(failMatch[1], 10) : 0

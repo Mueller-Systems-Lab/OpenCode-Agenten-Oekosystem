@@ -4,7 +4,7 @@ import path from "node:path"
 import fs from "node:fs"
 import fsPromises from "node:fs/promises"
 import crypto from "node:crypto"
-import { execSync } from "node:child_process"
+import { execSync, execFileSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 
 import {
@@ -21,14 +21,15 @@ import {
   isInsideRoot,
 } from "./lib/paths.mjs"
 import { createBackup, restoreBackup } from "./lib/backup.mjs"
-import { safeRedactText, safeSerialize, secretValuesFromEnv } from "./lib/security/redaction.mjs"
+import { safeRedactText, safeSerialize } from "./lib/security/redaction.mjs"
+import { classifyBootstrapConflict, ECOSYSTEM, BOOTSTRAP_PROTOCOL } from "../bootstrap/lib/contract.mjs"
 import {
   CLASSIFICATIONS,
   classificationToExitCode,
 } from "./lib/gates/classifications.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
-const REDACTION_OPTIONS = Object.freeze({ secrets: secretValuesFromEnv() })
+const REDACTION_OPTIONS = Object.freeze({ secrets: [] })
 
 function timestampSlug(date = new Date()) {
   return date.toISOString().replace(/[:.]/g, "-")
@@ -39,6 +40,7 @@ function parseArgs(argv) {
     apply: false,
     json: false,
     runtime: "auto",
+    mode: null,
   }
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]
@@ -56,6 +58,8 @@ function parseArgs(argv) {
       result.approvalFile = argv[++i]
     } else if (arg === "--runtime") {
       result.runtime = argv[++i]
+    } else if (arg === "--mode") {
+      result.mode = argv[++i]
     } else {
       throw new Error(`Unknown argument: ${arg}`)
     }
@@ -74,6 +78,7 @@ Flags:
   --rollback <dir>           Rollback from backup directory
   --approval-file <path>     Approval receipt JSON file
   --runtime <name>           Force runtime detection (default: auto)
+  --mode <mode>               INSTALL_NEW, UPDATE_EXISTING, VERIFY_ONLY, or ROLLBACK
   --json                     Output machine-readable JSON
   --help                     Show this help
 
@@ -174,11 +179,15 @@ function getRuntimeFileList() {
     { source: "runtime/approval/capability-registry.mjs", dest: "approval/capability-registry.mjs" },
     { source: "runtime/gates/evaluate-action.mjs", dest: "gates/evaluate-action.mjs" },
     { source: "governance/generated/capability-registry.json", dest: "governance/generated/capability-registry.json" },
+    { source: "governance/policy-core.yaml", dest: "governance/policy-core.yaml" },
+    { source: "governance/generated/policy-core.json", dest: "governance/generated/policy-core.json" },
+    { source: "governance/generated/risk-profiles.json", dest: "governance/generated/risk-profiles.json" },
+    { source: "PROMPT-KERNEL.md", dest: "PROMPT-KERNEL.md" },
   ]
 }
 
-function getPolicyFileList() {
-  const policyDir = path.join(repoRoot, ".opencode", "policies")
+function getPolicyFileList(sourceRoot = repoRoot) {
+  const policyDir = path.join(sourceRoot, ".opencode", "policies")
   if (!fs.existsSync(policyDir)) return []
   const files = []
   try {
@@ -192,6 +201,83 @@ function getPolicyFileList() {
     // unreadable
   }
   return files
+}
+
+function getSourceRef(sourceRoot) {
+  try {
+    return execSync("git symbolic-ref --short -q HEAD || git rev-parse --short HEAD", { cwd: sourceRoot, encoding: "utf8", timeout: 10000 }).trim() || null
+  } catch {
+    return null
+  }
+}
+
+function getSourceRepository(sourceRoot) {
+  try {
+    const remote = execSync("git remote get-url origin", { cwd: sourceRoot, encoding: "utf8", timeout: 10000 }).trim()
+    return remote.replace(/\.git$/, "").replace(/^git@github\.com:/, "https://github.com/")
+  } catch {
+    return null
+  }
+}
+
+async function readInstallationManifest(targetRoot) {
+  const file = path.join(targetRoot, ".opencode", "ecosystem-installation.json")
+  try {
+    return JSON.parse(await fsPromises.readFile(file, "utf8"))
+  } catch {
+    return null
+  }
+}
+
+async function hashIfFile(filePath) {
+  try {
+    const stat = await fsPromises.lstat(filePath)
+    if (!stat.isFile()) return null
+    return await fileHash(filePath)
+  } catch {
+    return null
+  }
+}
+
+function conflictNeedsManual(conflict) {
+  return conflict.classification === "MANUAL_REVIEW_REQUIRED" || conflict.classification === "FORBIDDEN"
+}
+
+async function findConflicts(targetRoot, filePlan) {
+  const previous = await readInstallationManifest(targetRoot)
+  const previousFiles = new Set(previous?.managed_files || [])
+  const previousHashes = previous?.file_hashes || {}
+  const conflicts = []
+  for (const file of filePlan) {
+    if (file.action === "create-directory") continue
+    const destination = path.join(targetRoot, file.path)
+    const stat = await (async () => { try { return await fsPromises.lstat(destination) } catch { return null } })()
+    if (!stat) continue
+    const managed = previousFiles.has(file.path) || file.action === "create-installation-manifest"
+    const currentHash = stat.isFile() ? await hashIfFile(destination) : null
+    const currentMatchesPrevious = managed && currentHash && previousHashes[file.path] === currentHash
+    let classification = classifyBootstrapConflict({
+      exists: true,
+      managed,
+      currentHashMatchesPrevious: Boolean(currentMatchesPrevious),
+      forbidden: stat.isSymbolicLink() || (!stat.isFile() && !stat.isDirectory()),
+    })
+    if (file.action === "create-installation-manifest" && previous) {
+      classification = "SAFE_MANAGED_UPDATE"
+    } else if (["create-manifest", "create-source-lock", "create-installation-manifest", "create-report"].includes(file.action) && !managed) {
+      classification = "MANUAL_REVIEW_REQUIRED"
+    }
+    conflicts.push({
+      path: file.path,
+      action: file.action,
+      classification,
+      managed,
+      current_hash: currentHash,
+      previous_hash: previousHashes[file.path] || null,
+      reason: classification === "OWNER_CONTENT_PRESERVE" ? "existing owner content is preserved" : null,
+    })
+  }
+  return conflicts
 }
 
 async function detectRuntimes(targetRoot) {
@@ -254,7 +340,7 @@ function determineEnforcementLevel(detectedRuntimes) {
   return "ADVISORY_ONLY"
 }
 
-function buildFilePlan(targetRoot) {
+function buildFilePlan(targetRoot, sourceRoot = repoRoot) {
   const governanceRoot = path.join(targetRoot, ".agent-governance")
   const files = []
 
@@ -298,16 +384,16 @@ function buildFilePlan(targetRoot) {
     files.push({
       path: relativePath(targetRoot, path.join(governanceRoot, "runtime", rf.dest)),
       action: "copy-runtime-file",
-      source: path.join(repoRoot, rf.source),
+      source: path.join(sourceRoot, rf.source),
     })
   }
 
-  const policyFiles = getPolicyFileList()
+  const policyFiles = getPolicyFileList(sourceRoot)
   for (const pf of policyFiles) {
     files.push({
       path: relativePath(targetRoot, path.join(governanceRoot, "policies", pf)),
       action: "copy-policy-file",
-      source: path.join(repoRoot, ".opencode", "policies", pf),
+      source: path.join(sourceRoot, ".opencode", "policies", pf),
     })
   }
 
@@ -327,6 +413,16 @@ function buildFilePlan(targetRoot) {
     action: "create-source-lock",
   })
 
+  files.push({
+    path: relativePath(targetRoot, path.join(targetRoot, ".opencode", "ecosystem-installation.json")),
+    action: "create-installation-manifest",
+  })
+
+  files.push({
+    path: relativePath(targetRoot, path.join(governanceRoot, "reports", "install-report.json")),
+    action: "create-report",
+  })
+
   const opencodeDetected = fs.existsSync(path.join(targetRoot, "opencode.jsonc")) ||
     fs.existsSync(path.join(targetRoot, "opencode.json"))
   if (opencodeDetected) {
@@ -336,6 +432,18 @@ function buildFilePlan(targetRoot) {
     })
     files.push({
       path: relativePath(targetRoot, path.join(governanceRoot, "hooks", "opencode", "pre-evaluate.mjs")),
+      action: "create-hook-script",
+    })
+    files.push({
+      path: relativePath(targetRoot, path.join(governanceRoot, "hooks", "opencode", "canonical-governance.mjs")),
+      action: "create-hook-script",
+    })
+    files.push({
+      path: relativePath(targetRoot, path.join(governanceRoot, "hooks", "opencode", "README.md")),
+      action: "create-hook-script",
+    })
+    files.push({
+      path: relativePath(targetRoot, path.join(targetRoot, ".opencode", "plugins", "governance-v2.mjs")),
       action: "create-hook-script",
     })
   }
@@ -351,46 +459,19 @@ function buildFilePlan(targetRoot) {
       path: relativePath(targetRoot, path.join(targetRoot, ".hermes", "governance", "evaluate.mjs")),
       action: "create-hermes-plugin",
     })
+    files.push({
+      path: relativePath(targetRoot, path.join(targetRoot, ".hermes", "governance", "README.md")),
+      action: "create-hermes-plugin",
+    })
   }
 
   return files
 }
 
-async function findConflicts(targetRoot, filePlan) {
-  const conflicts = []
-  const governanceRoot = path.join(targetRoot, ".agent-governance")
-
-  if (fs.existsSync(governanceRoot)) {
-    conflicts.push(
-      ".agent-governance/ directory already exists — existing installation will be checked for conservative merge"
-    )
-  }
-
-  for (const file of filePlan) {
-    if (file.action === "create-directory" || file.action === "create-hook-script") continue
-    const destPath = path.join(targetRoot, file.path)
-    if (fs.existsSync(destPath)) {
-      if (file.action === "copy-runtime-file" || file.action === "copy-policy-file") {
-        conflicts.push(`Existing file would be overwritten: ${file.path}`)
-      } else if (file.action === "create-source-lock" || file.action === "create-manifest") {
-        conflicts.push(`Existing file will be updated: ${file.path}`)
-      }
-    }
-  }
-
-  return conflicts
-}
-
 function classify(conflicts, sourceMissing, targetWritable, detectedRuntimes) {
   if (sourceMissing.length > 0) return "RED_BLOCK"
   if (!targetWritable) return "RED_BLOCK"
-  if (conflicts.length > 0) return "AMBER_REVIEW"
-
-  const hasStrongDetection = detectedRuntimes.some((r) => r.confidence >= 80)
-  if (!hasStrongDetection && detectedRuntimes.every((r) => r.confidence < 50)) {
-    return "AMBER_REVIEW"
-  }
-
+  if (conflicts.some(conflictNeedsManual)) return "NEEDS_REVIEW"
   return "VERIFIED_IN_SCOPE"
 }
 
@@ -404,8 +485,7 @@ async function copyRuntimeFiles(repoRoot, targetRoot) {
     const sourcePath = path.join(repoRoot, rf.source)
     const destPath = path.join(runtimeDir, rf.dest)
     await assertSafePath(runtimeDir, destPath, "runtime destination")
-    await ensureParentDirectory(destPath)
-    fs.cpSync(sourcePath, destPath, { force: true })
+    await copySourceIfSafe(sourcePath, destPath, targetRoot)
   }
 }
 
@@ -419,8 +499,33 @@ async function copyPolicies(repoRoot, targetRoot) {
     const sourcePath = path.join(repoRoot, ".opencode", "policies", pf)
     const destPath = path.join(policiesDir, pf)
     await assertSafePath(policiesDir, destPath, "policy destination")
-    fs.cpSync(sourcePath, destPath, { force: true })
+    await copySourceIfSafe(sourcePath, destPath, targetRoot)
   }
+}
+
+async function copySourceIfSafe(sourcePath, destPath, targetRoot) {
+  await assertSafePath(targetRoot, destPath, "managed destination")
+  const existing = await (async () => { try { return await fsPromises.lstat(destPath) } catch { return null } })()
+  if (existing) {
+    if (!existing.isFile()) return { written: false, classification: "FORBIDDEN" }
+    const [sourceHash, currentHash] = await Promise.all([fileHash(sourcePath), fileHash(destPath)])
+    if (sourceHash === currentHash) return { written: false, classification: "SAFE_MANAGED_UPDATE" }
+    const previous = await readInstallationManifest(targetRoot)
+    const previousHash = previous?.file_hashes?.[relativePath(targetRoot, destPath)]
+    if (previousHash && previousHash === currentHash) {
+      const temporary = `${destPath}.bootstrap-tmp-${process.pid}`
+      await ensureParentDirectory(temporary)
+      await fsPromises.copyFile(sourcePath, temporary)
+      await fsPromises.rename(temporary, destPath)
+      return { written: true, classification: "SAFE_MANAGED_UPDATE" }
+    }
+    return { written: false, classification: "OWNER_CONTENT_PRESERVE" }
+  }
+  const temporary = `${destPath}.bootstrap-tmp-${process.pid}`
+  await ensureParentDirectory(temporary)
+  await fsPromises.copyFile(sourcePath, temporary)
+  await fsPromises.rename(temporary, destPath)
+  return { written: true, classification: "SAFE_CREATE" }
 }
 
 async function generateSourceLock(repoRoot, targetRoot) {
@@ -519,8 +624,26 @@ async function createBinEvaluate(targetRoot, repoRoot) {
   }
 
   await assertSafePath(binDir, destPath, "bin destination")
-  fs.cpSync(sourcePath, destPath, { force: true })
+  await copySourceIfSafe(sourcePath, destPath, targetRoot)
   await fsPromises.chmod(destPath, 0o755)
+}
+
+async function writeGeneratedIfSafe(targetRoot, destination, content) {
+  await assertSafePath(targetRoot, destination, "generated destination")
+  const existing = await (async () => { try { return await fsPromises.lstat(destination) } catch { return null } })()
+  if (existing) {
+    if (!existing.isFile()) return false
+    const currentHash = await fileHash(destination)
+    const previous = await readInstallationManifest(targetRoot)
+    const previousHash = previous?.file_hashes?.[relativePath(targetRoot, destination)]
+    if (previousHash && previousHash !== currentHash) return false
+    if (!previousHash) return false
+  }
+  await ensureParentDirectory(destination)
+  const temporary = `${destination}.bootstrap-tmp-${process.pid}`
+  await fsPromises.writeFile(temporary, content, "utf8")
+  await fsPromises.rename(temporary, destination)
+  return true
 }
 
 async function installOpenCodeHook(targetRoot) {
@@ -552,16 +675,14 @@ process.exit(result.allowed ? 0 : result.requires_owner ? 1 : 2);
 `
 
   const destPath = path.join(hooksDir, "pre-evaluate.mjs")
-  await assertSafePath(targetRoot, destPath, "hook destination")
-  await fsPromises.writeFile(destPath, hookScript, "utf8")
+  await writeGeneratedIfSafe(targetRoot, destPath, hookScript)
   await fsPromises.chmod(destPath, 0o755)
 
   const pluginDir = path.join(targetRoot, ".opencode", "plugins")
   await ensureDirectory(pluginDir)
   const pluginBridge = path.join(pluginDir, "governance-v2.mjs")
   if (!fs.existsSync(pluginBridge)) {
-    await assertSafePath(targetRoot, pluginBridge, "OpenCode plugin bridge destination")
-    await fsPromises.writeFile(pluginBridge, "export { CanonicalGovernancePlugin as default, CanonicalGovernancePlugin } from '../../.agent-governance/hooks/opencode/canonical-governance.mjs'\n", "utf8")
+    await writeGeneratedIfSafe(targetRoot, pluginBridge, "export { CanonicalGovernancePlugin as default, CanonicalGovernancePlugin } from '../../.agent-governance/hooks/opencode/canonical-governance.mjs'\n")
   }
 
   const canonicalPlugin = `import fs from 'node:fs';
@@ -597,9 +718,9 @@ export const CanonicalGovernancePlugin = async ({ directory, worktree } = {}) =>
 };
 
 export default CanonicalGovernancePlugin;
-`
+  `
   const canonicalPluginPath = path.join(hooksDir, "canonical-governance.mjs")
-  await fsPromises.writeFile(canonicalPluginPath, canonicalPlugin, "utf8")
+  await writeGeneratedIfSafe(targetRoot, canonicalPluginPath, canonicalPlugin)
 
   const readme = `# OpenCode Governance Hook
 
@@ -633,7 +754,7 @@ Or configured as an OpenCode pre-action hook in \`opencode.jsonc\`:
 \`\`\`
 `
 
-  await fsPromises.writeFile(path.join(hooksDir, "README.md"), readme, "utf8")
+  await writeGeneratedIfSafe(targetRoot, path.join(hooksDir, "README.md"), readme)
 }
 
 async function installHermesFiles(targetRoot) {
@@ -685,8 +806,7 @@ function parseArgs(argv) {
 `
 
   const destPath = path.join(hermesGovernanceDir, "evaluate.mjs")
-  await assertSafePath(targetRoot, destPath, "hermes plugin destination")
-  await fsPromises.writeFile(destPath, pluginScript, "utf8")
+  await writeGeneratedIfSafe(targetRoot, destPath, pluginScript)
   await fsPromises.chmod(destPath, 0o755)
 
   const readme = `# Hermes Governance Plugin
@@ -714,7 +834,7 @@ hooks:
 \`\`\`
 `
 
-  await fsPromises.writeFile(path.join(hermesGovernanceDir, "README.md"), readme, "utf8")
+  await writeGeneratedIfSafe(targetRoot, path.join(hermesGovernanceDir, "README.md"), readme)
 }
 
 async function validatePostApply(targetRoot) {
@@ -814,6 +934,57 @@ async function verifySourceFingerprint(repoRoot, storedCommit) {
   return currentCommit === storedCommit
 }
 
+function isSourceDowngrade(sourceRoot, currentCommit, previousCommit) {
+  if (!currentCommit || !previousCommit || currentCommit === previousCommit) return false
+  try {
+    execFileSync("git", ["merge-base", "--is-ancestor", currentCommit, previousCommit], { cwd: sourceRoot, stdio: "ignore", timeout: 10000 })
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function writeInstallationManifest({ targetRoot, sourceRoot, sourceCommit, sourceRef, sourceRepository, mode, filePlan, conflicts, verification }) {
+  const managedFiles = []
+  const fileHashes = {}
+  for (const file of filePlan) {
+    if (file.action === "create-directory") continue
+    const absolute = path.join(targetRoot, file.path)
+    const hash = await hashIfFile(absolute)
+    if (hash) {
+      managedFiles.push(file.path)
+      fileHashes[file.path] = hash
+    }
+  }
+  const preservedFiles = conflicts.filter((conflict) => conflict.classification === "OWNER_CONTENT_PRESERVE").map((conflict) => conflict.path)
+  const installation = {
+    ecosystem: ECOSYSTEM,
+    source_repository: sourceRepository,
+    source_ref: sourceRef,
+    source_commit: sourceCommit,
+    installed_at: new Date().toISOString(),
+    bootstrap_protocol: BOOTSTRAP_PROTOCOL,
+    mode,
+    managed_files: managedFiles,
+    file_hashes: fileHashes,
+    preserved_files: preservedFiles,
+    conflicts,
+    verification: {
+      classification: verification.classification,
+      issues: verification.issues || [],
+      warnings: verification.warnings || [],
+      verifier: "bootstrap/verify.mjs",
+    },
+  }
+  const destination = path.join(targetRoot, ".opencode", "ecosystem-installation.json")
+  await assertSafePath(targetRoot, destination, "installation manifest destination")
+  await ensureParentDirectory(destination)
+  const temporary = `${destination}.bootstrap-tmp-${process.pid}`
+  await fsPromises.writeFile(temporary, `${safeSerialize(installation, REDACTION_OPTIONS)}\n`, "utf8")
+  await fsPromises.rename(temporary, destination)
+  return installation
+}
+
 async function runApplyPhase(args) {
   const targetRoot = toAbsolutePath(args.target)
 
@@ -849,6 +1020,12 @@ async function runApplyPhase(args) {
   // Phase 2: Lock source commit
   const sourceCommit = await getSourceCommit(repoRoot)
 
+  const previousInstallation = await readInstallationManifest(targetRoot)
+  if (previousInstallation?.source_commit && isSourceDowngrade(repoRoot, sourceCommit, previousInstallation.source_commit)) {
+    console.error(`RED_BLOCK: Refusing a silent downgrade from ${previousInstallation.source_commit} to ${sourceCommit}.`)
+    process.exit(2)
+  }
+
   // Phase 3: Check existing installation for fingerprint match
   const existingSourceLockPath = path.join(targetRoot, ".agent-governance", "source-lock.json")
   if (fs.existsSync(existingSourceLockPath)) {
@@ -868,9 +1045,22 @@ async function runApplyPhase(args) {
   // Phase 4: Detect runtimes
   const detectedRuntimes = await detectRuntimes(targetRoot)
 
+  // Phase 5: Build and enforce a conflict-aware plan before any write.
+  const filePlan = buildFilePlan(targetRoot, repoRoot)
+  const conflicts = await findConflicts(targetRoot, filePlan)
+  if (conflicts.some(conflictNeedsManual)) {
+    const packet = { type: "BOOTSTRAP_OWNER_DECISION_PACKET", target_root: targetRoot, conflicts }
+    if (args.json) console.log(safeSerialize({ classification: "NEEDS_REVIEW", ...packet }, REDACTION_OPTIONS))
+    else {
+      console.error("NEEDS_REVIEW: Bootstrap conflicts require one bundled owner decision packet.")
+      for (const conflict of conflicts.filter(conflictNeedsManual)) console.error(`  - [${conflict.classification}] ${conflict.path}`)
+    }
+    process.exit(1)
+  }
+
   // Phase 5: Create backup
   const governanceRoot = path.join(targetRoot, ".agent-governance")
-  const backupFiles = [governanceRoot]
+  const backupFiles = [governanceRoot, path.join(targetRoot, ".opencode", "ecosystem-installation.json")]
   if (fs.existsSync(path.join(targetRoot, ".hermes", "governance"))) {
     backupFiles.push(path.join(targetRoot, ".hermes", "governance"))
   }
@@ -958,6 +1148,18 @@ async function runApplyPhase(args) {
   }
   await fsPromises.writeFile(reportPath, `${safeSerialize(report, REDACTION_OPTIONS)}\n`, "utf8")
 
+  const installationManifest = await writeInstallationManifest({
+    targetRoot,
+    sourceRoot: repoRoot,
+    sourceCommit,
+    sourceRef: getSourceRef(repoRoot),
+    sourceRepository: getSourceRepository(repoRoot) || "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+    mode: (await readInstallationManifest(targetRoot)) ? "UPDATE_EXISTING" : "INSTALL_NEW",
+    filePlan,
+    conflicts,
+    verification: postValidation,
+  })
+
   if (args.json) {
     console.log(safeSerialize(report, REDACTION_OPTIONS))
   } else {
@@ -990,17 +1192,55 @@ async function runRollbackPhase(args) {
   const backupRoot = toAbsolutePath(args.rollback)
   const targetRoot = args.target ? toAbsolutePath(args.target) : null
 
+  const installationPath = targetRoot ? path.join(targetRoot, ".opencode", "ecosystem-installation.json") : null
+  const installed = installationPath ? await readInstallationManifest(targetRoot) : null
+  const installedHashes = { ...(installed?.file_hashes || {}) }
+  if (installationPath) installedHashes[relativePath(targetRoot, installationPath)] = await hashIfFile(installationPath)
+  const laterEdits = new Map()
+  for (const [relative, expectedHash] of Object.entries(installedHashes)) {
+    if (!expectedHash) continue
+    const destination = path.join(targetRoot || process.cwd(), relative)
+    const currentHash = await hashIfFile(destination)
+    if (currentHash && currentHash !== expectedHash) {
+      laterEdits.set(relative, await fsPromises.readFile(destination))
+    }
+  }
+
   const result = await restoreBackup({
     backupRoot,
     expectedTargetRoot: targetRoot,
   })
 
-  const governanceRoot = path.join(result.targetRoot, ".agent-governance")
-  if (fs.existsSync(governanceRoot)) {
-    await removeIfExists(governanceRoot)
+  const backupManifest = result.manifest
+  const restoredFiles = new Set((backupManifest.files || []).filter((entry) => entry.existed && !entry.is_directory).map((entry) => entry.path))
+  const conflicts = []
+  for (const [relative, content] of laterEdits) {
+    const destination = path.join(result.targetRoot, relative)
+    await ensureParentDirectory(destination)
+    await fsPromises.writeFile(destination, content)
+  }
+  for (const [relative, expectedHash] of Object.entries(installedHashes)) {
+    if (restoredFiles.has(relative) || !expectedHash) continue
+    const destination = path.join(result.targetRoot, relative)
+    const currentHash = await hashIfFile(destination)
+    if (!currentHash) continue
+    if (currentHash === expectedHash) {
+      await fsPromises.unlink(destination)
+    } else {
+      conflicts.push({ path: relative, classification: "MANUAL_REVIEW_REQUIRED", reason: "later owner edit preserved" })
+    }
   }
 
-  console.log(`Rollback complete. Governance removed from ${result.targetRoot}`)
+  if (conflicts.length > 0) {
+    const reviewPath = path.join(result.targetRoot, ".opencode", "ecosystem-installation-rollback-review.json")
+    await ensureParentDirectory(reviewPath)
+    await fsPromises.writeFile(reviewPath, `${JSON.stringify({ classification: "NEEDS_REVIEW", target_root: result.targetRoot, backup_root: backupRoot, conflicts }, null, 2)}\n`, "utf8")
+    console.log(`Rollback completed with preserved later edits: ${reviewPath}`)
+    console.log("NEEDS_REVIEW")
+    process.exit(1)
+  }
+
+  console.log(`Rollback complete. Bootstrap-managed changes restored in ${result.targetRoot}`)
   console.log("VERIFIED_IN_SCOPE")
   process.exit(0)
 }
@@ -1186,6 +1426,18 @@ async function main() {
     process.exit(0)
   }
 
+  if (args.mode && !["INSTALL_NEW", "UPDATE_EXISTING", "VERIFY_ONLY", "ROLLBACK"].includes(args.mode)) {
+    throw new Error(`Unknown bootstrap mode: ${args.mode}`)
+  }
+
+  if (args.mode === "VERIFY_ONLY") {
+    const verifier = await import("../bootstrap/verify.mjs")
+    if (!args.target) throw new Error("--target is required for VERIFY_ONLY")
+    const result = await verifier.verifyInstallation({ targetRoot: args.target, sourceRoot: repoRoot })
+    console.log(args.json ? JSON.stringify(result, null, 2) : result.classification)
+    process.exit(result.classification === "VERIFIED_IN_SCOPE" ? 0 : result.classification === "NEEDS_REVIEW" ? 1 : 2)
+  }
+
   if (args.rollback) {
     await runRollbackPhase(args)
     return
@@ -1214,7 +1466,7 @@ const isDirectlyInvoked = process.argv[1] && (
 )
 if (isDirectlyInvoked) {
   main().catch((error) => {
-    console.error(safeRedactText(error instanceof Error ? error.message : String(error), { secrets: secretValuesFromEnv() }))
+    console.error(safeRedactText(error instanceof Error ? error.message : String(error), REDACTION_OPTIONS))
     process.exit(2)
   })
 }

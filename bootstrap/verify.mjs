@@ -3,7 +3,7 @@
 import fs from "node:fs/promises"
 import fsSync from "node:fs"
 import path from "node:path"
-import { execSync, spawnSync } from "node:child_process"
+import { spawnSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import { validateBootstrapManifest, containsPrivateAbsolutePath } from "./lib/contract.mjs"
 
@@ -27,7 +27,7 @@ export async function verifyInstallation({ targetRoot, sourceRoot: source = sour
     issues.push(`source manifest cannot be read: ${error.message}`)
   }
 
-  const sourceCommit = gitValue(sourceDir, ["rev-parse", "HEAD"])
+  const sourceCommit = readGitHead(sourceDir)
   if (!sourceCommit) issues.push("source commit cannot be determined")
   if (expectedCommit && sourceCommit !== expectedCommit) issues.push(`source commit mismatch: expected ${expectedCommit}, got ${sourceCommit || "UNKNOWN"}`)
 
@@ -93,12 +93,32 @@ export async function verifyInstallation({ targetRoot, sourceRoot: source = sour
   }
 }
 
-function gitValue(cwd, args) {
+function readGitHead(cwd) {
   try {
-    // Use the same controlled Git read path as the installer. The managed
-    // runtime may deny direct execFileSync even for read-only Git commands.
-    const command = `git ${args.map((arg) => JSON.stringify(arg)).join(" ")}`
-    return execSync(command, { cwd, encoding: "utf8", timeout: 10000 }).trim() || null
+    let gitPath = path.join(cwd, ".git")
+    if (fsSync.lstatSync(gitPath).isFile()) {
+      const gitMarker = fsSync.readFileSync(gitPath, "utf8").trim()
+      if (!gitMarker.startsWith("gitdir:")) return null
+      gitPath = path.resolve(cwd, gitMarker.slice("gitdir:".length).trim())
+    }
+    const head = fsSync.readFileSync(path.join(gitPath, "HEAD"), "utf8").trim()
+    if (fsSync.existsSync(path.join(gitPath, "commondir"))) {
+      gitPath = path.resolve(gitPath, fsSync.readFileSync(path.join(gitPath, "commondir"), "utf8").trim())
+    }
+    if (/^[0-9a-f]{40}$/i.test(head)) return head
+    const match = /^ref:\s+(.+)$/.exec(head)
+    if (!match || !/^[A-Za-z0-9._/-]+$/.test(match[1])) return null
+    const refPath = path.join(gitPath, match[1])
+    if (fsSync.existsSync(refPath)) {
+      const refValue = fsSync.readFileSync(refPath, "utf8").trim()
+      return /^[0-9a-f]{40}$/i.test(refValue) ? refValue : null
+    }
+    const packedRefs = fsSync.readFileSync(path.join(gitPath, "packed-refs"), "utf8")
+    for (const line of packedRefs.split(/\r?\n/)) {
+      const packed = /^(?:[0-9a-f]{40})\s+(.+)$/.exec(line)
+      if (packed?.[1] === match[1]) return line.slice(0, 40)
+    }
+    return null
   } catch {
     return null
   }

@@ -23,6 +23,7 @@ if (args.sourceUrl) {
   const normalized = normalizeBootstrapUrl(args.sourceUrl)
   const actual = normalizeRemote(readRemote(sourceRoot))
   if (normalized.repository !== actual) fail(`Source URL does not match this checkout: expected ${normalized.repository}, got ${actual || "UNKNOWN"}`)
+  if (normalized.ref && normalized.ref_type === "branch" && currentRef(sourceRoot) !== normalized.ref) fail(`Source branch mismatch: expected ${normalized.ref}, got ${currentRef(sourceRoot) || "DETACHED"}`)
   if (normalized.ref && normalized.ref_type === "commit" && currentCommit(sourceRoot) !== normalized.ref) fail(`Source commit mismatch: expected ${normalized.ref}, got ${currentCommit(sourceRoot)}`)
 }
 
@@ -85,6 +86,11 @@ function currentCommit(root) {
   const packedMatch = packed.split(/\r?\n/).find((line) => line.endsWith(` ${reference}`))
   if (packedMatch && /^[0-9a-f]{40}/i.test(packedMatch)) return packedMatch.slice(0, 40)
   fail(`Cannot resolve source ref: ${reference}`)
+}
+
+function currentRef(root) {
+  const head = fsSync.readFileSync(path.join(readGitDir(root), "HEAD"), "utf8").trim()
+  return /^ref:\s+refs\/heads\/(.+)$/.exec(head)?.[1] || null
 }
 
 function readGitDir(root) {

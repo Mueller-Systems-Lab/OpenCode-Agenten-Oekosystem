@@ -5,7 +5,7 @@
  * Defines the classification hierarchy and priority rules.
  *
  * Classification Priority (immutable, kernel-enforced):
- *   RED_BLOCK > TOOL_GAP > AMBER_REVIEW > GREEN_SAFE
+ *   RED_BLOCK > TOOL_GAP > NEEDS_REVIEW > VERIFIED_IN_SCOPE > GREEN_SAFE (legacy)
  *
  * Verification Levels (structural vs. live):
  *   FAILED > TOOL_GAP > NOT_CHECKED > STRUCTURAL_PASS > CLI_PASS > RUNTIME_SMOKE_PASS > LIVE_INTEGRATION_PASS
@@ -18,8 +18,12 @@ export const CLASSIFICATIONS = Object.freeze({
   RED_BLOCK: 'RED_BLOCK',
   TOOL_GAP: 'TOOL_GAP',
   AMBER_REVIEW: 'AMBER_REVIEW',
+  NEEDS_REVIEW: 'NEEDS_REVIEW',
+  VERIFIED_IN_SCOPE: 'VERIFIED_IN_SCOPE',
   GREEN_SAFE: 'GREEN_SAFE'
 });
+
+export const LEGACY_CLASSIFICATION_ALIASES = Object.freeze({ GREEN_SAFE: 'VERIFIED_IN_SCOPE', AMBER_REVIEW: 'NEEDS_REVIEW' });
 
 /**
  * Priority ordering for classifications.
@@ -30,6 +34,8 @@ export const CLASSIFICATION_PRIORITY = Object.freeze([
   CLASSIFICATIONS.RED_BLOCK,
   CLASSIFICATIONS.TOOL_GAP,
   CLASSIFICATIONS.AMBER_REVIEW,
+  CLASSIFICATIONS.NEEDS_REVIEW,
+  CLASSIFICATIONS.VERIFIED_IN_SCOPE,
   CLASSIFICATIONS.GREEN_SAFE
 ]);
 
@@ -85,6 +91,7 @@ export function resolveClassification(results) {
   let hasRedBlock = false;
   let hasToolGap = false;
   let hasAmberReview = false;
+  let hasVerified = false;
   let allGreen = true;
 
   for (const result of results) {
@@ -96,6 +103,12 @@ export function resolveClassification(results) {
       allGreen = false;
     } else if (c === CLASSIFICATIONS.AMBER_REVIEW) {
       hasAmberReview = true;
+      allGreen = false;
+    } else if (c === CLASSIFICATIONS.NEEDS_REVIEW) {
+      hasAmberReview = true;
+      allGreen = false;
+    } else if (c === CLASSIFICATIONS.VERIFIED_IN_SCOPE) {
+      hasVerified = true;
       allGreen = false;
     } else if (c !== CLASSIFICATIONS.GREEN_SAFE) {
       // Unknown classification — treat as AMBER_REVIEW for safety
@@ -118,6 +131,8 @@ export function resolveClassification(results) {
     classification = CLASSIFICATIONS.TOOL_GAP;
   } else if (hasAmberReview) {
     classification = CLASSIFICATIONS.AMBER_REVIEW;
+  } else if (hasVerified) {
+    classification = CLASSIFICATIONS.VERIFIED_IN_SCOPE;
   } else if (allGreen) {
     classification = CLASSIFICATIONS.GREEN_SAFE;
   } else {
@@ -146,7 +161,11 @@ function worstVerificationLevel(a, b) {
  * Determine if a classification allows the operation to proceed.
  */
 export function isAllowed(classification) {
-  return classification === CLASSIFICATIONS.GREEN_SAFE;
+  return classification === CLASSIFICATIONS.GREEN_SAFE || classification === CLASSIFICATIONS.VERIFIED_IN_SCOPE;
+}
+
+export function normalizeClassification(classification) {
+  return LEGACY_CLASSIFICATION_ALIASES[classification] || classification;
 }
 
 /**
@@ -182,8 +201,10 @@ export function assertValidClassification(value) {
 export function classificationToExitCode(classification) {
   switch (classification) {
     case CLASSIFICATIONS.GREEN_SAFE:
+    case CLASSIFICATIONS.VERIFIED_IN_SCOPE:
       return 0;
     case CLASSIFICATIONS.AMBER_REVIEW:
+    case CLASSIFICATIONS.NEEDS_REVIEW:
     case CLASSIFICATIONS.TOOL_GAP:
       return 1;
     case CLASSIFICATIONS.RED_BLOCK:

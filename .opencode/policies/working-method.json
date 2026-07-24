@@ -1,5 +1,14 @@
 {
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "governance_v2": {
+    "policy_source": "governance/policy-core.yaml",
+    "approval_mode": "exception_only_effect_based",
+    "execution_profiles": {"LOW_LOCAL": "COMPACT", "MEDIUM_REVIEW": "STANDARD", "HIGH_HUMAN_GATE": "CRITICAL", "CRITICAL_BLOCK": "BLOCKED"},
+    "context_transition": "WARM_TO_HOT_REQUIRES_EFFECT_AUTHORIZATION_NOT_PHASE_APPROVAL",
+    "scope_model": ["read_scope", "write_scope", "forbidden_scope", "external_effect_scope"],
+    "completion_classifications": ["RED_BLOCK", "TOOL_GAP", "NEEDS_REVIEW", "VERIFIED_IN_SCOPE"],
+    "legacy_aliases": {"GREEN_SAFE": "VERIFIED_IN_SCOPE"}
+  },
   "description": "Canonical evidence-driven working method for the OpenCode Agent Ecosystem",
 
   "source_of_truth_order": [
@@ -135,7 +144,7 @@
     { "order": 9, "name": "compliance", "context": "HOT", "mandatory": true },
     { "order": 10, "name": "verification_contract", "context": "HOT", "mandatory": true },
     { "order": 11, "name": "red_tests", "context": "HOT", "mandatory": true },
-    { "order": 12, "name": "owner_approval", "context": "HOT", "mandatory": true },
+    { "order": 12, "name": "effect_authorization", "context": "HOT", "mandatory": true },
     { "order": 13, "name": "implementation", "context": "HOT", "mandatory": true },
     { "order": 14, "name": "local_validation", "context": "HOT", "mandatory": true },
     { "order": 15, "name": "reality_gate", "context": "HOT", "mandatory": true },
@@ -153,31 +162,31 @@
 
   "approval_gates": {
     "apply": {
-      "description": "Before files are modified in the target project",
+      "description": "Only when a concrete file effect is not already authorized by policy, Intent, Capsule, Lease, or Receipt",
       "scope_specific": true,
       "non_transferable": true,
-      "required_when": "any_file_write_in_target",
+      "required_when": "owner_required_effect_not_authorized",
       "states": ["NOT_REQUESTED", "PENDING", "APPROVED", "DENIED", "EXPIRED"]
     },
     "commit": {
-      "description": "Before changes are committed",
+      "description": "Local commits inside a valid Capsule are autonomous; otherwise classify the concrete external effect",
       "scope_specific": true,
       "non_transferable": true,
-      "required_when": "any_git_commit",
+      "required_when": "external_or_not_authorized_commit_effect",
       "states": ["NOT_REQUESTED", "PENDING", "APPROVED", "DENIED", "EXPIRED"]
     },
     "push": {
-      "description": "Before changes are pushed to remote",
+      "description": "Push only under a matching Lease/Receipt or bundled owner decision for the target branch",
       "scope_specific": true,
       "non_transferable": true,
-      "required_when": "any_git_push",
+      "required_when": "push_effect_not_authorized_by_lease_or_receipt",
       "states": ["NOT_REQUESTED", "PENDING", "APPROVED", "DENIED", "EXPIRED"]
     },
     "pr": {
-      "description": "Before a pull request is created",
+      "description": "Draft PR creation/update may be covered by a matching Lease; external communication remains effect-classified",
       "scope_specific": true,
       "non_transferable": true,
-      "required_when": "any_pr_creation",
+      "required_when": "pr_effect_not_authorized",
       "states": ["NOT_REQUESTED", "PENDING", "APPROVED", "DENIED", "EXPIRED"]
     },
     "merge": {

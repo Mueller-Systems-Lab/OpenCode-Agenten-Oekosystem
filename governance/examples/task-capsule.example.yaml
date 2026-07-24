@@ -1,0 +1,33 @@
+task_id: task-example-001
+owner_intent_id: intent-example-001
+goal: Implement a bounded repository feature
+why: Reduce manual routine work
+risk_tier: LOW_LOCAL
+execution_profile: COMPACT
+source_of_truth: local-reality
+baseline:
+  base_sha: 0000000000000000000000000000000000000000
+read_scope:
+  - '**'
+write_scope:
+  - src/**
+forbidden_scope:
+  - .env
+allowed_effects:
+  - LOCAL_READ
+  - LOCAL_WRITE
+  - TEST_EXECUTION
+acceptance_criteria:
+  - Tests pass
+evidence_required:
+  - diff
+  - test-output
+approval_budget:
+  target_owner_interruptions: 0
+  maximum_owner_interruptions: 0
+  allow_serial_approvals: false
+  bundling_required: true
+active_approval_receipts: []
+active_change_leases: []
+stop_conditions:
+  - secret access

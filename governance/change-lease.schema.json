@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencode-agent-ecosystem.local/governance/change-lease.schema.json",
+  "type": "object",
+  "required": ["lease_id", "owner_intent_id", "task_id", "allowed_effects", "allowed_paths", "denied_effects", "expires_at", "delegation_allowed", "delegation_depth", "revocation_status"],
+  "properties": {"lease_id": {"type": "string"}, "allowed_effects": {"type": "array"}, "allowed_paths": {"type": "array"}, "denied_effects": {"type": "array"}, "expires_at": {"type": "string"}, "delegation_allowed": {"type": "boolean"}, "delegation_depth": {"type": "integer"}, "revocation_status": {"enum": ["ACTIVE", "REVOKED"]}}
+}

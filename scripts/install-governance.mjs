@@ -117,6 +117,12 @@ function validateSourceRepository(repoRoot) {
     "scripts/lib/gates/classifications.mjs",
     "scripts/lib/gates/errors.mjs",
     "scripts/lib/gates/context-fingerprint.mjs",
+    "runtime/approval/approval-engine.mjs",
+    "runtime/approval/approval-receipt.mjs",
+    "runtime/approval/change-lease.mjs",
+    "runtime/approval/approval-bundler.mjs",
+    "runtime/approval/approval-audit.mjs",
+    "runtime/approval/capability-registry.mjs",
     "scripts/lib/runtimes/contract.mjs",
     "scripts/lib/runtimes/generic.mjs",
     "scripts/lib/runtimes/opencode.mjs",
@@ -157,6 +163,13 @@ function getRuntimeFileList() {
     { source: "scripts/lib/runtimes/odysseus.mjs", dest: "runtimes/odysseus.mjs" },
     // security/ directory — security/privacy adapter modules
     { source: "scripts/lib/security/redaction.mjs", dest: "security/redaction.mjs" },
+    // approval/ directory — effect-based Governance V2 runtime
+    { source: "runtime/approval/approval-engine.mjs", dest: "approval/approval-engine.mjs" },
+    { source: "runtime/approval/approval-receipt.mjs", dest: "approval/approval-receipt.mjs" },
+    { source: "runtime/approval/change-lease.mjs", dest: "approval/change-lease.mjs" },
+    { source: "runtime/approval/approval-bundler.mjs", dest: "approval/approval-bundler.mjs" },
+    { source: "runtime/approval/approval-audit.mjs", dest: "approval/approval-audit.mjs" },
+    { source: "runtime/approval/capability-registry.mjs", dest: "approval/capability-registry.mjs" },
   ]
 }
 

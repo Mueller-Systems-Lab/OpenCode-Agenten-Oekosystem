@@ -11,7 +11,7 @@
  *   node scripts/evaluate-gates.mjs --target . --runtime auto --json
  *
  * Exit codes:
- *   0 = GREEN_SAFE
+ *   0 = VERIFIED_IN_SCOPE
  *   1 = AMBER_REVIEW or TOOL_GAP
  *   2 = RED_BLOCK
  */
@@ -20,6 +20,7 @@ import { resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { evaluateAllGates, CLASSIFICATIONS, VERIFICATION_LEVELS, classificationToExitCode, VALID_ACTIONS, KNOWN_RUNTIMES } from './lib/gates/evaluate-all.mjs';
 import { safeRedactText, safeSerialize, secretValuesFromEnv } from './lib/security/redaction.mjs';
+import { evaluateAction } from '../runtime/gates/evaluate-action.mjs';
 
 // ── CLI Argument Parsing ──────────────────────────────────────────
 
@@ -114,8 +115,8 @@ Options:
   --help, -h           Show this help
 
 Exit Codes:
-  0  GREEN_SAFE — all gates passed
-  1  AMBER_REVIEW or TOOL_GAP — review required
+  0  VERIFIED_IN_SCOPE — all required checks passed in scope
+  1  NEEDS_REVIEW or TOOL_GAP — review required
   2  RED_BLOCK — kernel gate violation`);
 
   console.log(`\nValid Actions: ${[...new Set([...VALID_ACTIONS, 'evaluate', 'review', 'validate', 'check', 'scan'])].sort().join(', ')}`);
@@ -297,6 +298,23 @@ async function main() {
   if (!VALID_CLI_ACTIONS.has(args.action)) {
     console.error(`Invalid action: "${args.action}". Valid actions: ${[...VALID_CLI_ACTIONS].sort().join(', ')}`);
     process.exit(2);
+  }
+
+  if (['apply', 'push', 'commit', 'merge', 'deploy'].includes(args.action)) {
+    const tool = args.action === 'apply' ? 'write' : args.action === 'deploy' ? 'deployment' : 'bash';
+    const command = args.command || (args.action === 'push' ? 'git push' : args.action === 'commit' ? 'git commit' : args.action === 'merge' ? 'git merge' : undefined);
+    const result = await evaluateAction({
+      targetRoot, runtime: args.runtime, tool, command,
+      effect: args.action === 'deploy' ? 'PRODUCTION_DEPLOY' : undefined,
+      resource: args.writePaths[0] || command || args.action,
+      auditPath: resolve(targetRoot, '.agent-governance', 'evidence', 'action-audit.jsonl'),
+    });
+    const classification = result.decision_class === 'A_AUTONOMOUS' || result.decision_class === 'B_LEASE_OR_RECEIPT'
+      ? 'VERIFIED_IN_SCOPE' : result.decision_class === 'C_BUNDLED_OWNER_DECISION' ? 'NEEDS_REVIEW' : 'RED_BLOCK';
+    const payload = { schema_version: 'governance-v2.action-decision.1', ...result, classification, runtime: args.runtime, riskTier: args.riskTier, action: args.action, exitCode: result.allowed ? 0 : result.requires_owner ? 1 : 2, blockedBy: result.allowed ? [] : [{ layer: 'v2', code: result.code, message: result.message }] };
+    if (args.json) console.log(safeSerialize(payload, { secrets: secretValuesFromEnv() }));
+    else console.log(`${classification}: ${result.code}`);
+    process.exit(payload.exitCode);
   }
 
   // Delegate to canonical evaluator

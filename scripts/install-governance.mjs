@@ -77,7 +77,7 @@ Flags:
   --json                     Output machine-readable JSON
   --help                     Show this help
 
-Exit codes: 0=GREEN_SAFE, 1=AMBER_REVIEW/TOOL_GAP, 2=RED_BLOCK
+Exit codes: 0=VERIFIED_IN_SCOPE, 1=NEEDS_REVIEW/TOOL_GAP, 2=RED_BLOCK
 `)
 }
 
@@ -123,6 +123,8 @@ function validateSourceRepository(repoRoot) {
     "runtime/approval/approval-bundler.mjs",
     "runtime/approval/approval-audit.mjs",
     "runtime/approval/capability-registry.mjs",
+    "runtime/gates/evaluate-action.mjs",
+    "governance/generated/capability-registry.json",
     "scripts/lib/runtimes/contract.mjs",
     "scripts/lib/runtimes/generic.mjs",
     "scripts/lib/runtimes/opencode.mjs",
@@ -170,6 +172,8 @@ function getRuntimeFileList() {
     { source: "runtime/approval/approval-bundler.mjs", dest: "approval/approval-bundler.mjs" },
     { source: "runtime/approval/approval-audit.mjs", dest: "approval/approval-audit.mjs" },
     { source: "runtime/approval/capability-registry.mjs", dest: "approval/capability-registry.mjs" },
+    { source: "runtime/gates/evaluate-action.mjs", dest: "gates/evaluate-action.mjs" },
+    { source: "governance/generated/capability-registry.json", dest: "governance/generated/capability-registry.json" },
   ]
 }
 
@@ -218,7 +222,7 @@ async function detectRuntimes(targetRoot) {
 
 function assessRiskTier(detectedRuntimes, targetRoot) {
   const isGitRepo = fs.existsSync(path.join(targetRoot, ".git"))
-  const opencodeDetected = detectedRuntimes.some(
+  const opencodeDetected = fs.existsSync(path.join(targetRoot, "opencode.jsonc")) || fs.existsSync(path.join(targetRoot, "opencode.json")) || detectedRuntimes.some(
     (r) => r.name === "opencode" && r.confidence >= 50
   )
   const hermesDetected = detectedRuntimes.some(
@@ -387,7 +391,7 @@ function classify(conflicts, sourceMissing, targetWritable, detectedRuntimes) {
     return "AMBER_REVIEW"
   }
 
-  return "GREEN_SAFE"
+  return "VERIFIED_IN_SCOPE"
 }
 
 async function copyRuntimeFiles(repoRoot, targetRoot) {
@@ -525,20 +529,26 @@ async function installOpenCodeHook(targetRoot) {
   await ensureDirectory(hooksDir)
 
   const hookScript = `#!/usr/bin/env node
-import { evaluateAllGates } from '../../runtime/gates/evaluate-all.mjs';
+import fs from 'node:fs';
+import path from 'node:path';
+import { evaluateAction } from '../../runtime/gates/evaluate-action.mjs';
 
 const targetRoot = process.argv[2] || process.cwd();
 const action = process.argv[3] || 'evaluate';
-
-const result = await evaluateAllGates({
-  targetRoot,
-  runtime: 'opencode',
-  action,
-  dryRun: false,
-  riskTier: 'MEDIUM_REVIEW',
+const resource = process.argv[4] || action;
+const capsulePath = path.join(targetRoot, '.agent-governance', 'task-capsule.json');
+const intentPath = path.join(targetRoot, '.agent-governance', 'owner-intent.json');
+const readJson = (file) => { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return null; } };
+const tool = action === 'read' ? 'read' : action === 'write' ? 'write' : action === 'test' ? 'test' : action === 'bash' ? 'bash' : 'bash';
+const result = await evaluateAction({
+  targetRoot, runtime: 'opencode', tool, action: tool === 'bash' ? undefined : action,
+  command: tool === 'bash' ? action : undefined, resource,
+  capsule: readJson(capsulePath), intent: readJson(intentPath),
+  auditPath: path.join(targetRoot, '.agent-governance', 'evidence', 'action-audit.jsonl'),
 });
 
-process.exit(result.exitCode || 0);
+console.log(JSON.stringify({ ...result, classification: result.decision_class === 'A_AUTONOMOUS' || result.decision_class === 'B_LEASE_OR_RECEIPT' ? 'VERIFIED_IN_SCOPE' : result.decision_class === 'C_BUNDLED_OWNER_DECISION' ? 'NEEDS_REVIEW' : 'RED_BLOCK' }));
+process.exit(result.allowed ? 0 : result.requires_owner ? 1 : 2);
 `
 
   const destPath = path.join(hooksDir, "pre-evaluate.mjs")
@@ -546,14 +556,60 @@ process.exit(result.exitCode || 0);
   await fsPromises.writeFile(destPath, hookScript, "utf8")
   await fsPromises.chmod(destPath, 0o755)
 
+  const pluginDir = path.join(targetRoot, ".opencode", "plugins")
+  await ensureDirectory(pluginDir)
+  const pluginBridge = path.join(pluginDir, "governance-v2.mjs")
+  if (!fs.existsSync(pluginBridge)) {
+    await assertSafePath(targetRoot, pluginBridge, "OpenCode plugin bridge destination")
+    await fsPromises.writeFile(pluginBridge, "export { CanonicalGovernancePlugin as default, CanonicalGovernancePlugin } from '../../.agent-governance/hooks/opencode/canonical-governance.mjs'\n", "utf8")
+  }
+
+  const canonicalPlugin = `import fs from 'node:fs';
+import path from 'node:path';
+import { evaluateAction, recordActionOutcome } from '../../runtime/gates/evaluate-action.mjs';
+
+const readJson = (file) => { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return null; } };
+
+export const CanonicalGovernancePlugin = async ({ directory, worktree } = {}) => {
+  const targetRoot = directory || worktree || process.cwd();
+  const decisions = new Map();
+  const governanceRoot = path.join(targetRoot, '.agent-governance');
+  const context = () => ({
+    targetRoot, runtime: 'opencode',
+    capsule: readJson(path.join(governanceRoot, 'task-capsule.json')),
+    intent: readJson(path.join(governanceRoot, 'owner-intent.json')),
+    auditPath: path.join(governanceRoot, 'evidence', 'action-audit.jsonl'),
+  });
+  return {
+    'tool.execute.before': async (input, output) => {
+      const args = output?.args || {};
+      const decision = await evaluateAction({ ...context(), tool: input?.tool, command: args.command, args, resource: args.filePath || args.path || args.url || input?.tool });
+      decisions.set(input?.callID || input?.callId || input?.tool, decision);
+      output.__governanceDecision = decision;
+      if (!decision.allowed) throw new Error('[governance-v2] ' + decision.code + ': ' + (decision.message || 'effect rejected'));
+    },
+    'tool.execute.after': async (input, output) => {
+      const key = input?.callID || input?.callId || input?.tool;
+      await recordActionOutcome({ auditPath: context().auditPath, decision: output?.__governanceDecision || decisions.get(key) || null, success: true, output: output?.result || null });
+      decisions.delete(key);
+    },
+  };
+};
+
+export default CanonicalGovernancePlugin;
+`
+  const canonicalPluginPath = path.join(hooksDir, "canonical-governance.mjs")
+  await fsPromises.writeFile(canonicalPluginPath, canonicalPlugin, "utf8")
+
   const readme = `# OpenCode Governance Hook
 
 This directory contains governance hook scripts for OpenCode.
 
-## pre-evaluate.mjs
+## pre-evaluate.mjs and canonical-governance.mjs
 
-Called before OpenCode performs any action. Evaluates all gates (kernel, policy, runtime)
-against the current context. If any gate returns RED_BLOCK, the action is denied.
+The CLI and the OpenCode project plugin both call the same Governance V2 effect gate.
+Unknown tool/action pairs fail closed. \`C_BUNDLED_OWNER_DECISION\` is surfaced as
+\`NEEDS_REVIEW\`; no plugin path silently approves it.
 
 ### Usage
 
@@ -585,35 +641,43 @@ async function installHermesFiles(targetRoot) {
   await ensureDirectory(hermesGovernanceDir)
 
   const pluginScript = `#!/usr/bin/env node
-import { evaluateAllGates } from '../../.agent-governance/runtime/gates/evaluate-all.mjs';
+import fs from 'node:fs';
+import { evaluateAction } from '../../.agent-governance/gates/evaluate-action.mjs';
 import { argv, exit } from 'node:process';
 
 const args = parseArgs(argv.slice(2));
-
-const result = await evaluateAllGates({
-  targetRoot: args.target || process.cwd(),
+const targetRoot = args.target || process.cwd();
+const governanceRoot = \`\${targetRoot}/.agent-governance\`;
+const readJson = (name) => { try { return JSON.parse(fs.readFileSync(\`\${governanceRoot}/\${name}\`, 'utf8')); } catch { return null; } };
+const action = args.action || 'read';
+const result = await evaluateAction({
+  targetRoot,
   runtime: 'hermes',
-  action: args.action || 'evaluate',
-  riskTier: args.riskTier || 'MEDIUM_REVIEW',
-  dryRun: args.dryRun !== false,
+  tool: action === 'read' ? 'read' : action === 'write' ? 'write' : 'bash',
+  action: action === 'bash' ? undefined : action,
+  command: action === 'bash' ? args.command : undefined,
+  resource: args.resource || action,
+  capsule: readJson('task-capsule.json'),
+  intent: readJson('owner-intent.json'),
+  auditPath: \`\${governanceRoot}/evidence/action-audit.jsonl\`,
 });
-
-if (args.json) {
-    console.log(safeSerialize(result, REDACTION_OPTIONS));
-} else {
-  console.log(\`Classification: \${result.classification}\`);
+const classification = result.decision_class === 'A_AUTONOMOUS' || result.decision_class === 'B_LEASE_OR_RECEIPT'
+  ? 'VERIFIED_IN_SCOPE' : result.decision_class === 'C_BUNDLED_OWNER_DECISION' ? 'NEEDS_REVIEW' : 'RED_BLOCK';
+if (args.json) console.log(JSON.stringify({ ...result, classification }));
+else {
+  console.log(\`Classification: \${classification}\`);
   console.log(\`Allowed: \${result.allowed}\`);
 }
-
-exit(result.exitCode || 0);
+exit(result.allowed ? 0 : result.requires_owner ? 1 : 2);
 
 function parseArgs(argv) {
-  const result = { dryRun: true };
+  const result = {};
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--target') result.target = argv[++i];
     else if (arg === '--action') result.action = argv[++i];
-    else if (arg === '--risk-tier') result.riskTier = argv[++i];
+    else if (arg === '--resource') result.resource = argv[++i];
+    else if (arg === '--command') result.command = argv[++i];
     else if (arg === '--json') result.json = true;
   }
   return result;
@@ -725,7 +789,7 @@ async function validatePostApply(targetRoot) {
   }
 
   const classification =
-    issues.length > 0 ? "RED_BLOCK" : warnings.length > 0 ? "AMBER_REVIEW" : "GREEN_SAFE"
+    issues.length > 0 ? "RED_BLOCK" : warnings.length > 0 ? "NEEDS_REVIEW" : "VERIFIED_IN_SCOPE"
 
   return { classification, issues, warnings }
 }
@@ -852,7 +916,7 @@ async function runApplyPhase(args) {
   }
 
   // Phase 11: Install OpenCode hook if detected
-  const opencodeDetected = detectedRuntimes.some(
+  const opencodeDetected = fs.existsSync(path.join(targetRoot, "opencode.jsonc")) || fs.existsSync(path.join(targetRoot, "opencode.json")) || detectedRuntimes.some(
     (r) => r.name === "opencode" && r.confidence >= 50
   )
   if (opencodeDetected) {
@@ -937,7 +1001,7 @@ async function runRollbackPhase(args) {
   }
 
   console.log(`Rollback complete. Governance removed from ${result.targetRoot}`)
-  console.log("GREEN_SAFE")
+  console.log("VERIFIED_IN_SCOPE")
   process.exit(0)
 }
 

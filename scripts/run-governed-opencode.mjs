@@ -127,7 +127,7 @@ async function createIsolatedProfile(targetRoot) {
   // 3. Does NOT reference the user's production config
   const config = {
     plugin: [
-      path.join(targetRoot, ".agent-governance", "hooks", "opencode", "pre-evaluate.mjs"),
+      path.join(targetRoot, ".agent-governance", "hooks", "opencode", "canonical-governance.mjs"),
     ],
     config_dir: profileDir,
     verbose: false,

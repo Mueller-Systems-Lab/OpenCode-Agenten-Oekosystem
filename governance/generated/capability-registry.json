@@ -313,6 +313,58 @@
       "validation": "protected-branch",
       "audit_level": "FULL"
     },
+    "agent.delegate": {
+      "tool": "agent",
+      "action": "delegate",
+      "effects": [
+        "DELEGATE"
+      ],
+      "effect_class": "DELEGATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "capsule-subset",
+      "audit_level": "FULL"
+    },
+    "network.read": {
+      "tool": "network",
+      "action": "read",
+      "effects": [
+        "NETWORK"
+      ],
+      "effect_class": "NETWORK",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "host-and-scope",
+      "audit_level": "FULL"
+    },
+    "mcp.read": {
+      "tool": "mcp",
+      "action": "read",
+      "effects": [
+        "READ"
+      ],
+      "effect_class": "LOCAL_READ",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "mcp-schema-and-scope",
+      "audit_level": "FULL"
+    },
+    "mcp.write": {
+      "tool": "mcp",
+      "action": "write",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_WRITE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "mcp-schema-and-scope",
+      "audit_level": "FULL"
+    },
     "deployment.production": {
       "tool": "deployment",
       "action": "production",

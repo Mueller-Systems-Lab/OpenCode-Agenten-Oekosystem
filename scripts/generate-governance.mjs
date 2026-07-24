@@ -37,18 +37,7 @@ function outputs(policy) {
     validation: 'runtime-effect-check',
     audit_level: ['MERGE', 'PRODUCTION_DEPLOY', 'EXTERNAL_COMMUNICATION', 'IRREVERSIBLE_DELETE', 'SECRET_ACCESS'].includes(effect) ? 'FULL' : 'STANDARD',
   }]))
-  const tools = {
-    'filesystem.read': { tool: 'filesystem', action: 'read', effects: ['READ'], effect_class: 'LOCAL_READ', approval_class: 'A_AUTONOMOUS', reversibility: 'FULLY_REVERSIBLE', lease_compatible: true, validation: 'path-and-scope', audit_level: 'STANDARD' },
-    'filesystem.write': { tool: 'filesystem', action: 'write', effects: ['WRITE'], effect_class: 'LOCAL_WRITE', approval_class: 'A_AUTONOMOUS', reversibility: 'FULLY_REVERSIBLE', lease_compatible: true, validation: 'path-and-scope', audit_level: 'STANDARD' },
-    'filesystem.delete': { tool: 'filesystem', action: 'delete', effects: ['WRITE'], effect_class: 'LOCAL_DELETE', approval_class: 'A_AUTONOMOUS', reversibility: 'REVERSIBLE_WITH_BACKUP', lease_compatible: true, validation: 'backup-and-scope', audit_level: 'FULL' },
-    'shell.execute': { tool: 'shell', action: 'execute', effects: ['EXECUTE'], effect_class: 'LOCAL_EXECUTE', approval_class: 'A_AUTONOMOUS', reversibility: 'UNKNOWN_REVERSIBILITY', lease_compatible: true, validation: 'command-and-scope', audit_level: 'FULL' },
-    'test.run': { tool: 'test', action: 'run', effects: ['EXECUTE'], effect_class: 'TEST_EXECUTION', approval_class: 'A_AUTONOMOUS', reversibility: 'FULLY_REVERSIBLE', lease_compatible: true, validation: 'runner-output', audit_level: 'STANDARD' },
-    'git.commit': { tool: 'git', action: 'commit', effects: ['WRITE'], effect_class: 'LOCAL_COMMIT', approval_class: 'A_AUTONOMOUS', reversibility: 'FULLY_REVERSIBLE', lease_compatible: true, validation: 'branch-and-diff', audit_level: 'FULL' },
-    'git.push': { tool: 'git', action: 'push', effects: ['EXTERNAL'], effect_class: 'PUSH', approval_class: 'C_BUNDLED_OWNER_DECISION', reversibility: 'PARTIALLY_REVERSIBLE', lease_compatible: true, validation: 'remote-and-branch', audit_level: 'FULL' },
-    'git.merge': { tool: 'git', action: 'merge', effects: ['EXTERNAL'], effect_class: 'MERGE', approval_class: 'C_BUNDLED_OWNER_DECISION', reversibility: 'IRREVERSIBLE', lease_compatible: true, validation: 'protected-branch', audit_level: 'FULL' },
-    'deployment.production': { tool: 'deployment', action: 'production', effects: ['EXTERNAL'], effect_class: 'PRODUCTION_DEPLOY', approval_class: 'C_BUNDLED_OWNER_DECISION', reversibility: 'IRREVERSIBLE', lease_compatible: true, validation: 'environment-and-rollback', audit_level: 'FULL' },
-    'communication.send': { tool: 'communication', action: 'send', effects: ['EXTERNAL'], effect_class: 'EXTERNAL_COMMUNICATION', approval_class: 'C_BUNDLED_OWNER_DECISION', reversibility: 'IRREVERSIBLE', lease_compatible: false, validation: 'recipient-and-content', audit_level: 'FULL' },
-  }
+  const tools = policy.tool_capabilities
   return {
     'policy-core.json': policy,
     'capability-registry.json': { schema_version: 'governance-v2.capability-registry.1', generated_from: 'governance/policy-core.yaml', capabilities, tools },

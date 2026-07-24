@@ -8,7 +8,9 @@ const GOVERNANCE_ROOT = join(PROJECT_ROOT, '.agent-governance');
 const MANIFEST_PATH = join(GOVERNANCE_ROOT, 'manifest.json');
 const SOURCE_LOCK_PATH = join(GOVERNANCE_ROOT, 'source-lock.json');
 const EVIDENCE_DIR = join(GOVERNANCE_ROOT, 'evidence');
-const EVALUATE_PATH = join(GOVERNANCE_ROOT, 'runtime', 'evaluate-all.mjs');
+const EVALUATE_PATH = join(PROJECT_ROOT, 'runtime', 'gates', 'evaluate-action.mjs');
+const INTENT_PATH = join(GOVERNANCE_ROOT, 'owner-intent.json');
+const CAPSULE_PATH = join(GOVERNANCE_ROOT, 'task-capsule.json');
 
 const WRITE_TOOLS = new Set(['bash', 'write', 'edit', 'apply_patch', 'todowrite']);
 const EXTERNAL_TOOLS = new Set(['webfetch', 'websearch']);
@@ -74,7 +76,7 @@ async function loadEvaluateModule() {
     evaluateModule = await import(EVALUATE_PATH);
     return evaluateModule;
   } catch (err) {
-    console.error('[canonical-governance] failed to load evaluate-all.mjs:', err.message);
+    console.error('[canonical-governance] failed to load evaluate-action.mjs:', err.message);
     return null;
   }
 }
@@ -152,7 +154,7 @@ function mapToolToDescriptor(tool, args) {
 
 async function evaluateByGate(descriptor) {
   const mod = await loadEvaluateModule();
-  if (!mod || typeof mod.evaluateAllGates !== 'function') {
+  if (!mod || typeof mod.evaluateAction !== 'function') {
     return {
       decision: 'RED_BLOCK',
       classification: 'RED_BLOCK',
@@ -162,7 +164,17 @@ async function evaluateByGate(descriptor) {
     };
   }
   try {
-    const result = await mod.evaluateAllGates(descriptor);
+    const readJson = (filePath) => {
+      try { return JSON.parse(readFileSync(filePath, 'utf8')); } catch { return null; }
+    };
+    const result = await mod.evaluateAction({
+      ...descriptor,
+      runtime: 'opencode',
+      targetRoot: PROJECT_ROOT,
+      capsule: readJson(CAPSULE_PATH),
+      intent: readJson(INTENT_PATH),
+      auditPath: join(EVIDENCE_DIR, 'action-audit.jsonl'),
+    });
     return result;
   } catch (err) {
     return {
@@ -241,7 +253,8 @@ async function handleToolExecution(input, output) {
     return undefined;
   }
 
-  const decision = gateResult?.decision || 'UNKNOWN';
+  const decision = gateResult?.decision_class || gateResult?.decision || 'UNKNOWN';
+  output.__governanceDecision = gateResult;
 
   const evidenceEntry = {
     timestamp: new Date().toISOString(),
@@ -255,6 +268,8 @@ async function handleToolExecution(input, output) {
   writeEvidence(evidenceEntry);
 
   switch (decision) {
+    case 'A_AUTONOMOUS':
+    case 'B_LEASE_OR_RECEIPT':
     case 'GREEN':
     case 'ALLOW':
       return undefined;
@@ -267,6 +282,7 @@ async function handleToolExecution(input, output) {
         `${gateResult.reason || 'policy violation'}.`
       );
 
+    case 'C_BUNDLED_OWNER_DECISION':
     case 'AMBER_REVIEW':
     case 'APPROVAL_REQUIRED':
     case 'HUMAN_GATE':
@@ -308,6 +324,17 @@ export const CanonicalGovernancePlugin = async ({ project = {}, client = null, d
   return {
     'tool.execute.before': async function (input, output) {
       return handleToolExecution(input, output);
+    },
+    'tool.execute.after': async function (input, output) {
+      const mod = await loadEvaluateModule();
+      if (mod && typeof mod.recordActionOutcome === 'function') {
+        await mod.recordActionOutcome({
+          auditPath: join(EVIDENCE_DIR, 'action-audit.jsonl'),
+          decision: output?.__governanceDecision || null,
+          success: true,
+          output: output?.result || null,
+        });
+      }
     },
   };
 };

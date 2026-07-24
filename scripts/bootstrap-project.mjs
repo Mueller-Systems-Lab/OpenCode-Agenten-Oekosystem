@@ -13,6 +13,7 @@ import { renderDiscoveryMarkdown, renderPlanMarkdown, renderRunReportMarkdown, w
 import { selectMcpCandidates } from "./lib/mcp.mjs"
 import { mergeDeep, mergeManagedSections } from "./lib/merge.mjs"
 import { evaluateAllGates, CLASSIFICATIONS } from "./lib/gates/evaluate-all.mjs"
+import { evaluateAction } from "../runtime/gates/evaluate-action.mjs"
 import { safeRedactText, secretValuesFromEnv } from "./lib/security/redaction.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
@@ -150,6 +151,13 @@ async function main() {
     }
   }
 
+  const v2WriteGate = await evaluateBootstrapWrites({ overlay, targetRoot })
+  if (!v2WriteGate.allowed) {
+    console.error(`RED_BLOCK: Governance V2 blocked bootstrap writes (${v2WriteGate.code || v2WriteGate.decision_class}).`)
+    process.exitCode = 2
+    return
+  }
+
   await applyOverlay(overlay)
 
   const reportsDir = path.join(targetRoot, ".opencode", "reports", "bootstrap")
@@ -199,6 +207,33 @@ async function main() {
   console.log(renderPlanMarkdown(reportPlan))
   console.log(applyGateDecision.classification)
   process.exitCode = applyGateDecision.classification === "GREEN_SAFE" ? 0 : applyGateDecision.classification === "AMBER_REVIEW" || applyGateDecision.classification === "TOOL_GAP" ? 1 : 2
+}
+
+async function evaluateBootstrapWrites({ overlay, targetRoot }) {
+  const paths = overlay.files.map((file) => relativePath(targetRoot, file.destination))
+  const capsule = {
+    task_id: "bootstrap-apply",
+    owner_intent_id: "bootstrap-intent",
+    read_scope: ["**"],
+    write_scope: paths,
+    forbidden_scope: [".env", "**/.env", "**/.env.*", ".git/**"],
+    allowed_effects: ["LOCAL_WRITE"],
+    external_effect_scope: [],
+  }
+  for (const resource of paths) {
+    const decision = await evaluateAction({
+      tool: "filesystem",
+      action: "write",
+      capabilityKey: "filesystem.write",
+      effect: "LOCAL_WRITE",
+      resource,
+      capsule,
+      intent: { intent_id: "bootstrap-intent", external_effect_policy: "approval_required" },
+      runtime: "bootstrap",
+    })
+    if (!decision.allowed) return decision
+  }
+  return { allowed: true, decision_class: "A_AUTONOMOUS" }
 }
 
 function parseArgs(argv) {

@@ -187,7 +187,7 @@ async function rollbackFromBackup(backupDir) {
   await assertSafePath(absBackup, `${absBackup}/backup-manifest.json`, "backup manifest")
   const result = await restoreBackup({ backupRoot: absBackup, expectedTargetRoot: globalConfigRoot })
   console.log(`Rollback completed for ${result.targetRoot}`)
-  console.log("GREEN_SAFE")
+  console.log("VERIFIED_IN_SCOPE")
 }
 
 // ---------------------------------------------------------------------------

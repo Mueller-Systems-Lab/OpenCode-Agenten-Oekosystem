@@ -38,6 +38,8 @@ async function main() {
   const requiredFiles = [
     "BOOTSTRAP.md",
     "AI-BOOTSTRAP.md",
+    "llms.txt",
+    "bootstrap.mjs",
     "bootstrap/manifest.json",
     "bootstrap/manifest.schema.json",
     "bootstrap/verify.mjs",
@@ -821,10 +823,14 @@ async function collectTextFiles(root) {
  * a green validator with red tests is a false signal.
  */
 function runTestSuite() {
+  if (process.env.OCAE_TEST_RUNNER_ACTIVE === "1" || process.env.NODE_TEST_CONTEXT) {
+    return { status: "NESTED_SKIPPED", message: "TEST_SUITE_NESTED_RUNNER_SKIPPED" }
+  }
   try {
-    const result = spawnSync("node", ["--test", "--test-reporter=spec", "--test-concurrency=1"], {
+    const result = spawnSync(process.execPath, [path.join(repoRoot, "scripts", "run-tests.mjs"), "--all", "--reporter", "spec", "--json"], {
       cwd: repoRoot,
       encoding: "utf8",
+      env: { ...process.env, OCAE_TEST_RUNNER_ACTIVE: "1" },
       timeout: 120000,
       stdio: "pipe",
     })

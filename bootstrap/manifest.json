@@ -5,6 +5,7 @@
   "repository": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
   "bootstrap_protocol": "url-only-v1",
   "entrypoint": "AI-BOOTSTRAP.md",
+  "launcher": "bootstrap.mjs",
   "installer": "scripts/install-governance.mjs",
   "verifier": "bootstrap/verify.mjs",
   "rollback": "scripts/install-governance.mjs --target <target> --rollback <backup-dir>",

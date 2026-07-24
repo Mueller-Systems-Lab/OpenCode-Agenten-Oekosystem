@@ -909,7 +909,7 @@ async function validatePostApply(targetRoot) {
   }
 
   const classification =
-    issues.length > 0 ? "RED_BLOCK" : warnings.length > 0 ? "NEEDS_REVIEW" : "VERIFIED_IN_SCOPE"
+    issues.length > 0 ? "RED_BLOCK" : warnings.length > 0 ? "NEEDS_REVIEW" : "GREEN_SAFE"
 
   return { classification, issues, warnings }
 }

@@ -144,6 +144,27 @@ async function main() {
     if (args.help) { printHelp(); return 0; }
     const projectRoot = validateArgs(args);
     if (!['evaluate', 'validate'].includes(args.action)) {
+      if (args.approvalFile) {
+        const decision = await evaluateAllGates({
+          targetRoot: projectRoot,
+          runtime: args.runtime,
+          action: args.action,
+          riskTier: args.riskTier,
+          dryRun: args.dryRun,
+          approvalFile: args.approvalFile,
+          evidenceFile: args.evidenceFile,
+          projectPolicyFile: args.projectPolicy,
+          command: args.command,
+          writePaths: args.writePaths,
+          agentRole: args.agentRole,
+          worktreeRoot: projectRoot,
+          enforcementContext: { phase: args.phase, scope: args.scope }
+        });
+        const classification = decision.classification;
+        const exitCode = EXIT_CODES[classification] ?? EXIT_CODES.INTERNAL_ERROR;
+        await emitJson(normalizeDecision(decision, args, classification, exitCode));
+        return exitCode;
+      }
       const capsulePath = resolve(projectRoot, '.agent-governance', 'task-capsule.json');
       const intentPath = resolve(projectRoot, '.agent-governance', 'owner-intent.json');
       const readJson = (filePath) => {
@@ -157,7 +178,15 @@ async function main() {
       });
       const classification = v2.decision_class === 'A_AUTONOMOUS' || v2.decision_class === 'B_LEASE_OR_RECEIPT'
         ? 'VERIFIED_IN_SCOPE' : v2.decision_class === 'C_BUNDLED_OWNER_DECISION' ? 'NEEDS_REVIEW' : 'RED_BLOCK';
-      const payload = redactValue({ schema_version: 'governance-v2.action-decision.1', ...v2, classification, allowed: v2.allowed === true, exit_code: v2.allowed ? 0 : v2.requires_owner ? 1 : 2 }, REDACTION_OPTIONS);
+      const payload = redactValue({
+        schema_version: 'governance-v2.action-decision.1',
+        ...v2,
+        classification,
+        allowed: v2.allowed === true,
+        required_approvals: v2.requiredApprovals || v2.required_approvals || [],
+        consumed_approvals: v2.consumedApprovals || v2.consumed_approvals || [],
+        exit_code: v2.allowed ? 0 : v2.requires_owner ? EXIT_CODES.AMBER_REVIEW : EXIT_CODES.RED_BLOCK,
+      }, REDACTION_OPTIONS);
       await emitJson(payload);
       return payload.exit_code;
     }

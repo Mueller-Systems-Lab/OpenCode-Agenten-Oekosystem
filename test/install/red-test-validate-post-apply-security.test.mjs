@@ -79,7 +79,7 @@ async function callValidatePostApply(targetRoot) {
   }
 }
 
-describe('RED TEST — validatePostApply must check security/redaction.mjs (pre-fix: expected FAIL)', () => {
+describe('RED TEST — validatePostApply must check security/redaction.mjs (pre-fix: expected FAIL)', { concurrency: 1 }, () => {
   const tempDirs = [];
 
   after(async () => {

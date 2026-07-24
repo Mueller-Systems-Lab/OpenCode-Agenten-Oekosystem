@@ -71,7 +71,7 @@ export function validateBootstrapManifest(manifest) {
   if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) return ["manifest must be an object"]
   const required = [
     "schema_version", "ecosystem", "repository", "bootstrap_protocol", "entrypoint", "installer",
-    "verifier", "rollback", "supported_platforms", "required_tools", "minimum_versions",
+    "verifier", "launcher", "rollback", "supported_platforms", "required_tools", "minimum_versions",
     "supported_project_types", "default_mode", "available_modes", "managed_paths", "protected_paths",
     "generated_paths", "dry_run_required", "idempotence_required", "v2_gate_required", "approval_model",
     "completion_classification",
@@ -90,7 +90,8 @@ export function validateBootstrapManifest(manifest) {
   if (manifest.dry_run_required !== true || manifest.idempotence_required !== true || manifest.v2_gate_required !== true) issues.push("dry_run_required, idempotence_required, and v2_gate_required must be true")
   if (manifest.approval_model !== "effect-based") issues.push("approval_model must be effect-based")
   if (manifest.completion_classification !== "VERIFIED_IN_SCOPE") issues.push("completion_classification must be VERIFIED_IN_SCOPE")
-  for (const key of ["entrypoint", "installer", "verifier"]) {
+  if (manifest.launcher !== "bootstrap.mjs") issues.push("launcher must be bootstrap.mjs")
+  for (const key of ["entrypoint", "launcher", "installer", "verifier"]) {
     if (typeof manifest[key] !== "string" || manifest[key].startsWith("/") || manifest[key].includes("..")) issues.push(`${key} must be a relative repository path`)
   }
   if (typeof manifest.rollback !== "string" || !manifest.rollback.includes("scripts/install-governance.mjs")) issues.push("rollback must point to scripts/install-governance.mjs")

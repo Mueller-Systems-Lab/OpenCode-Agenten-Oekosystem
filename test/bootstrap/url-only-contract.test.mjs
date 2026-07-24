@@ -24,13 +24,16 @@ test("root URL-only discovery contract is published and self-referential", async
   assert.match(guide, /ROLLBACK/)
   assert.match(guide, /dry-run/i)
   assert.match(guide, /second apply/i)
+  assert.match(readme, /Do not invent raw URLs or example paths/i)
+  assert.match(guide, /bootstrap\.mjs/)
+  assert.match(await read("llms.txt"), /AI-BOOTSTRAP\.md/)
 })
 
 test("manifest validates and references the canonical V2 paths", async () => {
   const manifest = JSON.parse(await read("bootstrap/manifest.json"))
   const issues = validateBootstrapManifest(manifest)
   assert.deepEqual(issues, [])
-  for (const rel of [manifest.entrypoint, manifest.installer, manifest.verifier]) {
+  for (const rel of [manifest.entrypoint, manifest.launcher, manifest.installer, manifest.verifier]) {
     await fs.access(path.join(repoRoot, rel))
   }
 })

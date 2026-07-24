@@ -2,6 +2,8 @@
 
 This file is the complete operating contract for an AI that receives this repository URL without local source paths, prior chat history, copied files, or development-machine knowledge.
 
+Never invent a raw URL, branch, commit, or example path. Use the repository and ref from the URL provided by the caller. The root launcher `bootstrap.mjs` is a thin entrypoint; it delegates to the manifest installer and is dry-run by default.
+
 ## Canonical handoff
 
 While Governance V2 is under review, use this single recommended handoff URL:
@@ -17,7 +19,7 @@ From the supplied GitHub URL, normalize the repository/ref and use one temporary
 1. `README.md` for the canonical AI handoff.
 2. `AI-BOOTSTRAP.md` for this protocol.
 3. `bootstrap/manifest.json` and `bootstrap/manifest.schema.json`.
-4. The manifest's `installer`, `verifier`, and `rollback` fields.
+4. The manifest's `launcher`, `installer`, `verifier`, and `rollback` fields.
 
 The source commit SHA must be recorded immediately after checkout. All installer, verifier, schema, policy, and runtime files must come from that same checkout and commit. A branch may not advance during one run.
 
@@ -85,6 +87,15 @@ node scripts/install-governance.mjs --target <target>       # dry-run
 node scripts/install-governance.mjs --target <target> --apply
 node bootstrap/verify.mjs --target <target>                # verify
 node scripts/install-governance.mjs --target <target> --rollback <backup-dir>
+```
+
+The equivalent root launcher is:
+
+```text
+node bootstrap.mjs --target <target>                 # dry-run
+node bootstrap.mjs --target <target> --apply         # apply
+node bootstrap.mjs --target <target> --verify        # verify
+node bootstrap.mjs --target <target> --rollback <backup-dir>
 ```
 
 The installer writes provenance to `.opencode/ecosystem-installation.json`. It must contain no secrets and no private absolute source paths. The source commit is the reproducibility anchor; a branch URL is never treated as immutable evidence by itself.

@@ -301,6 +301,20 @@ async function main() {
   }
 
   if (['apply', 'push', 'commit', 'merge', 'deploy'].includes(args.action)) {
+    if (/\bgit\s+push\s+.*(?:--force|-f)\b/i.test(args.command || '')) {
+      const kernelDecision = await evaluateAllGates({
+        targetRoot,
+        runtime: args.runtime,
+        action: args.action,
+        riskTier: args.riskTier,
+        dryRun: args.dryRun,
+        command: args.command,
+        writePaths: args.writePaths,
+      });
+      if (args.json) console.log(safeSerialize(kernelDecision, { secrets: secretValuesFromEnv() }));
+      else printHumanReadable(kernelDecision);
+      process.exit(kernelDecision.exitCode);
+    }
     const tool = args.action === 'apply' ? 'write' : args.action === 'deploy' ? 'deployment' : 'bash';
     const command = args.command || (args.action === 'push' ? 'git push' : args.action === 'commit' ? 'git commit' : args.action === 'merge' ? 'git merge' : undefined);
     const result = await evaluateAction({

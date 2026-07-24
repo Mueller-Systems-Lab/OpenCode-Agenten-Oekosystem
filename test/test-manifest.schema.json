@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["version", "groups"],
+  "properties": {
+    "version": { "const": 1 },
+    "groups": {
+      "type": "object",
+      "required": ["unit", "contract", "integration", "bootstrap", "governance", "e2e", "provider_optional"],
+      "additionalProperties": { "type": "array", "items": { "type": "string", "pattern": "^test/.+\\.test\\.mjs$" } }
+    }
+  },
+  "additionalProperties": false
+}

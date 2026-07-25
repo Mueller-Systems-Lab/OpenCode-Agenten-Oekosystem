@@ -34,7 +34,7 @@ Determine which context level applies to the current session:
 
 Transition rules:
 - **COLD → WARM**: Reality Refresh completed, issue/run-report read, affected files identified
-- **WARM → HOT**: Plan approved, Risk Tier determined, Verification Contract created, Owner Approval obtained
+- **WARM → HOT**: Plan, risk profile, verification contract, and concrete effect authorization exist. No abstract owner approval is required for this transition.
 - **HOT → COLD**: Context Compaction required (memory limit, new task, provider switch)
 
 ### Step 2 — Build Context Manifest

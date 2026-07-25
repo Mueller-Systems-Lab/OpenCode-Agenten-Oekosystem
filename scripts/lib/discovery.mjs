@@ -338,7 +338,7 @@ export async function discoverProject(targetRoot) {
   if (bootstrapManaged) notes.push("Bootstrap-managed artifacts detected; generated scaffolding is ignored for re-runs.")
   if (existing.github_remote) notes.push(`GitHub remote detected via ${gitRemote.remoteName || "origin"}${gitRemote.remoteUrl ? ` (${gitRemote.remoteUrl})` : ""}.`)
 
-  const classification = existing.opencode || existing.hermes || existing.agents ? "AMBER_REVIEW" : "GREEN_SAFE"
+  const classification = existing.opencode || existing.hermes || existing.agents ? "NEEDS_REVIEW" : "VERIFIED_IN_SCOPE"
 
   return {
     target_root: root,

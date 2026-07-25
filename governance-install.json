@@ -14,8 +14,8 @@
   "supported_runtimes": ["opencode", "hermes", "odysseus", "generic"],
   "supported_os": ["linux", "macos", "windows-powershell", "windows-git-bash", "wsl"],
   "classification_states": [
-    "GREEN_SAFE",
-    "AMBER_REVIEW",
+    "VERIFIED_IN_SCOPE",
+    "NEEDS_REVIEW",
     "RED_BLOCK",
     "TOOL_GAP"
   ],
@@ -39,6 +39,12 @@
       "opencode.mjs",
       "hermes.mjs",
       "odysseus.mjs"
+      ,"approval/approval-engine.mjs"
+      ,"approval/approval-receipt.mjs"
+      ,"approval/change-lease.mjs"
+      ,"approval/approval-bundler.mjs"
+      ,"approval/approval-audit.mjs"
+      ,"approval/capability-registry.mjs"
     ],
     "config": [
       "manifest.json",
@@ -62,8 +68,12 @@
   "backup_required": true,
   "fail_closed": true,
   "exit_codes": {
-    "0": "GREEN_SAFE",
-    "1": "AMBER_REVIEW or TOOL_GAP",
+    "0": "VERIFIED_IN_SCOPE or NOOP_IDEMPOTENT",
+    "1": "NEEDS_REVIEW or TOOL_GAP",
     "2": "RED_BLOCK"
+  },
+  "legacy_input_aliases": {
+    "GREEN_SAFE": "VERIFIED_IN_SCOPE",
+    "AMBER_REVIEW": "NEEDS_REVIEW"
   }
 }

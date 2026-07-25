@@ -18,18 +18,7 @@
   },
 
   "instructions": [
-    "BOOTSTRAP.md",
-    "README.md",
-    "AGENTS.md",
-    "CONTRIBUTING.md",
-    "SECURITY.md",
-    ".opencode/policies/evidence-gates.json",
-    ".opencode/policies/mcp-trust-tiers.json",
-    ".opencode/policies/write-protection.json",
-    ".opencode/policies/model-routing.json",
-    "ecosystem.manifest.json",
-    "WORKING-METHOD.md",
-    ".opencode/policies/working-method.json"
+    "PROMPT-KERNEL.md"
   ],
 
   "mcp": {
@@ -108,6 +97,7 @@
       "temperature": 0.1,
       "color": "#2563eb",
       "permission": {
+        "edit": "deny",
         "bash": {
           "*": "ask",
           "git status *": "allow",
@@ -124,7 +114,6 @@
           "grep *": "allow",
           "rg *": "allow"
         },
-        "edit": "ask",
         "task": {
           "*": "allow",
           "general": "deny"
@@ -166,6 +155,7 @@
     },
 
     "build": {
+      "description": "Executor: implements only within the validated Task Capsule; routine reversible decisions are autonomous.",
       "mode": "primary",
       "temperature": 0.2,
       "permission": {
@@ -188,6 +178,39 @@
           "rg *": "allow",
           "rm -rf *": "deny"
         }
+      }
+    },
+
+    "executor": {
+      "description": "Task Capsule executor with effect-based runtime enforcement. Never asks the owner about internal technical choices.",
+      "mode": "subagent",
+      "temperature": 0.2,
+      "permission": {
+        "edit": "ask",
+        "bash": {
+          "*": "ask",
+          "git diff *": "allow",
+          "node --check *": "allow",
+          "node --test *": "allow",
+          "npm test *": "allow",
+          "rg *": "allow",
+          "rm -rf *": "deny",
+          "git push *": "deny"
+        },
+        "task": { "*": "deny" },
+        "skill": { "*": "allow" }
+      }
+    },
+
+    "approval-coordinator": {
+      "description": "Collects, deduplicates, and bundles owner decisions. It cannot approve, edit, or expand scope.",
+      "mode": "subagent",
+      "temperature": 0.0,
+      "permission": {
+        "edit": "deny",
+        "bash": { "*": "deny", "rg *": "allow", "git diff *": "allow" },
+        "task": { "*": "deny" },
+        "skill": { "*": "deny" }
       }
     },
 

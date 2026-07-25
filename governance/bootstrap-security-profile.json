@@ -1,0 +1,48 @@
+{
+  "$schema": "./bootstrap-security-profile.schema.json",
+  "version": 2,
+  "default_policy": {
+    "target_file_read": "DENY_BY_DEFAULT",
+    "target_file_write": "DENY_BY_DEFAULT",
+    "generic_shell": "DENY_BY_DEFAULT",
+    "network": "DENY_BY_DEFAULT",
+    "secret_read": "ABSOLUTE_DENY"
+  },
+  "allowed_tools": [
+    "bootstrap_discover_source",
+    "bootstrap_inspect_target",
+    "bootstrap_dry_run",
+    "bootstrap_apply",
+    "bootstrap_verify",
+    "bootstrap_second_apply",
+    "bootstrap_rollback",
+    "bootstrap_get_status"
+  ],
+  "safe_read_allowlist": [
+    "README",
+    "README.md",
+    "AGENTS.md",
+    "package.json",
+    "package-lock.json",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+    "pyproject.toml",
+    "requirements.txt",
+    "Cargo.toml",
+    "go.mod",
+    "opencode.json",
+    "opencode.jsonc",
+    ".gitignore"
+  ],
+  "secret_template_allowlist": [
+    ".env.example",
+    ".env.sample",
+    ".env.template"
+  ],
+  "sandbox": {
+    "model_target_visible": false,
+    "model_host_home_visible": false,
+    "action_network": "NONE",
+    "source_clone": "READ_ONLY"
+  }
+}

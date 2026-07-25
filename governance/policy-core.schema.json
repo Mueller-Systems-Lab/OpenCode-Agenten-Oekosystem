@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencode-agent-ecosystem.local/governance/policy-core.schema.json",
+  "type": "object",
+  "required": ["schema_version", "version", "authority_layers", "risk_tiers", "execution_profiles", "decision_classes", "effect_classes", "reversibility_classes", "approval_budgets", "approval_receipts", "change_leases", "approval_bundling", "approval_deduplication", "scope_rules", "agent_roles", "delegation", "capability_registry", "tool_capabilities", "evidence_contracts", "completion_classifications", "prompt_kernel"],
+  "properties": {
+    "schema_version": {"const": "governance-v2.policy-core.1"},
+    "version": {"type": "string"},
+    "authority_layers": {"type": "array", "minItems": 7, "items": {"type": "string"}},
+    "risk_tiers": {"type": "object", "required": ["LOW_LOCAL", "MEDIUM_REVIEW", "HIGH_HUMAN_GATE", "CRITICAL_BLOCK"]},
+    "execution_profiles": {"type": "object", "required": ["COMPACT", "STANDARD", "CRITICAL", "BLOCKED"]},
+    "decision_classes": {"type": "object", "required": ["A", "B", "C", "D"]},
+    "effect_classes": {"type": "array", "minItems": 10, "items": {"type": "string"}},
+    "tool_capabilities": {"type": "object", "minProperties": 1},
+    "reversibility_classes": {"type": "array", "minItems": 5, "items": {"type": "string"}},
+    "prompt_kernel": {"type": "object", "required": ["file", "max_tokens", "permanent_rules", "lazy_detail_policies"]}
+  }
+}

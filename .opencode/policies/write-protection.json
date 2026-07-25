@@ -1,4 +1,12 @@
 {
+  "governance_v2": {
+    "scope_model": ["read_scope", "write_scope", "forbidden_scope", "external_effect_scope"],
+    "approval_mode": "concrete_effect_exception_only",
+    "routine_reversible_in_scope": "AUTONOMOUS",
+    "unknown_effect": "RED_BLOCK",
+    "self_mutation_of_gates": "RED_BLOCK",
+    "legacy_non_touch": "not_authoritative"
+  },
   "version": "1.1.0",
   "description": "Write protection rules defining operations that are always denied, require human approval, or are managed files with strict modification constraints.",
 

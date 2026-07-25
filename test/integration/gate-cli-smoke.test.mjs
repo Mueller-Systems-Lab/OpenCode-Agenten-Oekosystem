@@ -45,7 +45,7 @@ function runGateCli(args, cwd) {
   });
 }
 
-describe('Gate CLI Smoke', () => {
+describe('Gate CLI Smoke', { concurrency: 1 }, () => {
   const tempDirs = [];
 
   after(async () => {

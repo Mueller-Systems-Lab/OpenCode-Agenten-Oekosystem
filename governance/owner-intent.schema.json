@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencode-agent-ecosystem.local/governance/owner-intent.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["intent_id", "goal", "why", "desired_outcome", "hard_constraints", "forbidden_outcomes", "risk_tolerance", "cost_limit", "external_effect_policy", "data_sensitivity", "completion_expectation", "valid_from", "valid_until"],
+  "properties": {"intent_id": {"type": "string", "minLength": 1}, "goal": {"type": "string", "minLength": 1}, "why": {"type": "string", "minLength": 1}, "desired_outcome": {"type": "string", "minLength": 1}, "hard_constraints": {"type": "array", "items": {"type": "string"}}, "forbidden_outcomes": {"type": "array", "items": {"type": "string"}}, "risk_tolerance": {"type": "string"}, "cost_limit": {"type": ["number", "string"]}, "external_effect_policy": {"type": "string"}, "data_sensitivity": {"type": "string"}, "completion_expectation": {"type": "string"}, "valid_from": {"type": "string"}, "valid_until": {"type": "string"}, "default_decision_preferences": {"type": "object"}}
+}

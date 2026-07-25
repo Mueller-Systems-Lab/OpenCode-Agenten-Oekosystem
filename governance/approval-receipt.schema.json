@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencode-agent-ecosystem.local/governance/approval-receipt.schema.json",
+  "type": "object",
+  "required": ["approval_id", "owner_intent_id", "task_id", "task_capsule_hash", "effect_classes", "resource_scope", "allowed_actions", "denied_actions", "environment", "branch", "base_sha", "issued_at", "expires_at", "max_uses", "delegation_allowed", "delegation_depth", "revocation_status", "nonce", "signature"],
+  "properties": {"approval_id": {"type": "string"}, "effect_classes": {"type": "array"}, "resource_scope": {"type": "array"}, "allowed_actions": {"type": "array"}, "denied_actions": {"type": "array"}, "max_uses": {"type": "integer", "minimum": 1}, "delegation_allowed": {"type": "boolean"}, "delegation_depth": {"type": "integer", "minimum": 0}, "revocation_status": {"enum": ["ACTIVE", "REVOKED"]}, "signature": {"type": "string"}}
+}

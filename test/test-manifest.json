@@ -1,0 +1,58 @@
+{
+  "$schema": "./test-manifest.schema.json",
+  "version": 1,
+  "groups": {
+    "unit": [
+      "test/approval-v2/approval-engine.test.mjs",
+      "test/gates/approval.test.mjs",
+      "test/gates/comment-policy.test.mjs",
+      "test/gates/kernel.test.mjs",
+      "test/gates/runtime-adapters.test.mjs",
+      "test/security/bootstrap-secret-isolation.test.mjs",
+      "test/security/bootstrap-bypass-red-team.test.mjs",
+      "test/security/redaction.test.mjs"
+    ],
+    "contract": [
+      "test/contracts/bootstrap-capability-contract.test.mjs",
+      "test/contracts/bootstrap-v2-classification-output.test.mjs",
+      "test/contracts/ci-workflow-contract.test.mjs",
+      "test/contracts/runtime-enforcement-contracts.test.mjs",
+      "test/spec-kit/bridge-contract.test.mjs",
+      "test/spec-kit/bridge-red.test.mjs",
+      "test/validation/working-method.test.mjs"
+    ],
+    "integration": [
+      "test/integration/approval-enforcement.test.mjs",
+      "test/integration/bootstrap-gate-wiring.test.mjs",
+      "test/integration/gate-cli-smoke.test.mjs",
+      "test/integration/rollback-runtime.test.mjs",
+      "test/integration/secure-bootstrap-controller.test.mjs"
+    ],
+    "integration_portable": [
+      "test/integration/portable-security-ci.test.mjs"
+    ],
+    "bootstrap": [
+      "test/bootstrap/bootstrap.test.mjs",
+      "test/bootstrap/install-global.test.mjs",
+      "test/bootstrap/url-only-contract.test.mjs",
+      "test/install/red-test-installer-fail-closed.test.mjs",
+      "test/install/red-test-redaction-installed.test.mjs",
+      "test/install/red-test-resident-import.test.mjs",
+      "test/install/red-test-validate-post-apply-security.test.mjs",
+      "test/install/resident-runtime.test.mjs",
+      "test/install/tamper-detection.test.mjs",
+      "test/install/url-installer.test.mjs"
+    ],
+    "governance": [
+      "test/gates/approval-closure.test.mjs",
+      "test/prompt-governance/prompt-governance.test.mjs",
+      "test/validation/validation.test.mjs"
+    ],
+    "e2e": [
+      "test/runtime-closure/runtime-entrypoints.test.mjs",
+      "test/validation/ux-ui-governed-layer.test.mjs",
+      "test/harness/runner-contract.test.mjs"
+    ],
+    "provider_optional": []
+  }
+}

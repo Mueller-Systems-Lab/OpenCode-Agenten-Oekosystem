@@ -13,6 +13,7 @@ import { renderDiscoveryMarkdown, renderPlanMarkdown, writeJsonReport, writeMark
 import { selectMcpCandidates } from "./lib/mcp.mjs"
 import { mergeDeep } from "./lib/merge.mjs"
 import { safeRedactText, secretValuesFromEnv } from "./lib/security/redaction.mjs"
+import { evaluateAction } from "../runtime/gates/evaluate-action.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 
@@ -58,6 +59,12 @@ async function main() {
     path.join(targetRoot, ".opencode", "reports", "bootstrap", "plan.md"),
   ]
   const backup = await createBackup({ targetRoot, files: filesToBackup })
+  const gate = await evaluateOverlayWrites({ overlay, targetRoot })
+  if (!gate.allowed) {
+    console.error(`RED_BLOCK: Governance V2 blocked overlay writes (${gate.code || gate.decision_class}).`)
+    process.exitCode = 2
+    return
+  }
   await applyOverlay(overlay)
 
   const plan = buildPlan({
@@ -78,6 +85,33 @@ async function main() {
   await writeMarkdownReport(path.join(reportsDir, "plan.md"), renderPlanMarkdown(plan))
 
   console.log(renderPlanMarkdown(plan))
+}
+
+async function evaluateOverlayWrites({ overlay, targetRoot }) {
+  const paths = overlay.files.map((file) => relativePath(targetRoot, file.destination))
+  const capsule = {
+    task_id: "repository-overlay-apply",
+    owner_intent_id: "repository-overlay-intent",
+    read_scope: ["**"],
+    write_scope: paths,
+    forbidden_scope: [".env", "**/.env", "**/.env.*", ".git/**"],
+    allowed_effects: ["LOCAL_WRITE"],
+    external_effect_scope: [],
+  }
+  for (const resource of paths) {
+    const decision = await evaluateAction({
+      tool: "filesystem",
+      action: "write",
+      capabilityKey: "filesystem.write",
+      effect: "LOCAL_WRITE",
+      resource,
+      capsule,
+      intent: { intent_id: "repository-overlay-intent", external_effect_policy: "approval_required" },
+      runtime: "repository-overlay",
+    })
+    if (!decision.allowed) return decision
+  }
+  return { allowed: true, decision_class: "A_AUTONOMOUS" }
 }
 
 function parseArgs(argv) {
@@ -118,12 +152,12 @@ function classify(discovery, selected, mcpSelection, overlay) {
     return "RED_BLOCK"
   }
   if (overlay.conflicts.length > 0) {
-    return "AMBER_REVIEW"
+    return "NEEDS_REVIEW"
   }
   if (mcpSelection.remote_ci_requested) {
-    return "AMBER_REVIEW"
+    return "NEEDS_REVIEW"
   }
-  return "GREEN_SAFE"
+  return "VERIFIED_IN_SCOPE"
 }
 
 async function buildOverlay({ manifest, discovery, selected, mcpSelection, sourceRoot, targetRoot }) {

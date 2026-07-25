@@ -1,0 +1,26 @@
+intent_id: intent-example-001
+goal: Implement a bounded repository feature
+why: Reduce manual routine work
+desired_outcome: Tested in-scope change
+hard_constraints:
+  - Never access secrets
+  - Never change production data
+forbidden_outcomes:
+  - Merge without owner decision
+risk_tolerance: low
+cost_limit: 0
+external_effect_policy: approval_required
+data_sensitivity: repository-code
+completion_expectation: verified
+valid_from: '2026-01-01T00:00:00Z'
+valid_until: '2026-12-31T23:59:59Z'
+default_decision_preferences:
+  prefer_reversible_changes: true
+  prefer_local_over_cloud: true
+  prefer_existing_dependencies: true
+  prefer_fail_closed: true
+  prefer_small_scoped_refactors: true
+  prefer_draft_pr_over_direct_merge: true
+  prefer_evidence_over_status_claims: true
+  prefer_single_recommended_option: true
+  prefer_continue_safe_work_when_partially_blocked: true

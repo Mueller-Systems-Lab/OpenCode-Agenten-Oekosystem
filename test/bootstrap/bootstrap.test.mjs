@@ -46,15 +46,15 @@ const fixtureExpectations = {
   },
   "existing-agents": async (context) => {
     assert.equal(context.discovery.existing.agents, true)
-    assert.equal(context.discovery.classification, "AMBER_REVIEW")
+    assert.equal(context.discovery.classification, "NEEDS_REVIEW")
   },
   "existing-opencode": async (context) => {
     assert.equal(context.discovery.existing.opencode, true)
-    assert.equal(context.discovery.classification, "AMBER_REVIEW")
+    assert.equal(context.discovery.classification, "NEEDS_REVIEW")
   },
   "existing-hermes": async (context) => {
     assert.equal(context.discovery.existing.hermes, true)
-    assert.equal(context.discovery.classification, "AMBER_REVIEW")
+    assert.equal(context.discovery.classification, "NEEDS_REVIEW")
   },
   "civic-tech-pii": async (context) => {
     assert.ok(context.discovery.signals.some((signal) => signal.id === "pii-signals"))

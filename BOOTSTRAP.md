@@ -4,7 +4,7 @@ This repository is the source of truth for a safe, project-local bootstrap of Op
 
 It also serves as the **canonical workflow contract + policy source** — see [`WORKING-METHOD.md`](WORKING-METHOD.md) for the evidence-driven, risk-tiered execution model, and `.hermes/skill-bundles/canonical-working-method.yaml` for the Hermes-native YAML skill bundle.
 
-Start here if you only know the repository URL:
+For AI-driven URL-only installation, start with [AI-BOOTSTRAP.md](AI-BOOTSTRAP.md). This document remains the deterministic/manual bootstrap reference:
 
 1. Read this file first.
 2. Read the repository instructions and safety files.
@@ -87,7 +87,7 @@ Typical outputs include:
 - `.hermes/mcp/`
 - `docs/reports/universal-bootstrap-run-report.md`
 
-If the target project already has any of these files, the bootstrap merges them conservatively and records conflicts as `AMBER_REVIEW`.
+If the target project already has any of these files, the bootstrap merges them conservatively and records conflicts as `NEEDS_REVIEW`.
 
 ## Review The Plan
 
@@ -164,10 +164,13 @@ Rollback restores the previous file contents and leaves the discovery history in
 
 The bootstrap classifies each run as one of:
 
-- `GREEN_SAFE`
-- `AMBER_REVIEW`
+- `VERIFIED_IN_SCOPE`
+- `NEEDS_REVIEW`
 - `RED_BLOCK`
 - `TOOL_GAP`
+
+`GREEN_SAFE` and `AMBER_REVIEW` are deprecated input aliases in explicitly
+marked legacy adapters and are never emitted by the bootstrap runtime.
 
 Classification is based on:
 

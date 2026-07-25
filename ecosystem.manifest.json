@@ -10,8 +10,8 @@
     "rollback_flag": "--rollback",
     "include_remote_ci_flag": "--include-remote-ci",
     "classification_states": [
-      "GREEN_SAFE",
-      "AMBER_REVIEW",
+      "VERIFIED_IN_SCOPE",
+      "NEEDS_REVIEW",
       "RED_BLOCK",
       "TOOL_GAP"
     ]
@@ -217,6 +217,14 @@
         {
           "name": "build",
           "description": "Performs implementation after plan and validation gates are complete."
+        },
+        {
+          "name": "executor",
+          "description": "Executes a Task Capsule with effect-based runtime capabilities and autonomous routine decisions."
+        },
+        {
+          "name": "approval-coordinator",
+          "description": "Deduplicates and bundles owner decisions without granting approval."
         },
         {
           "name": "review-agent",
@@ -454,7 +462,7 @@
     "json": "structural_deep_merge",
     "text": "managed_section_overlay",
     "backup_required": true,
-    "classification_on_conflict": "AMBER_REVIEW",
+    "classification_on_conflict": "NEEDS_REVIEW",
     "classification_on_unsafe_change": "RED_BLOCK",
     "managed_section_marker": "<!-- BEGIN OPENCODE-AGENT-ECOSYSTEM -->"
   },
@@ -483,5 +491,13 @@
       ".github/workflows/opencode-weekly-audit.yml"
     ],
     "policy": "proposal_only_until_explicitly_enabled"
+  },
+  "governance_v2": {
+    "policy_source": "governance/policy-core.yaml",
+    "prompt_kernel": "PROMPT-KERNEL.md",
+    "runtime": "runtime/approval/approval-engine.mjs",
+    "completion_classification": "VERIFIED_IN_SCOPE",
+    "legacy_aliases": {"GREEN_SAFE": "VERIFIED_IN_SCOPE", "AMBER_REVIEW": "NEEDS_REVIEW"},
+    "capability_registry": "governance/generated/capability-registry.json"
   }
 }

@@ -13,6 +13,7 @@ import { renderDiscoveryMarkdown, renderPlanMarkdown, renderRunReportMarkdown, w
 import { selectMcpCandidates } from "./lib/mcp.mjs"
 import { mergeDeep, mergeManagedSections } from "./lib/merge.mjs"
 import { evaluateAllGates, CLASSIFICATIONS } from "./lib/gates/evaluate-all.mjs"
+import { evaluateAction } from "../runtime/gates/evaluate-action.mjs"
 import { safeRedactText, secretValuesFromEnv } from "./lib/security/redaction.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
@@ -50,7 +51,7 @@ async function main() {
   if (args.rollback) {
     const result = await restoreBackup({ backupRoot: args.rollback })
     console.log(`Rollback completed for ${result.targetRoot}`)
-    console.log("GREEN_SAFE")
+    console.log("VERIFIED_IN_SCOPE")
     process.exitCode = 0
     return
   }
@@ -77,7 +78,7 @@ async function main() {
     worktreeRoot: targetRoot,
   })
 
-  const classification = gateDecision.classification
+  const classification = normalizeBootstrapClassification(gateDecision.classification)
 
   const plan = buildPlan({
     discovery, selected, mcpSelection, overlay, classification,
@@ -91,7 +92,7 @@ async function main() {
     console.log("")
     console.log(renderPlanMarkdown(plan))
     console.log(classification)
-    process.exitCode = classification === "GREEN_SAFE" ? 0 : classification === "AMBER_REVIEW" || classification === "TOOL_GAP" ? 1 : 2
+    process.exitCode = bootstrapExitCode(classification)
     return
   }
 
@@ -112,7 +113,7 @@ async function main() {
   ]
   const backup = await createBackup({ targetRoot, files: filesToBackup })
 
-  const applyGateDecision = await evaluateAllGates({
+  const rawApplyGateDecision = await evaluateAllGates({
     targetRoot,
     runtime: "auto",
     action: "apply",
@@ -126,6 +127,10 @@ async function main() {
     dryRun: false,
     worktreeRoot: targetRoot,
   })
+  const applyGateDecision = {
+    ...rawApplyGateDecision,
+    classification: normalizeBootstrapClassification(rawApplyGateDecision.classification),
+  }
 
   if (applyGateDecision.classification === CLASSIFICATIONS.RED_BLOCK) {
     console.error("RED_BLOCK: Canonical gate evaluation blocked the apply operation.")
@@ -143,11 +148,18 @@ async function main() {
     }
   }
 
-  if (applyGateDecision.classification === CLASSIFICATIONS.AMBER_REVIEW) {
-    console.warn("AMBER_REVIEW: Proceeding with apply as explicitly requested.")
+  if (applyGateDecision.classification === "NEEDS_REVIEW") {
+    console.warn("NEEDS_REVIEW: Proceeding with apply as explicitly requested.")
     for (const warning of applyGateDecision.warnings) {
       console.warn(`  - ${warning}`)
     }
+  }
+
+  const v2WriteGate = await evaluateBootstrapWrites({ overlay, targetRoot })
+  if (!v2WriteGate.allowed) {
+    console.error(`RED_BLOCK: Governance V2 blocked bootstrap writes (${v2WriteGate.code || v2WriteGate.decision_class}).`)
+    process.exitCode = 2
+    return
   }
 
   await applyOverlay(overlay)
@@ -198,7 +210,34 @@ async function main() {
 
   console.log(renderPlanMarkdown(reportPlan))
   console.log(applyGateDecision.classification)
-  process.exitCode = applyGateDecision.classification === "GREEN_SAFE" ? 0 : applyGateDecision.classification === "AMBER_REVIEW" || applyGateDecision.classification === "TOOL_GAP" ? 1 : 2
+  process.exitCode = bootstrapExitCode(applyGateDecision.classification)
+}
+
+async function evaluateBootstrapWrites({ overlay, targetRoot }) {
+  const paths = overlay.files.map((file) => relativePath(targetRoot, file.destination))
+  const capsule = {
+    task_id: "bootstrap-apply",
+    owner_intent_id: "bootstrap-intent",
+    read_scope: ["**"],
+    write_scope: paths,
+    forbidden_scope: [".env", "**/.env", "**/.env.*", ".git/**"],
+    allowed_effects: ["LOCAL_WRITE"],
+    external_effect_scope: [],
+  }
+  for (const resource of paths) {
+    const decision = await evaluateAction({
+      tool: "filesystem",
+      action: "write",
+      capabilityKey: "filesystem.write",
+      effect: "LOCAL_WRITE",
+      resource,
+      capsule,
+      intent: { intent_id: "bootstrap-intent", external_effect_policy: "approval_required" },
+      runtime: "bootstrap",
+    })
+    if (!decision.allowed) return decision
+  }
+  return { allowed: true, decision_class: "A_AUTONOMOUS" }
 }
 
 function parseArgs(argv) {
@@ -497,8 +536,20 @@ async function validateRepoState(targetRoot) {
   const hermesRoot = path.join(targetRoot, ".hermes.md")
   if (!(await pathExists(hermesRoot))) uncertain.push("Hermes root markdown was not generated")
 
-  const classification = blocking.length > 0 ? "RED_BLOCK" : uncertain.length > 0 ? "AMBER_REVIEW" : "GREEN_SAFE"
+  const classification = blocking.length > 0 ? "RED_BLOCK" : uncertain.length > 0 ? "NEEDS_REVIEW" : "VERIFIED_IN_SCOPE"
   return { classification, uncertainties: uncertain, blocking }
+}
+
+function normalizeBootstrapClassification(classification) {
+  if (classification === "GREEN_SAFE") return "VERIFIED_IN_SCOPE"
+  if (classification === "AMBER_REVIEW") return "NEEDS_REVIEW"
+  return classification
+}
+
+function bootstrapExitCode(classification) {
+  if (classification === "VERIFIED_IN_SCOPE" || classification === "NOOP_IDEMPOTENT") return 0
+  if (classification === "NEEDS_REVIEW" || classification === "TOOL_GAP") return 1
+  return 2
 }
 
 async function findFirstExisting(root, relPaths) {

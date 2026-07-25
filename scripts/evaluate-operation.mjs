@@ -6,13 +6,15 @@
  * input, delegates to the canonical evaluator, and normalizes its result for
  * Spec-Kit consumers. The kernel remains authoritative.
  */
-import { existsSync, lstatSync, realpathSync, statSync, writeSync } from 'node:fs';
+import { existsSync, lstatSync, realpathSync, statSync, readFileSync, writeSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { evaluateAllGates, CLASSIFICATIONS, KNOWN_RUNTIMES } from './lib/gates/evaluate-all.mjs';
 import * as opencodeAdapter from './lib/runtimes/opencode.mjs';
 import { redactValue, safeRedactText, safeSerialize, secretValuesFromEnv } from './lib/security/redaction.mjs';
+import { evaluateAction } from '../runtime/gates/evaluate-action.mjs';
 
 const EXIT_CODES = Object.freeze({
+  VERIFIED_IN_SCOPE: 0,
   GREEN_SAFE: 0,
   AMBER_REVIEW: 10,
   TOOL_GAP: 20,
@@ -113,7 +115,7 @@ function normalizeDecision(decision, args, classification, exitCode, overrides =
   return redactValue({
     schema_version: '1.0',
     classification,
-    allowed: classification === CLASSIFICATIONS.GREEN_SAFE,
+    allowed: classification === CLASSIFICATIONS.GREEN_SAFE || classification === CLASSIFICATIONS.VERIFIED_IN_SCOPE,
     phase: args.phase,
     runtime: decision?.runtime || args.runtime,
     risk_tier: decision?.riskTier || args.riskTier,
@@ -132,7 +134,7 @@ function normalizeDecision(decision, args, classification, exitCode, overrides =
 }
 
 function printHelp() {
-  process.stdout.write(`Usage: node scripts/evaluate-operation.mjs --project <absolute-path> --phase <phase> --runtime <runtime> [options]\n\nPhases: ${PHASES.join(', ')}\nRuntimes: ${KNOWN_RUNTIMES.join(', ')}\nExit codes: 0 GREEN_SAFE, 10 AMBER_REVIEW, 20 TOOL_GAP, 30 RED_BLOCK, 40 INVALID_INPUT, 50 INTERNAL_ERROR\n`);
+  process.stdout.write(`Usage: node scripts/evaluate-operation.mjs --project <absolute-path> --phase <phase> --runtime <runtime> [options]\n\nPhases: ${PHASES.join(', ')}\nRuntimes: ${KNOWN_RUNTIMES.join(', ')}\nExit codes: 0 VERIFIED_IN_SCOPE, 10 NEEDS_REVIEW, 20 TOOL_GAP, 30 RED_BLOCK, 40 INVALID_INPUT, 50 INTERNAL_ERROR\n`);
 }
 
 async function main() {
@@ -141,6 +143,53 @@ async function main() {
     args = parseArgs(process.argv.slice(2));
     if (args.help) { printHelp(); return 0; }
     const projectRoot = validateArgs(args);
+    if (!['evaluate', 'validate'].includes(args.action)) {
+      if (args.approvalFile) {
+        const decision = await evaluateAllGates({
+          targetRoot: projectRoot,
+          runtime: args.runtime,
+          action: args.action,
+          riskTier: args.riskTier,
+          dryRun: args.dryRun,
+          approvalFile: args.approvalFile,
+          evidenceFile: args.evidenceFile,
+          projectPolicyFile: args.projectPolicy,
+          command: args.command,
+          writePaths: args.writePaths,
+          agentRole: args.agentRole,
+          worktreeRoot: projectRoot,
+          enforcementContext: { phase: args.phase, scope: args.scope }
+        });
+        const classification = decision.classification;
+        const exitCode = EXIT_CODES[classification] ?? EXIT_CODES.INTERNAL_ERROR;
+        await emitJson(normalizeDecision(decision, args, classification, exitCode));
+        return exitCode;
+      }
+      const capsulePath = resolve(projectRoot, '.agent-governance', 'task-capsule.json');
+      const intentPath = resolve(projectRoot, '.agent-governance', 'owner-intent.json');
+      const readJson = (filePath) => {
+        try { return JSON.parse(readFileSync(filePath, 'utf8')); } catch { return null; }
+      };
+      const tool = args.agentRole === 'mcp' ? 'mcp' : args.action === 'read' ? 'read' : args.action === 'write' || args.action === 'apply' ? 'write' : 'bash';
+      const v2 = await evaluateAction({
+        targetRoot: projectRoot, runtime: args.runtime, tool, command: tool === 'bash' ? (args.command || args.action) : undefined,
+        resource: args.writePaths[0] || args.command || args.action, capsule: readJson(capsulePath), intent: readJson(intentPath),
+        auditPath: resolve(projectRoot, '.agent-governance', 'evidence', 'action-audit.jsonl'),
+      });
+      const classification = v2.decision_class === 'A_AUTONOMOUS' || v2.decision_class === 'B_LEASE_OR_RECEIPT'
+        ? 'VERIFIED_IN_SCOPE' : v2.decision_class === 'C_BUNDLED_OWNER_DECISION' ? 'NEEDS_REVIEW' : 'RED_BLOCK';
+      const payload = redactValue({
+        schema_version: 'governance-v2.action-decision.1',
+        ...v2,
+        classification,
+        allowed: v2.allowed === true,
+        required_approvals: v2.requiredApprovals || v2.required_approvals || [],
+        consumed_approvals: v2.consumedApprovals || v2.consumed_approvals || [],
+        exit_code: v2.allowed ? 0 : v2.requires_owner ? EXIT_CODES.AMBER_REVIEW : EXIT_CODES.RED_BLOCK,
+      }, REDACTION_OPTIONS);
+      await emitJson(payload);
+      return payload.exit_code;
+    }
     const decision = await evaluateAllGates({
       targetRoot: projectRoot,
       runtime: args.runtime,

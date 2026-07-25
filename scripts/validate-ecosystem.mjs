@@ -829,7 +829,16 @@ function runTestSuite() {
   }
   try {
     const testManifest = JSON.parse(fsSync.readFileSync(path.join(repoRoot, "test", "test-manifest.json"), "utf8"))
-    const files = Object.values(testManifest.groups || {}).flat()
+    const canonicalGroups = [
+      "unit",
+      "contract",
+      "integration",
+      "bootstrap",
+      "governance",
+      "e2e",
+      "provider_optional",
+    ]
+    const files = canonicalGroups.flatMap((group) => testManifest.groups?.[group] || [])
     const result = spawnSync(process.execPath, [
       "--test",
       "--test-reporter=spec",

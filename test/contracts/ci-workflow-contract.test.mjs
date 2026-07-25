@@ -18,6 +18,9 @@ describe("PR CI workflow contracts", () => {
       validator.indexOf("if (result.error)") < validator.indexOf("// Parse test summary"),
       "spawn errors such as ENOBUFS must be reported before interpreting a missing test summary",
     )
+    assert.match(validator, /const canonicalGroups = \[/)
+    assert.match(validator, /canonicalGroups\.flatMap/)
+    assert.doesNotMatch(validator, /Object\.values\(testManifest\.groups/)
   })
 
   it("runs deterministic security gates without provider credentials or write permissions", () => {

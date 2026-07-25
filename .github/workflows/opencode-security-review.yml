@@ -29,7 +29,7 @@ jobs:
         with:
           node-version: 22
       - name: Unit and security tests
-        run: node scripts/run-tests.mjs --group unit --reporter dot
+        run: node scripts/run-tests.mjs --group unit --reporter spec
       - name: Capability and workflow contracts
         run: node scripts/run-tests.mjs --group contract --reporter dot
       - name: Security integration tests

@@ -187,7 +187,10 @@ describe('R-002: Resident Runtime Directory Structure', () => {
     try {
       // Create minimal project
       writeFileSync(join(projectDir, 'package.json'), '{"name":"test-project"}');
-      execSync('git init && git add -A && git commit -m "init"', { cwd: projectDir, stdio: 'pipe' });
+      execSync(
+        'git init && git config user.name "OCAE Contract Test" && git config user.email "ocae-test.invalid@example.invalid" && git add -A && git commit -m "init"',
+        { cwd: projectDir, stdio: 'pipe' }
+      );
 
       // Install governance from the repo
       const installCmd = `node ${join(REPO_ROOT, 'scripts/install-governance.mjs')} --target ${projectDir} --apply --json`;

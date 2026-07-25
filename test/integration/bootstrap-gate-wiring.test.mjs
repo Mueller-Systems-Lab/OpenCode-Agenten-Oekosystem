@@ -51,7 +51,7 @@ async function installGovernance(target) {
   ], { cwd: repoRoot });
 }
 
-describe('Bootstrap Gate Wiring', { concurrency: 1 }, () => {
+describe('Bootstrap Gate Wiring', () => {
   const tempDirs = [];
 
   after(async () => {
@@ -121,7 +121,7 @@ describe('Bootstrap Gate Wiring', { concurrency: 1 }, () => {
     const gateOutput = JSON.parse(gateResult.stdout);
 
     // Both should produce valid classifications
-    const valid = ['GREEN_SAFE', 'VERIFIED_IN_SCOPE', 'AMBER_REVIEW', 'TOOL_GAP', 'RED_BLOCK'];
+    const valid = ['GREEN_SAFE', 'AMBER_REVIEW', 'TOOL_GAP', 'RED_BLOCK'];
     assert.ok(valid.includes(installOutput.classification),
       `Installer classification "${installOutput.classification}" not valid`);
     assert.ok(valid.includes(gateOutput.classification),

@@ -105,7 +105,7 @@ after(async () => {
   }
 });
 
-describe('Approval receipt closure contract', { concurrency: 1 }, () => {
+describe('Approval receipt closure contract', () => {
   it('emits every canonical field and validates the receipt', async () => {
     const repo = await makeRepo();
     const receipt = approved(repo);

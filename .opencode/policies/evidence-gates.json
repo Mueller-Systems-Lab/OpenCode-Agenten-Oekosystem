@@ -1,9 +1,4 @@
 {
-  "governance_v2": {
-    "completion_classifications": ["RED_BLOCK", "TOOL_GAP", "NEEDS_REVIEW", "VERIFIED_IN_SCOPE"],
-    "legacy_aliases": {"GREEN_SAFE": "VERIFIED_IN_SCOPE"},
-    "approval_minimization_evidence": ["autonomous_decisions", "reused_authorizations", "deduplicated_requests", "unavoidable_owner_questions"]
-  },
   "version": "1.1.0",
   "description": "Defines mandatory evidence requirements before agents can make specific claim types. Includes structural-vs-live differentiation.",
 

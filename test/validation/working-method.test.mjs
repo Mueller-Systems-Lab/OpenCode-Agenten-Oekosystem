@@ -247,13 +247,12 @@ describe('opencode.jsonc', () => {
     }
   });
 
-  it('injects only the compact prompt kernel permanently', () => {
+  it('includes WORKING-METHOD.md in instructions', () => {
     const instructions = config.instructions || {};
     const paths = Array.isArray(instructions) ? instructions : (instructions.files || []);
     if (paths.length > 0) {
       const allPaths = paths.join(' ');
-      assert.deepEqual(paths, ['PROMPT-KERNEL.md']);
-      assert.ok(!allPaths.includes('WORKING-METHOD.md'), 'WORKING-METHOD.md must be lazy-loaded, not permanently injected');
+      assert.ok(allPaths.includes('WORKING-METHOD.md'), 'WORKING-METHOD.md not in instructions');
     }
   });
 

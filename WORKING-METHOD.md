@@ -1,16 +1,14 @@
 # Canonical Working Method — OpenCode Agent Ecosystem
 
-> **Version**: 2.0.0 (Governance V2 effect-based runtime)
+> **Version**: 1.0.0
 > **Category**: Canonical Workflow Contract
-> **Status**: ACTIVE — legacy phase text is subordinate to `governance/policy-core.yaml`
+> **Status**: ACTIVE
 > **Scope**: Binding for all coding agents operating within or through the OpenCode Agent Ecosystem
 > **Overrides**: Deviating workflow specifications in earlier AGENTS.md, README.md, or per-project rules are superseded by this document where they conflict.
 
 ---
 
 ## Core Principles
-
-> **V2 precedence:** The policy IR and executable runtime decide authorization by concrete effect. The phase descriptions below are reference material for evidence and sequencing; they do not create an approval requirement by themselves. A task may enter HOT when its concrete effects are authorized by policy, Intent, Capsule, Lease, or Receipt.
 
 1. **Reality Wins** — Der tatsächliche Runtime- und Repository-Zustand hat immer Vorrang vor Dokumentation, Speicher oder Behauptungen.
 2. **Evidence Before Claims** — Kein Anspruch (Severity, Architektur, Migration, Bug-Fix, Feature, Compliance) ohne belegbare Evidence.
@@ -19,7 +17,7 @@
 5. **Dry-Run Before Apply** — Jede Änderung zuerst im Dry-Run-Modus validieren.
 6. **Local Checks Before Remote Checks** — Lokale Tests und Validierung vor Remote-CI.
 7. **Reviewer Before Completion** — Keine Aufgabe ist abgeschlossen, bevor der Reviewer sie bestätigt hat.
-8. **Owner Decision Before Concrete Irreversible Effects** — External, irreversible, value-sensitive, or not-yet-authorized effects require a bounded owner decision. Local reversible writes, tests, and commits inside a valid Capsule may run autonomously.
+8. **Human Approval Before Irreversible Actions** — Apply, Commit, Push, PR, Merge, Deployment, Remote-CI, Skill Writes und Memory Writes benötigen menschliche Freigabe.
 9. **Smallest Safe Scope** — Nur die minimal notwendigen Änderungen durchführen.
 10. **Preserve Unrelated Work** — Fremde lokale Änderungen niemals überschreiben oder pauschal stagen.
 11. **No Fake Execution** — Keine Tool-, Test-, Runtime-, Datei-, Issue-, PR- oder Log-Ausführung behaupten, die nicht tatsächlich stattgefunden hat.
@@ -133,7 +131,7 @@ Der Agent hat den Repository-Zustand validiert und die Aufgabe analysiert.
 
 ### HOT Context
 
-Der Agent hat Planung und Runtime-Zugriff für konkret autorisierte Wirkungen. Ein abstraktes Approval für den Zustandswechsel ist kein Gate; Owner-Entscheidungen werden nur an konkreten Wirkungspunkten geprüft.
+Der Agent hat Planung, Approval und Runtime-Zugriff.
 
 **Enthält zusätzlich:**
 - Aktuellen Diff (geplante Änderungen)
@@ -141,7 +139,7 @@ Der Agent hat Planung und Runtime-Zugriff für konkret autorisierte Wirkungen. E
 - Logs (Runtime-Evidence)
 - Runtime-Evidence (Tool-Outputs, Screenshots)
 - Offene Findings (aus Security/Compliance-Review)
-- Authorization-Status für konkrete Wirkungen (Receipts, Leases, Decision Packets)
+- Approval-Status (pro Gate)
 
 **Erlaubt:**
 - Implementierung
@@ -160,7 +158,7 @@ Der Agent hat Planung und Runtime-Zugriff für konkret autorisierte Wirkungen. E
 | Von | Nach | Bedingung |
 |-----|------|-----------|
 | COLD | WARM | Reality Refresh abgeschlossen, Issue/Run-Report gelesen, betroffene Dateien identifiziert |
-| WARM | HOT | Plan liegt vor, Risk Tier bestimmt, Verification Contract erstellt und konkrete Wirkungen durch Policy, Intent, Capsule, Lease oder Receipt autorisiert; kein abstraktes Owner Approval für den Zustandswechsel |
+| WARM | HOT | Plan liegt vor, Risk Tier bestimmt, Verification Contract erstellt, Owner Approval für WARM→HOT erteilt |
 | HOT | COLD | Context Compaction erforderlich (Speicherlimit, neuer Task, Provider-Wechsel) |
 
 **Bei Context Compaction:** Hard Constraints vor dem Wechsel neu einspielen.
@@ -276,7 +274,7 @@ flowchart TD
     G --> H[10. Compliance]
     H --> I[11. Verification Contract]
     I --> J[12. Red-Test Creation and Execution]
-    J --> K[13. Effect Authorization / Last Responsible Moment]
+    J --> K[13. Owner Approval / WARM to HOT]
     K --> L[14. Implementation]
     L --> M[15. Local Validation]
     M --> N[16. Reality Gate]
@@ -306,7 +304,7 @@ flowchart TD
 | 10 | **Compliance** | Compliance-Review: DSGVO, Datenminimierung, Retention, Zweckbindung. | Compliance Findings |
 | 11 | **Verification Contract** | Gewünschtes Verhalten, Akzeptanzkriterien, Red Tests, Regressionstests, Reality Gate, Evidence-Typen. | Verification Contract |
 | 12 | **Red Tests** | Test schreiben, der das gewünschte Verhalten zeigt und aktuell fehlschlägt (RED). | Red Test Output |
-| 13 | **Effect Authorization** | Konkrete Wirkung klassifizieren; bestehende Intent/Capsule/Lease/Receipt nutzen oder bekannte Owner-Fragen bis zum letzten verantwortbaren Zeitpunkt bündeln. | Authorization / Decision Packet |
+| 13 | **Owner Approval** | Approval für Risk Tier und Implementation einholen. | Approval Status |
 | 14 | **Implementation** | Änderungen gemäß Spec und Plan. Kleinste sinnvolle Änderung. | Git Diff |
 | 15 | **Local Validation** | Tests ausführen, Lint/Typecheck, manuelle Prüfungen. | Test Output |
 | 16 | **Reality Gate** | Prüfen, ob der tatsächliche Zustand dem erwarteten entspricht. Diff reviewen. | Reality Gate Report |
@@ -351,11 +349,11 @@ Hard Constraints sind definierte, nicht verhandelbare Grenzen. Sie gehen bei Con
 
 ---
 
-## Scope Model (V2; replaces Non-Touch Areas)
+## Non-Touch Areas
 
-Jede Run Card über MEDIUM_REVIEW muss die V2-Scopes explizit dokumentieren. Die frühere Non-Touch-Liste bleibt nur als Migrationsinput erhalten und ist keine allgemeine Lesesperre.
+Jede Run Card über MEDIUM_REVIEW muss eine explizite Liste von Dateien/Verzeichnissen enthalten, die **nicht** angerührt werden dürfen.
 
-**Vorgabe:** `read_scope`, `write_scope`, `forbidden_scope`, and `external_effect_scope` are evaluated separately. Files outside `write_scope` may be read for necessary analysis; only `forbidden_scope` blocks reading. External effects are never implied by filesystem scope.
+**Vorgabe:** Alle Dateien außerhalb des expliziten Scopes sind Non-Touch Areas.
 
 ### Standard Non-Touch Areas (aus write-protection.json)
 
@@ -384,7 +382,7 @@ README.md
 
 ### Never-Edit-Regel
 
-Legacy Non-Touch entries are migration input only. A runtime must not use them to block necessary reads; it must block writes outside `write_scope` and all effects in `forbidden_scope`.
+Wenn eine Datei oder ein Verzeichnis in der Non-Touch-Liste einer Run Card steht, darf der Agent diese Datei in dieser Session nicht lesend oder schreibend anfassen, es sei denn, die Run Card definiert explizit eine Ausnahme.
 
 ---
 
@@ -498,22 +496,22 @@ Jeder Verstoß gegen Anti-Fake Execution führt zur Klassifikation `RED_BLOCK` u
 
 ---
 
-## Owner Approval Gates (Legacy Gate Names, V2 Effect Semantics)
+## Owner Approval Gates
 
 Jedes Gate ist:
 
 - **Aktionsspezifisch**: Gilt nur für die konkrete Aktion (Commit, Push, PR, etc.)
 - **Scope-spezifisch**: Gilt nur für den definierten Scope (Dateien, Änderungen)
-- **Effect-bound**: A receipt or lease covers only its declared effect/resource scope.
-- **Reusable within bounds**: A valid signed receipt or lease may be reused and delegated by subset rules; it is not re-asked for every agent.
-- **Bundled**: Known owner decisions are collected into one packet at the last responsible moment.
+- **Nicht übertragbar**: Ein Approval für Commit deckt nicht Push ab
+- **Nicht aus früheren Chats ableitbar**: Jedes Gate muss in der aktuellen Session explizit geprüft werden
+- **Bei Scope-Änderung erneut erforderlich**: Ein erweiterter Scope erfordert neue Approvals
 
 ### Gate List
 
 | # | Gate | Auslöser | Benötigt | Referenz-Policy |
 |---|------|----------|----------|-----------------|
-| 1 | **Apply Gate** | Before a non-authorized external/irreversible effect; local Capsule writes are autonomous | Effect classification | governance/policy-core.yaml |
-| 2 | **Commit Gate** | Local commit inside a Capsule is autonomous; remote publication remains owner-gated | Effect classification | governance/policy-core.yaml |
+| 1 | **Apply Gate** | Bevor Dateien im Zielprojekt geändert werden | Human Approval | write-protection.json |
+| 2 | **Commit Gate** | Bevor Änderungen committed werden | Human Approval | write-protection.json |
 | 3 | **Push Gate** | Bevor Änderungen remote gepusht werden | Human Approval | write-protection.json |
 | 4 | **PR Gate** | Bevor ein Pull Request erstellt wird | Human Approval | write-protection.json |
 | 5 | **Merge Gate** | Bevor ein PR gemergt wird | Human Approval | write-protection.json |
@@ -708,9 +706,7 @@ Jeder Lauf endet mit einer Klassifikation. Diese bestimmt, ob und wie der Lauf a
 
 | Classification | Bedeutung | Nächste Schritte |
 |---------------|-----------|------------------|
-| **`VERIFIED_IN_SCOPE`** | Scope, runtime, base/head, evidence, and outcome are actually verified | Continue according to concrete effect decisions |
-| **`NEEDS_REVIEW`** | Evidence or review remains required | Reviewer/owner decision as applicable |
-| **`GREEN_SAFE` (legacy alias)** | V1 compatibility input only | Normalize to `VERIFIED_IN_SCOPE` |
+| **`GREEN_SAFE`** | Alle Gates bestanden, alle Tests grün, Evidence vollständig, keine offenen Findings | Commit/Push/PR möglich (nach Approval) |
 | **`AMBER_REVIEW`** | Bestanden mit dokumentierten Findings/Einschränkungen. Z. B.: Kein Test-Framework vorhanden, nicht alle Tests ausführbar, bekannte Risiken dokumentiert | Findings adressieren oder mit Nutzer klären |
 | **`RED_BLOCK`** | Fehlgeschlagen oder Sicherheitsproblem. Z. B.: Test fehlgeschlagen, Security Finding, Compliance-Verstoß, Fake Execution | Block beheben, dann neu starten |
 | **`TOOL_GAP`** | Nicht durchführbar wegen fehlender Werkzeuge. Z. B.: Kein Docker, keine passende Runtime, kein MCP-Server | Fehlendes Tool bereitstellen oder Workaround finden |
@@ -723,7 +719,7 @@ Die Classification ergibt sich aus dem schwerwiegendsten aufgetretenen Zustand:
 2. Wenn `RED_BLOCK` vorliegt → `RED_BLOCK`
 3. Wenn offene Findings aus Security/Compliance → `AMBER_REVIEW`
 4. Wenn Tests nicht vollständig ausführbar → `AMBER_REVIEW`
-5. Wenn Outcome, Scope, Runtime und Evidence geprüft sind → `VERIFIED_IN_SCOPE`
+5. Wenn alle Gates grün, alle Tests grün, Evidence vollständig → `GREEN_SAFE`
 
 ---
 
@@ -741,15 +737,15 @@ Jede Run Card MUSS alle folgenden Felder enthalten. Eine unvollständige Run Car
 | 6 | **Scope** | Welche Dateien/Module werden bearbeitet? | "src/api/status.ts, src/api/status.test.ts" |
 | 7 | **Out of Scope** | Was wird explizit nicht bearbeitet? | "Keine Änderungen an Auth, kein Deployment" |
 | 8 | **Hard Constraints** | Nicht verhandelbare Grenzen | "Keine neuen Abhängigkeiten, keine externen APIs" |
-| 9 | **Scopes** | `read_scope`, `write_scope`, `forbidden_scope`, `external_effect_scope` | "read src/**; write runtime/**; forbid .env; external none" |
+| 9 | **Non-Touch Areas** | Dateien/Verzeichnisse, die nicht angerührt werden dürfen | "src/legacy/*, Dockerfile, CI-Configs" |
 | 10 | **Beteiligte Agenten** | Welche Agenten sind involviert? | "issue-orchestrator, build, review-agent" |
 | 11 | **Verification Contract** | Link oder eingebetteter Contract | Siehe Verification Contract Template |
 | 12 | **Red Tests** | List of Red Tests oder Ausnahmebegründung | "test_status_api.py" |
 | 13 | **Testmatrix** | Welche Tests müssen laufen? | "unit, integration, lint" |
 | 14 | **Evidence Plan** | Welche Evidence wird gesammelt? | "Test-Output, Diff-Stat, Logs" |
-| 15 | **Approval State** | Nur für konkrete zustimmungspflichtige Wirkungen: NOT_REQUESTED / PENDING / APPROVED / DENIED / EXPIRED | "Merge: PENDING; local write: not required" |
+| 15 | **Owner-Approval-Status** | Pro Gate: NOT_REQUESTED / PENDING / APPROVED / DENIED / EXPIRED | "Apply: NOT_REQUESTED, Commit: NOT_REQUESTED" |
 | 16 | **Rollback-Strategie** | Wie wird rückgängig gemacht? | "git checkout -- src/", "Backup in .opencode/backups/" |
-| 17 | **Erwartete Completion Classification** | VERIFIED_IN_SCOPE / NEEDS_REVIEW / RED_BLOCK / TOOL_GAP; `GREEN_SAFE` nur als V1-Inputalias | "VERIFIED_IN_SCOPE" |
+| 17 | **Erwartete Completion Classification** | GREEN_SAFE / AMBER_REVIEW / RED_BLOCK / TOOL_GAP | "GREEN_SAFE" |
 
 ### Run Card Template
 
@@ -830,9 +826,9 @@ Jede Run Card MUSS alle folgenden Felder enthalten. Eine unvollständige Run Car
 
 ---
 
-## MCP Trust Tiers (Legacy Transport Reference)
+## MCP Trust Tiers (Reference)
 
-Diese Tiers beschreiben nur Transport-/Server-Metadaten. Sie autorisieren keine Aktion. Die wirkungsbezogene Entscheidung kommt aus `governance/generated/capability-registry.json`; unbekannte Toolwirkungen sind `RED_BLOCK`.
+Diese Tiers sind **separat** von den Workflow Risk Tiers. Sie definieren die Sicherheitsstufe von MCP-Servern und sind in `.opencode/policies/mcp-trust-tiers.json` konfiguriert.
 
 | Tier | Name | Beschreibung | Erlaubte Muster | Geblockte Muster | Netzwerk | Filesystem | Server |
 |------|------|-------------|-----------------|------------------|----------|------------|--------|
@@ -1002,7 +998,7 @@ Jeder Task endet mit einem Evidence-Abschluss. Dies ist der finale Schritt vor d
 
 ### Bestandteile
 
-1. **Completion Classification** — `VERIFIED_IN_SCOPE`, `NEEDS_REVIEW`, `RED_BLOCK` oder `TOOL_GAP`; `GREEN_SAFE`/`AMBER_REVIEW` sind V1-Kompatibilitätsaliases
+1. **Completion Classification** — `GREEN_SAFE`, `AMBER_REVIEW`, `RED_BLOCK` oder `TOOL_GAP`
 2. **Geänderte Dateien** — `git diff --stat` oder vollständige Liste
 3. **Warum** — Begründung der Änderungen
 4. **Quellen / gelesene Dokumentation** — Welche Policies, Issues, Dokumente wurden gelesen
@@ -1119,8 +1115,8 @@ flowchart LR
 | Was tun bei Konflikt? | Höherwertige Truth Layer gewinnt | Source of Truth Hierarchy |
 | Dürfen Secrets geloggt werden? | Niemals | Core Principle 13 |
 | Dürfen Tests erfunden werden? | Niemals | Anti-Fake Execution |
-| Dürfen Approvals übertragen werden? | Nur als bounded Receipt/Lease mit Scope-, Effekt-, Risiko- und Delegation-Subset | Governance V2 |
-| Wann ist ein Task fertig? | Nach Outcome-Evidence + Reviewer; Approval nur für konkrete externe Wirkungen | Completion Classification |
+| Dürfen Approvals übertragen werden? | Niemals (jedes Gate separat) | Owner Approval Gates |
+| Wann ist ein Task fertig? | Nach Evidence-Abschluss + Reviewer + Approval | Completion Classification |
 
 ---
 

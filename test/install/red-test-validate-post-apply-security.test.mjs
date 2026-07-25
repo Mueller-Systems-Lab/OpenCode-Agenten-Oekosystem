@@ -79,7 +79,7 @@ async function callValidatePostApply(targetRoot) {
   }
 }
 
-describe('RED TEST — validatePostApply must check security/redaction.mjs (pre-fix: expected FAIL)', { concurrency: 1 }, () => {
+describe('RED TEST — validatePostApply must check security/redaction.mjs (pre-fix: expected FAIL)', () => {
   const tempDirs = [];
 
   after(async () => {
@@ -88,15 +88,15 @@ describe('RED TEST — validatePostApply must check security/redaction.mjs (pre-
     }
   });
 
-  // ── Test 1: Full install is VERIFIED_IN_SCOPE ────────────────
-  it('fresh install produces VERIFIED_IN_SCOPE post-validation', async () => {
+  // ── Test 1: Full install is GREEN_SAFE ───────────────────────
+  it('fresh install produces GREEN_SAFE post-validation', async () => {
     const target = await createTempDir();
     tempDirs.push(target);
     const result = await installGovernance(target);
     const parsed = JSON.parse(result.stdout);
     assert.strictEqual(
-      parsed.post_validation?.classification, 'VERIFIED_IN_SCOPE',
-      `Fresh install post_validation must be VERIFIED_IN_SCOPE. Got: ${parsed.post_validation?.classification}`
+      parsed.post_validation?.classification, 'GREEN_SAFE',
+      `Fresh install post_validation must be GREEN_SAFE. Got: ${parsed.post_validation?.classification}`
     );
     assert.ok(
       existsSync(path.join(target, REDACTION_DEST)),
@@ -118,10 +118,11 @@ describe('RED TEST — validatePostApply must check security/redaction.mjs (pre-
     // Call validatePostApply directly (no file-copy)
     const result = await callValidatePostApply(target);
 
-    // Missing runtime content must never retain the verified classification.
+    // POST-FIX: Must be RED_BLOCK or AMBER_REVIEW
+    // PRE-FIX: Will be GREEN_SAFE (gap exists)
     assert.notStrictEqual(
-      result.classification, 'VERIFIED_IN_SCOPE',
-      `validatePostApply must NOT report VERIFIED_IN_SCOPE when security/redaction.mjs is missing. ` +
+      result.classification, 'GREEN_SAFE',
+      `validatePostApply must NOT report GREEN_SAFE when security/redaction.mjs is missing. ` +
       `Got: classification=${result.classification}, issues=${JSON.stringify(result.issues)}`
     );
     assert.ok(
@@ -141,8 +142,8 @@ describe('RED TEST — validatePostApply must check security/redaction.mjs (pre-
     const result = await callValidatePostApply(target);
 
     assert.notStrictEqual(
-      result.classification, 'VERIFIED_IN_SCOPE',
-      `validatePostApply must NOT report VERIFIED_IN_SCOPE when security/ directory is missing. ` +
+      result.classification, 'GREEN_SAFE',
+      `validatePostApply must NOT report GREEN_SAFE when security/ directory is missing. ` +
       `Got: classification=${result.classification}`
     );
   });
@@ -158,7 +159,7 @@ describe('RED TEST — validatePostApply must check security/redaction.mjs (pre-
     const result = await callValidatePostApply(target);
 
     assert.notStrictEqual(
-      result.classification, 'VERIFIED_IN_SCOPE',
+      result.classification, 'GREEN_SAFE',
       `validatePostApply must detect empty/corrupt redaction.mjs. ` +
       `Got: classification=${result.classification}`
     );
@@ -172,10 +173,10 @@ describe('RED TEST — validatePostApply must check security/redaction.mjs (pre-
 
     const result = await callValidatePostApply(target);
 
-    // With all runtime files present, the V2 result must be verified.
+    // With ALL files present, must be GREEN_SAFE
     assert.strictEqual(
-      result.classification, 'VERIFIED_IN_SCOPE',
-      `With all runtime files present, must be VERIFIED_IN_SCOPE. ` +
+      result.classification, 'GREEN_SAFE',
+      `With all runtime files present, must be GREEN_SAFE. ` +
       `Got: classification=${result.classification}, issues=${JSON.stringify(result.issues)}`
     );
   });
@@ -194,8 +195,8 @@ describe('RED TEST — validatePostApply must check security/redaction.mjs (pre-
     const reportPath = path.join(target, '.agent-governance', 'reports', 'install-report.json');
     const report = JSON.parse(await fs.readFile(reportPath, 'utf8'));
     assert.strictEqual(
-      report.post_validation?.classification, 'VERIFIED_IN_SCOPE',
-      `First install report must have VERIFIED_IN_SCOPE post_validation`
+      report.post_validation?.classification, 'GREEN_SAFE',
+      `First install report must have GREEN_SAFE post_validation`
     );
   });
 
@@ -217,8 +218,8 @@ describe('RED TEST — validatePostApply must check security/redaction.mjs (pre-
     );
   });
 
-  // ── Test 8: VERIFIED_IN_SCOPE requires all runtime files ─
-  it('VERIFIED_IN_SCOPE requires ALL runtime files present (no false verified)', async () => {
+  // ── Test 8: GREEN_SAFE requires ALL runtime files ────────
+  it('GREEN_SAFE requires ALL runtime files present (no false green)', async () => {
     const target = await createTempDir();
     tempDirs.push(target);
 
@@ -231,8 +232,8 @@ describe('RED TEST — validatePostApply must check security/redaction.mjs (pre-
     const result = await callValidatePostApply(target);
 
     assert.notStrictEqual(
-      result.classification, 'VERIFIED_IN_SCOPE',
-      `VERIFIED_IN_SCOPE must not be reported when runtime files are missing. ` +
+      result.classification, 'GREEN_SAFE',
+      `GREEN_SAFE must not be reported when runtime files are missing. ` +
       `Got: classification=${result.classification}`
     );
   });
@@ -248,7 +249,7 @@ describe('RED TEST — validatePostApply must check security/redaction.mjs (pre-
     const result = await callValidatePostApply(target);
 
     assert.notStrictEqual(
-      result.classification, 'VERIFIED_IN_SCOPE',
+      result.classification, 'GREEN_SAFE',
       `validatePostApply must detect missing file in target, not fall back to repo source. ` +
       `Got: classification=${result.classification}`
     );

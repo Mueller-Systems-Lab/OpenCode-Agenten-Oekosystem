@@ -7,10 +7,6 @@ metadata:
   risk_tier: HIGH_HUMAN_GATE
 ---
 
-## Governance V2 Override
-
-Approval is an exception for a concrete effect, not a mandatory phase. First classify effect, scope, reversibility, and existing Intent/Capsule/Lease/Receipt authorization. Local reversible in-scope actions are autonomous. Bundle all known owner decisions into one packet at the last responsible moment; never ask again for a valid bounded receipt or lease. `WORKING-METHOD.md`'s legacy per-gate wording is subordinate to `governance/policy-core.yaml`.
-
 ## When To Use
 
 Use this skill before any irreversible or remote action. It is **mandatory** for all tasks classified as `HIGH_HUMAN_GATE` per the Risk Tier system in WORKING-METHOD.md.
@@ -27,7 +23,7 @@ Concrete triggers for loading this skill:
 - Before creating or modifying skill files (`Skill Write Gate`)
 - Before writing to agent memory stores (`Memory Write Gate`)
 
-When any of the above actions is planned, load this skill first to classify the concrete effect. Proceed autonomously for A effects and valid B authorizations; for C effects wait only at the final effect boundary for the central bundled decision. D effects remain technically blocked.
+When any of the above actions is planned, load this skill first to manage the approval lifecycle. Do not proceed with the action until the corresponding gate is `APPROVED`.
 
 ---
 

@@ -1,7 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://opencode-agent-ecosystem.local/governance/task-capsule.schema.json",
-  "type": "object",
-  "required": ["task_id", "owner_intent_id", "goal", "why", "risk_tier", "execution_profile", "source_of_truth", "baseline", "read_scope", "write_scope", "forbidden_scope", "allowed_effects", "acceptance_criteria", "evidence_required", "approval_budget", "active_approval_receipts", "active_change_leases", "stop_conditions"],
-  "properties": {"task_id": {"type": "string"}, "owner_intent_id": {"type": "string"}, "risk_tier": {"enum": ["LOW_LOCAL", "MEDIUM_REVIEW", "HIGH_HUMAN_GATE", "CRITICAL_BLOCK"]}, "execution_profile": {"enum": ["COMPACT", "STANDARD", "CRITICAL", "BLOCKED"]}, "read_scope": {"type": "array"}, "write_scope": {"type": "array"}, "forbidden_scope": {"type": "array"}, "allowed_effects": {"type": "array"}, "approval_budget": {"type": "object"}}
-}

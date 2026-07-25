@@ -3,15 +3,8 @@ on:
   pull_request:
     types: [opened, synchronize]
     paths:
-      - '.github/workflows/opencode-security-review.yml'
-      - '.opencode/**'
-      - 'bootstrap/**'
-      - 'governance/**'
-      - 'runtime/**'
-      - 'scripts/**'
       - 'server/**'
       - 'src/**'
-      - 'test/**'
       - 'package*.json'
       - 'docker-compose*.yml'
       - 'Dockerfile'
@@ -20,58 +13,30 @@ jobs:
   security-review:
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
       contents: read
+      pull-requests: write
+      issues: write
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Install required secure sandbox
-        run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends --yes bubblewrap
-          bwrap --version
-      - name: Classify secure sandbox availability
-        id: sandbox
-        run: |
-          if bwrap --die-with-parent --new-session \
-            --unshare-user --unshare-pid --ro-bind /usr /usr \
-            --proc /proc --dev /dev -- /usr/bin/true; then
-            echo "applicable=true" >> "$GITHUB_OUTPUT"
-            echo "CHECK_RESULT: APPLICABLE"
-            reason="Bubblewrap and required namespaces are available"
-            echo "REASON: $reason"
-          else
-            echo "applicable=false" >> "$GITHUB_OUTPUT"
-            echo "CHECK_RESULT: NOT_APPLICABLE"
-            reason="GitHub runner denies the required namespace operation"
-            echo "REASON: $reason"
-            fallback="TOOL_GAP_SECURE_SANDBOX; no unsandboxed execution"
-            echo "FALLBACK_CONTRACT: $fallback"
-          fi
-      - name: Unit and security tests
-        run: node scripts/run-tests.mjs --group unit --reporter spec
-      - name: Capability and workflow contracts
-        run: node scripts/run-tests.mjs --group contract --reporter spec
-      - name: Security integration tests
-        if: steps.sandbox.outputs.applicable == 'true'
-        run: node scripts/run-tests.mjs --group integration --reporter spec
-      - name: Portable integration and fail-closed sandbox contracts
-        if: steps.sandbox.outputs.applicable != 'true'
-        run: >-
-          node scripts/run-tests.mjs
-          --group integration_portable --reporter spec
-      - name: Ecosystem validation with secure sandbox
-        if: steps.sandbox.outputs.applicable == 'true'
-        run: node scripts/validate-ecosystem.mjs
-      - name: Ecosystem validation with fail-closed sandbox contract
-        if: steps.sandbox.outputs.applicable != 'true'
+      - uses: anomalyco/opencode/github@latest
         env:
-          OCAE_SECURE_SANDBOX_NOT_APPLICABLE: "1"
-        run: node scripts/validate-ecosystem.mjs
-      - name: Governance drift
-        run: node scripts/check-governance-drift.mjs
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        with:
+          model: anthropic/claude-sonnet-4-20250514
+          agent: security-agent
+          prompt: |
+            Security review of this PR:
+            1. Load security-evidence-gate skill
+            2. Check for:
+               - Input validation issues
+               - Authentication/authorization flaws
+               - Secret leakage (hardcoded keys/tokens)
+               - SQL injection vectors
+               - XSS vulnerabilities
+               - Dependency vulnerabilities (npm audit)
+            3. Classify findings as VERIFIED or UNVERIFIED
+            4. Post review comment with evidence and file:line references
+            5. Do NOT claim severity without PoC reproduction

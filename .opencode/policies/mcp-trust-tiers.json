@@ -1,12 +1,4 @@
 {
-  "governance_v2": {
-    "status": "transport_metadata_only",
-    "authorization_source": "governance/generated/capability-registry.json",
-    "server_trust_is_not_authorization": true,
-    "unknown_action": "RED_BLOCK",
-    "tool_output": "UNTRUSTED",
-    "approval_is_effect_based": true
-  },
   "version": "1.0.0",
   "description": "MCP server trust tier classification defining access levels, restrictions, and security constraints",
 

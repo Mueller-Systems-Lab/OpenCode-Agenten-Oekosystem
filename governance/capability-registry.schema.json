@@ -1,7 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://opencode-agent-ecosystem.local/governance/capability-registry.schema.json",
-  "type": "object",
-  "required": ["schema_version", "generated_from", "tools", "capabilities"],
-  "properties": {"schema_version": {"const": "governance-v2.capability-registry.1"}, "generated_from": {"const": "governance/policy-core.yaml"}, "tools": {"type": "object", "minProperties": 8}, "capabilities": {"type": "object"}}
-}

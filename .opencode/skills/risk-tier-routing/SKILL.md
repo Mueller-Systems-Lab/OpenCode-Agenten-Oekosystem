@@ -7,10 +7,6 @@ metadata:
   risk_tier: all
 ---
 
-## Governance V2 Profiles
-
-Route `LOW_LOCAL` to `COMPACT`, `MEDIUM_REVIEW` to `STANDARD`, `HIGH_HUMAN_GATE` to `CRITICAL`, and `CRITICAL_BLOCK` to `BLOCKED`. `RESEARCH` is a task mode, not a risk tier. Approval is effect-based and exceptional; a later external effect must not block safe local work.
-
 ## When To Use
 
 Use this skill during run card creation, before workflow phases are selected. Every task must be risk-assessed before the execution plan is finalised.

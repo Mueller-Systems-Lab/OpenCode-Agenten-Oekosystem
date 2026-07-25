@@ -149,7 +149,7 @@ describe('R-001: OpenCode Plugin Export Contract', () => {
 // ────────────────────────────────────────────────────────────────
 
 describe('R-002: Resident Runtime Directory Structure', () => {
-  it('legacy adapter remains importable while the resident CLI uses the central V2 gate', () => {
+  it('evaluate-all.mjs imports use relative paths compatible with gates/runtimes subdirectories', () => {
     const evaluateAllPath = join(REPO_ROOT, 'scripts/lib/gates/evaluate-all.mjs');
     const content = readFileSync(evaluateAllPath, 'utf-8');
 
@@ -159,12 +159,10 @@ describe('R-002: Resident Runtime Directory Structure', () => {
     const hasRuntimeImport = content.includes('../runtimes/');
     assert.ok(hasRuntimeImport, 'evaluate-all.mjs must import from ../runtimes/ — these are preserved in the gates/runtimes subdirectory structure');
 
-    // The executable wrapper must not use this compatibility evaluator as an
-    // authorization path. It calls the central V2 effect gate directly.
+    // Verify the bin wrapper imports correctly
     const binEvalPath = join(REPO_ROOT, '.agent-governance/bin/evaluate.mjs');
     const binContent = readFileSync(binEvalPath, 'utf-8');
-    assert.match(binContent, /evaluate-action\.mjs|evaluateAction/, 'bin/evaluate.mjs must import the V2 effect gate');
-    assert.doesNotMatch(binContent, /evaluate-all\.mjs|evaluateAllGates|GREEN_SAFE|AMBER_REVIEW/);
+    assert.ok(binContent.includes('evaluate-all.mjs'), 'bin/evaluate.mjs must import evaluate-all.mjs');
   });
 
   it('installer getRuntimeFileList preserves directory structure (not flat)', () => {
@@ -187,10 +185,7 @@ describe('R-002: Resident Runtime Directory Structure', () => {
     try {
       // Create minimal project
       writeFileSync(join(projectDir, 'package.json'), '{"name":"test-project"}');
-      execSync(
-        'git init && git config user.name "OCAE Contract Test" && git config user.email "ocae-test.invalid@example.invalid" && git add -A && git commit -m "init"',
-        { cwd: projectDir, stdio: 'pipe' }
-      );
+      execSync('git init && git add -A && git commit -m "init"', { cwd: projectDir, stdio: 'pipe' });
 
       // Install governance from the repo
       const installCmd = `node ${join(REPO_ROOT, 'scripts/install-governance.mjs')} --target ${projectDir} --apply --json`;

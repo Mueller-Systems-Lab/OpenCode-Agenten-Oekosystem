@@ -2,7 +2,6 @@
 
 import path from "node:path"
 import fs from "node:fs/promises"
-import fsSync from "node:fs"
 import { spawnSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import { loadManifest, validateManifest } from "./lib/manifest.mjs"
@@ -38,13 +37,6 @@ async function main() {
 
   const requiredFiles = [
     "BOOTSTRAP.md",
-    "AI-BOOTSTRAP.md",
-    "llms.txt",
-    "bootstrap.mjs",
-    "bootstrap/manifest.json",
-    "bootstrap/manifest.schema.json",
-    "bootstrap/verify.mjs",
-    "bootstrap/lib/contract.mjs",
     "README.md",
     "AGENTS.md",
     "CONTRIBUTING.md",
@@ -90,7 +82,6 @@ async function main() {
     "scripts/lib/gates/context-fingerprint.mjs",
     "scripts/lib/gates/errors.mjs",
     "scripts/lib/gates/policy.mjs",
-    "scripts/lib/gates/completion.mjs",
     "scripts/lib/runtimes/contract.mjs",
     "scripts/lib/runtimes/generic.mjs",
     "scripts/lib/runtimes/opencode.mjs",
@@ -135,16 +126,6 @@ async function main() {
     "scripts/lib/runtimes/opencode.mjs",
     "scripts/lib/runtimes/hermes.mjs",
     "scripts/lib/runtimes/odysseus.mjs",
-    "scripts/generate-governance.mjs",
-    "scripts/check-governance-drift.mjs",
-    "runtime/approval/approval-engine.mjs",
-    "runtime/approval/approval-receipt.mjs",
-    "runtime/approval/change-lease.mjs",
-    "runtime/approval/approval-bundler.mjs",
-    "runtime/approval/approval-audit.mjs",
-    "runtime/approval/capability-registry.mjs",
-    "scripts/evaluate-governance-v2.mjs",
-    "scripts/install-governance.mjs",
   ]))
 
   issues.push(...await validateNoAbsoluteUserPaths())
@@ -166,7 +147,6 @@ async function main() {
 
   // Instructions — WORKING-METHOD.md and working-method.json included, data-retention.json NOT included
   issues.push(...await validateInstructions())
-  issues.push(...await validateGovernanceV2())
 
   // working-method.json content checks
   issues.push(...await validateWorkingMethodRiskTiers())
@@ -195,7 +175,7 @@ async function main() {
   // Domain decoupling — data-retention in domain_specific
   issues.push(...await validateDataRetentionDomainSpecific(manifest))
 
-  // Test suite gate — verified output requires all tests passing
+  // Test suite gate — GREEN_SAFE requires all tests passing
   const testResult = runTestSuite()
   if (testResult.status === "FAILED") {
     issues.push(testResult.message)
@@ -203,11 +183,11 @@ async function main() {
     warnings.push(testResult.message)
   }
 
-  const status = issues.length > 0 ? "RED_BLOCK" : warnings.filter(Boolean).length > 0 ? "NEEDS_REVIEW" : "VERIFIED_IN_SCOPE"
+  const status = issues.length > 0 ? "RED_BLOCK" : warnings.filter(Boolean).length > 0 ? "AMBER_REVIEW" : "GREEN_SAFE"
   console.log(status)
   for (const issue of issues) console.log(`- ${issue}`)
   for (const warning of warnings.filter(Boolean)) console.log(`- ${warning}`)
-  process.exitCode = status === "VERIFIED_IN_SCOPE" ? 0 : status === "NEEDS_REVIEW" ? 1 : 2
+  process.exitCode = status === "GREEN_SAFE" ? 0 : status === "AMBER_REVIEW" ? 1 : 2
 }
 
 async function validateJsonFile(filePath, label) {
@@ -480,9 +460,14 @@ async function validateInstructions() {
     const config = parseJsonc(text)
     const instructions = Array.isArray(config.instructions) ? config.instructions : []
 
-    // Governance V2 keeps the permanent kernel small; detailed policy is lazy-loaded.
-    if (instructions.length !== 1 || instructions[0] !== "PROMPT-KERNEL.md") {
-      issues.push('opencode.jsonc.instructions: must contain only "PROMPT-KERNEL.md"')
+    // Must include WORKING-METHOD.md
+    if (!instructions.includes("WORKING-METHOD.md")) {
+      issues.push('opencode.jsonc.instructions: missing "WORKING-METHOD.md"')
+    }
+
+    // Must include .opencode/policies/working-method.json
+    if (!instructions.includes(".opencode/policies/working-method.json")) {
+      issues.push('opencode.jsonc.instructions: missing ".opencode/policies/working-method.json"')
     }
 
     // Must NOT include .opencode/policies/data-retention.json
@@ -492,42 +477,6 @@ async function validateInstructions() {
   } catch (error) {
     issues.push(`opencode.jsonc: parse error during instructions check: ${error instanceof Error ? error.message : String(error)}`)
   }
-  return issues
-}
-
-async function validateGovernanceV2() {
-  const issues = []
-  const required = [
-    'PROMPT-KERNEL.md',
-    'governance/policy-core.yaml',
-    'governance/policy-core.schema.json',
-    'governance/owner-intent.schema.json',
-    'governance/task-capsule.schema.json',
-    'governance/approval-receipt.schema.json',
-    'governance/change-lease.schema.json',
-    'governance/capability-registry.schema.json',
-    'governance/generated/policy-core.json',
-    'governance/generated/capability-registry.json',
-    'governance/generated/risk-profiles.json',
-    'scripts/generate-governance.mjs',
-    'scripts/check-governance-drift.mjs',
-    'runtime/approval/approval-engine.mjs',
-    'runtime/approval/approval-receipt.mjs',
-    'runtime/approval/change-lease.mjs',
-    'runtime/approval/approval-bundler.mjs',
-    'runtime/approval/approval-audit.mjs',
-    'runtime/approval/capability-registry.mjs',
-    'scripts/evaluate-governance-v2.mjs',
-  ]
-  for (const rel of required) if (!(await pathExists(path.join(repoRoot, rel)))) issues.push(`governance-v2: missing ${rel}`)
-  const kernel = await readTextIfExists(path.join(repoRoot, 'PROMPT-KERNEL.md'))
-  if (kernel) {
-    const tokenEstimate = Math.ceil(kernel.split(/\s+/).filter(Boolean).length * 1.3)
-    if (tokenEstimate >= 2500) issues.push(`governance-v2: prompt kernel exceeds 2500-token estimate (${tokenEstimate})`)
-    if ((kernel.match(/^\d+\./gm) || []).length !== 8) issues.push('governance-v2: prompt kernel must contain exactly eight permanent rules')
-  }
-  const generator = spawnSync(process.execPath, [path.join(repoRoot, 'scripts/generate-governance.mjs'), '--check'], { cwd: repoRoot, encoding: 'utf8' })
-  if (generator.status !== 0) issues.push(`governance-v2: generated policy drift (${(generator.stderr || generator.stdout).trim()})`)
   return issues
 }
 
@@ -819,55 +768,24 @@ async function collectTextFiles(root) {
 
 /**
  * Run the test suite and return status.
- * VERIFIED_IN_SCOPE classification requires all tests passing.
+ * GREEN_SAFE classification requires all tests passing.
  * Test failures produce a RED_BLOCK issue (not just a warning) because
  * a green validator with red tests is a false signal.
  */
 function runTestSuite() {
-  if (process.env.NODE_TEST_CONTEXT) {
-    return { status: "NESTED_SKIPPED", message: "TEST_SUITE_NESTED_RUNNER_SKIPPED" }
-  }
   try {
-    const testManifest = JSON.parse(fsSync.readFileSync(path.join(repoRoot, "test", "test-manifest.json"), "utf8"))
-    const integrationGroup = process.env.OCAE_SECURE_SANDBOX_NOT_APPLICABLE === "1"
-      ? "integration_portable"
-      : "integration"
-    const canonicalGroups = [
-      "unit",
-      "contract",
-      integrationGroup,
-      "bootstrap",
-      "governance",
-      "e2e",
-      "provider_optional",
-    ]
-    const files = canonicalGroups.flatMap((group) => testManifest.groups?.[group] || [])
-    const result = spawnSync(process.execPath, [
-      "--test",
-      "--test-reporter=spec",
-      "--test-concurrency=1",
-      ...files,
-    ], {
+    const result = spawnSync("node", ["--test", "--test-reporter=spec"], {
       cwd: repoRoot,
       encoding: "utf8",
-      env: { ...process.env },
       timeout: 120000,
-      maxBuffer: 50 * 1024 * 1024,
       stdio: "pipe",
     })
 
-    if (result.error) {
-      return {
-        status: "UNAVAILABLE",
-        message: `TEST_SUITE_UNAVAILABLE: could not execute tests (${result.error.message})`
-      }
-    }
-
     // Parse test summary
-    const output = (result.stdout || "") + (result.stderr || "")
-    const passMatch = output.match(/(?:ℹ|#) pass (\d+)/)
-    const failMatch = output.match(/(?:ℹ|#) fail (\d+)/)
-    const testsMatch = output.match(/(?:ℹ|#) tests (\d+)/)
+    const output = result.stdout + result.stderr
+    const passMatch = output.match(/ℹ pass (\d+)/)
+    const failMatch = output.match(/ℹ fail (\d+)/)
+    const testsMatch = output.match(/ℹ tests (\d+)/)
 
     const passCount = passMatch ? parseInt(passMatch[1], 10) : 0
     const failCount = failMatch ? parseInt(failMatch[1], 10) : 0
@@ -877,6 +795,13 @@ function runTestSuite() {
       return {
         status: "FAILED",
         message: `TEST_SUITE_FAILED: ${passCount}/${totalCount} tests passed, ${failCount} failed (exit code ${result.status})`
+      }
+    }
+
+    if (result.error) {
+      return {
+        status: "UNAVAILABLE",
+        message: `TEST_SUITE_UNAVAILABLE: could not execute tests (${result.error.message})`
       }
     }
 

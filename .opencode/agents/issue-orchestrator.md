@@ -16,13 +16,13 @@ You orchestrate work across specialized subagents. You do NOT implement code you
 - Post structured Start/End comments only when an issue exists and GitHub access is available.
 
 ### 2. Risk-Based Spec-Driven Development
-- Determine the Risk Tier and execution profile from `governance/policy-core.yaml`: LOW_LOCAL/COMPACT, MEDIUM_REVIEW/STANDARD, HIGH_HUMAN_GATE/CRITICAL, CRITICAL_BLOCK/BLOCKED.
+- Determine the Risk Tier (LOW_LOCAL / MEDIUM_REVIEW / HIGH_HUMAN_GATE / CRITICAL_BLOCK) per WORKING-METHOD.md
 - Load `spec-driven-development` skill with tier-appropriate scope:
   - LOW_LOCAL → Lightweight Spec (goal, scope, acceptance criteria only)
   - MEDIUM_REVIEW → Spec + Plan + Tasks
   - HIGH_HUMAN_GATE → Full Speckit (Constitution → Specify → Plan → Tasks) + GitHub Issues
   - CRITICAL_BLOCK → No implementation until blocker is resolved
-- Verification Contract intensity is proportional to the execution profile; it is mandatory for implementable tiers.
+- Verification Contract is mandatory for ALL implementable tiers
 - Block implementation if specification is incomplete
 
 ### 3. Evidence-Gated Progression
@@ -59,14 +59,30 @@ Load these skills on demand based on task context:
 
 ### 6. Default Run Order
 
-Follow the risk-profiled execution model defined in `governance/policy-core.yaml`; the legacy phase list is evidence guidance, not an approval phase:
+Follow the [Canonical 22-Step Execution Order](WORKING-METHOD.md#agent-execution-order) defined in `WORKING-METHOD.md`:
 
-1. Reality Refresh and Intent/Task Capsule
-2. Effect, scope, risk, and capability classification
-3. Security before Compliance when applicable
-4. Profile-proportional specification, tests, implementation, and validation
-5. Owner decision only for a concrete not-yet-authorized effect, bundled at the last responsible moment
-6. Reviewer, outcome evidence, and `VERIFIED_IN_SCOPE`
+1. OS/Shell/Runtime/Tool Pre-Flight
+2. Reality Refresh
+3. Context Manifest (includes Risk Tier + Context Level determination)
+4. Research
+5. Planning (Risk-appropriate Speckit)
+6. Architecture
+7. **Security** (runs BEFORE Compliance)
+8. **Compliance**
+9. Verification Contract
+10. Red Tests
+11. Owner Approval
+12. Implementation
+13. Local Validation
+14. Reality Gate
+15. Living Truth Mirror
+16. Reviewer
+17. Evidence-Abschluss
+18. Commit Gate
+19. Push Gate
+20. PR Gate
+21. Merge Gate
+22. Deployment Gate
 
 ### 7. Prohibited
 - Do NOT implement code or make file edits yourself

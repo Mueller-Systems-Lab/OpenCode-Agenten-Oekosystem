@@ -234,19 +234,21 @@ describe('ADR-006: Hermes Detection — No False Positives from Global Signals',
     }
   });
 
-  it('H-002: .hermes.md contributes its project-local confidence without requiring a global install', () => {
+  it('H-002: real Hermes project with .hermes.md → still detected (confidence ≥ 50)', () => {
     const dir = createTempDir();
     try {
       writeFileSync(resolve(dir, '.hermes.md'), '# Hermes Config');
-      // .hermes.md is a project-local signal. A global installation may add
-      // confidence, but the contract must also hold on a clean CI runner.
+      // .hermes.md = 35% project-local → unlocks global signals
       // Total: 35 (project) + up to 50 (global) = up to 85
       const result = hermesAdapter.detect({ targetRoot: dir });
       assert.ok(result.confidence >= 35,
         `Real Hermes project (.hermes.md) confidence should be >= 35, got ${result.confidence}`);
       assert.strictEqual(result.runtime, 'hermes');
-      assert.strictEqual(result.confidenceLevel, getConfidenceLevel(result.confidence));
-      assert.ok(result.signals.some(({ signal }) => signal === '.hermes.md (project)'));
+      // With global install present, should reach AMBER_REVIEW or DETECTED
+      assert.ok(
+        result.confidenceLevel === 'AMBER_REVIEW' || result.confidenceLevel === 'DETECTED',
+        `Real Hermes project should be AMBER_REVIEW or DETECTED, got ${result.confidenceLevel}`
+      );
     } finally {
       cleanupTempDir(dir);
     }
@@ -340,16 +342,13 @@ describe('ADR-006: Hermes Detection — No False Positives from Global Signals',
     try {
       writeFileSync(resolve(dir, '.hermes.md'), '# Hermes Config');
       mkdirSync(resolve(dir, '.hermes', 'skill-bundles'), { recursive: true });
-      // .hermes.md (35%) + .hermes/skill-bundles/ (20%) = 55%
-      // project-local. Optional global signals may raise this to DETECTED.
+      // .hermes.md (35%) + .hermes/skill-bundles/ (20%) = 55% project-local
       // + up to 50% global = up to 105 → capped to 100
       const result = hermesAdapter.detect({ targetRoot: dir });
       assert.ok(result.confidence >= 55,
         `Real Hermes project with .hermes.md + skill-bundles should be >= 55, got ${result.confidence}`);
-      assert.ok(
-        result.confidenceLevel === 'AMBER_REVIEW' || result.confidenceLevel === 'DETECTED',
-        `Strong project signals should be AMBER_REVIEW or DETECTED, got ${result.confidenceLevel}`
-      );
+      assert.strictEqual(result.confidenceLevel, 'DETECTED',
+        `Should be DETECTED for strong project signals, got ${result.confidenceLevel}`);
     } finally {
       cleanupTempDir(dir);
     }

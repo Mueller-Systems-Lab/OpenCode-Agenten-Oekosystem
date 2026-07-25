@@ -22,6 +22,9 @@ describe("PR CI workflow contracts", () => {
     assert.match(validator, /"--all"/)
     assert.match(validator, /EXPECTED_TEST_FILES/)
     assert.match(validator, /EXECUTED_TEST_FILES/)
+    const runner = readFileSync(path.join(root, "scripts/run-tests.mjs"), "utf8")
+    assert.match(runner, /OCAE_SECURE_SANDBOX_NOT_APPLICABLE/)
+    assert.match(runner, /integration_portable/)
   })
 
   it("runs deterministic security gates without provider credentials or write permissions", () => {
@@ -45,6 +48,10 @@ describe("PR CI workflow contracts", () => {
     assert.match(securityWorkflow, /scripts\/run-tests\.mjs/)
     assert.match(securityWorkflow, /scripts\/validate-ecosystem\.mjs/)
     assert.match(securityWorkflow, /scripts\/check-governance-drift\.mjs/)
+    for (const group of ["bootstrap", "governance", "e2e", "provider_optional"]) {
+      assert.match(securityWorkflow, new RegExp(`--group ${group}`))
+    }
+    assert.match(securityWorkflow, /OCAE_CANONICAL_TEST_RUNNER:\s*"1"/)
     assert.doesNotMatch(securityWorkflow, /continue-on-error|\|\|\s*true/)
   })
 

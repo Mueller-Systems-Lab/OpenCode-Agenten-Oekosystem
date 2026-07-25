@@ -68,13 +68,24 @@ jobs:
         run: >-
           node scripts/run-tests.mjs
           --group integration_portable --reporter spec
+      - name: Bootstrap tests
+        run: node scripts/run-tests.mjs --group bootstrap --reporter spec
+      - name: Governance tests
+        run: node scripts/run-tests.mjs --group governance --reporter spec
+      - name: End-to-end tests
+        run: node scripts/run-tests.mjs --group e2e --reporter spec
+      - name: Provider-optional contracts
+        run: node scripts/run-tests.mjs --group provider_optional --reporter spec
       - name: Ecosystem validation with secure sandbox
         if: steps.sandbox.outputs.applicable == 'true'
+        env:
+          OCAE_CANONICAL_TEST_RUNNER: "1"
         run: node scripts/validate-ecosystem.mjs
       - name: Ecosystem validation with fail-closed sandbox contract
         if: steps.sandbox.outputs.applicable != 'true'
         env:
           OCAE_SECURE_SANDBOX_NOT_APPLICABLE: "1"
+          OCAE_CANONICAL_TEST_RUNNER: "1"
         run: node scripts/validate-ecosystem.mjs
       - name: Governance drift
         run: node scripts/check-governance-drift.mjs

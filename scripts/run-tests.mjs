@@ -16,7 +16,10 @@ const args = parseArgs(process.argv.slice(2))
 const manifest = await loadManifest()
 const filesByGroup = validateManifest(manifest)
 const availableGroups = Object.keys(filesByGroup)
-const groups = args.all ? requiredGroups.filter((group) => filesByGroup[group].length > 0) : args.groups
+const canonicalGroups = process.env.OCAE_SECURE_SANDBOX_NOT_APPLICABLE === "1"
+  ? requiredGroups.map((group) => group === "integration" ? "integration_portable" : group)
+  : requiredGroups
+const groups = args.all ? canonicalGroups.filter((group) => filesByGroup[group].length > 0) : args.groups
 
 if (groups.length === 0) fail("No test groups selected")
 for (const group of groups) {

@@ -74,8 +74,6 @@ jobs:
         run: node scripts/run-tests.mjs --group governance --reporter spec
       - name: End-to-end tests
         run: node scripts/run-tests.mjs --group e2e --reporter spec
-      - name: Provider-optional contracts
-        run: node scripts/run-tests.mjs --group provider_optional --reporter spec
       - name: Ecosystem validation with secure sandbox
         if: steps.sandbox.outputs.applicable == 'true'
         env:

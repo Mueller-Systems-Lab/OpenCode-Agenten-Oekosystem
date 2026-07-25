@@ -15,6 +15,7 @@ const timeoutGraceMs = 2_000
 const diagnosticMaxBytes = 16 * 1024
 
 const args = parseArgs(process.argv.slice(2))
+await ensureTempRoot()
 const manifest = await loadManifest()
 const filesByGroup = validateManifest(manifest)
 const availableGroups = Object.keys(filesByGroup)
@@ -101,6 +102,13 @@ function parseArgs(argv) {
   if (!["spec", "dot"].includes(out.reporter)) fail(`Unsupported reporter: ${out.reporter}`)
   if (!Number.isFinite(out.timeoutMs) || out.timeoutMs < 1000) fail("--timeout-ms must be at least 1000")
   return out
+}
+
+async function ensureTempRoot() {
+  const tempRoot = os.tmpdir()
+  await fs.mkdir(tempRoot, { recursive: true, mode: 0o700 })
+  const stat = await fs.lstat(tempRoot)
+  if (!stat.isDirectory() || stat.isSymbolicLink()) fail("Temporary root must be a real directory")
 }
 
 async function loadManifest() {

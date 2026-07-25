@@ -76,3 +76,30 @@ test("canonical runner emits parseable bounded diagnostics and cleans capture fi
     assert.deepEqual(record.temp_files_remaining, [])
   }
 })
+
+test("canonical runner creates a missing isolated temporary root", () => {
+  const isolatedRoot = path.join(
+    fs.mkdtempSync(path.join(fs.realpathSync.native(process.env.TMPDIR || "/tmp"), "ocae-runner-contract-")),
+    "fresh-temp-root",
+  )
+  try {
+    const result = spawnSync(process.execPath, [
+      runnerPath,
+      "--group", "unit",
+      "--reporter=dot",
+    ], {
+      cwd: repoRoot,
+      env: {
+        ...Object.fromEntries(Object.entries(process.env).filter(([key]) => key !== "NODE_TEST_CONTEXT")),
+        TMPDIR: isolatedRoot,
+      },
+      encoding: "utf8",
+      timeout: 30_000,
+      maxBuffer: 2 * 1024 * 1024,
+    })
+    assert.equal(result.status, 0, result.stderr || result.stdout)
+    assert.equal(fs.statSync(isolatedRoot).isDirectory(), true)
+  } finally {
+    fs.rmSync(path.dirname(isolatedRoot), { recursive: true, force: true })
+  }
+})

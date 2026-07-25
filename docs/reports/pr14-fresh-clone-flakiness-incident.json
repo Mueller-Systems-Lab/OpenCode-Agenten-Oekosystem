@@ -80,6 +80,17 @@
     "isolated_reproduction": "The active file passed when run alone in the same clone, completing in approximately 85 seconds.",
     "resolution": "Use strictly layered bounded timeouts: 240 seconds for the nested canonical simulation, 270 seconds for its node:test case, and 300 seconds for the outer per-file runner, retaining the 2-second SIGTERM-to-SIGKILL escalation."
   },
+  "final_series_precondition_failure_before_temp_root_fix": {
+    "head": "21e0d506668c0c1bea10f131aa310479e4e3c99d",
+    "clone_id": "final-series-clone-1",
+    "test_files_expected": 37,
+    "test_files_completed": 0,
+    "exit_code": 1,
+    "signal": null,
+    "error": "ENOENT while creating the first bounded capture directory below a deliberately isolated but not-yet-created TMPDIR",
+    "root_cause": "The final evidence harness supplied a fresh TMPDIR path without creating it, while the canonical runner assumed that os.tmpdir() already existed.",
+    "resolution": "The runner now creates the isolated temporary root with restrictive permissions and rejects a non-directory or symbolic-link root before creating capture files. A behavioral regression test runs the unit group with a missing isolated TMPDIR."
+  },
   "candidate_causes": {
     "child_process_leak": "NOT_OBSERVED",
     "open_pipe_or_stream": "NOT_OBSERVED",

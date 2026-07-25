@@ -840,11 +840,19 @@ function runTestSuite() {
       encoding: "utf8",
       env: { ...process.env },
       timeout: 120000,
+      maxBuffer: 50 * 1024 * 1024,
       stdio: "pipe",
     })
 
+    if (result.error) {
+      return {
+        status: "UNAVAILABLE",
+        message: `TEST_SUITE_UNAVAILABLE: could not execute tests (${result.error.message})`
+      }
+    }
+
     // Parse test summary
-    const output = result.stdout + result.stderr
+    const output = (result.stdout || "") + (result.stderr || "")
     const passMatch = output.match(/(?:ℹ|#) pass (\d+)/)
     const failMatch = output.match(/(?:ℹ|#) fail (\d+)/)
     const testsMatch = output.match(/(?:ℹ|#) tests (\d+)/)
@@ -857,13 +865,6 @@ function runTestSuite() {
       return {
         status: "FAILED",
         message: `TEST_SUITE_FAILED: ${passCount}/${totalCount} tests passed, ${failCount} failed (exit code ${result.status})`
-      }
-    }
-
-    if (result.error) {
-      return {
-        status: "UNAVAILABLE",
-        message: `TEST_SUITE_UNAVAILABLE: could not execute tests (${result.error.message})`
       }
     }
 

@@ -3,7 +3,7 @@
   "$id": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/blob/master/bootstrap/manifest.schema.json",
   "title": "URL-only Bootstrap Manifest",
   "type": "object",
-  "required": ["schema_version", "ecosystem", "repository", "bootstrap_protocol", "entrypoint", "launcher", "installer", "verifier", "rollback", "supported_platforms", "required_tools", "minimum_versions", "supported_project_types", "default_mode", "available_modes", "managed_paths", "protected_paths", "generated_paths", "dry_run_required", "idempotence_required", "v2_gate_required", "approval_model", "completion_classification"],
+  "required": ["schema_version", "ecosystem", "repository", "bootstrap_protocol", "entrypoint", "launcher", "installer", "verifier", "rollback", "supported_platforms", "unsupported_platforms", "required_tools", "minimum_versions", "secure_ai_sandbox", "supported_project_types", "default_mode", "available_modes", "managed_paths", "protected_paths", "generated_paths", "dry_run_required", "idempotence_required", "v2_gate_required", "approval_model", "completion_classification"],
   "properties": {
     "schema_version": { "const": "1" },
     "ecosystem": { "const": "OpenCode-Agenten-Oekosystem" },
@@ -14,9 +14,60 @@
     "installer": { "type": "string", "pattern": "^[^/].*$" },
     "verifier": { "type": "string", "pattern": "^[^/].*$" },
     "rollback": { "type": "string", "pattern": "^[^/].*$" },
-    "supported_platforms": { "type": "array", "items": { "type": "string" } },
-    "required_tools": { "type": "array", "items": { "type": "string" } },
-    "minimum_versions": { "type": "object", "additionalProperties": { "type": "string" } },
+    "supported_platforms": {
+      "type": "array",
+      "const": ["linux", "windows-wsl"]
+    },
+    "unsupported_platforms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["macos", "windows-native"],
+      "properties": {
+        "macos": { "const": "TOOL_GAP_SECURE_SANDBOX" },
+        "windows-native": { "const": "TOOL_GAP_SECURE_SANDBOX" }
+      }
+    },
+    "required_tools": {
+      "type": "array",
+      "allOf": [
+        { "contains": { "const": "git" } },
+        { "contains": { "const": "node" } },
+        { "contains": { "const": "bwrap" } }
+      ],
+      "items": { "type": "string" }
+    },
+    "minimum_versions": {
+      "type": "object",
+      "required": ["node", "git", "bwrap"],
+      "additionalProperties": { "type": "string" }
+    },
+    "secure_ai_sandbox": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implementation", "required_kernel_features", "required_runtime_capabilities", "restricted_container_behavior", "unavailable_behavior", "unsandboxed_fallback", "preflight_before_target_file_operation"],
+      "properties": {
+        "implementation": { "const": "bubblewrap" },
+        "required_kernel_features": {
+          "type": "array",
+          "allOf": [
+            { "contains": { "const": "user_namespaces" } },
+            { "contains": { "const": "mount_namespaces" } }
+          ]
+        },
+        "required_runtime_capabilities": {
+          "type": "array",
+          "allOf": [
+            { "contains": { "const": "user_namespace_creation" } },
+            { "contains": { "const": "bind_mounts" } },
+            { "contains": { "const": "network_namespace" } }
+          ]
+        },
+        "restricted_container_behavior": { "const": "TOOL_GAP_SECURE_SANDBOX" },
+        "unavailable_behavior": { "const": "TOOL_GAP_SECURE_SANDBOX" },
+        "unsandboxed_fallback": { "const": false },
+        "preflight_before_target_file_operation": { "const": true }
+      }
+    },
     "supported_project_types": { "type": "array", "items": { "type": "string" } },
     "default_mode": { "enum": ["INSTALL_NEW"] },
     "available_modes": { "type": "array", "contains": { "const": "INSTALL_NEW" }, "items": { "enum": ["INSTALL_NEW", "UPDATE_EXISTING", "VERIFY_ONLY", "ROLLBACK"] } },

@@ -71,7 +71,7 @@ export function validateBootstrapManifest(manifest) {
   if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) return ["manifest must be an object"]
   const required = [
     "schema_version", "ecosystem", "repository", "bootstrap_protocol", "entrypoint", "installer",
-    "verifier", "launcher", "rollback", "supported_platforms", "required_tools", "minimum_versions",
+    "verifier", "launcher", "rollback", "supported_platforms", "unsupported_platforms", "required_tools", "minimum_versions", "secure_ai_sandbox",
     "supported_project_types", "default_mode", "available_modes", "managed_paths", "protected_paths",
     "generated_paths", "dry_run_required", "idempotence_required", "v2_gate_required", "approval_model",
     "completion_classification",
@@ -91,6 +91,19 @@ export function validateBootstrapManifest(manifest) {
   if (manifest.approval_model !== "effect-based") issues.push("approval_model must be effect-based")
   if (manifest.completion_classification !== "VERIFIED_IN_SCOPE") issues.push("completion_classification must be VERIFIED_IN_SCOPE")
   if (manifest.launcher !== "bootstrap.mjs") issues.push("launcher must be bootstrap.mjs")
+  if (JSON.stringify(manifest.supported_platforms) !== JSON.stringify(["linux", "windows-wsl"])) issues.push("supported_platforms must be linux and windows-wsl")
+  for (const platform of ["macos", "windows-native"]) {
+    if (manifest.unsupported_platforms?.[platform] !== "TOOL_GAP_SECURE_SANDBOX") issues.push(`${platform} must fail with TOOL_GAP_SECURE_SANDBOX`)
+  }
+  for (const tool of ["git", "node", "bwrap"]) if (!manifest.required_tools?.includes(tool)) issues.push(`required_tools must include ${tool}`)
+  if (manifest.minimum_versions?.bwrap !== "0.9.0") issues.push("minimum_versions.bwrap must be 0.9.0")
+  const sandbox = manifest.secure_ai_sandbox
+  if (sandbox?.implementation !== "bubblewrap" || sandbox?.unsandboxed_fallback !== false || sandbox?.preflight_before_target_file_operation !== true) {
+    issues.push("secure_ai_sandbox must require bubblewrap, preflight before target access, and no unsandboxed fallback")
+  }
+  if (sandbox?.unavailable_behavior !== "TOOL_GAP_SECURE_SANDBOX" || sandbox?.restricted_container_behavior !== "TOOL_GAP_SECURE_SANDBOX") {
+    issues.push("secure_ai_sandbox unavailable/restricted behavior must be TOOL_GAP_SECURE_SANDBOX")
+  }
   for (const key of ["entrypoint", "launcher", "installer", "verifier"]) {
     if (typeof manifest[key] !== "string" || manifest[key].startsWith("/") || manifest[key].includes("..")) issues.push(`${key} must be a relative repository path`)
   }

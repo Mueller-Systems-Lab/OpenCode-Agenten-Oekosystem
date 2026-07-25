@@ -61,7 +61,14 @@ export function validateApprovalReceipt(receipt, options = {}) {
   if (receipt.repository && options.repository && receipt.repository !== options.repository) return invalid('RED_BLOCK_CROSS_REPOSITORY')
   if (Number(receipt.uses || 0) >= Number(receipt.max_uses || 1)) return invalid('RED_BLOCK_RECEIPT_REPLAY')
   const expected = sign(receipt, options.signing_key)
-  if (!crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(String(receipt.signature)))) return invalid('RED_BLOCK_RECEIPT_TAMPERED')
+  const expectedBytes = Buffer.from(expected)
+  const actualBytes = Buffer.from(String(receipt.signature))
+  if (expectedBytes.length !== actualBytes.length || !crypto.timingSafeEqual(expectedBytes, actualBytes)) return invalid('RED_BLOCK_RECEIPT_TAMPERED')
+  if (options.task_id && receipt.task_id !== options.task_id) return invalid('RED_BLOCK_RECEIPT_CONTEXT_TASK')
+  if (options.owner_intent_id && receipt.owner_intent_id !== options.owner_intent_id) return invalid('RED_BLOCK_RECEIPT_CONTEXT_INTENT')
+  if (options.capsule && receipt.task_capsule_hash !== capsuleHash(options.capsule)) return invalid('RED_BLOCK_RECEIPT_CONTEXT_CAPSULE')
+  if (options.branch && receipt.branch !== options.branch) return invalid('RED_BLOCK_RECEIPT_CONTEXT_BRANCH')
+  if (options.base_sha && receipt.base_sha !== options.base_sha) return invalid('RED_BLOCK_RECEIPT_CONTEXT_BASE_SHA')
   if (options.store && receipt.approval_id && options.store.isRevoked?.(receipt.approval_id)) return invalid('RED_BLOCK_RECEIPT_REVOKED')
   return { valid: true, code: 'APPROVED', receipt }
 }

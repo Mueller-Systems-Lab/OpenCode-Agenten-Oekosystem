@@ -2,7 +2,7 @@
 
 ## Scope
 
-Closure branch: `feat/governance-v2-closure-20260724`. The original dirty V2 worktree under `/tmp/opencode-governance-v2-20260724` remained unchanged. Preservation artifacts are in `artifacts/preservation/` and were copied from the immutable preservation set before closure edits.
+Closure branch: `feat/governance-v2-closure-20260724`. The original dirty V2 worktree remained unchanged. Local preservation artifacts were intentionally excluded from the published branch because they are working-state backups, not product source.
 
 ## Runtime proof
 

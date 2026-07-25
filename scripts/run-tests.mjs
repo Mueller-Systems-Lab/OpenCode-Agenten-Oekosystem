@@ -70,6 +70,7 @@ function parseArgs(argv) {
     if (arg === "--all") out.all = true
     else if (arg === "--group") out.groups.push(argv[++index])
     else if (arg === "--reporter") out.reporter = argv[++index] || "spec"
+    else if (arg.startsWith("--reporter=")) out.reporter = arg.slice("--reporter=".length) || "spec"
     else if (arg === "--timeout-ms") out.timeoutMs = Number(argv[++index])
     else if (arg === "--json") out.json = true
     else if (arg === "--help" || arg === "-h") {

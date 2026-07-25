@@ -9,9 +9,22 @@
   "installer": "scripts/install-governance.mjs",
   "verifier": "bootstrap/verify.mjs",
   "rollback": "scripts/install-governance.mjs --target <target> --rollback <backup-dir>",
-  "supported_platforms": ["linux", "macos", "windows-wsl"],
-  "required_tools": ["git", "node"],
-  "minimum_versions": { "node": "20.0.0", "git": "2.30.0" },
+  "supported_platforms": ["linux", "windows-wsl"],
+  "unsupported_platforms": {
+    "macos": "TOOL_GAP_SECURE_SANDBOX",
+    "windows-native": "TOOL_GAP_SECURE_SANDBOX"
+  },
+  "required_tools": ["git", "node", "bwrap"],
+  "minimum_versions": { "node": "20.0.0", "git": "2.30.0", "bwrap": "0.9.0" },
+  "secure_ai_sandbox": {
+    "implementation": "bubblewrap",
+    "required_kernel_features": ["user_namespaces", "mount_namespaces"],
+    "required_runtime_capabilities": ["user_namespace_creation", "bind_mounts", "network_namespace"],
+    "restricted_container_behavior": "TOOL_GAP_SECURE_SANDBOX",
+    "unavailable_behavior": "TOOL_GAP_SECURE_SANDBOX",
+    "unsandboxed_fallback": false,
+    "preflight_before_target_file_operation": true
+  },
   "supported_project_types": ["git", "node", "python", "rust", "go", "jvm", "docker", "markdown", "unknown"],
   "default_mode": "INSTALL_NEW",
   "available_modes": ["INSTALL_NEW", "UPDATE_EXISTING", "VERIFY_ONLY", "ROLLBACK"],

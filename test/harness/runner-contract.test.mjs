@@ -19,3 +19,8 @@ test("canonical test runner and explicit manifest are published", () => {
   assert.equal(files.includes("test/helpers.mjs"), false, "helpers must not be test entries")
   for (const file of files) assert.equal(fs.existsSync(path.join(repoRoot, file)), true, `missing manifest test: ${file}`)
 })
+
+test("canonical runner accepts the documented --reporter=dot syntax", () => {
+  const source = fs.readFileSync(runnerPath, "utf8")
+  assert.match(source, /arg\.startsWith\("--reporter="\)/)
+})

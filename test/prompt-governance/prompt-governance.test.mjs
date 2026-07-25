@@ -16,4 +16,8 @@ test('prompt governance evaluation is deterministic and meets compression target
   assert.equal(report.v2.serial_approvals, 0)
   assert.equal(report.v2.unnecessary_escalations, 0)
   assert.equal(report.v2.task_success_rate, 1)
+  assert.equal(report.v2.approval_requests, report.v2.owner_interruptions)
+  assert.ok(report.v2.approval_decisions_bundled > report.v2.approval_requests)
+  assert.deepEqual(report.v2.metric_evidence.prevented_routine_escalation_ids.sort(), ['filename-question', 'review-escalation'])
+  assert.equal(report.v2.metric_evidence.owner_scenario_ids.length, report.v2.approval_decisions_bundled)
 })

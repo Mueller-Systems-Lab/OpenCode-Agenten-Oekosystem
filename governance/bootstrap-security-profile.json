@@ -32,8 +32,7 @@
     "go.mod",
     "opencode.json",
     "opencode.jsonc",
-    ".gitignore",
-    ".opencode/**"
+    ".gitignore"
   ],
   "secret_template_allowlist": [
     ".env.example",

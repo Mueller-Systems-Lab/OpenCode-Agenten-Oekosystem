@@ -4,7 +4,7 @@ This repository is the source of truth for a safe, project-local bootstrap of Op
 
 It also serves as the **canonical workflow contract + policy source** — see [`WORKING-METHOD.md`](WORKING-METHOD.md) for the evidence-driven, risk-tiered execution model, and `.hermes/skill-bundles/canonical-working-method.yaml` for the Hermes-native YAML skill bundle.
 
-Start here if you only know the repository URL:
+For AI-driven URL-only installation, start with [AI-BOOTSTRAP.md](AI-BOOTSTRAP.md). This document remains the deterministic/manual bootstrap reference:
 
 1. Read this file first.
 2. Read the repository instructions and safety files.

@@ -55,7 +55,10 @@ test('MCP capability is action-specific', async () => {
 test('entrypoint adapters reference the central V2 gate', () => {
   const installer = fs.readFileSync(path.join(root, 'scripts/install-governance.mjs'), 'utf8')
   const plugin = fs.readFileSync(path.join(root, '.opencode/plugins/canonical-governance.mjs'), 'utf8')
+  const installedCli = fs.readFileSync(path.join(root, '.agent-governance/bin/evaluate.mjs'), 'utf8')
   assert.match(installer, /tool\.execute\.before/)
   assert.match(installer, /evaluateAction/)
   assert.match(plugin, /runtime.*gates.*evaluate-action|evaluateAction/)
+  assert.match(installedCli, /evaluate-action\.mjs|evaluateAction/)
+  assert.doesNotMatch(installedCli, /evaluate-all\.mjs|evaluateAllGates|GREEN_SAFE|AMBER_REVIEW/)
 })

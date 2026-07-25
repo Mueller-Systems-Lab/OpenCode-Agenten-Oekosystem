@@ -2,8 +2,8 @@
 
 ## Retrieval
 
-* Local repository: `/media/xxammaxx/projekte/OpenCode-Agenten/OpenCode-Agenten-Oekosystem`
-* Closure worktree: `/media/xxammaxx/projekte/OpenCode-Agenten/OpenCode-Agenten-Oekosystem-closure`
+* Local repository: project checkout (private absolute path intentionally omitted)
+* Closure worktree: isolated project worktree (private absolute path intentionally omitted)
 * Retrieval method: `gh api repos/xxammaxx/OpenCode-Agenten-Oekosystem/git/ref/heads/master` and GitHub PR metadata; `git fetch --all --prune` completed without changing the local ref.
 * Remote `master` HEAD: `fe91a8670448a23359d0ccfc2d29ad20369a32ff`
 * Local `origin/master`: `fe91a8670448a23359d0ccfc2d29ad20369a32ff`

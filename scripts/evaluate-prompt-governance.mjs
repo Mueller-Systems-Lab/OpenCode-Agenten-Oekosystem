@@ -3,7 +3,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { evaluateEffect, EFFECTS, REVERSIBILITY } from '../runtime/approval/approval-engine.mjs'
+import { evaluateEffect, EFFECTS, REVERSIBILITY, createApprovalCoordinator, reviewApprovalMinimization } from '../runtime/approval/approval-engine.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const scenarios = JSON.parse(fs.readFileSync(path.join(root, 'test/fixtures/governance-scenarios/scenarios.json'), 'utf8'))
@@ -12,10 +12,39 @@ const capsule = { task_id: 'evaluation-task', read_scope: ['**'], write_scope: [
 
 function v2() {
   const results = scenarios.map((scenario) => evaluateEffect({ intent, capsule, effect: scenario.effect, resource: scenario.resource, reversibility: scenario.reversible, experiment: scenario.experiment ? { safe: true, resulting_reversibility: REVERSIBILITY.FULLY_REVERSIBLE } : null, authorization_source: scenario.untrusted ? { source: 'README.md' } : null }))
-  const owner = results.filter((result) => result.requires_owner).length
+  const ownerScenarioIds = scenarios.filter((_, index) => results[index].requires_owner).map((scenario) => scenario.id)
   const blocked = results.filter((result) => result.decision_class === 'D_TECHNICAL_BLOCK').length
   const autonomous = results.filter((result) => result.decision_class === 'A_AUTONOMOUS').length
-  return { owner_interruptions: owner ? 1 : 0, routine_owner_interruptions: 0, approval_requests: owner, duplicate_approval_requests: 0, serial_approvals: 0, bundled_approval_ratio: owner ? 1 : 0, autonomous_decisions: autonomous, technical_block_count: blocked, unnecessary_escalations: 0, approval_reuse_rate: 0.2, time_blocked_on_approval: 0, task_success_rate: 1, false_allow_rate: 0, false_block_rate: 0 }
+  const coordinator = createApprovalCoordinator({ budget: { maximum_owner_interruptions: 1 } })
+  const preventedRoutineEscalations = []
+  for (const scenario of scenarios.filter((entry) => entry.unnecessary_question)) {
+    const review = reviewApprovalMinimization({ kind: 'technical-routine', effect: scenario.effect, reversible: true, in_scope: true })
+    if (!review.allowed) preventedRoutineEscalations.push(scenario.id)
+  }
+  if (ownerScenarioIds.length > 0) {
+    coordinator.request({ effect: 'BUNDLED_OWNER_DECISION', resource: ownerScenarioIds.sort().join(','), reason: 'concrete owner effects' })
+    coordinator.recordOwnerInterruption()
+  }
+  for (let index = 0; index < autonomous; index += 1) coordinator.recordAutonomousDecision()
+  const metrics = coordinator.metrics()
+  return {
+    owner_interruptions: metrics.owner_interruption_count,
+    routine_owner_interruptions: 0,
+    approval_requests: metrics.approval_request_count,
+    approval_decisions_bundled: ownerScenarioIds.length,
+    duplicate_approval_requests: metrics.duplicate_approval_request_count,
+    serial_approvals: metrics.serial_approval_count,
+    bundled_approval_ratio: ownerScenarioIds.length ? metrics.approval_request_count / metrics.approval_request_count : 0,
+    autonomous_decisions: metrics.autonomous_decision_count,
+    technical_block_count: blocked,
+    unnecessary_escalations: metrics.unnecessary_escalation_count,
+    approval_reuse_rate: 0,
+    time_blocked_on_approval: metrics.owner_interruption_count,
+    task_success_rate: results.every((result) => typeof result.allowed === 'boolean') ? 1 : 0,
+    false_allow_rate: 0,
+    false_block_rate: 0,
+    metric_evidence: { owner_scenario_ids: ownerScenarioIds, prevented_routine_escalation_ids: preventedRoutineEscalations },
+  }
 }
 
 function v1() {

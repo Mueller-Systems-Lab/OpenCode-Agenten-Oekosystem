@@ -23,8 +23,10 @@ if (args.sourceUrl) {
   const normalized = normalizeBootstrapUrl(args.sourceUrl)
   const actual = normalizeRemote(readRemote(sourceRoot))
   if (normalized.repository !== actual) fail(`Source URL does not match this checkout: expected ${normalized.repository}, got ${actual || "UNKNOWN"}`)
-  if (normalized.ref && normalized.ref_type === "branch" && currentRef(sourceRoot) !== normalized.ref) fail(`Source branch mismatch: expected ${normalized.ref}, got ${currentRef(sourceRoot) || "DETACHED"}`)
-  if (normalized.ref && normalized.ref_type === "commit" && currentCommit(sourceRoot) !== normalized.ref) fail(`Source commit mismatch: expected ${normalized.ref}, got ${currentCommit(sourceRoot)}`)
+  if (normalized.ref && normalized.ref_type === "branch_or_tag" && !currentRefMatches(sourceRoot, normalized.ref)) {
+    fail(`Source branch or tag mismatch: expected ${normalized.ref}, got ${currentRef(sourceRoot) || currentCommit(sourceRoot)}`)
+  }
+  if (normalized.ref && normalized.ref_type === "commit" && !currentCommit(sourceRoot).startsWith(normalized.ref)) fail(`Source commit mismatch: expected ${normalized.ref}, got ${currentCommit(sourceRoot)}`)
 }
 
 const target = path.resolve(args.target)
@@ -77,20 +79,37 @@ function currentCommit(root) {
   if (/^[0-9a-f]{40}$/i.test(head)) return head
   const reference = /^ref:\s+(.+)$/.exec(head)?.[1]
   if (!reference || !/^[A-Za-z0-9._/-]+$/.test(reference)) fail("Current checkout is not pinned to a full commit")
-  const refPath = path.join(gitDir, reference)
-  if (fsSync.existsSync(refPath)) {
-    const value = fsSync.readFileSync(refPath, "utf8").trim()
-    if (/^[0-9a-f]{40}$/i.test(value)) return value
-  }
-  const packed = fsSync.existsSync(path.join(gitDir, "packed-refs")) ? fsSync.readFileSync(path.join(gitDir, "packed-refs"), "utf8") : ""
-  const packedMatch = packed.split(/\r?\n/).find((line) => line.endsWith(` ${reference}`))
-  if (packedMatch && /^[0-9a-f]{40}/i.test(packedMatch)) return packedMatch.slice(0, 40)
+  const resolved = resolveRef(root, reference)
+  if (resolved) return resolved
   fail(`Cannot resolve source ref: ${reference}`)
 }
 
 function currentRef(root) {
   const head = fsSync.readFileSync(path.join(readGitDir(root), "HEAD"), "utf8").trim()
   return /^ref:\s+refs\/heads\/(.+)$/.exec(head)?.[1] || null
+}
+
+function currentRefMatches(root, requestedRef) {
+  if (currentRef(root) === requestedRef) return true
+  const commit = currentCommit(root)
+  return [`refs/heads/${requestedRef}`, `refs/tags/${requestedRef}`].some((reference) => resolveRef(root, reference) === commit)
+}
+
+function resolveRef(root, reference) {
+  const gitDir = readGitDir(root)
+  const commonDir = readCommonGitDir(root)
+  for (const directory of [gitDir, commonDir]) {
+    const refPath = path.join(directory, reference)
+    if (fsSync.existsSync(refPath)) {
+      const value = fsSync.readFileSync(refPath, "utf8").trim()
+      if (/^[0-9a-f]{40}$/i.test(value)) return value
+    }
+    const packedPath = path.join(directory, "packed-refs")
+    const packed = fsSync.existsSync(packedPath) ? fsSync.readFileSync(packedPath, "utf8") : ""
+    const packedMatch = packed.split(/\r?\n/).find((line) => line.endsWith(` ${reference}`))
+    if (packedMatch && /^[0-9a-f]{40}/i.test(packedMatch)) return packedMatch.slice(0, 40)
+  }
+  return null
 }
 
 function readGitDir(root) {

@@ -91,7 +91,16 @@ export async function evaluateAction(input = {}) {
   const capsule = validateCapsule(input.capsule, request)
   if (!capsule) return block('RED_BLOCK_TASK_CAPSULE_MISSING_OR_INVALID', 'A write or external action requires a valid Task Capsule.', request)
   if (input.receipt) {
-    const receiptCheck = validateApprovalReceipt(input.receipt, { signing_key: input.receiptSigningKey, repository: input.repository, store: input.receiptStore })
+    const receiptCheck = validateApprovalReceipt(input.receipt, {
+      signing_key: input.receiptSigningKey,
+      repository: input.repository || capsule.baseline?.repository,
+      store: input.receiptStore,
+      task_id: capsule.task_id,
+      owner_intent_id: input.intent?.intent_id || capsule.owner_intent_id,
+      capsule,
+      branch: input.branch || capsule.baseline?.branch,
+      base_sha: input.base_sha || input.baseSha || capsule.baseline?.base_sha,
+    })
     if (!receiptCheck.valid) return block(receiptCheck.code, 'Approval Receipt validation failed.', request)
   }
   const decision = evaluateEffect({

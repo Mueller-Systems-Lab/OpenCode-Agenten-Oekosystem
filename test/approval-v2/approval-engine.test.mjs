@@ -139,6 +139,79 @@ test('expired receipt is rejected', () => {
   assert.equal(validateApprovalReceipt(receipt, { signing_key: 'test-key', now: new Date('2026-01-01T00:00:00.000Z') }).valid, false)
 })
 
+test('receipt validation rejects every current-context binding mismatch', () => {
+  const boundCapsule = { ...capsule, baseline: { ...capsule.baseline, branch: 'feature/a' } }
+  const receipt = createApprovalReceipt({
+    intent,
+    capsule: boundCapsule,
+    effect_classes: [EFFECTS.MERGE],
+    resource_scope: ['main'],
+    allowed_actions: ['merge'],
+    signing_key: 'test-key',
+    expires_at: '2099-01-01T00:00:00.000Z',
+  })
+  const context = {
+    signing_key: 'test-key',
+    task_id: boundCapsule.task_id,
+    owner_intent_id: intent.intent_id,
+    capsule: boundCapsule,
+    branch: boundCapsule.baseline.branch,
+    base_sha: boundCapsule.baseline.base_sha,
+  }
+  assert.equal(validateApprovalReceipt(receipt, context).valid, true)
+  for (const [field, value] of [
+    ['task_id', 'task-other'],
+    ['owner_intent_id', 'intent-other'],
+    ['capsule', { ...boundCapsule, write_scope: ['other/**'] }],
+    ['branch', 'feature/b'],
+    ['base_sha', 'b'.repeat(40)],
+  ]) {
+    const result = validateApprovalReceipt(receipt, { ...context, [field]: value })
+    assert.equal(result.valid, false, field)
+    assert.match(result.code, /^RED_BLOCK_RECEIPT_CONTEXT_/, field)
+  }
+})
+
+test('receipt cannot expand task capsule effect or resource scope', () => {
+  const narrowCapsule = {
+    ...capsule,
+    allowed_effects: [EFFECTS.LOCAL_READ],
+    write_scope: [],
+  }
+  const receipt = createApprovalReceipt({
+    intent,
+    capsule: narrowCapsule,
+    effect_classes: [EFFECTS.MERGE],
+    resource_scope: ['main'],
+    allowed_actions: ['merge'],
+    signing_key: 'test-key',
+    expires_at: '2099-01-01T00:00:00.000Z',
+  })
+  const result = evaluateEffect({
+    intent,
+    capsule: narrowCapsule,
+    effect: EFFECTS.MERGE,
+    resource: 'main',
+    reversibility: REVERSIBILITY.IRREVERSIBLE,
+    receipt,
+  })
+  assert.equal(result.allowed, false)
+  assert.equal(result.code, 'RED_BLOCK_SCOPE_OR_EFFECT_NOT_ALLOWED')
+})
+
+test('malformed approval signature fails closed without throwing', () => {
+  const receipt = createApprovalReceipt({
+    intent,
+    capsule,
+    effect_classes: [EFFECTS.MERGE],
+    resource_scope: ['main'],
+    signing_key: 'test-key',
+    expires_at: '2099-01-01T00:00:00.000Z',
+  })
+  assert.doesNotThrow(() => validateApprovalReceipt({ ...receipt, signature: 'x' }, { signing_key: 'test-key' }))
+  assert.equal(validateApprovalReceipt({ ...receipt, signature: 'x' }, { signing_key: 'test-key' }).code, 'RED_BLOCK_RECEIPT_TAMPERED')
+})
+
 test('revoked receipt is rejected', async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'approval-v2-'))
   const store = new ApprovalReceiptStore(dir)

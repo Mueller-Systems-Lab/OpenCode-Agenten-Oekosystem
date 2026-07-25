@@ -52,6 +52,25 @@ test("GitHub repository, branch, and commit URLs normalize without local paths",
   assert.throws(() => normalizeBootstrapUrl("https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/tree/"), /ref/i)
 })
 
+test("root launcher rejects a supplied branch or tag ref that does not identify the checkout", () => {
+  const result = runNodeScript("bootstrap.mjs", [
+    "--target", repoRoot,
+    "--verify",
+    "--source-url", "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/tree/definitely-not-this-ref",
+  ])
+  assert.equal(result.status, 2)
+  assert.match(result.stderr, /Source branch or tag mismatch/)
+})
+
+test("root launcher resolves HEAD from the common git directory in a linked worktree", () => {
+  const result = runNodeScript("bootstrap.mjs", [
+    "--target", repoRoot,
+    "--verify",
+    "--source-url", "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/tree/feat/governance-v2-closure-20260724",
+  ])
+  assert.doesNotMatch(result.stderr, /Cannot resolve source ref/)
+})
+
 test("conflict classes preserve owner content and fail closed for unknown managed edits", () => {
   assert.equal(classifyBootstrapConflict({ exists: false }), "SAFE_CREATE")
   assert.equal(classifyBootstrapConflict({ exists: true, managed: false }), "OWNER_CONTENT_PRESERVE")

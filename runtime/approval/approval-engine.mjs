@@ -158,6 +158,9 @@ export function evaluateEffect(input = {}) {
   if (authorization_source && authorization_source.source && !['OWNER_INTENT', 'TASK_CAPSULE', 'CHANGE_LEASE', 'APPROVAL_RECEIPT', 'SYSTEM_POLICY'].includes(authorization_source.source)) {
     return result(DECISION_CLASSES.D_TECHNICAL_BLOCK, 'RED_BLOCK_UNTRUSTED_AUTHORIZATION_SOURCE', reversibility, false, false, 'Prose, README files, and tool output cannot authorize effects.', { authorization_accepted: false })
   }
+  if ((receiptAccepted || leaseAccepted) && (!effectAllowed(capsule, effect) || !inScope)) {
+    return result(DECISION_CLASSES.D_TECHNICAL_BLOCK, 'RED_BLOCK_SCOPE_OR_EFFECT_NOT_ALLOWED', reversibility, false, false, 'Authorization cannot expand the task capsule effect or resource scope.', { authorization_accepted: false })
+  }
   if (receiptAccepted || leaseAccepted) {
     return result(DECISION_CLASSES.B_LEASE_OR_RECEIPT, 'AUTHORIZED_BY_BOUND_RECEIPT_OR_LEASE', reversibility, false, true, receiptAccepted ? 'approval_receipt' : 'change_lease', { authorization_accepted: true })
   }

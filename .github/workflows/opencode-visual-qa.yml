@@ -3,44 +3,38 @@ on:
   pull_request:
     types: [opened, synchronize]
     paths:
+      - '.github/workflows/opencode-visual-qa.yml'
       - 'client/src/**'
       - 'src/**/*.css'
       - 'src/**/*.scss'
-      - 'package.json'
+      - 'src/**/*.sass'
+      - 'src/**/*.less'
+      - '**/*.tsx'
+      - '**/*.jsx'
+      - '**/*.vue'
+      - '**/*.svelte'
+      - '**/*.astro'
+      - '**/playwright.config.*'
+      - '**/.storybook/**'
+      - 'package*.json'
 
 jobs:
   visual-qa:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: read
-      pull-requests: write
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - name: Install dependencies
-        run: |
-          if [ -f package.json ]; then
-            npm ci || npm install
-            npx playwright install --with-deps chromium 2>/dev/null || true
-          fi
-      - uses: anomalyco/opencode/github@latest
+          node-version: 22
+      - name: Classify pull request diff
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        with:
-          model: anthropic/claude-sonnet-4-20250514
-          agent: playwright-agent
-          prompt: |
-            Visual QA for this PR:
-            1. Load playwright-visual-review skill
-            2. Check for existing baseline screenshots
-            3. Capture screenshots of changed pages
-            4. Compare against baseline (pixelmatch)
-            5. Run accessibility checks (axe-core)
-            6. Classify diffs: REGRESSION / IMPROVEMENT / NEW / COSMETIC
-            7. Post results with classification to PR
-            If no baseline exists, create one and mark as NEEDS_HUMAN_REVIEW.
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        # Emits CHECK_RESULT, REASON, EVALUATED_PATHS, and VISUAL_PATHS.
+        # Applicable changes fail closed until repository-owned visual QA exists.
+        run: node scripts/classify-visual-qa-diff.mjs --base "$BASE_SHA" --head "$HEAD_SHA" --fail-on-applicable

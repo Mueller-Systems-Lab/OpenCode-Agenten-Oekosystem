@@ -128,10 +128,13 @@ If you explicitly want the gateway mode, review the generated handoff note first
 
 Every run is classified as one of:
 
-- `GREEN_SAFE`
-- `AMBER_REVIEW`
+- `VERIFIED_IN_SCOPE`
+- `NEEDS_REVIEW`
 - `RED_BLOCK`
 - `TOOL_GAP`
+
+`GREEN_SAFE` and `AMBER_REVIEW` are deprecated input aliases in explicitly
+marked legacy adapters; active bootstrap runtimes never emit them.
 
 Use the classification as the final gate before any apply step.
 

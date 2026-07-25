@@ -87,6 +87,8 @@ Exit codes: 0=VERIFIED_IN_SCOPE, 1=NEEDS_REVIEW/TOOL_GAP, 2=RED_BLOCK
 }
 
 async function getSourceCommit(repoRoot) {
+  const pinnedCommit = process.env.OCAE_BOOTSTRAP_SOURCE_COMMIT
+  if (/^[a-f0-9]{40}$/.test(pinnedCommit || "")) return pinnedCommit
   try {
     const sha = execSync("git rev-parse HEAD", {
       cwd: repoRoot,
@@ -909,7 +911,7 @@ async function validatePostApply(targetRoot) {
   }
 
   const classification =
-    issues.length > 0 ? "RED_BLOCK" : warnings.length > 0 ? "NEEDS_REVIEW" : "GREEN_SAFE"
+    issues.length > 0 ? "RED_BLOCK" : warnings.length > 0 ? "NEEDS_REVIEW" : "VERIFIED_IN_SCOPE"
 
   return { classification, issues, warnings }
 }
@@ -1040,9 +1042,9 @@ async function runApplyPhase(args) {
 
   if (await isIdempotentInstallation(targetRoot, previousInstallation, sourceCommit)) {
     const postValidation = await validatePostApply(targetRoot)
-    if (postValidation.classification === "GREEN_SAFE") {
+    if (postValidation.classification === "VERIFIED_IN_SCOPE") {
       const result = {
-        classification: "GREEN_SAFE",
+        classification: "NOOP_IDEMPOTENT",
         mode: "NOOP_IDEMPOTENT",
         source_commit: sourceCommit,
         files: [],
@@ -1266,13 +1268,33 @@ async function runRollbackPhase(args) {
     const reviewPath = path.join(result.targetRoot, ".opencode", "ecosystem-installation-rollback-review.json")
     await ensureParentDirectory(reviewPath)
     await fsPromises.writeFile(reviewPath, `${JSON.stringify({ classification: "NEEDS_REVIEW", target_root: result.targetRoot, backup_root: backupRoot, conflicts }, null, 2)}\n`, "utf8")
-    console.log(`Rollback completed with preserved later edits: ${reviewPath}`)
-    console.log("NEEDS_REVIEW")
+    if (args.json) {
+      console.log(safeSerialize({
+        classification: "NEEDS_REVIEW",
+        target_root: result.targetRoot,
+        backup_root: backupRoot,
+        conflicts,
+        review_path: reviewPath,
+      }, REDACTION_OPTIONS))
+    } else {
+      console.log(`Rollback completed with preserved later edits: ${reviewPath}`)
+      console.log("NEEDS_REVIEW")
+    }
     process.exit(1)
   }
 
-  console.log(`Rollback complete. Bootstrap-managed changes restored in ${result.targetRoot}`)
-  console.log("VERIFIED_IN_SCOPE")
+  if (args.json) {
+    console.log(safeSerialize({
+      classification: "VERIFIED_IN_SCOPE",
+      target_root: result.targetRoot,
+      backup_root: backupRoot,
+      conflicts: [],
+      exit_code: 0,
+    }, REDACTION_OPTIONS))
+  } else {
+    console.log(`Rollback complete. Bootstrap-managed changes restored in ${result.targetRoot}`)
+    console.log("VERIFIED_IN_SCOPE")
+  }
   process.exit(0)
 }
 
@@ -1323,7 +1345,7 @@ async function runDryRunPhase(args) {
     targetWritable = false
   }
 
-  if (!targetWritable) {
+  if (args.apply && !targetWritable) {
     if (args.json) {
       console.log(
         safeSerialize({
@@ -1346,13 +1368,14 @@ async function runDryRunPhase(args) {
   // Phase 5: Build file plan
   const filePlan = buildFilePlan(targetRoot)
   const conflicts = await findConflicts(targetRoot, filePlan)
-  const classification = classify(conflicts, sourceMissing, targetWritable, detectedRuntimes)
+  const classification = classify(conflicts, sourceMissing, args.apply ? targetWritable : true, detectedRuntimes)
 
   // Phase 6: Output
   if (args.json) {
     const output = {
       classification,
       target_root: targetRoot,
+      target_writable: targetWritable,
       source_commit: sourceCommit,
       risk_tier: riskTier,
       enforcement_level: enforcementLevel,

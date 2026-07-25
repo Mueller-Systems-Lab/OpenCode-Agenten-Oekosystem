@@ -152,12 +152,12 @@ function classify(discovery, selected, mcpSelection, overlay) {
     return "RED_BLOCK"
   }
   if (overlay.conflicts.length > 0) {
-    return "AMBER_REVIEW"
+    return "NEEDS_REVIEW"
   }
   if (mcpSelection.remote_ci_requested) {
-    return "AMBER_REVIEW"
+    return "NEEDS_REVIEW"
   }
-  return "GREEN_SAFE"
+  return "VERIFIED_IN_SCOPE"
 }
 
 async function buildOverlay({ manifest, discovery, selected, mcpSelection, sourceRoot, targetRoot }) {

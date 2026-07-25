@@ -27,7 +27,8 @@ export async function verifyInstallation({ targetRoot, sourceRoot: source = sour
     issues.push(`source manifest cannot be read: ${error.message}`)
   }
 
-  const sourceCommit = readGitHead(sourceDir)
+  const pinnedCommit = process.env.OCAE_BOOTSTRAP_SOURCE_COMMIT
+  const sourceCommit = /^[0-9a-f]{40}$/i.test(pinnedCommit || "") ? pinnedCommit : readGitHead(sourceDir)
   if (!sourceCommit) issues.push("source commit cannot be determined")
   if (expectedCommit && sourceCommit !== expectedCommit) issues.push(`source commit mismatch: expected ${expectedCommit}, got ${sourceCommit || "UNKNOWN"}`)
 

@@ -7,6 +7,7 @@
     "test:unit": "node scripts/run-tests.mjs --group unit --reporter spec",
     "test:integration": "node scripts/run-tests.mjs --group integration --reporter spec",
     "test:e2e": "node scripts/run-tests.mjs --group e2e --reporter spec",
-    "test:all": "node scripts/run-tests.mjs --all --reporter spec"
+    "test:all": "node scripts/run-tests.mjs --all --reporter spec",
+    "test:security:adversarial-ai": "node scripts/run-secure-bootstrap-adversarial-e2e.mjs"
   }
 }

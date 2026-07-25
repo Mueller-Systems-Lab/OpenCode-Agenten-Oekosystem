@@ -10,10 +10,8 @@
     "rollback_flag": "--rollback",
     "include_remote_ci_flag": "--include-remote-ci",
     "classification_states": [
-      "GREEN_SAFE",
       "VERIFIED_IN_SCOPE",
       "NEEDS_REVIEW",
-      "AMBER_REVIEW",
       "RED_BLOCK",
       "TOOL_GAP"
     ]
@@ -464,7 +462,7 @@
     "json": "structural_deep_merge",
     "text": "managed_section_overlay",
     "backup_required": true,
-    "classification_on_conflict": "AMBER_REVIEW",
+    "classification_on_conflict": "NEEDS_REVIEW",
     "classification_on_unsafe_change": "RED_BLOCK",
     "managed_section_marker": "<!-- BEGIN OPENCODE-AGENT-ECOSYSTEM -->"
   },

@@ -87,7 +87,7 @@ Typical outputs include:
 - `.hermes/mcp/`
 - `docs/reports/universal-bootstrap-run-report.md`
 
-If the target project already has any of these files, the bootstrap merges them conservatively and records conflicts as `AMBER_REVIEW`.
+If the target project already has any of these files, the bootstrap merges them conservatively and records conflicts as `NEEDS_REVIEW`.
 
 ## Review The Plan
 
@@ -164,10 +164,13 @@ Rollback restores the previous file contents and leaves the discovery history in
 
 The bootstrap classifies each run as one of:
 
-- `GREEN_SAFE`
-- `AMBER_REVIEW`
+- `VERIFIED_IN_SCOPE`
+- `NEEDS_REVIEW`
 - `RED_BLOCK`
 - `TOOL_GAP`
+
+`GREEN_SAFE` and `AMBER_REVIEW` are deprecated input aliases in explicitly
+marked legacy adapters and are never emitted by the bootstrap runtime.
 
 Classification is based on:
 

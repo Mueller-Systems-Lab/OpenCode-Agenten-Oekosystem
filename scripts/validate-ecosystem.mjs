@@ -2,6 +2,7 @@
 
 import path from "node:path"
 import fs from "node:fs/promises"
+import fsSync from "node:fs"
 import { spawnSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import { loadManifest, validateManifest } from "./lib/manifest.mjs"
@@ -194,7 +195,7 @@ async function main() {
   // Domain decoupling — data-retention in domain_specific
   issues.push(...await validateDataRetentionDomainSpecific(manifest))
 
-  // Test suite gate — GREEN_SAFE requires all tests passing
+  // Test suite gate — verified output requires all tests passing
   const testResult = runTestSuite()
   if (testResult.status === "FAILED") {
     issues.push(testResult.message)
@@ -818,19 +819,26 @@ async function collectTextFiles(root) {
 
 /**
  * Run the test suite and return status.
- * GREEN_SAFE classification requires all tests passing.
+ * VERIFIED_IN_SCOPE classification requires all tests passing.
  * Test failures produce a RED_BLOCK issue (not just a warning) because
  * a green validator with red tests is a false signal.
  */
 function runTestSuite() {
-  if (process.env.OCAE_TEST_RUNNER_ACTIVE === "1" || process.env.NODE_TEST_CONTEXT) {
+  if (process.env.NODE_TEST_CONTEXT) {
     return { status: "NESTED_SKIPPED", message: "TEST_SUITE_NESTED_RUNNER_SKIPPED" }
   }
   try {
-    const result = spawnSync(process.execPath, [path.join(repoRoot, "scripts", "run-tests.mjs"), "--all", "--reporter", "spec", "--json"], {
+    const testManifest = JSON.parse(fsSync.readFileSync(path.join(repoRoot, "test", "test-manifest.json"), "utf8"))
+    const files = Object.values(testManifest.groups || {}).flat()
+    const result = spawnSync(process.execPath, [
+      "--test",
+      "--test-reporter=spec",
+      "--test-concurrency=1",
+      ...files,
+    ], {
       cwd: repoRoot,
       encoding: "utf8",
-      env: { ...process.env, OCAE_TEST_RUNNER_ACTIVE: "1" },
+      env: { ...process.env },
       timeout: 120000,
       stdio: "pipe",
     })

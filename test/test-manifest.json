@@ -8,9 +8,13 @@
       "test/gates/comment-policy.test.mjs",
       "test/gates/kernel.test.mjs",
       "test/gates/runtime-adapters.test.mjs",
+      "test/security/bootstrap-secret-isolation.test.mjs",
+      "test/security/bootstrap-bypass-red-team.test.mjs",
       "test/security/redaction.test.mjs"
     ],
     "contract": [
+      "test/contracts/bootstrap-capability-contract.test.mjs",
+      "test/contracts/bootstrap-v2-classification-output.test.mjs",
       "test/contracts/runtime-enforcement-contracts.test.mjs",
       "test/spec-kit/bridge-contract.test.mjs",
       "test/spec-kit/bridge-red.test.mjs",
@@ -20,7 +24,8 @@
       "test/integration/approval-enforcement.test.mjs",
       "test/integration/bootstrap-gate-wiring.test.mjs",
       "test/integration/gate-cli-smoke.test.mjs",
-      "test/integration/rollback-runtime.test.mjs"
+      "test/integration/rollback-runtime.test.mjs",
+      "test/integration/secure-bootstrap-controller.test.mjs"
     ],
     "bootstrap": [
       "test/bootstrap/bootstrap.test.mjs",

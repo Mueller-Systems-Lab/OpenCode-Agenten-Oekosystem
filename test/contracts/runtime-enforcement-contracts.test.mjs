@@ -18,10 +18,10 @@
 
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, renameSync, symlinkSync } from 'node:fs';
+import { closeSync, existsSync, openSync, readFileSync, writeFileSync, mkdirSync, rmSync, renameSync, symlinkSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
-import { execSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 
 // Resolve repo root
@@ -41,6 +41,36 @@ function tempDir() {
 
 function cleanup(dir) {
   try { rmSync(dir, { recursive: true, force: true }); } catch {}
+}
+
+function runCommand(command, args, options = {}) {
+  const captureDir = tempDir();
+  const stdoutPath = join(captureDir, 'stdout.log');
+  const stderrPath = join(captureDir, 'stderr.log');
+  const stdoutFd = openSync(stdoutPath, 'w');
+  const stderrFd = openSync(stderrPath, 'w');
+  try {
+    const result = spawnSync(command, args, {
+      cwd: options.cwd,
+      env: options.env || process.env,
+      timeout: options.timeout,
+      stdio: ['ignore', stdoutFd, stderrFd]
+    });
+    closeSync(stdoutFd);
+    closeSync(stderrFd);
+    const stdout = readFileSync(stdoutPath);
+    const stderr = readFileSync(stderrPath);
+    if (result.error || result.status !== 0) {
+      const error = result.error || new Error(`${command} exited ${result.status}`);
+      Object.assign(error, { status: result.status, signal: result.signal, stdout, stderr });
+      throw error;
+    }
+    return options.encoding ? stdout.toString(options.encoding) : stdout;
+  } finally {
+    try { closeSync(stdoutFd); } catch {}
+    try { closeSync(stderrFd); } catch {}
+    cleanup(captureDir);
+  }
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -187,15 +217,18 @@ describe('R-002: Resident Runtime Directory Structure', () => {
     try {
       // Create minimal project
       writeFileSync(join(projectDir, 'package.json'), '{"name":"test-project"}');
-      execSync(
-        'git init && git config user.name "OCAE Contract Test" && git config user.email "ocae-test.invalid@example.invalid" && git add -A && git commit -m "init"',
-        { cwd: projectDir, stdio: 'pipe' }
-      );
+      runCommand('git', ['init', '--initial-branch=master'], { cwd: projectDir });
+      runCommand('git', ['config', 'user.name', 'OCAE Contract Test'], { cwd: projectDir });
+      runCommand('git', ['config', 'user.email', 'ocae-test.invalid@example.invalid'], { cwd: projectDir });
+      runCommand('git', ['add', '-A'], { cwd: projectDir });
+      runCommand('git', ['commit', '-m', 'init'], { cwd: projectDir });
 
       // Install governance from the repo
-      const installCmd = `node ${join(REPO_ROOT, 'scripts/install-governance.mjs')} --target ${projectDir} --apply --json`;
       try {
-        const output = execSync(installCmd, { encoding: 'utf8', timeout: 30000, stdio: 'pipe' });
+        const output = runCommand(process.execPath, [
+          join(REPO_ROOT, 'scripts/install-governance.mjs'),
+          '--target', projectDir, '--apply', '--json'
+        ], { encoding: 'utf8', timeout: 30000 });
         const result = JSON.parse(output);
         assert.ok(result.classification, 'Install result must have classification');
       } catch (e) {
@@ -221,10 +254,10 @@ describe('R-002: Resident Runtime Directory Structure', () => {
         // Try running it
         if (cliExists) {
           try {
-            const cliOutput = execSync(
-              `node .agent-governance/bin/evaluate.mjs --target . --runtime generic --action validate --json`,
-              { cwd: projectDir, encoding: 'utf8', timeout: 15000, stdio: 'pipe' }
-            );
+            const cliOutput = runCommand(process.execPath, [
+              '.agent-governance/bin/evaluate.mjs',
+              '--target', '.', '--runtime', 'generic', '--action', 'validate', '--json'
+            ], { cwd: projectDir, encoding: 'utf8', timeout: 15000 });
             const decision = JSON.parse(cliOutput);
             assert.ok(decision.classification, 'CLI must return valid JSON with classification');
           } catch (e) {

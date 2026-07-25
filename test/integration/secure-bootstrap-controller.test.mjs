@@ -81,7 +81,7 @@ test("controller blocks a requested secret read, deduplicates it, recovers, and 
   const controller = await createSecureBootstrapController({
     sourceRoot,
     targetRoot,
-    sourceUrl: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/tree/feat/governance-v2-closure-20260724",
+    sourceUrl: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
     knownSecrets: [sentinel],
   })
 
@@ -141,7 +141,7 @@ test("controller completes apply, verify, idempotence, rollback, re-apply, and f
   const controller = await createSecureBootstrapController({
     sourceRoot,
     targetRoot,
-    sourceUrl: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/tree/feat/governance-v2-closure-20260724",
+    sourceUrl: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
     knownSecrets: [sentinel],
   })
 
@@ -183,7 +183,7 @@ test("authenticated MCP broker exposes only typed tools and returns structured g
   const controller = await createSecureBootstrapController({
     sourceRoot,
     targetRoot,
-    sourceUrl: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/tree/feat/governance-v2-closure-20260724",
+    sourceUrl: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
     knownSecrets: [sentinel],
   })
   const token = crypto.randomBytes(24).toString("hex")

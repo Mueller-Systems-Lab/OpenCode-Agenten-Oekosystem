@@ -11,6 +11,29 @@ const shortSecret = 'q7';
 const regexSecret = 'a.$[b]';
 const options = { secrets: [sentinel, shortSecret, regexSecret] };
 
+async function runNodeChild(code, { encoding = 'utf8', env = {} } = {}) {
+  const captureRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'redaction-child-'));
+  const stdoutPath = path.join(captureRoot, 'stdout.bin');
+  const stderrPath = path.join(captureRoot, 'stderr.bin');
+  const stdoutHandle = await fs.open(stdoutPath, 'w');
+  const stderrHandle = await fs.open(stderrPath, 'w');
+  try {
+    const result = spawnSync(process.execPath, ['--input-type=module', '-e', code], {
+      env: { PATH: process.env.PATH, ...env },
+      stdio: ['ignore', stdoutHandle.fd, stderrHandle.fd],
+      timeout: 5_000,
+      killSignal: 'SIGTERM'
+    });
+    await Promise.all([stdoutHandle.sync(), stderrHandle.sync()]);
+    const [stdout, stderr] = await Promise.all([fs.readFile(stdoutPath), fs.readFile(stderrPath)]);
+    const decode = (value) => encoding === 'buffer' ? value : value.toString(encoding);
+    return { ...result, stdout: decode(stdout), stderr: decode(stderr) };
+  } finally {
+    await Promise.all([stdoutHandle.close(), stderrHandle.close()]);
+    await fs.rm(captureRoot, { recursive: true, force: true });
+  }
+}
+
 describe('central credential redaction', () => {
   it('redacts an API key in an object', () => {
     assert.equal(redactValue({ apiKey: sentinel }, options).apiKey, '[REDACTED]');
@@ -165,32 +188,28 @@ describe('central credential redaction', () => {
     assert.match(output, /REDACTED/);
   });
 
-  it('redacts a child-process exception transported on stderr while preserving status', () => {
+  it('redacts a child-process exception transported on stderr while preserving status', async () => {
     const childSecret = 'child-process-secret';
-    const result = spawnSync(process.execPath, [
-      '--input-type=module', '-e',
-      'const e = new Error(`child failure ${process.env.CHILD_SECRET}`); process.stderr.write(JSON.stringify({ error: e.message, stack: e.stack })); process.exitCode = 37;'
-    ], {
-      env: { PATH: process.env.PATH, CHILD_SECRET: childSecret },
-      encoding: 'utf8'
-    });
+    const result = await runNodeChild(
+      'const e = new Error(`child failure ${process.env.TEST_REDACTION_VALUE}`); process.stderr.write(JSON.stringify({ error: e.message, stack: e.stack })); process.exitCode = 37;',
+      { env: { TEST_REDACTION_VALUE: childSecret } }
+    );
     const output = safeRedactText(result.stderr, { secrets: [childSecret] });
     assert.equal(result.status, 37);
+    assert.equal(result.signal, null);
     assert.doesNotMatch(output, new RegExp(childSecret));
     assert.match(output, /child failure/);
   });
 
-  it('redacts invalid UTF-8 child output without exposing the byte payload', () => {
+  it('redacts invalid UTF-8 child output without exposing the byte payload', async () => {
     const childSecret = 'binary-child-secret';
-    const result = spawnSync(process.execPath, [
-      '--input-type=module', '-e',
-      'process.stdout.write(Buffer.concat([Buffer.from(process.env.CHILD_SECRET), Buffer.from([0xff, 0xfe, 0x00])])); process.exitCode = 23;'
-    ], {
-      env: { PATH: process.env.PATH, CHILD_SECRET: childSecret },
-      encoding: 'buffer'
-    });
+    const result = await runNodeChild(
+      'process.stdout.write(Buffer.concat([Buffer.from(process.env.TEST_REDACTION_VALUE), Buffer.from([0xff, 0xfe, 0x00])])); process.exitCode = 23;',
+      { env: { TEST_REDACTION_VALUE: childSecret }, encoding: 'buffer' }
+    );
     const output = safeRedactText(result.stdout.toString('utf8'), { secrets: [childSecret] });
     assert.equal(result.status, 23);
+    assert.equal(result.signal, null);
     assert.doesNotMatch(output, new RegExp(childSecret));
     assert.match(output, /REDACTED/);
   });

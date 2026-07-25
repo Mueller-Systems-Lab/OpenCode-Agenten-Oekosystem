@@ -2,8 +2,9 @@
 
 import fs from "node:fs/promises"
 import fsSync from "node:fs"
+import os from "node:os"
 import path from "node:path"
-import { spawnSync } from "node:child_process"
+import { spawn } from "node:child_process"
 import { fileURLToPath } from "node:url"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
@@ -114,27 +115,73 @@ function validateManifest(manifest) {
   return result
 }
 
-function runGroup(group, files, reporter, timeoutMs) {
-  const child = spawnSync(process.execPath, ["--test", `--test-reporter=${reporter === "dot" ? "spec" : reporter}`, "--test-concurrency=1", ...files], {
-    cwd: repoRoot,
-    env: { ...process.env },
-    encoding: "utf8",
-    maxBuffer: 50 * 1024 * 1024,
-    timeout: timeoutMs,
-    killSignal: "SIGTERM",
-    stdio: ["ignore", "pipe", "pipe"],
-  })
-  const stdout = child.stdout || ""
-  const stderr = child.stderr || ""
-  if (reporter === "spec") process.stdout.write(stdout)
-  else process.stdout.write(renderDot(stdout))
-  if (stderr) process.stderr.write(stderr)
+async function runGroup(group, files, reporter, timeoutMs) {
+  const results = []
+  for (const file of files) {
+    const result = await runTestFile(group, file, reporter, timeoutMs)
+    results.push(result)
+  }
+  const totals = results.reduce((acc, result) => {
+    for (const key of ["tests", "passed", "failed", "skipped", "cancelled", "todo"]) acc[key] += result[key] || 0
+    return acc
+  }, { tests: 0, passed: 0, failed: 0, skipped: 0, cancelled: 0, todo: 0 })
+  const failed = results.find((result) => result.exit_code !== 0)
   return {
     files,
-    exit_code: child.status ?? 1,
-    signal: child.signal || null,
-    error: child.error?.message || null,
-    ...parseSummary(stdout),
+    exit_code: failed ? failed.exit_code : 0,
+    signal: failed?.signal || null,
+    error: failed?.error || null,
+    ...totals,
+  }
+}
+
+async function runTestFile(group, file, reporter, timeoutMs) {
+  const captureRoot = await fs.mkdtemp(path.join(os.tmpdir(), `ocae-test-${group}-`))
+  const stdoutPath = path.join(captureRoot, "stdout.log")
+  const stderrPath = path.join(captureRoot, "stderr.log")
+  const stdoutHandle = await fs.open(stdoutPath, "w")
+  const stderrHandle = await fs.open(stderrPath, "w")
+  try {
+    const result = await new Promise((resolve) => {
+      const child = spawn(process.execPath, ["--test-reporter=spec", file], {
+        cwd: repoRoot,
+        env: { ...process.env, OCAE_CANONICAL_TEST_RUNNER: "1" },
+        stdio: ["ignore", stdoutHandle.fd, stderrHandle.fd],
+      })
+      let error = null
+      let timedOut = false
+      const timer = setTimeout(() => {
+        timedOut = true
+        child.kill("SIGTERM")
+      }, timeoutMs)
+      child.once("error", (spawnError) => {
+        error = spawnError.message
+      })
+      child.once("close", (status, signal) => {
+        clearTimeout(timer)
+        resolve({
+          exit_code: status ?? 1,
+          signal: signal || null,
+          error: timedOut ? `Test file timed out after ${timeoutMs}ms` : error,
+        })
+      })
+    })
+    await Promise.all([stdoutHandle.sync(), stderrHandle.sync()])
+    const [stdoutBuffer, stderrBuffer] = await Promise.all([fs.readFile(stdoutPath), fs.readFile(stderrPath)])
+    const maxBuffer = 50 * 1024 * 1024
+    if (stdoutBuffer.length + stderrBuffer.length > maxBuffer) {
+      result.exit_code = 1
+      result.error = `Test output exceeded ${maxBuffer} bytes`
+    }
+    const stdout = stdoutBuffer.toString("utf8")
+    const stderr = stderrBuffer.toString("utf8")
+    if (reporter === "spec") process.stdout.write(stdout)
+    else process.stdout.write(renderDot(stdout))
+    if (stderr) process.stderr.write(stderr)
+    return { file, ...result, ...parseSummary(stdout) }
+  } finally {
+    await Promise.all([stdoutHandle.close(), stderrHandle.close()])
+    await fs.rm(captureRoot, { recursive: true, force: true })
   }
 }
 

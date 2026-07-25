@@ -15,6 +15,9 @@ on:
       - 'package*.json'
       - 'docker-compose*.yml'
       - 'Dockerfile'
+  push:
+    branches:
+      - master
 
 jobs:
   security-review:
@@ -25,7 +28,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:

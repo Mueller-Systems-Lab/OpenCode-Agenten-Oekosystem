@@ -28,6 +28,8 @@ test("root URL-only discovery contract is published and self-referential", async
   assert.match(readme, /Never read target .*secret files/i)
   assert.match(guide, /Never read target .*secret files/i)
   assert.match(guide, /bootstrap\.mjs/)
+  assert.match(guide, /https:\/\/github\.com\/xxammaxx\/OpenCode-Agenten-Oekosystem/)
+  assert.doesNotMatch(guide, /recommended handoff URL:[\s\S]*\/tree\/feat\/governance-v2-closure-20260724/)
   assert.match(await read("llms.txt"), /AI-BOOTSTRAP\.md/)
 })
 
@@ -62,11 +64,11 @@ test("root launcher rejects a supplied branch or tag ref that does not identify 
   assert.match(result.stderr, /Source branch or tag mismatch/)
 })
 
-test("root launcher resolves HEAD from the common git directory in a linked worktree", () => {
+test("root launcher resolves HEAD without requiring a feature-branch ref", () => {
   const result = runNodeScript("bootstrap.mjs", [
     "--target", repoRoot,
     "--verify",
-    "--source-url", "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/tree/feat/governance-v2-closure-20260724",
+    "--source-url", "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
   ])
   assert.doesNotMatch(result.stderr, /Cannot resolve source ref/)
 })

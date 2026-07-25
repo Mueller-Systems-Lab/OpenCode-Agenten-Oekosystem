@@ -4,6 +4,7 @@ import path from "node:path"
 import fs from "node:fs/promises"
 import fsSync from "node:fs"
 import { spawnSync } from "node:child_process"
+import os from "node:os"
 import { fileURLToPath } from "node:url"
 import { loadManifest, validateManifest } from "./lib/manifest.mjs"
 import { extractFrontmatter, validateAgentFrontmatter, validateSkillFrontmatter } from "./lib/frontmatter.mjs"
@@ -824,37 +825,31 @@ async function collectTextFiles(root) {
  * a green validator with red tests is a false signal.
  */
 function runTestSuite() {
-  if (process.env.NODE_TEST_CONTEXT) {
+  if (process.env.NODE_TEST_CONTEXT || process.env.OCAE_CANONICAL_TEST_RUNNER === "1") {
     return { status: "NESTED_SKIPPED", message: "TEST_SUITE_NESTED_RUNNER_SKIPPED" }
   }
   try {
-    const testManifest = JSON.parse(fsSync.readFileSync(path.join(repoRoot, "test", "test-manifest.json"), "utf8"))
-    const integrationGroup = process.env.OCAE_SECURE_SANDBOX_NOT_APPLICABLE === "1"
-      ? "integration_portable"
-      : "integration"
-    const canonicalGroups = [
-      "unit",
-      "contract",
-      integrationGroup,
-      "bootstrap",
-      "governance",
-      "e2e",
-      "provider_optional",
-    ]
-    const files = canonicalGroups.flatMap((group) => testManifest.groups?.[group] || [])
+    const captureRoot = fsSync.mkdtempSync(path.join(os.tmpdir(), "ocae-validator-tests-"))
+    const stdoutPath = path.join(captureRoot, "stdout.log")
+    const stderrPath = path.join(captureRoot, "stderr.log")
+    const stdoutFd = fsSync.openSync(stdoutPath, "w")
+    const stderrFd = fsSync.openSync(stderrPath, "w")
+    const maxBuffer = 50 * 1024 * 1024
     const result = spawnSync(process.execPath, [
-      "--test",
-      "--test-reporter=spec",
-      "--test-concurrency=1",
-      ...files,
+      path.join(repoRoot, "scripts", "run-tests.mjs"),
+      "--all",
+      "--reporter=dot",
     ], {
       cwd: repoRoot,
-      encoding: "utf8",
       env: { ...process.env },
       timeout: 120000,
-      maxBuffer: 50 * 1024 * 1024,
-      stdio: "pipe",
+      stdio: ["ignore", stdoutFd, stderrFd],
     })
+    fsSync.closeSync(stdoutFd)
+    fsSync.closeSync(stderrFd)
+    const stdout = fsSync.readFileSync(stdoutPath, "utf8")
+    const stderr = fsSync.readFileSync(stderrPath, "utf8")
+    fsSync.rmSync(captureRoot, { recursive: true, force: true })
 
     if (result.error) {
       return {
@@ -864,16 +859,21 @@ function runTestSuite() {
     }
 
     // Parse test summary
-    const output = (result.stdout || "") + (result.stderr || "")
-    const passMatch = output.match(/(?:ℹ|#) pass (\d+)/)
-    const failMatch = output.match(/(?:ℹ|#) fail (\d+)/)
-    const testsMatch = output.match(/(?:ℹ|#) tests (\d+)/)
+    if (Buffer.byteLength(stdout) + Buffer.byteLength(stderr) > maxBuffer) {
+      return { status: "UNAVAILABLE", message: `TEST_SUITE_UNAVAILABLE: output exceeded ${maxBuffer} bytes` }
+    }
+    const output = stdout + stderr
+    const passMatch = output.match(/PASSED: (\d+)/)
+    const failMatch = output.match(/FAILED: (\d+)/)
+    const testsMatch = output.match(/TESTS: (\d+)/)
+    const expectedMatch = output.match(/EXPECTED_TEST_FILES: (\d+)/)
+    const executedMatch = output.match(/EXECUTED_TEST_FILES: (\d+)/)
 
     const passCount = passMatch ? parseInt(passMatch[1], 10) : 0
     const failCount = failMatch ? parseInt(failMatch[1], 10) : 0
     const totalCount = testsMatch ? parseInt(testsMatch[1], 10) : 0
 
-    if (result.status !== 0 || failCount > 0) {
+    if (result.status !== 0 || failCount > 0 || expectedMatch?.[1] !== executedMatch?.[1]) {
       return {
         status: "FAILED",
         message: `TEST_SUITE_FAILED: ${passCount}/${totalCount} tests passed, ${failCount} failed (exit code ${result.status})`

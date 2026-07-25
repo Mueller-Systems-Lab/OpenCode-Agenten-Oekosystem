@@ -24,3 +24,18 @@ test("canonical runner accepts the documented --reporter=dot syntax", () => {
   const source = fs.readFileSync(runnerPath, "utf8")
   assert.match(source, /arg\.startsWith\("--reporter="\)/)
 })
+
+test("canonical runner publishes bounded per-file diagnostics and audits", () => {
+  const source = fs.readFileSync(runnerPath, "utf8")
+  assert.match(source, /--diagnostics/)
+  assert.match(source, /--process-audit/)
+  assert.match(source, /--temp-audit/)
+  assert.match(source, /DIAGNOSTIC_FILE_RESULT/)
+  assert.match(source, /child_processes_before/)
+  assert.match(source, /child_processes_after/)
+  assert.match(source, /open_handles_before/)
+  assert.match(source, /open_handles_after/)
+  assert.match(source, /temp_files_created/)
+  assert.match(source, /temp_files_remaining/)
+  assert.match(source, /diagnosticMaxBytes/)
+})

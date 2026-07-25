@@ -25,9 +25,15 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Install required secure sandbox
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes bubblewrap
+          bwrap --version
       - name: Unit and security tests
         run: node scripts/run-tests.mjs --group unit --reporter spec
       - name: Capability and workflow contracts

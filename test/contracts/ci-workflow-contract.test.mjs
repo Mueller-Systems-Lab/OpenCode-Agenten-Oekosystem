@@ -23,6 +23,9 @@ describe("PR CI workflow contracts", () => {
   it("runs deterministic security gates without provider credentials or write permissions", () => {
     assert.doesNotMatch(securityWorkflow, /ANTHROPIC_API_KEY|anomalyco\/opencode\/github|@latest/)
     assert.doesNotMatch(securityWorkflow, /pull-requests:\s*write|issues:\s*write|id-token:\s*write/)
+    assert.match(securityWorkflow, /ref:\s*\$\{\{\s*github\.event\.pull_request\.head\.sha\s*\}\}/)
+    assert.match(securityWorkflow, /apt-get install --no-install-recommends --yes bubblewrap/)
+    assert.match(securityWorkflow, /bwrap --version/)
     for (const group of ["unit", "contract", "integration"]) {
       assert.match(securityWorkflow, new RegExp(`scripts/run-tests\\.mjs --group ${group}`))
     }

@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url"
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const manifestPath = path.join(repoRoot, "test", "test-manifest.json")
 const requiredGroups = ["unit", "contract", "integration", "bootstrap", "governance", "e2e", "provider_optional"]
-const defaultTimeoutMs = 120_000
+const defaultTimeoutMs = 300_000
 const timeoutGraceMs = 2_000
 const diagnosticMaxBytes = 16 * 1024
 

@@ -64,6 +64,22 @@
       "swaps": 0
     }
   ],
+  "final_series_failure_before_timeout_fix": {
+    "head": "ababae35131986c56ebf4cda18ef31e91967ce76",
+    "clone_id": "final-series-clone-3",
+    "test_files_expected": 37,
+    "test_files_completed": 21,
+    "test_cases": 381,
+    "passed": 381,
+    "failed": 0,
+    "exit_code": 1,
+    "signal": null,
+    "duration_ms": 142226,
+    "active_file_at_failure": "test/integration/post-merge-default-branch.test.mjs",
+    "root_cause": "The outer per-file timeout and the nested default-branch simulation timeout were both 120 seconds. Under host load, the outer runner terminated the test at the same boundary before the nested runner could emit its summary.",
+    "isolated_reproduction": "The active file passed when run alone in the same clone, completing in approximately 85 seconds.",
+    "resolution": "Use strictly layered bounded timeouts: 240 seconds for the nested canonical simulation, 270 seconds for its node:test case, and 300 seconds for the outer per-file runner, retaining the 2-second SIGTERM-to-SIGKILL escalation."
+  },
   "candidate_causes": {
     "child_process_leak": "NOT_OBSERVED",
     "open_pipe_or_stream": "NOT_OBSERVED",

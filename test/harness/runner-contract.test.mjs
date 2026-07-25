@@ -41,6 +41,10 @@ test("canonical runner publishes bounded per-file diagnostics and audits", () =>
   assert.match(source, /diagnosticMaxBytes/)
   assert.match(source, /SIGKILL/)
   assert.match(source, /timeoutGraceMs/)
+  assert.match(source, /defaultTimeoutMs\s*=\s*300_000/)
+  const postMergeSource = fs.readFileSync(path.join(repoRoot, "test/integration/post-merge-default-branch.test.mjs"), "utf8")
+  assert.match(postMergeSource, /timeout:\s*240_000/)
+  assert.match(postMergeSource, /\{\s*timeout:\s*270_000\s*\}/)
 })
 
 test("canonical runner emits parseable bounded diagnostics and cleans capture files", () => {

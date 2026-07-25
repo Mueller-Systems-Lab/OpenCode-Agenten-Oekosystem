@@ -62,7 +62,7 @@ if (process.env.OCAE_POST_MERGE_CONTEXT_CHILD === "1") {
       cwd: checkout,
       env: controlledEnv,
       stdio: "inherit",
-      timeout: 120_000,
+      timeout: 240_000,
     })
     assert.equal(canonical.status, 0, `canonical runner failed with ${canonical.status}`)
 
@@ -81,5 +81,5 @@ if (process.env.OCAE_POST_MERGE_CONTEXT_CHILD === "1") {
     const manifest = JSON.parse(await fs.readFile(path.join(checkout, "bootstrap/manifest.json"), "utf8"))
     assert.match(guide, new RegExp(rootUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
     assert.equal(manifest.repository, rootUrl)
-  }, { timeout: 180_000 })
+  }, { timeout: 270_000 })
 }

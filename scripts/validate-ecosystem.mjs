@@ -829,10 +829,13 @@ function runTestSuite() {
   }
   try {
     const testManifest = JSON.parse(fsSync.readFileSync(path.join(repoRoot, "test", "test-manifest.json"), "utf8"))
+    const integrationGroup = process.env.OCAE_SECURE_SANDBOX_NOT_APPLICABLE === "1"
+      ? "integration_portable"
+      : "integration"
     const canonicalGroups = [
       "unit",
       "contract",
-      "integration",
+      integrationGroup,
       "bootstrap",
       "governance",
       "e2e",

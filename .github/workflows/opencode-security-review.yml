@@ -65,7 +65,13 @@ jobs:
         run: >-
           node scripts/run-tests.mjs
           --group integration_portable --reporter spec
-      - name: Ecosystem validation
+      - name: Ecosystem validation with secure sandbox
+        if: steps.sandbox.outputs.applicable == 'true'
+        run: node scripts/validate-ecosystem.mjs
+      - name: Ecosystem validation with fail-closed sandbox contract
+        if: steps.sandbox.outputs.applicable != 'true'
+        env:
+          OCAE_SECURE_SANDBOX_NOT_APPLICABLE: "1"
         run: node scripts/validate-ecosystem.mjs
       - name: Governance drift
         run: node scripts/check-governance-drift.mjs

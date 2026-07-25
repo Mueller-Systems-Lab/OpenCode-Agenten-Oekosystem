@@ -21,6 +21,7 @@ describe("PR CI workflow contracts", () => {
     assert.match(validator, /const canonicalGroups = \[/)
     assert.match(validator, /canonicalGroups\.flatMap/)
     assert.doesNotMatch(validator, /Object\.values\(testManifest\.groups/)
+    assert.match(validator, /OCAE_SECURE_SANDBOX_NOT_APPLICABLE/)
   })
 
   it("runs deterministic security gates without provider credentials or write permissions", () => {
@@ -33,6 +34,7 @@ describe("PR CI workflow contracts", () => {
     assert.match(securityWorkflow, /fallback="TOOL_GAP_SECURE_SANDBOX; no unsandboxed execution"/)
     assert.match(securityWorkflow, /echo "FALLBACK_CONTRACT: \$fallback"/)
     assert.match(securityWorkflow, /--group integration_portable/)
+    assert.match(securityWorkflow, /OCAE_SECURE_SANDBOX_NOT_APPLICABLE: "1"/)
     for (const group of ["unit", "contract", "integration"]) {
       assert.match(securityWorkflow, new RegExp(`scripts/run-tests\\.mjs --group ${group}`))
     }

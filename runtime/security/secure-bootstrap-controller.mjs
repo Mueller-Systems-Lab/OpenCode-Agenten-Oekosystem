@@ -140,18 +140,19 @@ export async function createSecureBootstrapController({
         inputPath: args.requested_path,
         knownSecrets,
       })
-      const denied = result.status === "RED_BLOCK_SECRET_PATH"
+      const deniedSecret = result.status === "RED_BLOCK_SECRET_PATH"
+      const readAllowed = result.status === "VERIFIED_IN_SCOPE" && result.content_returned === true
       audit({
         tool: toolName,
         action: "filesystem.read",
-        resourceClass: denied ? "TARGET_SECRET" : result.resource_class,
+        resourceClass: deniedSecret ? "TARGET_SECRET" : result.resource_class,
         normalizedPath: path.join(canonicalTarget, path.basename(args.requested_path)),
-        secretPolicyResult: denied ? "ABSOLUTE_DENY" : "ALLOWLISTED",
-        executionResult: denied ? "BLOCKED_BEFORE_OPEN" : "OPEN_ALLOWED",
-        bytesReturned: denied ? 0 : result.bytes_returned,
+        secretPolicyResult: deniedSecret ? "ABSOLUTE_DENY" : readAllowed ? "ALLOWLISTED" : "DENY_BY_DEFAULT",
+        executionResult: readAllowed ? "OPEN_ALLOWED" : "BLOCKED_BEFORE_OPEN",
+        bytesReturned: readAllowed ? result.bytes_returned : 0,
         v2Decision: result.status,
       })
-      if (denied) result.denial_key = "filesystem.read:TARGET_SECRET"
+      if (deniedSecret) result.denial_key = "filesystem.read:TARGET_SECRET"
     } else if (toolName === "bootstrap_inspect_target") {
       result = await inspectTarget({ targetRoot: canonicalTarget, knownSecrets })
       audit({
@@ -177,7 +178,10 @@ export async function createSecureBootstrapController({
         backupPath,
         knownSecrets,
       })
-      if (toolName === "bootstrap_apply") backupPath = parseBackupPath(result, canonicalTarget)
+      if (toolName === "bootstrap_apply") {
+        const parsedBackupPath = parseBackupPath(result, canonicalTarget)
+        if (parsedBackupPath) backupPath = parsedBackupPath
+      }
       lastAction = action
       audit({
         actor: action === "verify" ? "VERIFIER" : "INSTALLER",

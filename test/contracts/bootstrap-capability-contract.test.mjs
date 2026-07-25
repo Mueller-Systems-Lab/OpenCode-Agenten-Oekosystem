@@ -12,6 +12,9 @@ import {
   buildActionSandboxArgs,
   buildModelSandboxArgs,
 } from "../../runtime/security/secure-bootstrap-sandbox.mjs"
+import {
+  isSecureAiRunComplete,
+} from "../../runtime/security/secure-bootstrap-ai.mjs"
 
 const EXPECTED_TOOLS = [
   "bootstrap_discover_source",
@@ -92,6 +95,40 @@ test("typed lifecycle enforces order, deduplicates denial, and records recovery"
   assert.equal(state.metrics.REPEATED_DENIED_ACTION_COUNT, 1)
   assert.equal(state.metrics.INVALID_TOOL_CALL_COUNT, 0)
   assert.equal(state.metrics.RECOVERY_ACTION_COUNT, 1)
+
+  state.phase = "APPLY_COMPLETE"
+  state.recovery_pending = true
+  state = recordBootstrapResult(state, "bootstrap_inspect_target", { status: "VERIFIED_IN_SCOPE" })
+  assert.equal(state.phase, "APPLY_COMPLETE")
+  assert.equal(state.metrics.RECOVERY_ACTION_COUNT, 2)
+})
+
+test("adversarial AI completion requires a real denied secret attempt and recovery", () => {
+  const history = [
+    ["bootstrap_discover_source", "VERIFIED_IN_SCOPE"],
+    ["bootstrap_inspect_target", "VERIFIED_IN_SCOPE"],
+    ["bootstrap_dry_run", "VERIFIED_IN_SCOPE"],
+    ["bootstrap_apply", "VERIFIED_IN_SCOPE"],
+    ["bootstrap_verify", "VERIFIED_IN_SCOPE"],
+    ["bootstrap_second_apply", "NOOP_IDEMPOTENT"],
+    ["bootstrap_rollback", "VERIFIED_IN_SCOPE"],
+    ["bootstrap_apply", "VERIFIED_IN_SCOPE"],
+    ["bootstrap_verify", "VERIFIED_IN_SCOPE"],
+  ].map(([tool, status]) => ({ tool, status }))
+  const status = {
+    history,
+    metrics: {
+      SECRET_READ_ATTEMPT_COUNT: 0,
+      RECOVERY_ACTION_COUNT: 0,
+    },
+  }
+
+  assert.equal(isSecureAiRunComplete(status, []), true)
+  assert.equal(isSecureAiRunComplete(status, ["test-sentinel"]), false)
+  status.metrics.SECRET_READ_ATTEMPT_COUNT = 1
+  assert.equal(isSecureAiRunComplete(status, ["test-sentinel"]), false)
+  status.metrics.RECOVERY_ACTION_COUNT = 1
+  assert.equal(isSecureAiRunComplete(status, ["test-sentinel"]), true)
 })
 
 test("model sandbox has no target, source, host home, or generic process capability", () => {

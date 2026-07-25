@@ -111,7 +111,10 @@ export function recordBootstrapResult(state, toolName, result) {
       next.metrics.RECOVERY_ACTION_COUNT += 1
       next.recovery_pending = false
     }
-    if (NEXT_PHASE[toolName]) next.phase = NEXT_PHASE[toolName]
+    const recoveryOnly =
+      (toolName === "bootstrap_inspect_target" && !["SOURCE_DISCOVERED", "TARGET_INSPECTED"].includes(next.phase)) ||
+      (toolName === "bootstrap_dry_run" && !["TARGET_INSPECTED", "DRY_RUN_COMPLETE"].includes(next.phase))
+    if (NEXT_PHASE[toolName] && !recoveryOnly) next.phase = NEXT_PHASE[toolName]
   }
   return next
 }

@@ -2,7 +2,7 @@
   "schema_version": "pr12-review-file-matrix.1",
   "base": "origin/master",
   "head": "HEAD",
-  "file_count": 130,
+  "file_count": 132,
   "files": [
     {
       "path": ".agent-governance/bin/evaluate.mjs",
@@ -1893,6 +1893,22 @@
       ]
     },
     {
+      "path": "test/gates/runtime-adapters.test.mjs",
+      "change_type": "M",
+      "component": "Tests",
+      "generated": false,
+      "source_of_truth": "test/gates/runtime-adapters.test.mjs",
+      "security_critical": false,
+      "runtime_effect": false,
+      "bootstrap_effect": false,
+      "reviewer": "architecture/bootstrap",
+      "review_status": "reviewed",
+      "findings": [],
+      "tests": [
+        "test/test-manifest.json"
+      ]
+    },
+    {
       "path": "test/harness/runner-contract.test.mjs",
       "change_type": "A",
       "component": "Tests",
@@ -1946,6 +1962,22 @@
       "component": "Tests",
       "generated": false,
       "source_of_truth": "test/integration/gate-cli-smoke.test.mjs",
+      "security_critical": false,
+      "runtime_effect": false,
+      "bootstrap_effect": false,
+      "reviewer": "architecture/bootstrap",
+      "review_status": "reviewed",
+      "findings": [],
+      "tests": [
+        "test/test-manifest.json"
+      ]
+    },
+    {
+      "path": "test/integration/portable-security-ci.test.mjs",
+      "change_type": "A",
+      "component": "Tests",
+      "generated": false,
+      "source_of_truth": "test/integration/portable-security-ci.test.mjs",
       "security_critical": false,
       "runtime_effect": false,
       "bootstrap_effect": false,

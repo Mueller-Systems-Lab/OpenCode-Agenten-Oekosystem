@@ -21,4 +21,3 @@ export function bundleApprovalRequests(requests = []) {
     metrics: { bundled_request_count: decisions.length, packet_count: decisions.length ? 1 : 0 },
   })
 }
-

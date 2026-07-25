@@ -9,7 +9,6 @@ function redact(value) {
   if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, SECRET_KEY.test(key) ? '[REDACTED]' : redact(item)]))
   return typeof value === 'string' && SECRET_KEY.test(value) ? '[REDACTED]' : value
 }
-
 export class ApprovalAuditLog {
   constructor(filePath) {
     this.filePath = path.resolve(filePath)
@@ -30,4 +29,3 @@ export class ApprovalAuditLog {
     }
   }
 }
-

@@ -75,6 +75,11 @@ function runBwrap(args, { timeout = 120_000 } = {}) {
   })
 }
 
+export function secureSandboxUnavailable(result) {
+  return result.error?.code === "ENOENT" ||
+    ((result.status ?? 1) !== 0 && !(result.stdout || "").trim())
+}
+
 function redactPaths(value, roots) {
   if (typeof value === "string") {
     let output = value
@@ -174,7 +179,7 @@ export async function executeSecureBootstrapAction({
         changed_files: [],
       }
     }
-    if (processResult.error?.code === "ENOENT") {
+    if (secureSandboxUnavailable(processResult)) {
       return { status: "TOOL_GAP_SECURE_SANDBOX", changed_files: [] }
     }
     let parsed
@@ -258,7 +263,7 @@ export async function runActionSandboxProbe({ sourceRoot, targetRoot, knownSecre
       command: ["/runtime/node", "-e", probe],
     })
     const processResult = runBwrap(args)
-    if (processResult.error?.code === "ENOENT") return { status: "TOOL_GAP_SECURE_SANDBOX" }
+    if (secureSandboxUnavailable(processResult)) return { status: "TOOL_GAP_SECURE_SANDBOX" }
     let parsed
     try {
       parsed = JSON.parse(processResult.stdout)
@@ -329,7 +334,7 @@ export async function runModelSandboxProbe() {
       "/runtime/node", "-e", probe,
     ]
     const result = runBwrap(args)
-    if (result.error?.code === "ENOENT") return { status: "TOOL_GAP_SECURE_SANDBOX" }
+    if (secureSandboxUnavailable(result)) return { status: "TOOL_GAP_SECURE_SANDBOX" }
     let parsed
     try {
       parsed = JSON.parse(result.stdout)

@@ -14,11 +14,12 @@ const defaultTimeoutMs = 120_000
 const args = parseArgs(process.argv.slice(2))
 const manifest = await loadManifest()
 const filesByGroup = validateManifest(manifest)
+const availableGroups = Object.keys(filesByGroup)
 const groups = args.all ? requiredGroups.filter((group) => filesByGroup[group].length > 0) : args.groups
 
 if (groups.length === 0) fail("No test groups selected")
 for (const group of groups) {
-  if (!requiredGroups.includes(group)) fail(`Unknown test group: ${group}`)
+  if (!availableGroups.includes(group)) fail(`Unknown test group: ${group}`)
   if (filesByGroup[group].length === 0) fail(`Selected test group is empty: ${group}`)
 }
 
@@ -97,8 +98,9 @@ function validateManifest(manifest) {
   for (const group of requiredGroups) if (!Array.isArray(manifest.groups[group])) fail(`Missing manifest group: ${group}`)
   const seen = new Set()
   const result = {}
-  for (const group of requiredGroups) {
-    result[group] = manifest.groups[group].map((relative) => {
+  for (const [group, entries] of Object.entries(manifest.groups)) {
+    if (!Array.isArray(entries)) fail(`Invalid manifest group: ${group}`)
+    result[group] = entries.map((relative) => {
       if (!/^test\/.+\.test\.mjs$/.test(relative)) fail(`Manifest entry is not a test file: ${relative}`)
       if (seen.has(relative)) fail(`Duplicate test file in manifest: ${relative}`)
       seen.add(relative)

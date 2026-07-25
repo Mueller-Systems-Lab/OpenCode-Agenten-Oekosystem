@@ -26,6 +26,10 @@ describe("PR CI workflow contracts", () => {
     assert.match(securityWorkflow, /ref:\s*\$\{\{\s*github\.event\.pull_request\.head\.sha\s*\}\}/)
     assert.match(securityWorkflow, /apt-get install --no-install-recommends --yes bubblewrap/)
     assert.match(securityWorkflow, /bwrap --version/)
+    assert.match(securityWorkflow, /CHECK_RESULT: NOT_APPLICABLE/)
+    assert.match(securityWorkflow, /fallback="TOOL_GAP_SECURE_SANDBOX; no unsandboxed execution"/)
+    assert.match(securityWorkflow, /echo "FALLBACK_CONTRACT: \$fallback"/)
+    assert.match(securityWorkflow, /--group integration_portable/)
     for (const group of ["unit", "contract", "integration"]) {
       assert.match(securityWorkflow, new RegExp(`scripts/run-tests\\.mjs --group ${group}`))
     }

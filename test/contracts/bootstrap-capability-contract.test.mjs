@@ -15,6 +15,9 @@ import {
 import {
   isSecureAiRunComplete,
 } from "../../runtime/security/secure-bootstrap-ai.mjs"
+import {
+  secureSandboxUnavailable,
+} from "../../runtime/security/secure-bootstrap-exec.mjs"
 
 const EXPECTED_TOOLS = [
   "bootstrap_discover_source",
@@ -166,4 +169,11 @@ test("deterministic action sandbox is networkless with read-only source and secr
   assert.match(joined, /\/target\/\.git/)
   assert.match(joined, /--clearenv/)
   assert.doesNotMatch(joined, /docker\.sock/)
+})
+
+test("missing or unusable Bubblewrap is a fail-closed tool gap", () => {
+  assert.equal(secureSandboxUnavailable({ error: { code: "ENOENT" }, status: null, stdout: "" }), true)
+  assert.equal(secureSandboxUnavailable({ status: 1, stdout: "", stderr: "user namespace unavailable" }), true)
+  assert.equal(secureSandboxUnavailable({ status: 1, stdout: '{"classification":"RED_BLOCK"}' }), false)
+  assert.equal(secureSandboxUnavailable({ status: 0, stdout: "{}" }), false)
 })

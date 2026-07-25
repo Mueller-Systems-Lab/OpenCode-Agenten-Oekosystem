@@ -28,6 +28,9 @@
       "test/integration/rollback-runtime.test.mjs",
       "test/integration/secure-bootstrap-controller.test.mjs"
     ],
+    "integration_portable": [
+      "test/integration/portable-security-ci.test.mjs"
+    ],
     "bootstrap": [
       "test/bootstrap/bootstrap.test.mjs",
       "test/bootstrap/install-global.test.mjs",

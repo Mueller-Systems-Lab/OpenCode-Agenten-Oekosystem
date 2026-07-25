@@ -110,6 +110,33 @@ test("published installer records provenance and verifier passes on a fresh Git 
   assert.equal((await fs.readdir(path.join(target, ".opencode/backups"))).filter((name) => name.startsWith("governance-")).length, 1)
 })
 
+test("root launcher pins checkout provenance for apply and verify", async (t) => {
+  const target = await fs.mkdtemp(path.join(os.tmpdir(), "root-launcher-contract-"))
+  t.after(() => fs.rm(target, { recursive: true, force: true }))
+  spawnSync("git", ["init", "--initial-branch=master"], { cwd: target, stdio: "ignore" })
+  spawnSync("git", ["config", "user.email", "test@example.invalid"], { cwd: target, stdio: "ignore" })
+  spawnSync("git", ["config", "user.name", "Bootstrap Test"], { cwd: target, stdio: "ignore" })
+  spawnSync("git", ["commit", "--allow-empty", "-m", "initial"], { cwd: target, stdio: "ignore" })
+
+  const apply = runNodeScript("bootstrap.mjs", [
+    "--target", target,
+    "--apply",
+    "--source-url", "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+  ])
+  assert.equal(apply.status, 0, apply.stderr || apply.stdout)
+  const installation = JSON.parse(await readFile(path.join(target, ".opencode/ecosystem-installation.json"), "utf8"))
+  assert.match(installation.source_commit, /^[0-9a-f]{40}$/)
+  assert.equal(installation.source_repository, "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem")
+
+  const verify = runNodeScript("bootstrap.mjs", [
+    "--target", target,
+    "--verify",
+    "--source-url", "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+  ])
+  assert.equal(verify.status, 0, verify.stderr || verify.stdout)
+  assert.equal(JSON.parse(verify.stdout).classification, "VERIFIED_IN_SCOPE")
+})
+
 test("unknown generated conflicts fail closed before apply", async (t) => {
   const target = await fs.mkdtemp(path.join(os.tmpdir(), "url-only-conflict-"))
   t.after(() => fs.rm(target, { recursive: true, force: true }))

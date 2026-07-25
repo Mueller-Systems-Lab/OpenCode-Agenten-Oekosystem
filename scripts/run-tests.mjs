@@ -11,6 +11,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const manifestPath = path.join(repoRoot, "test", "test-manifest.json")
 const requiredGroups = ["unit", "contract", "integration", "bootstrap", "governance", "e2e", "provider_optional"]
 const defaultTimeoutMs = 120_000
+const timeoutGraceMs = 2_000
 const diagnosticMaxBytes = 16 * 1024
 
 const args = parseArgs(process.argv.slice(2))
@@ -174,15 +175,20 @@ async function runTestFile(group, file, options) {
       })
       let error = null
       let timedOut = false
+      let forceTimer = null
       const timer = setTimeout(() => {
         timedOut = true
         child.kill("SIGTERM")
+        forceTimer = setTimeout(() => {
+          if (child.exitCode === null && child.signalCode === null) child.kill("SIGKILL")
+        }, timeoutGraceMs)
       }, timeoutMs)
       child.once("error", (spawnError) => {
         error = spawnError.message
       })
       child.once("close", (status, signal) => {
         clearTimeout(timer)
+        if (forceTimer) clearTimeout(forceTimer)
         resolve({
           exit_code: status ?? 1,
           signal: signal || null,

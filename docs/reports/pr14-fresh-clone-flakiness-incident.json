@@ -1,7 +1,8 @@
 {
   "schema_version": 1,
   "incident_head": "8e722de99fbd904c878377cc5ba7b71ec7a00f94",
-  "final_head": "8e722de99fbd904c878377cc5ba7b71ec7a00f94",
+  "final_head": "BOUND_EXTERNALLY_TO_PR_HEAD",
+  "final_head_binding_note": "A committed file cannot contain the hash of its own commit. The exact immutable final evidence SHA is published in the PR body and completion comment after this record is committed; all three values must be verified against the live PR head.",
   "original_failure_evidence": "INCOMPLETE",
   "failed_run": {
     "clone_id": "historical-remote-fresh-clone",
@@ -86,6 +87,6 @@
     "reporter_difference": "NOT_CAUSAL"
   },
   "root_cause": "The historical run cannot be conclusively attributed because its exit status, signal, per-file output, and process snapshot were not retained. An exact 21-of-37 reconstruction shows that the runner did not disappear: it completed the first three groups, then stopped by design after integration failures. In the restricted agent sandbox, synchronous child-process calls returned EPERM despite also containing status and bounded output. The identical HTTPS clone and SHA passed 37 of 37 files and 570 of 570 tests outside that restriction. This confirms a sandbox-context failure mode matching the historical boundary, but does not retroactively upgrade the incomplete historical record to conclusive evidence.",
-  "regression_test": "test/harness/runner-contract.test.mjs — canonical runner publishes bounded per-file diagnostics and audits",
-  "resolution": "Add opt-in bounded diagnostics, process audit, and temporary-file audit to preserve future exit, signal, duration, child-process, active-handle, and temp cleanup evidence. Do not weaken fail-closed child-process tests or treat a retry as closure. Final closure requires three new consecutive independent HTTPS clones on one unchanged final head."
+  "regression_test": "test/harness/runner-contract.test.mjs — canonical runner publishes and behaviorally emits bounded per-file diagnostics and audits",
+  "resolution": "Add opt-in bounded diagnostics, process audit, temporary-file audit, and bounded SIGTERM-to-SIGKILL timeout escalation to preserve future exit, signal, duration, child-process, active-handle, and temp cleanup evidence. Do not weaken fail-closed child-process tests or treat a retry as closure. Final closure requires three new consecutive independent HTTPS clones on one unchanged final head."
 }

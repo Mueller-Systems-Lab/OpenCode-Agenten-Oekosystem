@@ -2,6 +2,7 @@ import test from "node:test"
 import assert from "node:assert/strict"
 import fs from "node:fs"
 import path from "node:path"
+import { spawnSync } from "node:child_process"
 import { repoRoot } from "../helpers.mjs"
 
 const manifestPath = path.join(repoRoot, "test", "test-manifest.json")
@@ -38,4 +39,36 @@ test("canonical runner publishes bounded per-file diagnostics and audits", () =>
   assert.match(source, /temp_files_created/)
   assert.match(source, /temp_files_remaining/)
   assert.match(source, /diagnosticMaxBytes/)
+  assert.match(source, /SIGKILL/)
+  assert.match(source, /timeoutGraceMs/)
+})
+
+test("canonical runner emits parseable bounded diagnostics and cleans capture files", () => {
+  const result = spawnSync(process.execPath, [
+    runnerPath,
+    "--group", "unit",
+    "--reporter=dot",
+    "--diagnostics",
+    "--process-audit",
+    "--temp-audit",
+  ], {
+    cwd: repoRoot,
+    env: Object.fromEntries(Object.entries(process.env).filter(([key]) => key !== "NODE_TEST_CONTEXT")),
+    encoding: "utf8",
+    timeout: 30_000,
+    maxBuffer: 2 * 1024 * 1024,
+  })
+  assert.equal(result.status, 0, result.stderr || result.stdout)
+  const records = result.stderr
+    .split("\n")
+    .filter((line) => line.startsWith("DIAGNOSTIC_FILE_RESULT "))
+    .map((line) => JSON.parse(line.slice("DIAGNOSTIC_FILE_RESULT ".length)))
+  assert.equal(records.length, 8)
+  for (const record of records) {
+    assert.ok(Buffer.byteLength(JSON.stringify(record)) <= 16 * 1024)
+    assert.equal(record.exit_code, 0)
+    assert.equal(record.signal, null)
+    assert.deepEqual(record.child_processes_after, [])
+    assert.deepEqual(record.temp_files_remaining, [])
+  }
 })

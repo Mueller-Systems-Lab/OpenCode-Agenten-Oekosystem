@@ -21,7 +21,13 @@ The intended workflow is:
 5. apply only with explicit `--apply`
 6. rollback from the printed backup manifest if needed
 
-The canonical AI handoff is the published repository URL plus an optional branch or commit ref. `BOOTSTRAP.md` remains historical background; it is not a second URL-only entrypoint.
+The canonical AI handoff for new installations is:
+
+`https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem`
+
+Explicit branch or commit refs remain supported for legacy compatibility and
+pinned reproduction. `BOOTSTRAP.md` remains historical background; it is not a
+second URL-only entrypoint.
 
 ## What it does
 

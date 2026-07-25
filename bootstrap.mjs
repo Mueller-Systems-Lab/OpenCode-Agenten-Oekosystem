@@ -39,6 +39,11 @@ else command = [manifest.installer, "--target", target, ...(args.apply ? ["--app
 const result = spawnSync(process.execPath, [path.join(sourceRoot, command[0]), ...command.slice(1)], {
   cwd: sourceRoot,
   encoding: "utf8",
+  env: {
+    ...process.env,
+    OCAE_BOOTSTRAP_SOURCE_COMMIT: commit,
+    OCAE_BOOTSTRAP_SOURCE_REPOSITORY: normalizeRemote(readRemote(sourceRoot)),
+  },
   stdio: "inherit",
 })
 process.exitCode = result.status ?? 1

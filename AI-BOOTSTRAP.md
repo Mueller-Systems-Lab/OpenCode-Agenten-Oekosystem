@@ -6,11 +6,13 @@ Never invent a raw URL, branch, commit, or example path. Use the repository and 
 
 ## Canonical handoff
 
-While Governance V2 is under review, use this single recommended handoff URL:
+Use this single canonical handoff URL for new installations:
 
-`https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/tree/feat/governance-v2-closure-20260724`
+`https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem`
 
-The default repository URL becomes canonical only after this contract is merged into `master`. A caller may instead provide a repository URL, a `/tree/<branch-or-tag>` URL, or a `/commit/<sha>` URL. Never silently replace a supplied ref with a newer ref.
+Legacy installations pinned to a branch, tag, or commit remain supported through
+their explicit `/tree/<branch-or-tag>` or `/commit/<sha>` URL. Never silently
+replace a supplied ref with a newer ref.
 
 ## Discovery order
 

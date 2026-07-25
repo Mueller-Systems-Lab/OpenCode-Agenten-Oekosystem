@@ -214,6 +214,10 @@ function getSourceRef(sourceRoot) {
 }
 
 function getSourceRepository(sourceRoot) {
+  const pinnedRepository = process.env.OCAE_BOOTSTRAP_SOURCE_REPOSITORY
+  if (/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(pinnedRepository || "")) {
+    return pinnedRepository
+  }
   try {
     const remote = execSync("git remote get-url origin", { cwd: sourceRoot, encoding: "utf8", timeout: 10000 }).trim()
     return remote.replace(/\.git$/, "").replace(/^git@github\.com:/, "https://github.com/")
@@ -557,8 +561,8 @@ async function generateSourceLock(repoRoot, targetRoot) {
   }
 
   // Derive source repository URL from git remote (no hardcoded usernames)
-  let sourceRepo = "UNKNOWN";
-  try {
+  let sourceRepo = getSourceRepository(repoRoot) || "UNKNOWN";
+  if (sourceRepo === "UNKNOWN") try {
     const { execSync } = await import("node:child_process");
     const remoteUrl = execSync("git remote get-url origin", { cwd: repoRoot, encoding: "utf8", timeout: 5000 }).trim();
     // Strip .git suffix and normalize

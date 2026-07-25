@@ -28,6 +28,8 @@ test("root URL-only discovery contract is published and self-referential", async
   assert.match(readme, /Never read target .*secret files/i)
   assert.match(guide, /Never read target .*secret files/i)
   assert.match(guide, /bootstrap\.mjs/)
+  assert.match(guide, /https:\/\/github\.com\/xxammaxx\/OpenCode-Agenten-Oekosystem/)
+  assert.doesNotMatch(guide, /recommended handoff URL:[\s\S]*\/tree\/feat\/governance-v2-closure-20260724/)
   assert.match(await read("llms.txt"), /AI-BOOTSTRAP\.md/)
 })
 
@@ -62,11 +64,11 @@ test("root launcher rejects a supplied branch or tag ref that does not identify 
   assert.match(result.stderr, /Source branch or tag mismatch/)
 })
 
-test("root launcher resolves HEAD from the common git directory in a linked worktree", () => {
+test("root launcher resolves HEAD without requiring a feature-branch ref", () => {
   const result = runNodeScript("bootstrap.mjs", [
     "--target", repoRoot,
     "--verify",
-    "--source-url", "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/tree/feat/governance-v2-closure-20260724",
+    "--source-url", "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
   ])
   assert.doesNotMatch(result.stderr, /Cannot resolve source ref/)
 })
@@ -106,6 +108,33 @@ test("published installer records provenance and verifier passes on a fresh Git 
   assert.equal(secondResult.idempotence, "PASS")
   assert.deepEqual(secondResult.files, [])
   assert.equal((await fs.readdir(path.join(target, ".opencode/backups"))).filter((name) => name.startsWith("governance-")).length, 1)
+})
+
+test("root launcher pins checkout provenance for apply and verify", async (t) => {
+  const target = await fs.mkdtemp(path.join(os.tmpdir(), "root-launcher-contract-"))
+  t.after(() => fs.rm(target, { recursive: true, force: true }))
+  spawnSync("git", ["init", "--initial-branch=master"], { cwd: target, stdio: "ignore" })
+  spawnSync("git", ["config", "user.email", "test@example.invalid"], { cwd: target, stdio: "ignore" })
+  spawnSync("git", ["config", "user.name", "Bootstrap Test"], { cwd: target, stdio: "ignore" })
+  spawnSync("git", ["commit", "--allow-empty", "-m", "initial"], { cwd: target, stdio: "ignore" })
+
+  const apply = runNodeScript("bootstrap.mjs", [
+    "--target", target,
+    "--apply",
+    "--source-url", "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+  ])
+  assert.equal(apply.status, 0, apply.stderr || apply.stdout)
+  const installation = JSON.parse(await readFile(path.join(target, ".opencode/ecosystem-installation.json"), "utf8"))
+  assert.match(installation.source_commit, /^[0-9a-f]{40}$/)
+  assert.equal(installation.source_repository, "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem")
+
+  const verify = runNodeScript("bootstrap.mjs", [
+    "--target", target,
+    "--verify",
+    "--source-url", "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+  ])
+  assert.equal(verify.status, 0, verify.stderr || verify.stdout)
+  assert.equal(JSON.parse(verify.stdout).classification, "VERIFIED_IN_SCOPE")
 })
 
 test("unknown generated conflicts fail closed before apply", async (t) => {

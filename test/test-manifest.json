@@ -26,7 +26,8 @@
       "test/integration/bootstrap-gate-wiring.test.mjs",
       "test/integration/gate-cli-smoke.test.mjs",
       "test/integration/rollback-runtime.test.mjs",
-      "test/integration/secure-bootstrap-controller.test.mjs"
+      "test/integration/secure-bootstrap-controller.test.mjs",
+      "test/integration/post-merge-default-branch.test.mjs"
     ],
     "integration_portable": [
       "test/integration/portable-security-ci.test.mjs"

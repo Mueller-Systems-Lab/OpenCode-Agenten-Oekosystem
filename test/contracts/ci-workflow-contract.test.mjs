@@ -13,21 +13,24 @@ const classifier = path.join(root, "scripts/classify-visual-qa-diff.mjs")
 describe("PR CI workflow contracts", () => {
   it("allows ecosystem validation to capture the complete canonical test output", () => {
     const validator = readFileSync(path.join(root, "scripts/validate-ecosystem.mjs"), "utf8")
-    assert.match(validator, /maxBuffer:\s*50\s*\*\s*1024\s*\*\s*1024/)
+    assert.match(validator, /maxBuffer\s*=\s*50\s*\*\s*1024\s*\*\s*1024/)
     assert.ok(
       validator.indexOf("if (result.error)") < validator.indexOf("// Parse test summary"),
       "spawn errors such as ENOBUFS must be reported before interpreting a missing test summary",
     )
-    assert.match(validator, /const canonicalGroups = \[/)
-    assert.match(validator, /canonicalGroups\.flatMap/)
-    assert.doesNotMatch(validator, /Object\.values\(testManifest\.groups/)
-    assert.match(validator, /OCAE_SECURE_SANDBOX_NOT_APPLICABLE/)
+    assert.match(validator, /scripts["'], ["']run-tests\.mjs/)
+    assert.match(validator, /"--all"/)
+    assert.match(validator, /EXPECTED_TEST_FILES/)
+    assert.match(validator, /EXECUTED_TEST_FILES/)
+    const runner = readFileSync(path.join(root, "scripts/run-tests.mjs"), "utf8")
+    assert.match(runner, /OCAE_SECURE_SANDBOX_NOT_APPLICABLE/)
+    assert.match(runner, /integration_portable/)
   })
 
   it("runs deterministic security gates without provider credentials or write permissions", () => {
     assert.doesNotMatch(securityWorkflow, /ANTHROPIC_API_KEY|anomalyco\/opencode\/github|@latest/)
     assert.doesNotMatch(securityWorkflow, /pull-requests:\s*write|issues:\s*write|id-token:\s*write/)
-    assert.match(securityWorkflow, /ref:\s*\$\{\{\s*github\.event\.pull_request\.head\.sha\s*\}\}/)
+    assert.match(securityWorkflow, /ref:\s*\$\{\{\s*github\.event\.pull_request\.head\.sha\s*\|\|\s*github\.sha\s*\}\}/)
     assert.match(securityWorkflow, /apt-get install --no-install-recommends --yes bubblewrap/)
     assert.match(securityWorkflow, /bwrap --version/)
     assert.match(securityWorkflow, /CHECK_RESULT: NOT_APPLICABLE/)
@@ -38,6 +41,18 @@ describe("PR CI workflow contracts", () => {
     for (const group of ["unit", "contract", "integration"]) {
       assert.match(securityWorkflow, new RegExp(`scripts/run-tests\\.mjs --group ${group}`))
     }
+  })
+
+  it("runs deterministic validation after master pushes", () => {
+    assert.match(securityWorkflow, /push:\s*\n\s*branches:\s*\n\s*-\s*master/)
+    assert.match(securityWorkflow, /scripts\/run-tests\.mjs/)
+    assert.match(securityWorkflow, /scripts\/validate-ecosystem\.mjs/)
+    assert.match(securityWorkflow, /scripts\/check-governance-drift\.mjs/)
+    for (const group of ["bootstrap", "governance", "e2e"]) {
+      assert.match(securityWorkflow, new RegExp(`--group ${group}`))
+    }
+    assert.match(securityWorkflow, /OCAE_CANONICAL_TEST_RUNNER:\s*"1"/)
+    assert.doesNotMatch(securityWorkflow, /continue-on-error|\|\|\s*true/)
   })
 
   it("requires explicit visual diff classification evidence", () => {

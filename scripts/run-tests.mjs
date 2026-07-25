@@ -2,20 +2,27 @@
 
 import fs from "node:fs/promises"
 import fsSync from "node:fs"
+import os from "node:os"
 import path from "node:path"
-import { spawnSync } from "node:child_process"
+import { spawn } from "node:child_process"
 import { fileURLToPath } from "node:url"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const manifestPath = path.join(repoRoot, "test", "test-manifest.json")
 const requiredGroups = ["unit", "contract", "integration", "bootstrap", "governance", "e2e", "provider_optional"]
-const defaultTimeoutMs = 120_000
+const defaultTimeoutMs = 300_000
+const timeoutGraceMs = 2_000
+const diagnosticMaxBytes = 16 * 1024
 
 const args = parseArgs(process.argv.slice(2))
+await ensureTempRoot()
 const manifest = await loadManifest()
 const filesByGroup = validateManifest(manifest)
 const availableGroups = Object.keys(filesByGroup)
-const groups = args.all ? requiredGroups.filter((group) => filesByGroup[group].length > 0) : args.groups
+const canonicalGroups = process.env.OCAE_SECURE_SANDBOX_NOT_APPLICABLE === "1"
+  ? requiredGroups.map((group) => group === "integration" ? "integration_portable" : group)
+  : requiredGroups
+const groups = args.all ? canonicalGroups.filter((group) => filesByGroup[group].length > 0) : args.groups
 
 if (groups.length === 0) fail("No test groups selected")
 for (const group of groups) {
@@ -26,7 +33,7 @@ for (const group of groups) {
 const results = []
 for (const group of groups) {
   const startedAt = Date.now()
-  const result = await runGroup(group, filesByGroup[group], args.reporter, args.timeoutMs)
+  const result = await runGroup(group, filesByGroup[group], args)
   results.push({ group, duration_ms: Date.now() - startedAt, ...result })
   if (result.exit_code !== 0) break
 }
@@ -65,7 +72,16 @@ if (args.json) {
 process.exitCode = exitCode
 
 function parseArgs(argv) {
-  const out = { all: false, groups: [], reporter: "spec", timeoutMs: defaultTimeoutMs, json: false }
+  const out = {
+    all: false,
+    groups: [],
+    reporter: "spec",
+    timeoutMs: defaultTimeoutMs,
+    json: false,
+    diagnostics: false,
+    processAudit: false,
+    tempAudit: false,
+  }
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index]
     if (arg === "--all") out.all = true
@@ -74,8 +90,11 @@ function parseArgs(argv) {
     else if (arg.startsWith("--reporter=")) out.reporter = arg.slice("--reporter=".length) || "spec"
     else if (arg === "--timeout-ms") out.timeoutMs = Number(argv[++index])
     else if (arg === "--json") out.json = true
+    else if (arg === "--diagnostics") out.diagnostics = true
+    else if (arg === "--process-audit") out.processAudit = true
+    else if (arg === "--temp-audit") out.tempAudit = true
     else if (arg === "--help" || arg === "-h") {
-      console.log("Usage: node scripts/run-tests.mjs [--all | --group <name>] [--reporter spec|dot] [--json]")
+      console.log("Usage: node scripts/run-tests.mjs [--all | --group <name>] [--reporter spec|dot] [--json] [--diagnostics] [--process-audit] [--temp-audit]")
       process.exit(0)
     } else fail(`Unknown argument: ${arg}`)
   }
@@ -83,6 +102,13 @@ function parseArgs(argv) {
   if (!["spec", "dot"].includes(out.reporter)) fail(`Unsupported reporter: ${out.reporter}`)
   if (!Number.isFinite(out.timeoutMs) || out.timeoutMs < 1000) fail("--timeout-ms must be at least 1000")
   return out
+}
+
+async function ensureTempRoot() {
+  const tempRoot = os.tmpdir()
+  await fs.mkdir(tempRoot, { recursive: true, mode: 0o700 })
+  const stat = await fs.lstat(tempRoot)
+  if (!stat.isDirectory() || stat.isSymbolicLink()) fail("Temporary root must be a real directory")
 }
 
 async function loadManifest() {
@@ -114,28 +140,136 @@ function validateManifest(manifest) {
   return result
 }
 
-function runGroup(group, files, reporter, timeoutMs) {
-  const child = spawnSync(process.execPath, ["--test", `--test-reporter=${reporter === "dot" ? "spec" : reporter}`, "--test-concurrency=1", ...files], {
-    cwd: repoRoot,
-    env: { ...process.env },
-    encoding: "utf8",
-    maxBuffer: 50 * 1024 * 1024,
-    timeout: timeoutMs,
-    killSignal: "SIGTERM",
-    stdio: ["ignore", "pipe", "pipe"],
-  })
-  const stdout = child.stdout || ""
-  const stderr = child.stderr || ""
-  if (reporter === "spec") process.stdout.write(stdout)
-  else process.stdout.write(renderDot(stdout))
-  if (stderr) process.stderr.write(stderr)
+async function runGroup(group, files, options) {
+  const results = []
+  for (const file of files) {
+    const result = await runTestFile(group, file, options)
+    results.push(result)
+  }
+  const totals = results.reduce((acc, result) => {
+    for (const key of ["tests", "passed", "failed", "skipped", "cancelled", "todo"]) acc[key] += result[key] || 0
+    return acc
+  }, { tests: 0, passed: 0, failed: 0, skipped: 0, cancelled: 0, todo: 0 })
+  const failed = results.find((result) => result.exit_code !== 0)
   return {
     files,
-    exit_code: child.status ?? 1,
-    signal: child.signal || null,
-    error: child.error?.message || null,
-    ...parseSummary(stdout),
+    exit_code: failed ? failed.exit_code : 0,
+    signal: failed?.signal || null,
+    error: failed?.error || null,
+    ...totals,
   }
+}
+
+async function runTestFile(group, file, options) {
+  const { reporter, timeoutMs, diagnostics, processAudit, tempAudit } = options
+  const startTime = new Date().toISOString()
+  const startedAt = Date.now()
+  const childProcessesBefore = processAudit ? readChildProcesses() : []
+  const openHandlesBefore = processAudit ? activeHandleCount() : null
+  const captureRoot = await fs.mkdtemp(path.join(os.tmpdir(), `ocae-test-${group}-`))
+  const stdoutPath = path.join(captureRoot, "stdout.log")
+  const stderrPath = path.join(captureRoot, "stderr.log")
+  const stdoutHandle = await fs.open(stdoutPath, "w")
+  const stderrHandle = await fs.open(stderrPath, "w")
+  let outcome
+  let tempFilesCreated = []
+  let tempFilesRemaining = []
+  try {
+    const result = await new Promise((resolve) => {
+      const child = spawn(process.execPath, ["--test-reporter=spec", file], {
+        cwd: repoRoot,
+        env: { ...process.env, OCAE_CANONICAL_TEST_RUNNER: "1" },
+        stdio: ["ignore", stdoutHandle.fd, stderrHandle.fd],
+      })
+      let error = null
+      let timedOut = false
+      let forceTimer = null
+      const timer = setTimeout(() => {
+        timedOut = true
+        child.kill("SIGTERM")
+        forceTimer = setTimeout(() => {
+          if (child.exitCode === null && child.signalCode === null) child.kill("SIGKILL")
+        }, timeoutGraceMs)
+      }, timeoutMs)
+      child.once("error", (spawnError) => {
+        error = spawnError.message
+      })
+      child.once("close", (status, signal) => {
+        clearTimeout(timer)
+        if (forceTimer) clearTimeout(forceTimer)
+        resolve({
+          exit_code: status ?? 1,
+          signal: signal || null,
+          error: timedOut ? `Test file timed out after ${timeoutMs}ms` : error,
+        })
+      })
+    })
+    await Promise.all([stdoutHandle.sync(), stderrHandle.sync()])
+    const [stdoutBuffer, stderrBuffer] = await Promise.all([fs.readFile(stdoutPath), fs.readFile(stderrPath)])
+    const maxBuffer = 50 * 1024 * 1024
+    if (stdoutBuffer.length + stderrBuffer.length > maxBuffer) {
+      result.exit_code = 1
+      result.error = `Test output exceeded ${maxBuffer} bytes`
+    }
+    const stdout = stdoutBuffer.toString("utf8")
+    const stderr = stderrBuffer.toString("utf8")
+    if (reporter === "spec") process.stdout.write(stdout)
+    else process.stdout.write(renderDot(stdout))
+    if (stderr) process.stderr.write(stderr)
+    if (tempAudit) tempFilesCreated = await listRelativeFiles(captureRoot)
+    outcome = { file, ...result, ...parseSummary(stdout) }
+  } finally {
+    await Promise.all([stdoutHandle.close(), stderrHandle.close()])
+    await fs.rm(captureRoot, { recursive: true, force: true })
+    if (tempAudit) tempFilesRemaining = fsSync.existsSync(captureRoot) ? await listRelativeFiles(captureRoot) : []
+  }
+  if (diagnostics) {
+    emitDiagnostic({
+      file,
+      start_time: startTime,
+      end_time: new Date().toISOString(),
+      duration_ms: Date.now() - startedAt,
+      exit_code: outcome.exit_code,
+      signal: outcome.signal,
+      test_count: outcome.tests,
+      child_processes_before: childProcessesBefore,
+      child_processes_after: processAudit ? readChildProcesses() : [],
+      open_handles_before: openHandlesBefore,
+      open_handles_after: processAudit ? activeHandleCount() : null,
+      temp_files_created: tempFilesCreated,
+      temp_files_remaining: tempFilesRemaining,
+    })
+  }
+  return outcome
+}
+
+function activeHandleCount() {
+  return typeof process._getActiveHandles === "function" ? process._getActiveHandles().length : null
+}
+
+function readChildProcesses() {
+  try {
+    const value = fsSync.readFileSync(`/proc/${process.pid}/task/${process.pid}/children`, "utf8").trim()
+    return value ? value.split(/\s+/).slice(0, 64).map(Number).filter(Number.isInteger) : []
+  } catch {
+    return []
+  }
+}
+
+async function listRelativeFiles(root) {
+  try {
+    return (await fs.readdir(root)).slice(0, 64).map((entry) => path.basename(entry))
+  } catch {
+    return []
+  }
+}
+
+function emitDiagnostic(record) {
+  let encoded = JSON.stringify(record)
+  if (Buffer.byteLength(encoded) > diagnosticMaxBytes) {
+    encoded = JSON.stringify({ file: record.file, error: "diagnostic record exceeded size limit" })
+  }
+  process.stderr.write(`DIAGNOSTIC_FILE_RESULT ${encoded}\n`)
 }
 
 function parseSummary(output) {

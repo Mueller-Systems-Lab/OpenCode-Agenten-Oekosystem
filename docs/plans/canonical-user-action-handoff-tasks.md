@@ -33,8 +33,8 @@
 - [x] T302 Run E2E paths A–D in isolated fixtures.
 - [x] T303 Run full regression, validator, syntax, scans, and diff checks.
 - [x] T304 Run independent read-only review; fix and retest findings.
-- [ ] T305 Create atomic commits and push the approved feature branch.
-- [ ] T306 Clone the remote branch fresh and rerun full/focused verification.
+- [x] T305 Create atomic commits and push the approved feature branch.
+- [x] T306 Clone the remote branch fresh and rerun full/focused verification.
 - [ ] T307 Post the structured completion comment to Issue #18.
 
 ## Dependency Order

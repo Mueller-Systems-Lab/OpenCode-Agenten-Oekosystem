@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencode-agent-ecosystem.local/governance/run-metrics.schema.json",
+  "type": "object",
+  "required": ["schema_version", "run_id", "project_id", "start_time", "end_time", "planned_actions", "executed_actions", "blocked_actions", "approval_requests", "approval_receipts", "tool_gaps", "test_runs", "failed_tests", "rollbacks", "human_corrections", "final_classification", "evidence_paths"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "run_id": { "type": "string", "minLength": 1 },
+    "project_id": { "type": "string", "minLength": 1 },
+    "task_id": { "type": ["string", "null"] },
+    "runtime": { "type": ["string", "null"] },
+    "agent": { "type": ["string", "null"] },
+    "model": { "type": ["string", "null"] },
+    "start_time": { "type": "string", "format": "date-time" },
+    "end_time": { "type": "string", "format": "date-time" },
+    "planned_actions": { "type": "array", "items": { "type": "string" } },
+    "executed_actions": { "type": "array", "items": { "type": "string" } },
+    "blocked_actions": { "type": "array", "items": { "type": "string" } },
+    "approval_requests": { "type": "integer", "minimum": 0 },
+    "approval_receipts": { "type": "integer", "minimum": 0 },
+    "tool_gaps": { "type": "array", "items": { "type": "string" } },
+    "test_runs": { "type": "integer", "minimum": 0 },
+    "failed_tests": { "type": "integer", "minimum": 0 },
+    "rollbacks": { "type": "integer", "minimum": 0 },
+    "human_corrections": { "type": "integer", "minimum": 0 },
+    "final_classification": { "type": "string" },
+    "evidence_paths": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

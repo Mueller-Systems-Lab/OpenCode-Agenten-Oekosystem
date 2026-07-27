@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencode-agent-ecosystem.local/governance/ecosystem-registry.schema.json",
+  "type": "object",
+  "required": ["schema_version", "kind", "updated_at", "projects"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "kind": { "const": "ocae-ecosystem-registry" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["project_id", "project", "classification", "updated_at"],
+        "properties": {
+          "project_id": { "type": "string", "minLength": 1 },
+          "project": { "type": "object" },
+          "local": { "type": "object" },
+          "governance": { "type": "object" },
+          "runtime": { "type": "object" },
+          "verification": { "type": "object" },
+          "tool_gaps": { "type": "array", "items": { "type": "string" } },
+          "owner_actions": { "type": "array", "items": { "type": "string" } },
+          "classification": { "type": "object", "required": ["main", "substatus"] },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

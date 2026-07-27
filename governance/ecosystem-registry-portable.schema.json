@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencode-agent-ecosystem.local/governance/ecosystem-registry-portable.schema.json",
+  "type": "object",
+  "required": ["schema_version", "kind", "exported_at", "projects"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "kind": { "const": "ocae-ecosystem-registry" },
+    "exported_at": { "type": "string", "format": "date-time" },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["project_id", "project_name", "governance_version", "runtime", "activation_status", "verification_timestamp", "classification", "capability_summary", "tool_gap_summary"],
+        "properties": {
+          "project_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" },
+          "project_name": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "governance_version": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "runtime": { "type": "array", "items": { "enum": ["opencode", "hermes", "odysseus", "generic"] } },
+          "activation_status": { "type": "string", "pattern": "^[A-Z][A-Z0-9_-]{0,63}$" },
+          "verification_timestamp": { "type": ["string", "null"], "format": "date-time" },
+          "classification": { "type": "object", "required": ["main", "substatus"], "properties": { "main": { "enum": ["VERIFIED_IN_SCOPE", "NEEDS_REVIEW", "RED_BLOCK", "TOOL_GAP"] }, "substatus": { "type": "array", "items": { "type": "string", "pattern": "^[A-Z0-9_-]{1,96}$" } } }, "additionalProperties": false },
+          "capability_summary": { "type": "array", "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_-]{0,95}$" } },
+          "tool_gap_summary": { "type": "array", "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_-]{0,95}$" } }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

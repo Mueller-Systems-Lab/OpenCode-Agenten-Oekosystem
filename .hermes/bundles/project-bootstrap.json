@@ -1,6 +1,6 @@
 {
   "$comment": "This is an internal bootstrap manifest (JSON), NOT a native Hermes YAML bundle. Hermes-native bundles live in .hermes/skill-bundles/ as .yaml files.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "name": "project-bootstrap",
   "description": "Portable Hermes bundle for OpenCode and Hermes bootstrap handoff",
   "skills": [
@@ -23,5 +23,13 @@
   "activation": {
     "default": "disabled",
     "requires_manual_review": true
+  },
+  "completion_contract": {
+    "schema": ".opencode/validation/schema-validators/user-action-handoff.schema.json",
+    "language": "de",
+    "section_title": "Erforderliche Aktion durch den Nutzer",
+    "empty_message": "Keine Aktion durch den Nutzer erforderlich.",
+    "actions_field": "actions",
+    "github_platform": "github_web"
   }
 }

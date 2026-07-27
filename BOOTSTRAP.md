@@ -86,6 +86,7 @@ The bootstrap analyzes the target project and prepares:
 - minimal MCP recommendations
 - backup and rollback metadata
 - evidence and validation reports
+- a canonical machine-readable `user_action_handoff`
 
 The exact file set is driven by the discovered project type. The bootstrap does not assume JavaScript, Python, Docker, or a fixed shell.
 
@@ -104,6 +105,13 @@ Typical outputs include:
 - `.hermes/bundles/`
 - `.hermes/mcp/`
 - `docs/reports/universal-bootstrap-run-report.md`
+
+The generated run report always ends with
+`## Erforderliche Aktion durch den Nutzer`. It contains only capability-proven,
+non-delegable required actions. With no such action it ends with exactly
+`Keine Aktion durch den Nutzer erforderlich.`. The matching schema is installed
+project-locally at
+`.opencode/validation/schema-validators/user-action-handoff.schema.json`.
 
 If the target project already has any of these files, the bootstrap merges them conservatively and records conflicts as `NEEDS_REVIEW`.
 

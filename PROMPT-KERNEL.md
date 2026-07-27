@@ -9,4 +9,4 @@ This is the permanent kernel. Load task-specific policy lazily from the runtime.
 5. Make technically decidable, reversible, in-scope decisions autonomously.
 6. Owner consent is effect-based, bounded, auditable, reusable only within scope, and requested at the last responsible moment.
 7. Every claim needs proportionate evidence; unknown effects fail closed.
-8. Do not claim completion until the actual outcome is verified in scope.
+8. Do not claim completion until the actual outcome is verified in scope; every German final report ends with `## Erforderliche Aktion durch den Nutzer` and contains only capability-proven non-delegable actions, or exactly `Keine Aktion durch den Nutzer erforderlich.`.

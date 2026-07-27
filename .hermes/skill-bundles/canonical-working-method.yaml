@@ -1,5 +1,5 @@
 name: canonical-working-method
-version: "1.0.0"
+version: "1.1.0"
 description: Evidence-driven, risk-tiered project workflow for the OpenCode Agent Ecosystem
 skills:
   - project-reality-refresh
@@ -62,3 +62,14 @@ instruction: |
   - Dry-run before apply
   - Reviewer before completion
   - No fake execution — ever
+
+  ## Canonical User Action Handoff
+  Every German final report ends with `## Erforderliche Aktion durch den Nutzer`.
+  Include only capability-proven `non_delegable_user_actions`. Permitted reason
+  codes are `PHYSICAL_ACTION_REQUIRED`, `RESOURCE_UNREACHABLE`,
+  `MISSING_PERMISSION`, `MISSING_AUTHORIZATION`,
+  `NON_DELEGABLE_OWNER_APPROVAL`, `PERSONAL_LEGAL_DECISION`, and
+  `MANUAL_SECURITY_CONFIRMATION`. GitHub actions use `github_web`, a known
+  target, numbered visible UI controls, confirmation, and an abort condition;
+  CLI-only guidance is forbidden. With no actions, write exactly
+  `Keine Aktion durch den Nutzer erforderlich.`.

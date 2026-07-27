@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0",
+  "description": "Model assurance registry — entries are invalidated on any change to model, harness, toolset, or evaluation contract",
+  "invalidation_rules": {
+    "model_version_change": true,
+    "mutable_alias_without_revalidation": true,
+    "opencode_update": true,
+    "harness_change": true,
+    "toolset_change": true,
+    "system_prompt_change": true,
+    "agent_config_change": true,
+    "evaluation_contract_change": true,
+    "repository_change": true,
+    "security_finding": true,
+    "expiry_date_passed": true
+  },
+  "entries": []
+}

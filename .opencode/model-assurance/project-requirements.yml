@@ -1,0 +1,105 @@
+# Model Assurance — Project Requirements Profile
+# Generated: 2026-07-21
+# Repository: https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem
+# Commit: 4f36ab5a203d2d97e9b9245b1029c29936bde8cb
+
+repository:
+  url: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+  commit_sha: "4f36ab5a203d2d97e9b9245b1029c29936bde8cb"
+
+languages:
+  - javascript
+  - python
+  - yaml
+  - json
+  - markdown
+
+frameworks:
+  - node_test_runner
+  - hermes_skill_runtime
+  - speckit_cli
+
+build_systems:
+  - none
+  - node_direct_execution
+
+test_systems:
+  - node_test_runner
+  - node_assert_strict
+  - spawn_sync_e2e
+
+lint_commands:
+  - "node --check scripts/*.mjs"
+
+typecheck_commands:
+  - "node --check"
+
+critical_directories:
+  - scripts/lib/gates/
+  - scripts/lib/security/
+  - scripts/lib/runtimes/
+  - .agent-governance/
+  - .opencode/policies/
+  - .opencode/agents/
+
+security_components:
+  - scripts/lib/security/redaction.mjs
+  - scripts/lib/gates/kernel.mjs
+  - scripts/lib/gates/approval.mjs
+  - scripts/evaluate-gates.mjs
+
+runtime_adapters:
+  - opencode
+  - hermes
+  - odysseus
+
+tools:
+  - git
+  - node
+  - gh
+  - docker
+  - playwright
+
+execution_owners:
+  implementation: main-opencode-session
+  test_implementation: main-opencode-session
+  test_execution: main-opencode-session
+
+agents:
+  available:
+    - issue-orchestrator
+    - security-agent
+    - compliance-agent
+    - review-agent
+    - research-agent
+    - architecture-agent
+    - documentation-agent
+    - migration-agent
+    - playwright-agent
+  unavailable:
+    - build
+    - test
+
+git_remote_risk:
+  force_push_blocked: true
+  remote_ci_disabled_by_default: true
+  human_gate_required: true
+
+context_requirements:
+  levels: ["COLD", "WARM", "HOT"]
+  cold_allows: ["read", "analyze", "classify"]
+  warm_allows: ["read", "analyze", "classify", "plan", "delegate"]
+  hot_allows: ["implement", "review", "verify", "commit"]
+
+task_classes:
+  - repository-analysis
+  - planning
+  - documentation
+  - small-bugfix
+  - standard-coding
+  - security-critical-coding
+  - infrastructure-change
+  - git-publication
+
+hard_gates: 19
+kernel_gates: 19

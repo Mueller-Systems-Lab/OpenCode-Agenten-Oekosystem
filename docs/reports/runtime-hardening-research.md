@@ -4,6 +4,11 @@
 **Agent**: Research Agent (deepseek-v4-pro)
 **Purpose**: Gather CURRENT official documentation for OpenCode, Hermes Agent, and Node.js runtime hardening topics.
 
+> **HISTORICAL RESEARCH NOTE:** Any plural `.opencode/plugins/` paths in this
+> report describe the earlier runtime model and are not active installation
+> instructions. The current verified bridge is
+> `.opencode/plugin/governance-v2.ts`.
+
 ---
 
 ## 1. OpenCode MCP Configuration

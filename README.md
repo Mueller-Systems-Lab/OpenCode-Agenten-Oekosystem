@@ -16,10 +16,10 @@ The intended workflow is:
 
 1. hand an AI the repository URL
 2. point it at a target project path
-3. let it run a dry-run first
-4. review the generated discovery and plan
-5. apply only with explicit `--apply`
-6. rollback from the printed backup manifest if needed
+3. run the project-local lifecycle `inspect` and `plan`
+4. review discovery, ownership conflicts, and runtime limits
+5. run `install` or `update` only in the intended target project
+6. verify activation evidence and rollback from a recorded backup if needed
 
 The canonical AI handoff for new installations is:
 
@@ -49,16 +49,74 @@ second URL-only entrypoint.
 - no secrets are read or written to reports
 - no local MCP is auto-activated
 
-## Core Commands
+## Canonical Lifecycle Commands
 
-Dry-run:
+After a controlled clone, the canonical project-local entrypoint is
+`node scripts/ocae.mjs`. It has no global installation, hidden registry, or
+network telemetry.
+
+```bash
+node scripts/ocae.mjs inspect --target /path/to/target-project --json
+node scripts/ocae.mjs plan --target /path/to/target-project --json
+node scripts/ocae.mjs install --target /path/to/target-project --json
+node scripts/ocae.mjs update --target /path/to/target-project --json
+node scripts/ocae.mjs verify --target /path/to/target-project --json
+node scripts/ocae.mjs status --target /path/to/target-project --json
+node scripts/ocae.mjs rollback --target /path/to/target-project --backup /path/to/backup --json
+```
+
+`inspect`, `plan`, and target `status` are read-only. For an already governed
+target, `verify` records one local, disableable metric by default; use
+`--no-metrics` for a read-only verification result, and use `--evidence` only
+when a proof file should be written. `install`, `update`, and `rollback` are
+local target writes and reuse the existing conflict, backup, source-lock, and
+rollback logic. An owner conflict, symlink, or unmanaged file is never
+overwritten silently.
+
+## Runtime activation is not installation
+
+Configuration and generated hook files are structural evidence only. `ocae
+verify` records runtime detection, adapter selection, hook registration, safe
+allow, forbidden block, scope escape, secret isolation, approval, receipt replay,
+restart persistence, and bypass scanning separately. It returns the primary
+classification with a substatus such as `HOOK_REGISTERED_UNPROVEN` or
+`RESTART_UNPROVEN`.
+
+`--simulate` is isolated adapter-control evidence only. It never proves a real
+OpenCode or Hermes runtime. See [the lifecycle guide](docs/guides/unified-lifecycle.md)
+for the controlled real-runtime procedure.
+
+## Local ecosystem registry and metrics
+
+Use an explicit local file for the multi-project registry; no system-wide
+database is created:
+
+```bash
+node scripts/ocae.mjs register --target /path/to/target-project --registry ./ocae-registry.json --json
+node scripts/ocae.mjs update --target /path/to/target-project --registry ./ocae-registry.json --json
+node scripts/ocae.mjs verify --target /path/to/target-project --registry ./ocae-registry.json --json
+node scripts/ocae.mjs status --registry ./ocae-registry.json
+node scripts/ocae.mjs export --registry ./ocae-registry.json --json
+```
+
+The local registry may contain a local target reference; `export` removes it.
+Run metrics are local JSONL, schema-validated, contain no prompts, complete tool
+output, or secrets, and can be disabled with `--no-metrics`.
+
+## Legacy component entrypoints
+
+`bootstrap-project.mjs` owns the legacy overlay; `install-governance.mjs` owns
+Governance V2 and its generated runtime bridge. They remain supported for
+compatibility, but are not the unified lifecycle entrypoint.
+
+Overlay dry-run:
 
 ```bash
 node scripts/bootstrap-project.mjs \
   --target /path/to/target-project
 ```
 
-Apply:
+Overlay apply:
 
 ```bash
 node scripts/bootstrap-project.mjs \
@@ -66,7 +124,7 @@ node scripts/bootstrap-project.mjs \
   --apply
 ```
 
-Apply with remote CI proposals:
+Overlay apply with remote CI proposals:
 
 ```bash
 node scripts/bootstrap-project.mjs \
@@ -75,7 +133,7 @@ node scripts/bootstrap-project.mjs \
   --include-remote-ci
 ```
 
-Rollback:
+Overlay rollback:
 
 ```bash
 node scripts/bootstrap-project.mjs \

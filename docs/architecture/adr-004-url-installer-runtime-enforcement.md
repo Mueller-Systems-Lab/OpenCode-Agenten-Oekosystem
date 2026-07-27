@@ -8,6 +8,10 @@
 
 **Supersedes:** None. Extends ADR-003 (Runtime-Neutral Hard Gate Kernel) with the installation and runtime enforcement plane.
 
+> **HISTORICAL / SUPERSEDED PATHS:** This ADR records an earlier design. Its
+> plural `.opencode/plugins/` paths are not the active Issue #16 contract. The
+> current verified bridge is `.opencode/plugin/governance-v2.ts`.
+
 ---
 
 ## Context

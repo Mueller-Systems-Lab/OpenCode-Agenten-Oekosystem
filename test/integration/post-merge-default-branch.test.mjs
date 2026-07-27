@@ -55,6 +55,9 @@ if (process.env.OCAE_POST_MERGE_CONTEXT_CHILD === "1") {
       HOME: isolatedHome,
       TMPDIR: os.tmpdir(),
       OCAE_POST_MERGE_CONTEXT_CHILD: "1",
+      // The fresh candidate runs the canonical suite itself. Preserve the
+      // runner marker so its validation test does not recursively invoke it.
+      OCAE_CANONICAL_TEST_RUNNER: "1",
     }
     const canonical = spawnSync(process.execPath, [
       "scripts/run-tests.mjs", "--all", "--reporter=dot",

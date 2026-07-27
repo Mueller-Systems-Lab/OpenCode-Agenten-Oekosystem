@@ -2,7 +2,7 @@
 
 This file is the complete operating contract for an AI that receives this repository URL without local source paths, prior chat history, copied files, or development-machine knowledge.
 
-Never invent a raw URL, branch, commit, or example path. Use the repository and ref from the URL provided by the caller. The root launcher `bootstrap.mjs` is a thin entrypoint; it delegates to the manifest installer and is dry-run by default.
+Never invent a raw URL, branch, commit, or example path. Use the repository and ref from the URL provided by the caller. The root launcher `bootstrap.mjs` remains a thin legacy-compatible Governance V2 launcher. After the controlled checkout, `scripts/ocae.mjs` is the canonical lifecycle entrypoint; it orchestrates rather than replaces the existing installers.
 
 ## Canonical handoff
 
@@ -44,6 +44,19 @@ Use when no `.opencode/ecosystem-installation.json` exists. Run a read-only pref
 
 Use when `.opencode/ecosystem-installation.json` exists. Compare the recorded source commit with the pinned source commit. Do not silently downgrade. Only managed files whose recorded hash still matches may receive a generated update; locally edited managed files become `MANUAL_REVIEW_REQUIRED`. Owner files remain preserved.
 
+### `INSPECT` and `PLAN`
+
+Run lifecycle discovery before selecting an apply path:
+
+```text
+node scripts/ocae.mjs inspect --target <current-project> --json
+node scripts/ocae.mjs plan --target <current-project> --json
+```
+
+The state distinguishes no installation, overlay-only, Governance-V2-only, and
+both layers. It detects managed hash drift, source provenance, runtime signals,
+and owner conflicts; it does not claim that a structural hook is active.
+
 ### `VERIFY_ONLY`
 
 Run the verifier without changing the target:
@@ -67,29 +80,44 @@ Use only a backup directory printed by a completed apply. Run the manifest rollb
 5. Run target-project preflight: canonical path, Git root, runtime signals, existing governance/OpenCode files, `.env` presence by metadata only, uncommitted changes, and scope conflicts.
 6. Classify every planned action as `SAFE_CREATE`, `SAFE_GENERATED_UPDATE`, `SAFE_MANAGED_UPDATE`, `OWNER_CONTENT_PRESERVE`, `MANUAL_REVIEW_REQUIRED`, or `FORBIDDEN`.
 7. Run the mandatory dry-run and show target path, source repository, pinned commit, create/modify/preserve actions, backup location, conflicts, and rollback command.
-8. Apply only within the target project with the manifest installer:
+8. Use the lifecycle install/update path only within the target project. It calls
+the overlay bootstrap only when that layer is missing and calls Governance V2
+only when its layer is missing or updateable:
 
 ```text
-node scripts/install-governance.mjs --target <current-project> --apply --json
+node scripts/ocae.mjs install --target <current-project> --json
 ```
 
-9. Run `node bootstrap/verify.mjs --target <current-project> --source-commit <pinned-sha>`.
-10. Start a fresh process and run the verifier again.
+9. Run `node scripts/ocae.mjs verify --target <current-project> --json` and record each activation field.
+10. A real runtime/restart result needs an isolated runtime or operator test; never relabel simulation or a module re-import as restart persistence.
 11. Run the second apply against the same pinned checkout and prove that no unmanaged file changed and no new action is planned.
-12. If rollback evidence is required, run the printed rollback command and verify both restoration and later-edit preservation.
+12. If rollback evidence is required, run `node scripts/ocae.mjs rollback --target <current-project> --backup <backup-dir> --json` and verify both restoration and later-edit preservation.
 13. Produce a report containing source URL/ref/SHA, target root, modes, plans, files changed/preserved, conflicts, verification, idempotence, rollback, owner interruptions, remote writes, and unresolved limits.
 
 No owner question is needed for read-only discovery, manifest validation, dry-run, backup creation, local reversible in-scope writes, verification, a second apply, or a local rollback test. If a real conflict exists, create exactly one `BOOTSTRAP_OWNER_DECISION_PACKET` containing all affected files, causes, recommended resolution, preserved owner content, planned effects, and safe alternatives. Do not ask serial file-by-file questions.
 
 ## Source and target commands
 
-The exact command names are discovered from the manifest. For this published contract they are:
+The canonical lifecycle commands for this published contract are:
 
 ```text
-node scripts/install-governance.mjs --target <target>       # dry-run
-node scripts/install-governance.mjs --target <target> --apply
-node bootstrap/verify.mjs --target <target>                # verify
-node scripts/install-governance.mjs --target <target> --rollback <backup-dir>
+node scripts/ocae.mjs inspect --target <target> --json
+node scripts/ocae.mjs plan --target <target> --json
+node scripts/ocae.mjs install --target <target> --json
+node scripts/ocae.mjs update --target <target> --json
+node scripts/ocae.mjs verify --target <target> --json
+node scripts/ocae.mjs status --target <target> --json
+node scripts/ocae.mjs rollback --target <target> --backup <backup-dir> --json
+```
+
+The component commands remain available for compatibility and have distinct ownership:
+
+```text
+node scripts/bootstrap-project.mjs --target <target>        # overlay dry-run
+node scripts/bootstrap-project.mjs --target <target> --apply # overlay apply
+node scripts/install-governance.mjs --target <target>        # Governance V2 dry-run
+node scripts/install-governance.mjs --target <target> --apply # Governance V2 apply
+node bootstrap/verify.mjs --target <target>                  # structural V2 verification
 ```
 
 The equivalent root launcher is:
@@ -105,4 +133,9 @@ The installer writes provenance to `.opencode/ecosystem-installation.json`. It m
 
 ## Completion classification
 
-Report `VERIFIED_IN_SCOPE` only when preflight, dry-run, apply, verify, fresh-process verify, second apply/idempotence, and rollback evidence pass without out-of-scope writes, secret access, or remote target writes. Otherwise report the most precise `NEEDS_REVIEW_*`, `TOOL_GAP_*`, or `RED_BLOCK_*` result and stop only the blocked dependent action while preserving safe evidence.
+Report `VERIFIED_IN_SCOPE` only when preflight, dry-run, apply, integrity,
+runtime detection, hook registration, safe allow, forbidden block, scope escape,
+secret isolation, required approval and replay checks, restart persistence (when
+in scope), bypass review, idempotence, and rollback evidence pass without
+out-of-scope writes, secret access, or remote target writes. Structural hook
+presence alone is `HOOK_REGISTERED_UNPROVEN`, not activation verification.

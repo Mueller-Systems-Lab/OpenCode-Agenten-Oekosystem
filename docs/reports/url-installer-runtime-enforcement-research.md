@@ -4,6 +4,11 @@
 **Researcher:** research-agent (LLM-powered)
 **OpenCode Version Scope:** 1.15.x (docs last updated Jul 14, 2026; source from `dev` branch)
 
+> **HISTORICAL RESEARCH:** This report describes the earlier plural plugin-path
+> model. It is retained for provenance only and must not be used as an active
+> installation instruction. The current verified bridge is
+> `.opencode/plugin/governance-v2.ts`.
+
 ---
 
 ## Sources

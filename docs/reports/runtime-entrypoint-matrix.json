@@ -1,7 +1,7 @@
 {
   "schema_version": "governance-v2.runtime-entrypoint-matrix.1",
   "generated_at": "2026-07-24T12:53:29.289Z",
-  "note": "Closure inventory captured during the local closure run.",
+  "note": "HISTORICAL inventory: plural OpenCode plugin paths are superseded and retained for provenance only. The active Issue #16 bridge is .opencode/plugin/governance-v2.ts.",
   "entrypoints": [
     { "id": "runtime.gates.evaluate-action", "path": "runtime/gates/evaluate-action.mjs", "runtime": "shared", "actor": "runtime", "trigger": "effectful action request", "effects": ["READ", "WRITE", "EXECUTE", "EXTERNAL", "DELEGATE"], "policy_source": "governance/generated/capability-registry.json", "approval_check": "evaluateEffect", "capability_check": "resolveToolCapability", "scope_check": "Task Capsule", "evidence_check": "ApprovalAuditLog", "completion_check": "V2 decision class", "legacy_path": false, "bypass_possible": false, "test_coverage": ["test/runtime-closure/runtime-entrypoints.test.mjs", "test/approval-v2/approval-engine.test.mjs"], "status": "V2_ENFORCED" },
     { "id": "opencode.project-plugin", "path": ".opencode/plugins/canonical-governance.mjs", "runtime": "OpenCode", "actor": "agent", "trigger": "tool.execute.before", "effects": ["READ", "WRITE", "EXECUTE", "NETWORK", "DELEGATE"], "policy_source": "runtime/gates/evaluate-action.mjs", "approval_check": "evaluateAction", "capability_check": "evaluateAction", "scope_check": "Task Capsule", "evidence_check": "action-audit.jsonl", "completion_check": "plugin block/allow", "legacy_path": false, "bypass_possible": false, "test_coverage": ["test/contracts/runtime-enforcement-contracts.test.mjs", "live OpenCode sandbox"], "status": "V2_ENFORCED" },

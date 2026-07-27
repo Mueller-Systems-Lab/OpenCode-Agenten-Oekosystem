@@ -33,6 +33,13 @@ async function main() {
   issues.push(...await validateJsonFile(path.join(repoRoot, ".opencode/policies/data-retention.json"), "data-retention.json"))
   issues.push(...await validateJsonFile(path.join(repoRoot, ".opencode/policies/write-protection.json"), "write-protection.json"))
   issues.push(...await validateJsonFile(path.join(repoRoot, ".opencode/policies/model-routing.json"), "model-routing.json"))
+  for (const schema of [
+    "governance/runtime-proof.schema.json",
+    "governance/ecosystem-registry.schema.json",
+    "governance/ecosystem-registry-portable.schema.json",
+    "governance/run-metrics.schema.json",
+    "governance/closure-evidence.schema.json",
+  ]) issues.push(...await validateJsonFile(path.join(repoRoot, schema), schema))
 
   issues.push(...await validateMarkdownDirs(path.join(repoRoot, ".opencode/skills"), "skill"))
   issues.push(...await validateMarkdownDirs(path.join(repoRoot, ".opencode/agents"), "agent"))
@@ -83,6 +90,9 @@ async function main() {
     "docs/reports/gate-kernel-security-review.md",
     "docs/reports/gate-kernel-compliance-review.md",
     "docs/reports/coderabbit-removal-report.md",
+    "docs/reports/unified-lifecycle-reality-refresh.md",
+    "docs/guides/unified-lifecycle.md",
+    "docs/guides/unified-lifecycle-troubleshooting.md",
     "scripts/lib/gates/kernel.mjs",
     "scripts/lib/gates/approval.mjs",
     "scripts/lib/gates/evidence.mjs",
@@ -146,6 +156,11 @@ async function main() {
     "runtime/approval/capability-registry.mjs",
     "scripts/evaluate-governance-v2.mjs",
     "scripts/install-governance.mjs",
+    "scripts/ocae.mjs",
+    "scripts/lib/lifecycle.mjs",
+    "scripts/lib/ecosystem-registry.mjs",
+    "scripts/lib/runtime-activation-proof.mjs",
+    "scripts/lib/closure-evidence.mjs",
   ]))
 
   issues.push(...await validateNoAbsoluteUserPaths())
@@ -168,6 +183,7 @@ async function main() {
   // Instructions — WORKING-METHOD.md and working-method.json included, data-retention.json NOT included
   issues.push(...await validateInstructions())
   issues.push(...await validateGovernanceV2())
+  issues.push(...await validateUnifiedLifecycleArtifacts())
 
   // working-method.json content checks
   issues.push(...await validateWorkingMethodRiskTiers())
@@ -529,6 +545,43 @@ async function validateGovernanceV2() {
   }
   const generator = spawnSync(process.execPath, [path.join(repoRoot, 'scripts/generate-governance.mjs'), '--check'], { cwd: repoRoot, encoding: 'utf8' })
   if (generator.status !== 0) issues.push(`governance-v2: generated policy drift (${(generator.stderr || generator.stdout).trim()})`)
+  return issues
+}
+
+async function validateUnifiedLifecycleArtifacts() {
+  const issues = []
+  const schemas = [
+    "governance/runtime-proof.schema.json",
+    "governance/ecosystem-registry.schema.json",
+    "governance/run-metrics.schema.json",
+  ]
+  for (const relative of schemas) {
+    const filePath = path.join(repoRoot, relative)
+    if (!(await pathExists(filePath))) {
+      issues.push(`unified lifecycle: missing ${relative}`)
+      continue
+    }
+    try {
+      const schema = JSON.parse(await fs.readFile(filePath, "utf8"))
+      if (schema.$schema !== "https://json-schema.org/draft/2020-12/schema" || schema.type !== "object") {
+        issues.push(`unified lifecycle: invalid schema envelope in ${relative}`)
+      }
+    } catch (error) {
+      issues.push(`unified lifecycle: unreadable schema ${relative}: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+  const cli = spawnSync(process.execPath, [path.join(repoRoot, "scripts", "ocae.mjs"), "--help"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    timeout: 10_000,
+  })
+  if (cli.status !== 0) {
+    issues.push("unified lifecycle: CLI help failed")
+  } else {
+    for (const operation of ["inspect", "plan", "install", "update", "verify", "status", "rollback", "register", "list", "remove", "export"]) {
+      if (!new RegExp(`\\b${operation}\\b`).test(cli.stdout || "")) issues.push(`unified lifecycle: CLI help lacks ${operation}`)
+    }
+  }
   return issues
 }
 

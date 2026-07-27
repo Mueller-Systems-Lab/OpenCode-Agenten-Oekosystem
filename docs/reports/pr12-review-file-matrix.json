@@ -2,6 +2,7 @@
   "schema_version": "pr12-review-file-matrix.1",
   "base": "origin/master",
   "head": "HEAD",
+  "note": "HISTORICAL matrix: plural OpenCode plugin paths are superseded and retained for provenance only. The active Issue #16 bridge is .opencode/plugin/governance-v2.ts.",
   "file_count": 132,
   "files": [
     {

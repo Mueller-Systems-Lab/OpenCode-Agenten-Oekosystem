@@ -6,6 +6,11 @@
 **Review Type:** Read-only structural security review — no PoC execution
 **Overall Verdict:** **7 FINDINGS CONFIRMED (1 MEDIUM, 4 LOW, 2 INFORMATIONAL)**
 
+> **HISTORICAL SECURITY REVIEW:** This review covers an earlier plural
+> `.opencode/plugins/` installation path and is superseded for the Issue #16
+> runtime contract. The current verified bridge is
+> `.opencode/plugin/governance-v2.ts`.
+
 ---
 
 ## Threat Model Boundary Statement

@@ -8,6 +8,11 @@
 
 **Supersedes:** None. Fixes contract violations in ADR-004 (URL Installer Runtime Enforcement) and ADR-003 (Runtime-Neutral Hard Gate Kernel) implementations.
 
+> **HISTORICAL / SUPERSEDED PATHS:** This ADR records an earlier design and
+> review state. Its plural `.opencode/plugins/` paths are not the active Issue
+> #16 contract. The current verified bridge is
+> `.opencode/plugin/governance-v2.ts`.
+
 ---
 
 ## Context

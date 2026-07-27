@@ -7,6 +7,10 @@
 Capability finding (not part of the project-wide classification):
 `TOOL_GAP_SPECKIT_0_13_BUNDLE_LIFECYCLE`
 
+> **HISTORICAL REPORT:** This report predates the Issue #16 runtime-path
+> contract. Any plural `.opencode/plugins/` paths are superseded; the current
+> verified bridge is `.opencode/plugin/governance-v2.ts`.
+
 Die projektkontrollierten Pfade sind nachweislich redigiert und fail-closed.
 Der technisch getrennte Read-only-Reviewer hat in Review v3
 `APPROVED_WITH_FINDINGS` geliefert. Der native Upstream-Befund ist als Risiko außerhalb des

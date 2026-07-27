@@ -4,7 +4,7 @@ This repository is the source of truth for a safe, project-local bootstrap of Op
 
 It also serves as the **canonical workflow contract + policy source** — see [`WORKING-METHOD.md`](WORKING-METHOD.md) for the evidence-driven, risk-tiered execution model, and `.hermes/skill-bundles/canonical-working-method.yaml` for the Hermes-native YAML skill bundle.
 
-For AI-driven URL-only installation, start with [AI-BOOTSTRAP.md](AI-BOOTSTRAP.md). This document remains the deterministic/manual bootstrap reference:
+For AI-driven URL-only installation, start with [AI-BOOTSTRAP.md](AI-BOOTSTRAP.md). The project-local lifecycle entrypoint is `node scripts/ocae.mjs`; this document remains the deterministic/manual reference for the legacy overlay component:
 
 1. Read this file first.
 2. Read the repository instructions and safety files.
@@ -23,7 +23,25 @@ For AI-driven URL-only installation, start with [AI-BOOTSTRAP.md](AI-BOOTSTRAP.m
 - Backups are created before writes.
 - Rollback is always available from the backup manifest.
 
-## Basic Usage
+## Canonical Lifecycle Usage
+
+```bash
+node scripts/ocae.mjs inspect --target /pfad/zum/zielprojekt --json
+node scripts/ocae.mjs plan --target /pfad/zum/zielprojekt --json
+node scripts/ocae.mjs install --target /pfad/zum/zielprojekt --json
+node scripts/ocae.mjs update --target /pfad/zum/zielprojekt --json
+node scripts/ocae.mjs verify --target /pfad/zum/zielprojekt --json
+node scripts/ocae.mjs status --target /pfad/zum/zielprojekt --json
+node scripts/ocae.mjs rollback --target /pfad/zum/zielprojekt --backup /pfad/zum/backup --json
+```
+
+The lifecycle reuses two component installers without merging their ownership:
+`bootstrap-project.mjs` owns the overlay, while `install-governance.mjs` owns
+Governance V2, provenance, and generated runtime bridges. A structural hook is
+not a runtime activation claim; use the lifecycle guide for the required allow,
+block, approval, replay, restart, and bypass evidence.
+
+## Legacy Overlay Component Usage
 
 Dry-run:
 

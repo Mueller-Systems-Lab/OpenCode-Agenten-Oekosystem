@@ -67,7 +67,8 @@ test("canonical runner emits parseable bounded diagnostics and cleans capture fi
     .split("\n")
     .filter((line) => line.startsWith("DIAGNOSTIC_FILE_RESULT "))
     .map((line) => JSON.parse(line.slice("DIAGNOSTIC_FILE_RESULT ".length)))
-  assert.equal(records.length, 8)
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"))
+  assert.equal(records.length, manifest.groups.unit.length)
   for (const record of records) {
     assert.ok(Buffer.byteLength(JSON.stringify(record)) <= 16 * 1024)
     assert.equal(record.exit_code, 0)

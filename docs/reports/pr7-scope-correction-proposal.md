@@ -8,6 +8,10 @@
 
 **Classification:** `PR_DESCRIPTION_NEEDS_UPDATE` and `PR_TITLE_TOO_NARROW` (from PR7-AUDIT-005)
 
+> **HISTORICAL REPORT:** This proposal records the earlier PR #7 scope and
+> plugin-path model. It is not an active Issue #16 installation instruction.
+> The current verified bridge is `.opencode/plugin/governance-v2.ts`.
+
 ## Historical Scope Analysis
 
 PR #7 contains **two major historical theme lines** spanning 9 commits:

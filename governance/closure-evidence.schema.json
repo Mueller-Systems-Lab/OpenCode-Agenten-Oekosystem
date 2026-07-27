@@ -26,7 +26,8 @@
     "parallel_single_use": { "enum": ["PASS", "FAIL", "UNPROVEN"] },
     "incident_status": { "enum": ["NONE", "OPEN", "CLOSED", "UNRESOLVED"] },
     "tests": { "type": "array", "items": { "type": "object", "required": ["command", "exit_code"], "properties": { "command": { "type": "string" }, "exit_code": { "type": "integer" }, "passed": { "type": "integer", "minimum": 0 }, "failed": { "type": "integer", "minimum": 0 } }, "additionalProperties": false } },
-    "findings": { "type": "array", "items": { "type": "object", "required": ["id", "status"], "properties": { "id": { "type": "string" }, "status": { "type": "string" } }, "additionalProperties": false } }
+    "findings": { "type": "array", "items": { "type": "object", "required": ["id", "status"], "properties": { "id": { "type": "string" }, "status": { "type": "string" } }, "additionalProperties": false } },
+    "user_action_handoff": { "$ref": "user-action-handoff.schema.json" }
   },
   "$defs": {
     "assertion": {
@@ -52,7 +53,7 @@
     { "if": { "properties": { "evidence_type": { "const": "parallelism-proof" } } }, "then": { "required": ["parallel_single_use"] } },
     { "if": { "properties": { "evidence_type": { "const": "profile-incident-assessment" } } }, "then": { "required": ["incident_status"] } },
     { "if": { "properties": { "evidence_type": { "const": "test-summary" } } }, "then": { "required": ["tests"] } },
-    { "if": { "properties": { "evidence_type": { "const": "final-status" } } }, "then": { "required": ["findings"] } }
+    { "if": { "properties": { "evidence_type": { "const": "final-status" } } }, "then": { "required": ["findings", "user_action_handoff"] } }
   ],
   "additionalProperties": false
 }

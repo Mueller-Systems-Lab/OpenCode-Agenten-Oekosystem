@@ -11,6 +11,14 @@ import { extractFrontmatter, validateAgentFrontmatter, validateSkillFrontmatter 
 import { parseJsonc } from "./lib/jsonc.mjs"
 import { pathExists, readTextIfExists, toAbsolutePath, normalizePosix } from "./lib/paths.mjs"
 import { safeRedactText, secretValuesFromEnv } from "./lib/security/redaction.mjs"
+import {
+  EMPTY_USER_ACTION_MESSAGE,
+  USER_ACTION_REASON_CODES,
+  USER_ACTION_SECTION_TITLE,
+  createUserActionHandoff,
+  renderUserActionHandoff,
+  validateCompletionMarkdown,
+} from "./lib/user-action-handoff.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 
@@ -39,6 +47,8 @@ async function main() {
     "governance/ecosystem-registry-portable.schema.json",
     "governance/run-metrics.schema.json",
     "governance/closure-evidence.schema.json",
+    "governance/user-action-handoff.schema.json",
+    ".opencode/validation/schema-validators/user-action-handoff.schema.json",
   ]) issues.push(...await validateJsonFile(path.join(repoRoot, schema), schema))
 
   issues.push(...await validateMarkdownDirs(path.join(repoRoot, ".opencode/skills"), "skill"))
@@ -85,6 +95,9 @@ async function main() {
     "docs/reports/working-method-deep-dive-2026-07-15.md",
     // Gate Kernel
     "docs/architecture/runtime-neutral-gate-kernel.md",
+    "docs/architecture/adr-010-canonical-user-action-handoff.md",
+    "docs/migration/canonical-user-action-handoff.md",
+    "docs/reports/canonical-user-action-handoff-security-review.md",
     "docs/reports/runtime-gate-kernel-research.md",
     "docs/reports/odysseus-integration-research.md",
     "docs/reports/gate-kernel-security-review.md",
@@ -112,6 +125,9 @@ async function main() {
     "test/gates/approval.test.mjs",
     "test/gates/runtime-adapters.test.mjs",
     "test/gates/comment-policy.test.mjs",
+    "governance/user-action-handoff.schema.json",
+    "scripts/lib/user-action-handoff.mjs",
+    "scripts/validate-user-action-handoff.mjs",
     "LICENSE",
   ]
   issues.push(...await validateRequiredFiles(requiredFiles))
@@ -161,6 +177,8 @@ async function main() {
     "scripts/lib/ecosystem-registry.mjs",
     "scripts/lib/runtime-activation-proof.mjs",
     "scripts/lib/closure-evidence.mjs",
+    "scripts/lib/user-action-handoff.mjs",
+    "scripts/validate-user-action-handoff.mjs",
   ]))
 
   issues.push(...await validateNoAbsoluteUserPaths())
@@ -184,6 +202,7 @@ async function main() {
   issues.push(...await validateInstructions())
   issues.push(...await validateGovernanceV2())
   issues.push(...await validateUnifiedLifecycleArtifacts())
+  issues.push(...await validateUserActionHandoffContract())
 
   // working-method.json content checks
   issues.push(...await validateWorkingMethodRiskTiers())
@@ -581,6 +600,73 @@ async function validateUnifiedLifecycleArtifacts() {
     for (const operation of ["inspect", "plan", "install", "update", "verify", "status", "rollback", "register", "list", "remove", "export"]) {
       if (!new RegExp(`\\b${operation}\\b`).test(cli.stdout || "")) issues.push(`unified lifecycle: CLI help lacks ${operation}`)
     }
+  }
+  return issues
+}
+
+async function validateUserActionHandoffContract() {
+  const issues = []
+  const schemaPath = path.join(repoRoot, "governance", "user-action-handoff.schema.json")
+  const schemaMirrorPath = path.join(repoRoot, ".opencode", "validation", "schema-validators", "user-action-handoff.schema.json")
+  const policyPath = path.join(repoRoot, "governance", "policy-core.yaml")
+  const generatedPath = path.join(repoRoot, "governance", "generated", "policy-core.json")
+  let schema
+  let schemaMirror
+  let policy
+  let generated
+  try {
+    ;[schema, schemaMirror, policy, generated] = await Promise.all([
+      fs.readFile(schemaPath, "utf8").then(JSON.parse),
+      fs.readFile(schemaMirrorPath, "utf8").then(JSON.parse),
+      fs.readFile(policyPath, "utf8").then(JSON.parse),
+      fs.readFile(generatedPath, "utf8").then(JSON.parse),
+    ])
+  } catch (error) {
+    return [`user-action handoff: canonical JSON is unreadable (${error instanceof Error ? error.message : String(error)})`]
+  }
+
+  const contract = policy.user_action_handoff
+  if (!contract) return ["user-action handoff: policy-core lacks user_action_handoff"]
+  if (contract.schema !== "governance/user-action-handoff.schema.json") issues.push("user-action handoff: policy schema reference drift")
+  if (contract.actions_field !== "actions") issues.push("user-action handoff: policy actions-field drift")
+  if (contract.language !== "de" || contract.section_title !== USER_ACTION_SECTION_TITLE || contract.empty_message !== EMPTY_USER_ACTION_MESSAGE) {
+    issues.push("user-action handoff: policy language/title/empty-message drift")
+  }
+  if (JSON.stringify(contract.reason_codes) !== JSON.stringify(USER_ACTION_REASON_CODES)) issues.push("user-action handoff: policy/runtime reason-code drift")
+  if (JSON.stringify(generated.user_action_handoff) !== JSON.stringify(contract)) issues.push("user-action handoff: generated policy drift")
+  if (schema.properties?.language?.const !== "de" || schema.properties?.section_title?.const !== USER_ACTION_SECTION_TITLE || schema.properties?.empty_message?.const !== EMPTY_USER_ACTION_MESSAGE) {
+    issues.push("user-action handoff: schema language/title/empty-message drift")
+  }
+  if (JSON.stringify(schema.$defs?.action?.properties?.reason_code?.enum) !== JSON.stringify(USER_ACTION_REASON_CODES)) {
+    issues.push("user-action handoff: schema/runtime reason-code drift")
+  }
+  if (JSON.stringify(schemaMirror) !== JSON.stringify(schema)) issues.push("user-action handoff: project-local schema mirror drift")
+
+  const emptySection = renderUserActionHandoff(createUserActionHandoff([]))
+  if (emptySection !== `## ${USER_ACTION_SECTION_TITLE}\n\n${EMPTY_USER_ACTION_MESSAGE}`) issues.push("user-action handoff: empty renderer contract drift")
+  if (validateCompletionMarkdown(`# Bericht\n\n${emptySection}`).length > 0) issues.push("user-action handoff: canonical empty report does not validate")
+
+  const surfaces = [
+    ["PROMPT-KERNEL.md", [USER_ACTION_SECTION_TITLE, EMPTY_USER_ACTION_MESSAGE]],
+    ["AGENTS.md", [USER_ACTION_SECTION_TITLE, EMPTY_USER_ACTION_MESSAGE, ".opencode/validation/schema-validators/user-action-handoff.schema.json"]],
+    ["bootstrap/verify.mjs", ["createUserActionHandoff", "renderUserActionHandoff", "user_action_handoff"]],
+    [".hermes.md", [USER_ACTION_SECTION_TITLE, EMPTY_USER_ACTION_MESSAGE, "github_web"]],
+    [".hermes/skill-bundles/canonical-working-method.yaml", [USER_ACTION_SECTION_TITLE, EMPTY_USER_ACTION_MESSAGE, "github_web", ...USER_ACTION_REASON_CODES]],
+    ["integrations/spec-kit/presets/opencode-canonical-method/commands/speckit.implement.md", [USER_ACTION_SECTION_TITLE, EMPTY_USER_ACTION_MESSAGE]],
+    ["integrations/spec-kit/extensions/opencode-evidence/commands/speckit.opencode-evidence.close.md", [USER_ACTION_SECTION_TITLE, EMPTY_USER_ACTION_MESSAGE, "github_web"]],
+  ]
+  for (const [relative, expectedValues] of surfaces) {
+    const text = await readTextIfExists(path.join(repoRoot, relative))
+    for (const expected of expectedValues) {
+      if (!text?.includes(expected)) issues.push(`user-action handoff: missing ${expected} in ${relative}`)
+    }
+  }
+  const hermesManifest = JSON.parse(await fs.readFile(path.join(repoRoot, ".hermes", "bundles", "project-bootstrap.json"), "utf8"))
+  if (hermesManifest.completion_contract?.actions_field !== "actions"
+    || hermesManifest.completion_contract?.schema !== ".opencode/validation/schema-validators/user-action-handoff.schema.json"
+    || hermesManifest.completion_contract?.language !== "de"
+    || hermesManifest.completion_contract?.github_platform !== "github_web") {
+    issues.push("user-action handoff: Hermes completion contract drift")
   }
   return issues
 }

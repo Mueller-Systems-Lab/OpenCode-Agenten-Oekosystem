@@ -8,8 +8,10 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const sourcePath = path.join(root, 'governance', 'policy-core.yaml')
 const generatedDir = path.join(root, 'governance', 'generated')
+const handoffSchemaSource = path.join(root, 'governance', 'user-action-handoff.schema.json')
+const handoffSchemaMirror = path.join(root, '.opencode', 'validation', 'schema-validators', 'user-action-handoff.schema.json')
 const generatedNotice = 'GENERATED FROM governance/policy-core.yaml — DO NOT EDIT DIRECTLY'
-const required = ['schema_version', 'version', 'authority_layers', 'risk_tiers', 'execution_profiles', 'decision_classes', 'effect_classes', 'reversibility_classes', 'approval_budgets', 'approval_receipts', 'change_leases', 'approval_bundling', 'approval_deduplication', 'scope_rules', 'agent_roles', 'delegation', 'capability_registry', 'evidence_contracts', 'completion_classifications', 'prompt_kernel']
+const required = ['schema_version', 'version', 'authority_layers', 'risk_tiers', 'execution_profiles', 'decision_classes', 'effect_classes', 'reversibility_classes', 'approval_budgets', 'approval_receipts', 'change_leases', 'approval_bundling', 'approval_deduplication', 'scope_rules', 'agent_roles', 'delegation', 'capability_registry', 'evidence_contracts', 'completion_classifications', 'user_action_handoff', 'prompt_kernel']
 
 function readPolicy() {
   const text = fs.readFileSync(sourcePath, 'utf8').trim()
@@ -60,8 +62,17 @@ function checkOrWrite(checkOnly) {
       fs.writeFileSync(target, expected)
     }
   }
+  const schemaExpected = fs.readFileSync(handoffSchemaSource, 'utf8')
+  if (checkOnly) {
+    if (!fs.existsSync(handoffSchemaMirror) || fs.readFileSync(handoffSchemaMirror, 'utf8') !== schemaExpected) {
+      drift.push('.opencode/validation/schema-validators/user-action-handoff.schema.json')
+    }
+  } else {
+    fs.mkdirSync(path.dirname(handoffSchemaMirror), { recursive: true })
+    fs.writeFileSync(handoffSchemaMirror, schemaExpected)
+  }
   if (drift.length) throw new Error(`Governance drift detected: ${drift.join(', ')}`)
-  return { generated: Object.keys(files), drift }
+  return { generated: [...Object.keys(files), '.opencode/validation/schema-validators/user-action-handoff.schema.json'], drift }
 }
 
 const checkOnly = process.argv.includes('--check')

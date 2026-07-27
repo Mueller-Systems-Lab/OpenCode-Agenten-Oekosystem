@@ -1,6 +1,6 @@
 {
   "schema_version": "governance-v2.policy-core.1",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "authority_layers": ["SYSTEM_POLICY", "OWNER_INTENT", "PROJECT_POLICY", "TASK_CAPSULE", "CHANGE_LEASE", "APPROVAL_RECEIPT", "EXPLICIT_OWNER_DECISION"],
   "owner_intent": {"schema": "governance/owner-intent.schema.json", "source": "owner"},
   "default_decision_preferences": {"prefer_reversible_changes": true, "prefer_local_over_cloud": true, "prefer_existing_dependencies": true, "prefer_fail_closed": true, "prefer_small_scoped_refactors": true, "prefer_draft_pr_over_direct_merge": true, "prefer_evidence_over_status_claims": true, "prefer_single_recommended_option": true, "prefer_continue_safe_work_when_partially_blocked": true},
@@ -41,5 +41,19 @@
   },
   "evidence_contracts": {"claims_require_proportionate_evidence": true, "approval_compliance": ["receipt_or_lease_id", "scope", "effect", "reversibility", "actor", "timestamp"], "outcome_verification": true},
   "completion_classifications": ["RED_BLOCK", "TOOL_GAP", "NEEDS_REVIEW", "VERIFIED_IN_SCOPE"],
+  "user_action_handoff": {
+    "schema": "governance/user-action-handoff.schema.json",
+    "required": true,
+    "language": "de",
+    "section_title": "Erforderliche Aktion durch den Nutzer",
+    "empty_message": "Keine Aktion durch den Nutzer erforderlich.",
+    "actions_field": "actions",
+    "last_factual_section": true,
+    "reason_codes": ["PHYSICAL_ACTION_REQUIRED", "RESOURCE_UNREACHABLE", "MISSING_PERMISSION", "MISSING_AUTHORIZATION", "NON_DELEGABLE_OWNER_APPROVAL", "PERSONAL_LEGAL_DECISION", "MANUAL_SECURITY_CONFIRMATION"],
+    "capability_first_checks": ["effect", "tool_available", "tool_authenticated", "permission_available", "action_authorized", "alternative_capability", "suitable_agent", "personal_non_delegability"],
+    "github_platform": "github_web",
+    "forbidden_sources": ["recommendation", "residual_risk", "next_step", "already_executed_action"],
+    "unknown_or_incomplete": "RED_BLOCK"
+  },
   "prompt_kernel": {"file": "PROMPT-KERNEL.md", "max_tokens": 2500, "permanent_rules": 8, "lazy_detail_policies": true}
 }

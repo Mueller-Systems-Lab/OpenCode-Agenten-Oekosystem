@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencode-agent-ecosystem.local/governance/user-action-handoff.schema.json",
+  "title": "Canonical User Action Handoff",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "required",
+    "language",
+    "section_title",
+    "empty_message",
+    "actions"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ocae-user-action-handoff.1"
+    },
+    "required": {
+      "const": true
+    },
+    "language": {
+      "const": "de"
+    },
+    "section_title": {
+      "const": "Erforderliche Aktion durch den Nutzer"
+    },
+    "empty_message": {
+      "const": "Keine Aktion durch den Nutzer erforderlich."
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/action"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "reason_evidence": {
+      "type": "object",
+      "required": [
+        "capability_checked",
+        "effect",
+        "tool_available",
+        "tool_authenticated",
+        "permission_available",
+        "action_authorized",
+        "alternatives_checked",
+        "alternative_capability_available",
+        "alternative_capability_authorized",
+        "suitable_agent_available",
+        "personal_decision_required",
+        "physical_presence_required",
+        "manual_security_policy_required",
+        "evidence"
+      ],
+      "properties": {
+        "capability_checked": {
+          "const": true
+        },
+        "effect": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tool_available": {
+          "type": "boolean"
+        },
+        "tool_authenticated": {
+          "type": "boolean"
+        },
+        "permission_available": {
+          "type": "boolean"
+        },
+        "action_authorized": {
+          "type": "boolean"
+        },
+        "alternatives_checked": {
+          "const": true
+        },
+        "alternative_capability_available": {
+          "type": "boolean"
+        },
+        "alternative_capability_authorized": {
+          "type": "boolean"
+        },
+        "suitable_agent_available": {
+          "type": "boolean"
+        },
+        "personal_decision_required": {
+          "type": "boolean"
+        },
+        "physical_presence_required": {
+          "type": "boolean"
+        },
+        "manual_security_policy_required": {
+          "type": "boolean"
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "web_ui_step": {
+      "type": "object",
+      "required": [
+        "order",
+        "control_type",
+        "label",
+        "instruction"
+      ],
+      "properties": {
+        "order": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "control_type": {
+          "enum": [
+            "tab",
+            "menu",
+            "button",
+            "link",
+            "input",
+            "checkbox",
+            "section"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "instruction": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string"
+        },
+        "confirmation": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "web_ui": {
+      "type": "object",
+      "required": [
+        "label_source",
+        "steps",
+        "abort_condition"
+      ],
+      "properties": {
+        "label_source": {
+          "enum": [
+            "live_checked",
+            "official_docs",
+            "current_expected_not_live_checked"
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/web_ui_step"
+          },
+          "contains": {
+            "type": "object",
+            "required": ["control_type", "confirmation"],
+            "properties": {
+              "control_type": { "const": "button" },
+              "confirmation": { "const": true }
+            }
+          },
+          "minContains": 1
+        },
+        "abort_condition": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repository": {
+          "type": "string",
+          "pattern": "^[^/\\s]+/[^/\\s]+$"
+        },
+        "pull_request": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "issue": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "branch": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "minProperties": 1,
+      "additionalProperties": false
+    },
+    "action": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "reason_code",
+        "reason",
+        "reason_evidence",
+        "obligation",
+        "source_category",
+        "status",
+        "platform",
+        "target",
+        "instructions",
+        "sort_order"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason_code": {
+          "enum": [
+            "PHYSICAL_ACTION_REQUIRED",
+            "RESOURCE_UNREACHABLE",
+            "MISSING_PERMISSION",
+            "MISSING_AUTHORIZATION",
+            "NON_DELEGABLE_OWNER_APPROVAL",
+            "PERSONAL_LEGAL_DECISION",
+            "MANUAL_SECURITY_CONFIRMATION"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason_evidence": {
+          "$ref": "#/$defs/reason_evidence"
+        },
+        "obligation": {
+          "const": "required"
+        },
+        "source_category": {
+          "const": "non_delegable_user_action"
+        },
+        "status": {
+          "const": "pending"
+        },
+        "platform": {
+          "enum": [
+            "physical",
+            "manual",
+            "github_web"
+          ]
+        },
+        "target": {
+          "$ref": "#/$defs/target"
+        },
+        "instructions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "sort_order": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "web_ui": {
+          "$ref": "#/$defs/web_ui"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "platform": {
+                "const": "github_web"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "web_ui"
+            ],
+            "properties": {
+              "target": {
+                "required": [
+                  "repository"
+                ],
+                "anyOf": [
+                  { "required": ["pull_request"] },
+                  { "required": ["issue"] },
+                  { "required": ["branch"] }
+                ]
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "web_ui"
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  }
+}

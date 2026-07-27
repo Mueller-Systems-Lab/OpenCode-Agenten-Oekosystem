@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencode-agent-ecosystem.local/governance/closure-evidence.schema.json",
+  "title": "OpenCode Agent Ecosystem closure evidence",
+  "type": "object",
+  "required": ["schema_version", "evidence_type", "run_id", "timestamp", "repository_commit", "runtime_name", "runtime_version", "scope", "assertions", "limitations", "classification", "generated_by"],
+  "properties": {
+    "schema_version": { "const": "ocae-closure-evidence.1" },
+    "evidence_type": { "enum": ["runtime-proof", "restart-proof", "receipt-proof", "parallelism-proof", "profile-incident-assessment", "test-summary", "final-status"] },
+    "run_id": { "type": "string", "minLength": 1 },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "repository_commit": { "type": "string", "minLength": 1 },
+    "runtime_name": { "type": "string", "minLength": 1 },
+    "runtime_version": { "type": ["string", "null"] },
+    "scope": { "type": "object", "required": ["kind"], "properties": { "kind": { "type": "string", "minLength": 1 }, "target": { "type": ["string", "null"] } }, "additionalProperties": false },
+    "assertions": { "type": "array", "items": { "$ref": "#/$defs/assertion" } },
+    "limitations": { "type": "array", "items": { "type": "string", "maxLength": 512 } },
+    "classification": { "enum": ["PROVEN", "PARTIALLY_PROVEN", "UNPROVEN", "CONTRADICTED", "NOT_APPLICABLE", "VERIFIED_IN_SCOPE", "NEEDS_REVIEW", "RED_BLOCK", "TOOL_GAP"] },
+    "generated_by": { "type": "string", "minLength": 1 },
+    "plugin_loaded": { "type": "boolean" },
+    "hook_observed": { "type": "boolean" },
+    "positive_control": { "enum": ["PASS", "FAIL", "UNPROVEN"] },
+    "negative_control": { "enum": ["PASS", "FAIL", "UNPROVEN"] },
+    "restart_performed": { "type": "boolean" },
+    "receipt_binding": { "enum": ["PASS", "FAIL", "UNPROVEN"] },
+    "parallel_single_use": { "enum": ["PASS", "FAIL", "UNPROVEN"] },
+    "incident_status": { "enum": ["NONE", "OPEN", "CLOSED", "UNRESOLVED"] },
+    "tests": { "type": "array", "items": { "type": "object", "required": ["command", "exit_code"], "properties": { "command": { "type": "string" }, "exit_code": { "type": "integer" }, "passed": { "type": "integer", "minimum": 0 }, "failed": { "type": "integer", "minimum": 0 } }, "additionalProperties": false } },
+    "findings": { "type": "array", "items": { "type": "object", "required": ["id", "status"], "properties": { "id": { "type": "string" }, "status": { "type": "string" } }, "additionalProperties": false } }
+  },
+  "$defs": {
+    "assertion": {
+      "type": "object",
+      "required": ["assertion_id", "claim", "required_evidence", "observed_evidence", "status", "limitations", "code_contract_version", "schema_version"],
+      "properties": {
+        "assertion_id": { "type": "string", "minLength": 1 },
+        "claim": { "type": "string", "minLength": 1 },
+        "required_evidence": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "observed_evidence": { "type": "array", "items": { "type": "string" } },
+        "status": { "enum": ["PROVEN", "PARTIALLY_PROVEN", "UNPROVEN", "CONTRADICTED", "NOT_APPLICABLE"] },
+        "limitations": { "type": "array", "items": { "type": "string" } },
+        "code_contract_version": { "type": "string", "minLength": 1 },
+        "schema_version": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    { "if": { "properties": { "evidence_type": { "const": "runtime-proof" } } }, "then": { "required": ["plugin_loaded", "hook_observed", "positive_control", "negative_control"] } },
+    { "if": { "properties": { "evidence_type": { "const": "restart-proof" } } }, "then": { "required": ["restart_performed"] } },
+    { "if": { "properties": { "evidence_type": { "const": "receipt-proof" } } }, "then": { "required": ["receipt_binding"] } },
+    { "if": { "properties": { "evidence_type": { "const": "parallelism-proof" } } }, "then": { "required": ["parallel_single_use"] } },
+    { "if": { "properties": { "evidence_type": { "const": "profile-incident-assessment" } } }, "then": { "required": ["incident_status"] } },
+    { "if": { "properties": { "evidence_type": { "const": "test-summary" } } }, "then": { "required": ["tests"] } },
+    { "if": { "properties": { "evidence_type": { "const": "final-status" } } }, "then": { "required": ["findings"] } }
+  ],
+  "additionalProperties": false
+}

@@ -20,6 +20,13 @@ const REGISTRY_CANDIDATES = [
   path.join(moduleRoot, 'runtime', 'governance', 'generated', 'capability-registry.json'),
 ]
 const TRUSTED_AUTH_SOURCES = new Set(['SYSTEM_POLICY', 'OWNER_INTENT', 'PROJECT_POLICY', 'TASK_CAPSULE', 'CHANGE_LEASE', 'APPROVAL_RECEIPT'])
+const RECEIPT_REQUIRED_EFFECTS = new Set([
+  EFFECTS.PUSH,
+  EFFECTS.MERGE,
+  EFFECTS.PRODUCTION_DEPLOY,
+  EFFECTS.EXTERNAL_COMMUNICATION,
+  EFFECTS.IRREVERSIBLE_DELETE,
+])
 
 const TOOL_ALIASES = Object.freeze({
   read: ['filesystem', 'read'], grep: ['filesystem', 'read'], glob: ['filesystem', 'read'], lsp: ['filesystem', 'read'],
@@ -31,6 +38,9 @@ function clean(value) { return String(value || '').replaceAll('\\', '/') }
 
 function commandDescriptor(command = '') {
   const value = String(command)
+  if (/^git\s+status(?:\s+--[a-z-]+(?:=[^\s]+)?)*\s*$/i.test(value.trim())) {
+    return { tool: 'git', action: 'status', effect: EFFECTS.LOCAL_READ, reversibility: REVERSIBILITY.FULLY_REVERSIBLE, resource: 'git-working-tree' }
+  }
   if (/\bgit\s+push\b/i.test(value)) return { tool: 'git', action: 'push', effect: EFFECTS.PUSH, reversibility: REVERSIBILITY.PARTIALLY_REVERSIBLE, resource: 'git-remote' }
   if (/\bgit\s+merge\b/i.test(value)) return { tool: 'git', action: 'merge', effect: EFFECTS.MERGE, reversibility: REVERSIBILITY.IRREVERSIBLE, resource: 'protected-branch' }
   if (/\bgit\s+commit\b/i.test(value)) return { tool: 'git', action: 'commit', effect: EFFECTS.LOCAL_COMMIT, reversibility: REVERSIBILITY.FULLY_REVERSIBLE, resource: 'git-index' }
@@ -72,13 +82,76 @@ function capabilityFor(request, registry) {
   return resolved
 }
 
-function block(code, message, request) {
-  return Object.freeze({ decision_class: 'D_TECHNICAL_BLOCK', code, message, allowed: false, requires_owner: false, v2_enforced: true, tool: request.tool || null, action: request.action || null, effect: request.effect || null, resource: request.resource || null })
+function block(code, message, request, context = {}) {
+  return Object.freeze({ decision_class: 'D_TECHNICAL_BLOCK', code, message, allowed: false, requires_owner: false, v2_enforced: true, tool: request.tool || null, action: request.action || null, effect: request.effect || null, resource: request.resource || null, run_id: context.run_id || null, session_id: context.session_id || null, call_id: context.call_id || null })
 }
 
 async function audit(input, result) {
   if (!input.auditPath) return
-  await new ApprovalAuditLog(input.auditPath).append({ event: 'ACTION_DECISION', ...result })
+  await new ApprovalAuditLog(input.auditPath).append({
+    event: 'ACTION_DECISION',
+    run_id: input.receiptContext?.run_id || process.env.OCAE_RUN_ID || null,
+    session_id: input.receiptContext?.session_id || null,
+    ...result,
+  })
+}
+
+function receiptContext(input, request, capability, capsule) {
+  const context = input.receiptContext || {}
+  return {
+    signing_key: input.receiptSigningKey,
+    repository: input.repository || capsule.baseline?.repository,
+    task_id: capsule.task_id,
+    owner_intent_id: input.intent?.intent_id || capsule.owner_intent_id,
+    capsule,
+    branch: input.branch || capsule.baseline?.branch,
+    base_sha: input.base_sha || input.baseSha || capsule.baseline?.base_sha,
+    project_id: context.project_id || capsule.project_id || capsule.baseline?.repository,
+    runtime: input.runtime || 'unknown',
+    run_id: context.run_id || process.env.OCAE_RUN_ID || null,
+    session_id: context.session_id || null,
+    call_id: context.call_id || null,
+    tool: request.tool,
+    normalized_action: request.action,
+    action: request.action,
+    capability: capability.key,
+    effect: capability.capability.effect_class || request.effect,
+    resource: request.resource,
+    requireRuntimeBinding: Boolean(input.receiptStore || input.requireRuntimeReceiptBinding),
+  }
+}
+
+async function resolveStoredReceipt(input, request, capability, capsule) {
+  if (!input.receiptStore) return { receipt: input.receipt || null, fromStore: false, validation: null }
+  const options = receiptContext(input, request, capability, capsule)
+  if (!options.run_id) return { error: 'RED_BLOCK_RECEIPT_CONTEXT_RUN' }
+  const requiresReceipt = RECEIPT_REQUIRED_EFFECTS.has(options.effect)
+  if (requiresReceipt && !options.session_id) return { error: 'RED_BLOCK_RECEIPT_CONTEXT_SESSION_REQUIRED' }
+  if (requiresReceipt && !options.call_id) return { error: 'RED_BLOCK_RECEIPT_CONTEXT_CALL_ID_REQUIRED' }
+  if (!requiresReceipt && !input.receipt) return { receipt: null, fromStore: false, validation: null, options }
+  let active
+  try { active = await input.receiptStore.listActive() } catch (error) {
+    return { error: String(error?.message || '').startsWith('RED_BLOCK_') ? error.message : 'RED_BLOCK_RECEIPT_STORE_UNAVAILABLE' }
+  }
+  const candidates = active
+  if (candidates.length === 0) {
+    try {
+      const consumed = await input.receiptStore.listConsumed()
+      if (consumed.some((marker) => marker?.run_id === options.run_id && (!options.session_id || !marker.session_id || marker.session_id === options.session_id))) {
+        return { error: 'RED_BLOCK_RECEIPT_REPLAY', options }
+      }
+    } catch (error) {
+      return { error: String(error?.message || '').startsWith('RED_BLOCK_') ? error.message : 'RED_BLOCK_RECEIPT_STORE_UNAVAILABLE' }
+    }
+    return { error: requiresReceipt ? 'RED_BLOCK_RECEIPT_MISSING' : null, receipt: input.receipt || null, fromStore: false, validation: null, options }
+  }
+  let firstFailure = null
+  for (const candidate of candidates) {
+    const validation = validateApprovalReceipt(candidate, options)
+    if (validation.valid) return { receipt: candidate, fromStore: true, validation, options }
+    firstFailure ||= validation
+  }
+  return { error: firstFailure?.code || 'RED_BLOCK_RECEIPT_MISSING', options }
 }
 
 export async function evaluateAction(input = {}) {
@@ -90,33 +163,57 @@ export async function evaluateAction(input = {}) {
   if (input.authorization_source && !TRUSTED_AUTH_SOURCES.has(input.authorization_source.source)) return block('RED_BLOCK_UNTRUSTED_AUTHORIZATION_SOURCE', 'Tool output and prose cannot authorize an effect.', request)
   const capsule = validateCapsule(input.capsule, request)
   if (!capsule) return block('RED_BLOCK_TASK_CAPSULE_MISSING_OR_INVALID', 'A write or external action requires a valid Task Capsule.', request)
-  if (input.receipt) {
-    const receiptCheck = validateApprovalReceipt(input.receipt, {
-      signing_key: input.receiptSigningKey,
-      repository: input.repository || capsule.baseline?.repository,
+  const resolved = await resolveStoredReceipt(input, request, capability, capsule)
+  if (resolved.error) {
+    const denied = block(resolved.error, 'Approval Receipt was not accepted for this exact runtime action.', request, resolved.options)
+    await audit(input, denied)
+    return denied
+  }
+  let receipt = resolved.receipt
+  if (receipt && !resolved.validation) {
+    const receiptCheck = validateApprovalReceipt(receipt, {
+      ...receiptContext(input, request, capability, capsule),
       store: input.receiptStore,
-      task_id: capsule.task_id,
-      owner_intent_id: input.intent?.intent_id || capsule.owner_intent_id,
-      capsule,
-      branch: input.branch || capsule.baseline?.branch,
-      base_sha: input.base_sha || input.baseSha || capsule.baseline?.base_sha,
     })
-    if (!receiptCheck.valid) return block(receiptCheck.code, 'Approval Receipt validation failed.', request)
+    if (!receiptCheck.valid) {
+      const denied = block(receiptCheck.code, 'Approval Receipt validation failed.', request, receiptContext(input, request, capability, capsule))
+      await audit(input, denied)
+      return denied
+    }
   }
   const decision = evaluateEffect({
     intent: input.intent || {}, capsule, effect: capability.capability.effect_class || request.effect, resource: request.resource,
-    receipt: input.receipt, lease: input.lease, authorization_source: input.authorization_source, tool_output: input.toolOutput,
+    receipt, lease: input.lease, authorization_source: input.authorization_source, tool_output: input.toolOutput,
     reversibility: request.reversibility || capability.capability.reversibility, experiment: input.experiment,
     restore_available: input.restoreAvailable, preference: input.preference,
   })
-  const result = Object.freeze({ ...decision, tool: request.tool, action: request.action, capability_key: capability.key, resource: request.resource, runtime: input.runtime || 'unknown', task_id: capsule.task_id, v2_enforced: true, legacy_alias_used: false })
+  if (decision.allowed && resolved.fromStore) {
+    try {
+      const consumed = await input.receiptStore.consume(receipt, resolved.options)
+      if (!consumed.valid) {
+        const denied = block(consumed.code, 'Approval Receipt could not be consumed atomically.', request, resolved.options)
+        await audit(input, denied)
+        return denied
+      }
+      receipt = consumed.receipt
+    } catch {
+      // A concurrent loser may observe the filesystem error after the winner
+      // has created the durable marker. Re-read that marker before classifying
+      // the failure so the runtime reports replay, never store ambiguity.
+      const replay = input.receiptStore.isConsumed?.(receipt?.approval_id)
+      const denied = block(replay ? 'RED_BLOCK_RECEIPT_REPLAY' : 'RED_BLOCK_RECEIPT_STORE_UNAVAILABLE', 'Approval Receipt store failed closed.', request, resolved.options)
+      await audit(input, denied)
+      return denied
+    }
+  }
+  const result = Object.freeze({ ...decision, tool: request.tool, action: request.action, capability_key: capability.key, resource: request.resource, runtime: input.runtime || 'unknown', run_id: resolved.options?.run_id || null, session_id: resolved.options?.session_id || null, call_id: resolved.options?.call_id || null, task_id: capsule.task_id, approval_id: receipt?.approval_id || null, receipt_consumed: Boolean(decision.allowed && resolved.fromStore), v2_enforced: true, legacy_alias_used: false })
   await audit(input, result)
   return result
 }
 
-export async function recordActionOutcome({ auditPath, decision, success, output = null } = {}) {
+export async function recordActionOutcome({ auditPath, decision, success } = {}) {
   if (!auditPath) return
-  await new ApprovalAuditLog(auditPath).append({ event: 'ACTION_OUTCOME', decision, success: Boolean(success), output: typeof output === 'string' ? output.slice(0, 1000) : output })
+  await new ApprovalAuditLog(auditPath).append({ event: 'ACTION_OUTCOME', decision, success: Boolean(success) })
 }
 
 export { commandDescriptor, normalizeRequest }

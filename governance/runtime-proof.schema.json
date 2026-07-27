@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencode-agent-ecosystem.local/governance/runtime-proof.schema.json",
+  "type": "object",
+  "required": ["schema_version", "project_id", "repository_root", "governance_source", "runtime", "activation", "evidence", "assertions", "uncertainties", "classification", "verified_at"],
+  "properties": {
+    "schema_version": { "const": "1.1.0" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "repository_root": { "type": "string", "minLength": 1 },
+    "governance_source": { "type": "object", "required": ["repository", "commit", "version"], "properties": { "repository": { "type": ["string", "null"] }, "commit": { "type": ["string", "null"] }, "version": { "type": ["string", "null"] } }, "additionalProperties": false },
+    "runtime": { "type": "object", "required": ["name", "version", "adapter", "adapter_version"], "properties": { "name": { "type": "string", "minLength": 1 }, "version": { "type": ["string", "null"] }, "adapter": { "type": "string", "minLength": 1 }, "adapter_version": { "type": ["string", "null"] } }, "additionalProperties": false },
+    "activation": {
+      "type": "object",
+      "required": ["runtime_detected", "adapter_selected", "hook_registered", "plugin_loaded", "hook_observed", "positive_control", "negative_control", "restart_performed", "restart_plugin_loaded", "restart_hook_observed", "restart_positive_control", "restart_negative_control", "receipt_required_without_receipt", "valid_receipt", "replay", "session_binding", "call_binding", "resource_binding", "effect_binding", "parallel_single_use", "restart_replay_persistence", "safe_action_allowed", "forbidden_action_blocked", "scope_escape_blocked", "secret_isolation_blocked", "approval_required_action_blocked_without_receipt", "approval_receipt_accepted", "replay_blocked", "restart_verified", "bypass_scan_completed"],
+      "properties": {
+        "runtime_detected": { "type": ["boolean", "null"] },
+        "adapter_selected": { "type": ["boolean", "null"] },
+        "hook_registered": { "type": ["boolean", "null"] },
+        "plugin_loaded": { "type": ["boolean", "null"] },
+        "hook_observed": { "type": ["boolean", "null"] },
+        "positive_control": { "enum": ["PASS", "FAIL", null] },
+        "negative_control": { "enum": ["PASS", "FAIL", null] },
+        "restart_performed": { "type": ["boolean", "null"] },
+        "restart_plugin_loaded": { "type": ["boolean", "null"] },
+        "restart_hook_observed": { "type": ["boolean", "null"] },
+        "restart_positive_control": { "enum": ["PASS", "FAIL", null] },
+        "restart_negative_control": { "enum": ["PASS", "FAIL", null] },
+        "receipt_required_without_receipt": { "enum": ["ALLOW", "BLOCK", "FAIL", null] },
+        "valid_receipt": { "enum": ["ALLOW", "BLOCK", "FAIL", null] },
+        "replay": { "enum": ["ALLOW", "BLOCK", "FAIL", null] },
+        "session_binding": { "enum": ["PASS", "FAIL", null] },
+        "call_binding": { "enum": ["PASS", "FAIL", null] },
+        "resource_binding": { "enum": ["PASS", "FAIL", null] },
+        "effect_binding": { "enum": ["PASS", "FAIL", null] },
+        "parallel_single_use": { "enum": ["PASS", "FAIL", null] },
+        "restart_replay_persistence": { "enum": ["PASS", "FAIL", null] },
+        "safe_action_allowed": { "type": ["boolean", "null"] },
+        "forbidden_action_blocked": { "type": ["boolean", "null"] },
+        "scope_escape_blocked": { "type": ["boolean", "null"] },
+        "secret_isolation_blocked": { "type": ["boolean", "null"] },
+        "approval_required_action_blocked_without_receipt": { "type": ["boolean", "null"] },
+        "approval_receipt_accepted": { "type": ["boolean", "null"] },
+        "replay_blocked": { "type": ["boolean", "null"] },
+        "restart_verified": { "type": ["boolean", "null"] },
+        "bypass_scan_completed": { "type": ["boolean", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": { "type": "string" }, "result": { "type": "string" }, "dynamic": { "type": "boolean" }, "critical_open_paths": { "type": "integer", "minimum": 0 }, "method": { "type": "string" }, "completed": { "type": "boolean" }, "classification": { "type": "string" }, "canonical_plugin_state": { "type": "string" }, "legacy_plugin_state": { "type": "string" }, "hook_observed": { "type": "boolean" }, "adapter": { "type": "string" }, "isolation": { "type": "string" }, "limitation": { "type": "string" }, "present_paths": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "assertions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["assertion_id", "claim", "required_evidence", "observed_evidence", "status", "limitations", "code_contract_version", "schema_version"],
+        "properties": {
+          "assertion_id": { "type": "string" }, "claim": { "type": "string" }, "required_evidence": { "type": "array", "items": { "type": "string" } }, "observed_evidence": { "type": "array", "items": { "type": "string" } }, "status": { "enum": ["PROVEN", "PARTIALLY_PROVEN", "UNPROVEN", "CONTRADICTED", "NOT_APPLICABLE"] }, "limitations": { "type": "array", "items": { "type": "string" } }, "code_contract_version": { "type": "string" }, "schema_version": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "uncertainties": { "type": "array", "items": { "type": "string" } },
+    "classification": { "enum": ["NOT_INSTALLED", "INSTALLED_UNVERIFIED", "HOOK_REGISTERED_UNPROVEN", "ACTIVATION_VERIFIED", "RESTART_PERSISTENCE_VERIFIED", "BYPASS_RISK", "TOOL_GAP", "RED_BLOCK"] },
+    "verified_at": { "type": "string", "format": "date-time" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "classification": { "enum": ["ACTIVATION_VERIFIED", "RESTART_PERSISTENCE_VERIFIED"] }
+        }
+      },
+      "then": {
+        "properties": {
+          "activation": {
+            "properties": {
+              "plugin_loaded": { "const": true },
+              "hook_observed": { "const": true },
+              "positive_control": { "const": "PASS" },
+              "negative_control": { "const": "PASS" },
+              "restart_performed": { "const": true },
+              "restart_plugin_loaded": { "const": true },
+              "restart_hook_observed": { "const": true },
+              "restart_positive_control": { "const": "PASS" },
+              "restart_negative_control": { "const": "PASS" },
+              "receipt_required_without_receipt": { "const": "BLOCK" },
+              "valid_receipt": { "const": "ALLOW" },
+              "replay": { "const": "BLOCK" },
+              "session_binding": { "const": "PASS" },
+              "call_binding": { "const": "PASS" },
+              "resource_binding": { "const": "PASS" },
+              "effect_binding": { "const": "PASS" },
+              "parallel_single_use": { "const": "PASS" },
+              "restart_replay_persistence": { "const": "PASS" }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

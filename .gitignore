@@ -28,9 +28,19 @@ __pycache__/
 
 # Runtime-local approval receipts and nonce ledger (never versionable)
 .opencode/approvals/
+.agent-governance/approvals/receipt-key
+.agent-governance/approvals/*.consumed
+.agent-governance/approvals/*.revoked
+.agent-governance/approvals/*.lock
 
 # Managed launcher runtime profiles (project-local, never versionable)
 .opencode/runtime-profile/
+
+# Time-bound local security-closure evidence (schemas and fixtures remain visible)
+/evidence/critical-closure-*/
+/evidence/final-opencode-closure-*/
+/evidence/runtime-proof-*/
+/review-reports/*-local-*.md
 
 # Local unsanitized compliance output (do not version)
 .opencode/reports/compliance/local/

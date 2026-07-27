@@ -449,7 +449,7 @@ function buildFilePlan(targetRoot, sourceRoot = repoRoot) {
       action: "create-hook-script",
     })
     files.push({
-      path: relativePath(targetRoot, path.join(targetRoot, ".opencode", "plugins", "governance-v2.mjs")),
+      path: relativePath(targetRoot, path.join(targetRoot, ".opencode", "plugin", "governance-v2.ts")),
       action: "create-hook-script",
     })
   }
@@ -684,9 +684,9 @@ process.exit(result.allowed ? 0 : result.requires_owner ? 1 : 2);
   await writeGeneratedIfSafe(targetRoot, destPath, hookScript)
   await fsPromises.chmod(destPath, 0o755)
 
-  const pluginDir = path.join(targetRoot, ".opencode", "plugins")
+  const pluginDir = path.join(targetRoot, ".opencode", "plugin")
   await ensureDirectory(pluginDir)
-  const pluginBridge = path.join(pluginDir, "governance-v2.mjs")
+  const pluginBridge = path.join(pluginDir, "governance-v2.ts")
   if (!fs.existsSync(pluginBridge)) {
     await writeGeneratedIfSafe(targetRoot, pluginBridge, "export { CanonicalGovernancePlugin as default, CanonicalGovernancePlugin } from '../../.agent-governance/hooks/opencode/canonical-governance.mjs'\n")
   }
@@ -694,6 +694,7 @@ process.exit(result.allowed ? 0 : result.requires_owner ? 1 : 2);
   const canonicalPlugin = `import fs from 'node:fs';
 import path from 'node:path';
 import { evaluateAction, recordActionOutcome } from '../../runtime/gates/evaluate-action.mjs';
+import { ApprovalReceiptStore, readSigningKeyFileSync } from '../../runtime/approval/approval-receipt.mjs';
 
 const readJson = (file) => { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return null; } };
 
@@ -701,23 +702,40 @@ export const CanonicalGovernancePlugin = async ({ directory, worktree } = {}) =>
   const targetRoot = directory || worktree || process.cwd();
   const decisions = new Map();
   const governanceRoot = path.join(targetRoot, '.agent-governance');
-  const context = () => ({
+  const receiptStore = new ApprovalReceiptStore(path.join(governanceRoot, 'approvals'));
+  const receiptSigningKey = () => {
+    const keyPath = path.join(governanceRoot, 'approvals', 'receipt-key');
+    try {
+      const stat = fs.lstatSync(keyPath);
+      if (!stat.isFile() || stat.isSymbolicLink()) return null;
+      return readSigningKeyFileSync(keyPath);
+    } catch { return null; }
+  };
+  const context = (input = {}) => ({
     targetRoot, runtime: 'opencode',
     capsule: readJson(path.join(governanceRoot, 'task-capsule.json')),
     intent: readJson(path.join(governanceRoot, 'owner-intent.json')),
     auditPath: path.join(governanceRoot, 'evidence', 'action-audit.jsonl'),
+    receiptStore,
+    receiptSigningKey: receiptSigningKey(),
+    receiptContext: {
+      project_id: readJson(path.join(governanceRoot, 'task-capsule.json'))?.project_id || null,
+      run_id: process.env.OCAE_RUN_ID || null,
+      session_id: input?.sessionID || input?.sessionId || null,
+      call_id: input?.callID || input?.callId || null,
+    },
   });
   return {
     'tool.execute.before': async (input, output) => {
       const args = output?.args || {};
-      const decision = await evaluateAction({ ...context(), tool: input?.tool, command: args.command, args, resource: args.filePath || args.path || args.url || input?.tool });
+      const decision = await evaluateAction({ ...context(input), tool: input?.tool, command: args.command, args, resource: args.filePath || args.path || args.url || input?.tool });
       decisions.set(input?.callID || input?.callId || input?.tool, decision);
       output.__governanceDecision = decision;
       if (!decision.allowed) throw new Error('[governance-v2] ' + decision.code + ': ' + (decision.message || 'effect rejected'));
     },
     'tool.execute.after': async (input, output) => {
       const key = input?.callID || input?.callId || input?.tool;
-      await recordActionOutcome({ auditPath: context().auditPath, decision: output?.__governanceDecision || decisions.get(key) || null, success: true, output: output?.result || null });
+      await recordActionOutcome({ auditPath: context(input).auditPath, decision: output?.__governanceDecision || decisions.get(key) || null, success: true });
       decisions.delete(key);
     },
   };

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { evaluateAction } from '../../runtime/gates/evaluate-action.mjs'
+import { commandDescriptor, evaluateAction } from '../../runtime/gates/evaluate-action.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const capsule = {
@@ -22,6 +22,21 @@ test('central gate allows a local reversible write in scope', async () => {
   assert.equal(result.allowed, true)
   assert.equal(result.decision_class, 'A_AUTONOMOUS')
   assert.equal(result.v2_enforced, true)
+})
+
+test('bash adapter allows the read-only git status proof action', async () => {
+  const descriptor = commandDescriptor('git status --short --branch')
+  assert.equal(descriptor.effect, 'LOCAL_READ')
+  assert.equal(descriptor.reversibility, 'FULLY_REVERSIBLE')
+  const result = await evaluateAction({
+    tool: 'bash',
+    command: 'git status --short --branch',
+    capsule: { ...capsule, allowed_effects: ['LOCAL_READ'] },
+    intent,
+    runtime: 'opencode',
+  })
+  assert.equal(result.allowed, true)
+  assert.equal(result.decision_class, 'A_AUTONOMOUS')
 })
 
 test('central gate blocks a protected external effect without owner decision', async () => {
@@ -61,4 +76,10 @@ test('entrypoint adapters reference the central V2 gate', () => {
   assert.match(plugin, /runtime.*gates.*evaluate-action|evaluateAction/)
   assert.match(installedCli, /evaluate-action\.mjs|evaluateAction/)
   assert.doesNotMatch(installedCli, /evaluate-all\.mjs|evaluateAllGates|GREEN_SAFE|AMBER_REVIEW/)
+})
+
+test('generated OpenCode bridge uses an auto-discovered plugin extension', () => {
+  const installer = fs.readFileSync(path.join(root, 'scripts/install-governance.mjs'), 'utf8')
+  assert.match(installer, /governance-v2\.ts/)
+  assert.doesNotMatch(installer, /plugins", "governance-v2\.mjs/)
 })

@@ -35,7 +35,7 @@
 - [x] T304 Run independent read-only review; fix and retest findings.
 - [x] T305 Create atomic commits and push the approved feature branch.
 - [x] T306 Clone the remote branch fresh and rerun full/focused verification.
-- [ ] T307 Post the structured completion comment to Issue #18.
+- [x] T307 Post the structured completion comment to Issue #18.
 
 ## Dependency Order
 

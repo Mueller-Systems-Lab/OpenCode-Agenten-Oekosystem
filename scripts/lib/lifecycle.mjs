@@ -5,6 +5,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { assertSafePath, fileHash, relativePath } from "./paths.mjs"
+import { createUserActionHandoff } from "./user-action-handoff.mjs"
 
 export const LIFECYCLE_OPERATIONS = Object.freeze([
   "INSPECT",
@@ -78,6 +79,7 @@ export async function inspectLifecycle(targetRoot) {
     if (state.governance.managed_drift.length > 0) return lifecycleResult({
       operation: "INSPECT", classification: "NEEDS_REVIEW", substatus: "OWNER_CONTENT_CONFLICT", state,
       blockers: [], owner_actions: ["Review locally modified managed files before update or rollback."],
+      user_action_handoff: createOwnerContentHandoff(),
       checked_claims: ["target path safety", "managed-file hashes"],
     })
     const substatus = state.layer_state === "NOT_INSTALLED"
@@ -311,8 +313,41 @@ function lifecycleResult(input) {
     tool_gaps: input.tool_gaps || [],
     owner_actions: input.owner_actions || [],
     evidence: input.evidence || [],
+    user_action_handoff: input.user_action_handoff || createUserActionHandoff([]),
     state: input.state || null,
   }
+}
+
+function createOwnerContentHandoff() {
+  return createUserActionHandoff([{
+    id: "owner-content-decision",
+    title: "Umgang mit lokal geändertem verwaltetem Inhalt entscheiden",
+    reason_code: "NON_DELEGABLE_OWNER_APPROVAL",
+    reason: "Der gewünschte Inhalt kann aus den technischen Vorgaben nicht eindeutig abgeleitet werden; eine persönliche Entscheidung des Eigentümers ist erforderlich.",
+    reason_evidence: {
+      capability_checked: true,
+      effect: "LOCAL_WRITE",
+      tool_available: true,
+      tool_authenticated: true,
+      permission_available: true,
+      action_authorized: false,
+      alternatives_checked: true,
+      alternative_capability_available: false,
+      alternative_capability_authorized: false,
+      suitable_agent_available: false,
+      personal_decision_required: true,
+      physical_presence_required: false,
+      manual_security_policy_required: false,
+      evidence: ["Drift in einer verwalteten Datei wurde erkannt; die gewünschte Entscheidung des Eigentümers ist technisch nicht ableitbar."],
+    },
+    obligation: "required",
+    source_category: "non_delegable_user_action",
+    status: "pending",
+    platform: "manual",
+    target: { description: "Lokal geänderter verwalteter Projektinhalt" },
+    instructions: ["Entscheide, ob der lokal geänderte verwaltete Inhalt erhalten oder durch die geplante Version ersetzt werden soll."],
+    sort_order: 10,
+  }])
 }
 
 function stringArray(value) {

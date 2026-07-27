@@ -15,6 +15,7 @@ import { mergeDeep, mergeManagedSections } from "./lib/merge.mjs"
 import { evaluateAllGates, CLASSIFICATIONS } from "./lib/gates/evaluate-all.mjs"
 import { evaluateAction } from "../runtime/gates/evaluate-action.mjs"
 import { safeRedactText, secretValuesFromEnv } from "./lib/security/redaction.mjs"
+import { createUserActionHandoff } from "./lib/user-action-handoff.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 
@@ -109,6 +110,7 @@ async function main() {
     path.join(targetRoot, ".opencode", "reports", "bootstrap", "discovery.md"),
     path.join(targetRoot, ".opencode", "reports", "bootstrap", "plan.json"),
     path.join(targetRoot, ".opencode", "reports", "bootstrap", "plan.md"),
+    path.join(targetRoot, ".opencode", "reports", "bootstrap", "report.json"),
     path.join(targetRoot, "docs", "reports", "universal-bootstrap-run-report.md"),
   ]
   const backup = await createBackup({ targetRoot, files: filesToBackup })
@@ -195,6 +197,7 @@ async function main() {
       `Gate classification: ${applyGateDecision.classification}`,
     ],
     uncertainties: validation.uncertainties,
+    user_action_handoff: createUserActionHandoff([]),
     gate_evaluation: {
       classification: applyGateDecision.classification,
       verification_level: applyGateDecision.verificationLevel,
@@ -206,6 +209,7 @@ async function main() {
     },
   }
 
+  await writeJsonReport(path.join(reportsDir, "report.json"), runReport)
   await writeMarkdownReport(path.join(targetRoot, "docs", "reports", "universal-bootstrap-run-report.md"), renderRunReportMarkdown(runReport))
 
   console.log(renderPlanMarkdown(reportPlan))
@@ -420,6 +424,18 @@ async function buildOverlay({ manifest, discovery, selected, mcpSelection, sourc
     conflicts.push(...treeConflicts)
   }
 
+  overlays.push({
+    destination: path.join(targetRoot, ".opencode", "validation", "schema-validators", "user-action-handoff.schema.json"),
+    kind: "file",
+    sourcePath: path.join(sourceRoot, "governance", "user-action-handoff.schema.json"),
+  })
+  await recordTopLevelConflict(
+    targetRoot,
+    path.join(targetRoot, ".opencode", "validation", "schema-validators", "user-action-handoff.schema.json"),
+    conflicts,
+    "Canonical user-action handoff schema",
+  )
+
   if (mcpSelection.remote_ci_requested) {
     overlays.push({
       destination: path.join(targetRoot, ".github", "workflows"),
@@ -445,6 +461,8 @@ function flattenOverlayFiles(overlays) {
       files.push({ destination: overlay.destination, action: "write-json" })
     } else if (overlay.kind === "markdown") {
       files.push({ destination: overlay.destination, action: overlay.sourcePath ? "merge-doc" : "create-doc" })
+    } else if (overlay.kind === "file") {
+      files.push({ destination: overlay.destination, action: "copy-canonical-file" })
     }
   }
   return files
@@ -477,6 +495,15 @@ async function applyOverlay(overlay) {
         next = mergeManagedSections(existing, [item.managed])
       }
       await writeText(item.destination, next)
+      continue
+    }
+    if (item.kind === "file") {
+      await assertSafePath(overlay.sourceRoot, item.sourcePath, "canonical file source")
+      await assertSafePath(overlay.targetRoot, item.destination, "canonical file destination")
+      if (!(await pathExists(item.destination))) {
+        await ensureParentDirectory(item.destination)
+        await fs.copyFile(item.sourcePath, item.destination)
+      }
       continue
     }
     if (item.kind === "tree") {

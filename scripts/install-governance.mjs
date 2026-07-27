@@ -27,6 +27,10 @@ import {
   CLASSIFICATIONS,
   classificationToExitCode,
 } from "./lib/gates/classifications.mjs"
+import {
+  createUserActionHandoff,
+  renderUserActionHandoff,
+} from "./lib/user-action-handoff.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const REDACTION_OPTIONS = Object.freeze({ secrets: [] })
@@ -137,6 +141,8 @@ function validateSourceRepository(repoRoot) {
     "scripts/lib/runtimes/opencode.mjs",
     "scripts/lib/runtimes/hermes.mjs",
     "scripts/lib/runtimes/odysseus.mjs",
+    "scripts/lib/user-action-handoff.mjs",
+    "governance/user-action-handoff.schema.json",
   ]
   const missing = []
   for (const rel of required) {
@@ -184,6 +190,8 @@ function getRuntimeFileList() {
     { source: "governance/policy-core.yaml", dest: "governance/policy-core.yaml" },
     { source: "governance/generated/policy-core.json", dest: "governance/generated/policy-core.json" },
     { source: "governance/generated/risk-profiles.json", dest: "governance/generated/risk-profiles.json" },
+    { source: "governance/user-action-handoff.schema.json", dest: "governance/user-action-handoff.schema.json" },
+    { source: "scripts/lib/user-action-handoff.mjs", dest: "user-action-handoff.mjs" },
     { source: "PROMPT-KERNEL.md", dest: "PROMPT-KERNEL.md" },
   ]
 }
@@ -1073,10 +1081,14 @@ async function runApplyPhase(args) {
         backup_root: null,
         post_validation: postValidation,
         idempotence: "PASS",
+        user_action_handoff: createUserActionHandoff([]),
         exit_code: 0,
       }
       if (args.json) console.log(safeSerialize(result, REDACTION_OPTIONS))
-      else console.log("No changes required; installation is already current (idempotent apply).")
+      else {
+        console.log("No changes required; installation is already current (idempotent apply).")
+        printUserActionHandoff(result.user_action_handoff)
+      }
       process.exit(0)
     }
   }
@@ -1104,11 +1116,17 @@ async function runApplyPhase(args) {
   const filePlan = buildFilePlan(targetRoot, repoRoot)
   const conflicts = await findConflicts(targetRoot, filePlan)
   if (conflicts.some(conflictNeedsManual)) {
-    const packet = { type: "BOOTSTRAP_OWNER_DECISION_PACKET", target_root: targetRoot, conflicts }
+    const packet = {
+      type: "BOOTSTRAP_OWNER_DECISION_PACKET",
+      target_root: targetRoot,
+      conflicts,
+      user_action_handoff: createOwnerConflictHandoff(conflicts),
+    }
     if (args.json) console.log(safeSerialize({ classification: "NEEDS_REVIEW", ...packet }, REDACTION_OPTIONS))
     else {
       console.error("NEEDS_REVIEW: Bootstrap conflicts require one bundled owner decision packet.")
       for (const conflict of conflicts.filter(conflictNeedsManual)) console.error(`  - [${conflict.classification}] ${conflict.path}`)
+      printUserActionHandoff(packet.user_action_handoff)
     }
     process.exit(1)
   }
@@ -1184,7 +1202,7 @@ async function runApplyPhase(args) {
   await ensureDirectory(reportDir)
   const reportPath = path.join(reportDir, "install-report.json")
   const report = {
-    version: "1.0.0",
+    version: "1.1.0",
     timestamp: new Date().toISOString(),
     target_root: targetRoot,
     source_commit: sourceCommit,
@@ -1200,6 +1218,7 @@ async function runApplyPhase(args) {
     source_lock: sourceLock,
     manifest,
     post_validation: postValidation,
+    user_action_handoff: createUserActionHandoff([]),
   }
   await fsPromises.writeFile(reportPath, `${safeSerialize(report, REDACTION_OPTIONS)}\n`, "utf8")
 
@@ -1237,6 +1256,7 @@ async function runApplyPhase(args) {
       console.log(`\nIssues:`)
       postValidation.issues.forEach((i) => console.log(`  - ${i}`))
     }
+    printUserActionHandoff(report.user_action_handoff)
   }
 
   const exitCode = classificationToExitCode(postValidation.classification)
@@ -1289,7 +1309,8 @@ async function runRollbackPhase(args) {
   if (conflicts.length > 0) {
     const reviewPath = path.join(result.targetRoot, ".opencode", "ecosystem-installation-rollback-review.json")
     await ensureParentDirectory(reviewPath)
-    await fsPromises.writeFile(reviewPath, `${JSON.stringify({ classification: "NEEDS_REVIEW", target_root: result.targetRoot, backup_root: backupRoot, conflicts }, null, 2)}\n`, "utf8")
+    const userActionHandoff = createOwnerConflictHandoff(conflicts)
+    await fsPromises.writeFile(reviewPath, `${JSON.stringify({ classification: "NEEDS_REVIEW", target_root: result.targetRoot, backup_root: backupRoot, conflicts, user_action_handoff: userActionHandoff }, null, 2)}\n`, "utf8")
     if (args.json) {
       console.log(safeSerialize({
         classification: "NEEDS_REVIEW",
@@ -1297,10 +1318,12 @@ async function runRollbackPhase(args) {
         backup_root: backupRoot,
         conflicts,
         review_path: reviewPath,
+        user_action_handoff: userActionHandoff,
       }, REDACTION_OPTIONS))
     } else {
       console.log(`Rollback completed with preserved later edits: ${reviewPath}`)
       console.log("NEEDS_REVIEW")
+      printUserActionHandoff(userActionHandoff)
     }
     process.exit(1)
   }
@@ -1311,11 +1334,13 @@ async function runRollbackPhase(args) {
       target_root: result.targetRoot,
       backup_root: backupRoot,
       conflicts: [],
+      user_action_handoff: createUserActionHandoff([]),
       exit_code: 0,
     }, REDACTION_OPTIONS))
   } else {
     console.log(`Rollback complete. Bootstrap-managed changes restored in ${result.targetRoot}`)
     console.log("VERIFIED_IN_SCOPE")
+    printUserActionHandoff(createUserActionHandoff([]))
   }
   process.exit(0)
 }
@@ -1437,6 +1462,9 @@ async function runDryRunPhase(args) {
           return ""
         })
         .filter(Boolean),
+      user_action_handoff: conflicts.some(conflictNeedsManual)
+        ? createOwnerConflictHandoff(conflicts)
+        : createUserActionHandoff([]),
       exit_code: classificationToExitCode(classification),
     }
     console.log(safeSerialize(output, REDACTION_OPTIONS))
@@ -1489,6 +1517,9 @@ async function runDryRunPhase(args) {
     console.log(`Rollback Command: node scripts/install-governance.mjs --target ${JSON.stringify(targetRoot)} --rollback <backup-dir>`)
 
     console.log(`\n=== Classification: ${classification} ===`)
+    printUserActionHandoff(conflicts.some(conflictNeedsManual)
+      ? createOwnerConflictHandoff(conflicts)
+      : createUserActionHandoff([]))
   }
 
   process.exit(classificationToExitCode(classification))
@@ -1510,7 +1541,12 @@ async function main() {
     const verifier = await import("../bootstrap/verify.mjs")
     if (!args.target) throw new Error("--target is required for VERIFY_ONLY")
     const result = await verifier.verifyInstallation({ targetRoot: args.target, sourceRoot: repoRoot })
-    console.log(args.json ? JSON.stringify(result, null, 2) : result.classification)
+    const output = { ...result, user_action_handoff: createUserActionHandoff([]) }
+    if (args.json) console.log(JSON.stringify(output, null, 2))
+    else {
+      console.log(result.classification)
+      printUserActionHandoff(output.user_action_handoff)
+    }
     process.exit(result.classification === "VERIFIED_IN_SCOPE" ? 0 : result.classification === "NEEDS_REVIEW" ? 1 : 2)
   }
 
@@ -1531,6 +1567,43 @@ async function main() {
   }
 
   await runDryRunPhase(args)
+}
+
+function createOwnerConflictHandoff(conflicts = []) {
+  return createUserActionHandoff([{
+    id: "owner-content-decision",
+    title: "Umgang mit lokal geändertem verwaltetem Inhalt entscheiden",
+    reason_code: "NON_DELEGABLE_OWNER_APPROVAL",
+    reason: "Die gewünschte Behandlung des lokal geänderten Inhalts ist aus den technischen Vorgaben nicht ableitbar und benötigt eine persönliche Entscheidung.",
+    reason_evidence: {
+      capability_checked: true,
+      effect: "LOCAL_WRITE",
+      tool_available: true,
+      tool_authenticated: true,
+      permission_available: true,
+      action_authorized: false,
+      alternatives_checked: true,
+      alternative_capability_available: false,
+      alternative_capability_authorized: false,
+      suitable_agent_available: false,
+      personal_decision_required: true,
+      physical_presence_required: false,
+      manual_security_policy_required: false,
+      evidence: [`${conflicts.filter(conflictNeedsManual).length} nicht automatisch auflösbare Inhaltskonflikte wurden erkannt.`],
+    },
+    obligation: "required",
+    source_category: "non_delegable_user_action",
+    status: "pending",
+    platform: "manual",
+    target: { description: "Konfliktbehafteter verwalteter Projektinhalt" },
+    instructions: ["Entscheide anhand des Konfliktpakets, welcher Inhalt für jede betroffene Datei erhalten werden soll."],
+    sort_order: 10,
+  }])
+}
+
+function printUserActionHandoff(handoff) {
+  console.log("")
+  console.log(renderUserActionHandoff(handoff))
 }
 
 export { validatePostApply, getRuntimeFileList }

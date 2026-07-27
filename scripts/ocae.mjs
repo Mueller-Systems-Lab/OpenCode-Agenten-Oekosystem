@@ -30,6 +30,10 @@ import {
 } from "./lib/runtime-activation-proof.mjs"
 import { assertSafePath } from "./lib/paths.mjs"
 import { safeRedactText, secretValuesFromEnv } from "./lib/security/redaction.mjs"
+import {
+  createUserActionHandoff,
+  renderUserActionHandoff,
+} from "./lib/user-action-handoff.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const OPERATIONS = new Set(["inspect", "plan", "install", "update", "verify", "status", "rollback", "register", "list", "remove", "export"])
@@ -86,7 +90,8 @@ async function installOrUpdate(args, requestedMode) {
       substatus: "NOT_INSTALLED",
       substatuses: ["NOT_INSTALLED", "INSTALL_NEW_REQUIRED"],
       blockers: ["update requires an existing installation; run install for a new target."],
-      owner_actions: ["Run ocae install after reviewing the installation plan."],
+      owner_actions: [],
+      guidance: ["The install operation is the applicable next agent operation after plan review."],
     }
   }
   if (args.dry_run) return { ...plan, operation: args.operation.toUpperCase(), substatus: `${requestedMode}_DRY_RUN` }
@@ -207,7 +212,8 @@ async function verifyTarget(args) {
     unchecked_claims: ["real runtime hook invocation", "restart persistence", "complete dynamic bypass coverage"],
     blockers: classified.blockers,
     tool_gaps: classified.tool_gaps,
-    owner_actions: classified.classification === "TOOL_GAP" ? ["Install or select a supported project runtime, then run verify again."] : [],
+    owner_actions: [],
+    guidance: classified.classification === "TOOL_GAP" ? ["Select an available supported project runtime before verification can continue."] : [],
     evidence,
     proof,
     state,
@@ -237,6 +243,7 @@ async function registerTarget(args) {
     blockers: inspected.blockers,
     tool_gaps: inspected.tool_gaps,
     owner_actions: inspected.owner_actions,
+    user_action_handoff: inspected.user_action_handoff,
     evidence: [{ kind: "registry", result: "entry-written" }],
     entry,
     exit_code: 0,
@@ -290,6 +297,7 @@ async function upsertRegistryEntry(args, inspected, verificationResult = null) {
     },
     tool_gaps: verificationResult?.tool_gaps || inspected.tool_gaps,
     owner_actions: verificationResult?.owner_actions || inspected.owner_actions,
+    user_action_handoff: verificationResult?.user_action_handoff || inspected.user_action_handoff || createUserActionHandoff([]),
     classification: {
       main: verificationResult?.classification || inspected.classification,
       substatus: verificationResult?.substatuses || inspected.substatuses,
@@ -299,7 +307,14 @@ async function upsertRegistryEntry(args, inspected, verificationResult = null) {
 
 async function listRegistry(args) {
   const registry = await readRegistry(args.registry)
-  return { operation: "LIST", classification: "VERIFIED_IN_SCOPE", substatus: "REGISTRY_LISTED", projects: registry.projects, exit_code: 0 }
+  return {
+    operation: "LIST",
+    classification: "VERIFIED_IN_SCOPE",
+    substatus: "REGISTRY_LISTED",
+    projects: registry.projects,
+    user_action_handoff: aggregateRegistryHandoff(registry.projects),
+    exit_code: 0,
+  }
 }
 
 async function removeRegistry(args) {
@@ -329,8 +344,26 @@ async function registryStatus(args) {
       tool_gaps: entry.tool_gaps || [],
       status: entry.classification.main,
     })),
+    user_action_handoff: aggregateRegistryHandoff(registry.projects),
     exit_code: 0,
   }
+}
+
+function aggregateRegistryHandoff(projects) {
+  const actions = []
+  for (const entry of projects || []) {
+    for (const action of entry.user_action_handoff?.actions || []) {
+      const prefix = String(entry.project_id || "project").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "") || "project"
+      actions.push({
+        ...action,
+        id: `${prefix}-${action.id}`.slice(0, 160),
+        target: action.platform === "github_web"
+          ? action.target
+          : { ...action.target, description: `${entry.project?.name || entry.project_id}: ${action.target?.description || "Projektaktion"}` },
+      })
+    }
+  }
+  return createUserActionHandoff(actions)
 }
 
 async function rollback(args) {
@@ -348,7 +381,8 @@ async function rollback(args) {
     checked_claims: ["delegated rollback command exit code"],
     unchecked_claims: ["restored runtime activation", "owner-content preservation after rollback"],
     blockers: run.status === 0 ? [] : [`Rollback installer exited with ${run.status}.`],
-    tool_gaps: [], owner_actions: run.status === 0 ? ["Run ocae verify and review owner content after rollback."] : [],
+    tool_gaps: [], owner_actions: [],
+    guidance: run.status === 0 ? ["Run the agent-controlled verify operation and inspect owner-content preservation."] : [],
     evidence: [{ script, exit_code: run.status, output_sha256: digest(run.stdout + run.stderr) }],
   }
   return withMetrics(args, result, ["rollback"])
@@ -422,6 +456,7 @@ function failure(classification, substatus, blockers) {
   return {
     operation: "ERROR", classification, substatus, substatuses: [substatus], scope: {},
     checked_claims: [], unchecked_claims: [], blockers, tool_gaps: [], owner_actions: [], evidence: [],
+    user_action_handoff: createUserActionHandoff([]),
   }
 }
 
@@ -460,17 +495,25 @@ function parseLooseJsonFlag(argv) {
 }
 
 function emit(result, json) {
+  const normalized = {
+    ...result,
+    user_action_handoff: result.user_action_handoff || createUserActionHandoff([]),
+  }
   if (json) {
-    console.log(JSON.stringify(result, null, 2))
+    console.log(JSON.stringify(normalized, null, 2))
     return
   }
-  if (result.operation === "STATUS" && Array.isArray(result.projects)) {
+  if (normalized.operation === "STATUS" && Array.isArray(normalized.projects)) {
     console.log("Project\tGovernance\tRuntime\tActivation\tLast test\tTool-gaps\tStatus")
-    for (const project of result.projects) console.log(`${project.project}\t${project.governance}\t${project.runtime}\t${project.activation}\t${project.last_test || "never"}\t${project.tool_gaps.join(",") || "none"}\t${project.status}`)
+    for (const project of normalized.projects) console.log(`${project.project}\t${project.governance}\t${project.runtime}\t${project.activation}\t${project.last_test || "never"}\t${project.tool_gaps.join(",") || "none"}\t${project.status}`)
+    console.log("")
+    console.log(renderUserActionHandoff(normalized.user_action_handoff))
     return
   }
-  console.log(`${result.classification}: ${result.substatus}`)
-  for (const blocker of result.blockers || []) console.log(`- ${blocker}`)
+  console.log(`${normalized.classification}: ${normalized.substatus}`)
+  for (const blocker of normalized.blockers || []) console.log(`- ${blocker}`)
+  console.log("")
+  console.log(renderUserActionHandoff(normalized.user_action_handoff))
 }
 
 function printHelp() {

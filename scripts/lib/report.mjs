@@ -2,6 +2,10 @@ import fs from "node:fs/promises"
 import path from "node:path"
 import { ensureParentDirectory } from "./paths.mjs"
 import { safeRedactText, safeSerialize, secretValuesFromEnv } from "./security/redaction.mjs"
+import {
+  createUserActionHandoff,
+  renderUserActionHandoff,
+} from "./user-action-handoff.mjs"
 
 const REDACTION_OPTIONS = Object.freeze({ secrets: secretValuesFromEnv() })
 
@@ -137,6 +141,8 @@ export function renderRunReportMarkdown(report) {
   for (const line of report.uncertainties) {
     lines.push(`- ${line}`)
   }
+  lines.push("")
+  lines.push(renderUserActionHandoff(report.user_action_handoff || createUserActionHandoff([])))
   return lines.join("\n")
 }
 

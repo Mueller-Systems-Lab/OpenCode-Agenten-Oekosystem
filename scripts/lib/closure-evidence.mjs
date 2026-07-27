@@ -1,7 +1,12 @@
+import {
+  createUserActionHandoff,
+  validateUserActionHandoff,
+} from "./user-action-handoff.mjs"
+
 const SCHEMA_VERSION = "ocae-closure-evidence.1"
 const TYPES = new Set(["runtime-proof", "restart-proof", "receipt-proof", "parallelism-proof", "profile-incident-assessment", "test-summary", "final-status"])
 const STATUSES = new Set(["PROVEN", "PARTIALLY_PROVEN", "UNPROVEN", "CONTRADICTED", "NOT_APPLICABLE"])
-const COMMON = new Set(["schema_version", "evidence_type", "run_id", "timestamp", "repository_commit", "runtime_name", "runtime_version", "scope", "assertions", "limitations", "classification", "generated_by", "plugin_loaded", "hook_observed", "positive_control", "negative_control", "restart_performed", "receipt_binding", "parallel_single_use", "incident_status", "tests", "findings"])
+const COMMON = new Set(["schema_version", "evidence_type", "run_id", "timestamp", "repository_commit", "runtime_name", "runtime_version", "scope", "assertions", "limitations", "classification", "generated_by", "plugin_loaded", "hook_observed", "positive_control", "negative_control", "restart_performed", "receipt_binding", "parallel_single_use", "incident_status", "tests", "findings", "user_action_handoff"])
 
 export function createClosureEvidence(input = {}) {
   const evidence = {
@@ -20,6 +25,17 @@ export function createClosureEvidence(input = {}) {
   }
   for (const key of ["plugin_loaded", "hook_observed", "positive_control", "negative_control", "restart_performed", "receipt_binding", "parallel_single_use", "incident_status", "tests", "findings"]) {
     if (key in input) evidence[key] = input[key]
+  }
+  if (input.evidence_type === "final-status") {
+    if (Object.hasOwn(input, "user_action_handoff")) {
+      const handoffIssues = validateUserActionHandoff(input.user_action_handoff)
+      if (handoffIssues.length > 0) {
+        throw new Error(`Invalid user_action_handoff: ${handoffIssues.map((entry) => entry.code).join(", ")}`)
+      }
+      evidence.user_action_handoff = createUserActionHandoff(input.user_action_handoff.actions)
+    } else {
+      evidence.user_action_handoff = createUserActionHandoff([])
+    }
   }
   return evidence
 }
@@ -44,9 +60,12 @@ export function validateClosureEvidence(evidence) {
     "parallelism-proof": ["parallel_single_use"],
     "profile-incident-assessment": ["incident_status"],
     "test-summary": ["tests"],
-    "final-status": ["findings"],
+    "final-status": ["findings", "user_action_handoff"],
   }
   for (const key of typeRequirements[evidence.evidence_type] || []) if (!(key in evidence)) issues.push(`${evidence.evidence_type} requires ${key}`)
+  if (evidence.evidence_type === "final-status" && Object.hasOwn(evidence, "user_action_handoff")) {
+    issues.push(...validateUserActionHandoff(evidence.user_action_handoff).map((entry) => `user_action_handoff: ${entry.code}`))
+  }
   if (evidence.classification === "PROVEN" && !assertionsAreProven(evidence.assertions)) issues.push("PROVEN summary requires every assertion to be PROVEN")
   return issues
 }

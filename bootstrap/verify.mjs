@@ -6,6 +6,10 @@ import path from "node:path"
 import { spawnSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import { validateBootstrapManifest, containsPrivateAbsolutePath } from "./lib/contract.mjs"
+import {
+  createUserActionHandoff,
+  renderUserActionHandoff,
+} from "../scripts/lib/user-action-handoff.mjs"
 
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 
@@ -15,8 +19,8 @@ export async function verifyInstallation({ targetRoot, sourceRoot: source = sour
   const target = path.resolve(targetRoot || "")
   const sourceDir = path.resolve(source)
 
-  if (!targetRoot || !fsSync.existsSync(target)) return { classification: "RED_BLOCK", issues: ["target project does not exist"], warnings, target_root: target }
-  if (await isSymlink(target)) return { classification: "RED_BLOCK", issues: ["target project is a symlink"], warnings, target_root: target }
+  if (!targetRoot || !fsSync.existsSync(target)) return completionResult({ classification: "RED_BLOCK", issues: ["target project does not exist"], warnings, target_root: target })
+  if (await isSymlink(target)) return completionResult({ classification: "RED_BLOCK", issues: ["target project is a symlink"], warnings, target_root: target })
 
   const manifestPath = path.join(sourceDir, "bootstrap", "manifest.json")
   let manifest
@@ -82,7 +86,7 @@ export async function verifyInstallation({ targetRoot, sourceRoot: source = sour
   }
 
   const classification = issues.length > 0 ? "RED_BLOCK" : warnings.length > 0 ? "NEEDS_REVIEW" : "VERIFIED_IN_SCOPE"
-  return {
+  return completionResult({
     classification,
     target_root: target,
     source_root: sourceDir,
@@ -91,7 +95,7 @@ export async function verifyInstallation({ targetRoot, sourceRoot: source = sour
     issues,
     warnings,
     checked_at: new Date().toISOString(),
-  }
+  })
 }
 
 function readGitHead(cwd) {
@@ -156,15 +160,24 @@ async function main() {
   }
   if (args.sourceOnly) {
     const manifest = JSON.parse(await fs.readFile(path.join(args.source || sourceRoot, "bootstrap", "manifest.json"), "utf8"))
-    const result = { classification: validateBootstrapManifest(manifest).length === 0 ? "VERIFIED_IN_SCOPE" : "RED_BLOCK", issues: validateBootstrapManifest(manifest) }
-    console.log(args.json ? JSON.stringify(result, null, 2) : `${result.classification}\n${result.issues.join("\n")}`)
+    const result = completionResult({ classification: validateBootstrapManifest(manifest).length === 0 ? "VERIFIED_IN_SCOPE" : "RED_BLOCK", issues: validateBootstrapManifest(manifest), warnings: [] })
+    console.log(args.json ? JSON.stringify(result, null, 2) : renderHumanResult(result))
     process.exitCode = result.classification === "VERIFIED_IN_SCOPE" ? 0 : 2
     return
   }
   if (!args.target) throw new Error("--target is required")
   const result = await verifyInstallation({ targetRoot: args.target, sourceRoot: args.source || sourceRoot, expectedCommit: args.expectedCommit || null })
-  console.log(args.json ? JSON.stringify(result, null, 2) : `${result.classification}\n${[...result.issues, ...result.warnings].join("\n")}`)
+  console.log(args.json ? JSON.stringify(result, null, 2) : renderHumanResult(result))
   process.exitCode = result.classification === "VERIFIED_IN_SCOPE" ? 0 : result.classification === "NEEDS_REVIEW" ? 1 : 2
+}
+
+function completionResult(result) {
+  return { ...result, user_action_handoff: createUserActionHandoff([]) }
+}
+
+function renderHumanResult(result) {
+  const details = [...(result.issues || []), ...(result.warnings || [])].join("\n")
+  return `${result.classification}${details ? `\n${details}` : ""}\n\n${renderUserActionHandoff(result.user_action_handoff)}`
 }
 
 const isDirect = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))

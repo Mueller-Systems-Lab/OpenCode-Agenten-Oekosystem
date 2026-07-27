@@ -1,6 +1,7 @@
 import crypto from "node:crypto"
 import fs from "node:fs/promises"
 import path from "node:path"
+import { createUserActionHandoff, validateUserActionHandoff } from "./user-action-handoff.mjs"
 
 const REGISTRY_KIND = "ocae-ecosystem-registry"
 const REGISTRY_VERSION = "1.0.0"
@@ -33,6 +34,11 @@ export function validateRegistry(registry) {
     ids.add(entry.project_id)
     if (!entry.project || typeof entry.project !== "object") issues.push(`registry entry ${entry.project_id || "unknown"} project is required`)
     if (!entry.classification?.main || !Array.isArray(entry.classification?.substatus)) issues.push(`registry entry ${entry.project_id || "unknown"} classification is invalid`)
+    if (Object.hasOwn(entry, "user_action_handoff")) {
+      issues.push(...validateUserActionHandoff(entry.user_action_handoff).map((finding) => `registry entry ${entry.project_id || "unknown"} user_action_handoff: ${finding.code}`))
+    } else if (Array.isArray(entry.owner_actions) && entry.owner_actions.length > 0) {
+      issues.push(`registry entry ${entry.project_id || "unknown"} legacy owner_actions require capability-first migration`)
+    }
     if (!entry.updated_at || !Number.isFinite(Date.parse(entry.updated_at))) issues.push(`registry entry ${entry.project_id || "unknown"} updated_at is invalid`)
   }
   return issues
@@ -142,6 +148,16 @@ export function projectIdFor({ projectId, projectName, repositoryUrl } = {}) {
 
 function normalizeEntry(entry) {
   const now = new Date().toISOString()
+  let userActionHandoff
+  if (Object.hasOwn(entry, "user_action_handoff")) {
+    const handoffIssues = validateUserActionHandoff(entry.user_action_handoff)
+    if (handoffIssues.length > 0) {
+      throw new Error(`Invalid user_action_handoff: ${handoffIssues.map((finding) => finding.code).join(", ")}`)
+    }
+    userActionHandoff = createUserActionHandoff(entry.user_action_handoff.actions)
+  } else {
+    userActionHandoff = createUserActionHandoff([])
+  }
   const normalized = {
     project_id: entry.project_id,
     project: { ...entry.project },
@@ -150,6 +166,7 @@ function normalizeEntry(entry) {
     verification: entry.verification ? { ...entry.verification } : {},
     tool_gaps: Array.isArray(entry.tool_gaps) ? entry.tool_gaps.map(String) : [],
     owner_actions: Array.isArray(entry.owner_actions) ? entry.owner_actions.map(String) : [],
+    user_action_handoff: userActionHandoff,
     classification: {
       main: String(entry.classification?.main || "NEEDS_REVIEW"),
       substatus: Array.isArray(entry.classification?.substatus) ? entry.classification.substatus.map(String) : [],

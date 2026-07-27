@@ -9,11 +9,16 @@ import { buildOpenCodeOverlay, writeOpenCodeConfig, mergeOpenCodeMarkdown } from
 import { buildHermesBundle, buildHermesGatewayNote, buildHermesReadmeMarkdown, buildHermesRootMarkdown } from "./lib/hermes.mjs"
 import { createBackup, restoreBackup } from "./lib/backup.mjs"
 import { ensureDirectory, ensureParentDirectory, pathExists, readTextIfExists, writeText, relativePath, toAbsolutePath, assertSafePath } from "./lib/paths.mjs"
-import { renderDiscoveryMarkdown, renderPlanMarkdown, writeJsonReport, writeMarkdownReport } from "./lib/report.mjs"
+import { renderDiscoveryMarkdown, renderPlanMarkdown, renderRunReportMarkdown, writeJsonReport, writeMarkdownReport } from "./lib/report.mjs"
 import { selectMcpCandidates } from "./lib/mcp.mjs"
 import { mergeDeep } from "./lib/merge.mjs"
 import { safeRedactText, secretValuesFromEnv } from "./lib/security/redaction.mjs"
 import { evaluateAction } from "../runtime/gates/evaluate-action.mjs"
+import {
+  appendUserActionHandoff,
+  createUserActionHandoff,
+  renderUserActionHandoff,
+} from "./lib/user-action-handoff.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 
@@ -28,6 +33,7 @@ if (args.help) {
 
 await main().catch((error) => {
   console.error(safeRedactText(error instanceof Error ? error.message : String(error), { secrets: secretValuesFromEnv() }))
+  console.log(renderUserActionHandoff(createUserActionHandoff([])))
   process.exitCode = 1
 })
 
@@ -37,6 +43,8 @@ async function main() {
   if (args.rollback) {
     const result = await restoreBackup({ backupRoot: args.rollback })
     console.log(`Rollback completed for ${result.targetRoot}`)
+    console.log("")
+    console.log(renderUserActionHandoff(createUserActionHandoff([])))
     return
   }
 
@@ -47,7 +55,7 @@ async function main() {
 
   if (!args.apply) {
     const plan = buildPlan({ discovery, selected, mcpSelection, overlay, classification: classify(discovery, selected, mcpSelection, overlay), applyRequested: false })
-    console.log(renderPlanMarkdown(plan))
+    console.log(appendUserActionHandoff(renderPlanMarkdown(plan), createUserActionHandoff([])))
     return
   }
 
@@ -57,11 +65,14 @@ async function main() {
     path.join(targetRoot, ".opencode", "reports", "bootstrap", "discovery.md"),
     path.join(targetRoot, ".opencode", "reports", "bootstrap", "plan.json"),
     path.join(targetRoot, ".opencode", "reports", "bootstrap", "plan.md"),
+    path.join(targetRoot, ".opencode", "reports", "bootstrap", "report.json"),
+    path.join(targetRoot, "docs", "reports", "universal-bootstrap-run-report.md"),
   ]
   const backup = await createBackup({ targetRoot, files: filesToBackup })
   const gate = await evaluateOverlayWrites({ overlay, targetRoot })
   if (!gate.allowed) {
     console.error(`RED_BLOCK: Governance V2 blocked overlay writes (${gate.code || gate.decision_class}).`)
+    console.log(renderUserActionHandoff(createUserActionHandoff([])))
     process.exitCode = 2
     return
   }
@@ -84,7 +95,23 @@ async function main() {
   await writeJsonReport(path.join(reportsDir, "plan.json"), plan)
   await writeMarkdownReport(path.join(reportsDir, "plan.md"), renderPlanMarkdown(plan))
 
-  console.log(renderPlanMarkdown(plan))
+  const runReport = {
+    classification: plan.classification,
+    target_root: targetRoot,
+    timestamp: new Date().toISOString(),
+    summary: "Repository overlay applied with project-local backup and Governance V2 write checks.",
+    changed_files: overlay.files.map((file) => relativePath(targetRoot, file.destination)),
+    evidence: [
+      `Backup created: ${relativePath(targetRoot, backup.backupDir)}`,
+      `Governance write gate: ${gate.decision_class}`,
+    ],
+    uncertainties: plan.conflicts,
+    user_action_handoff: createUserActionHandoff([]),
+  }
+  await writeJsonReport(path.join(reportsDir, "report.json"), runReport)
+  await writeMarkdownReport(path.join(targetRoot, "docs", "reports", "universal-bootstrap-run-report.md"), renderRunReportMarkdown(runReport))
+
+  console.log(renderRunReportMarkdown(runReport))
 }
 
 async function evaluateOverlayWrites({ overlay, targetRoot }) {
@@ -309,7 +336,7 @@ async function applyOverlay(overlay) {
       const existing = (await readTextIfExists(entry.destination)) ?? ""
       const next = entry.sourcePath
         ? await mergeManagedMarkdown(existing, entry.sourcePath)
-        : mergeMarkdownText(existing, entry.managed)
+        : await mergeMarkdownText(existing, entry.managed)
       await writeText(entry.destination, next)
       continue
     }

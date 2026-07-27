@@ -5,6 +5,7 @@ import path from "node:path"
 import test from "node:test"
 
 import { runNodeScript } from "../helpers.mjs"
+import { validateUserActionHandoff } from "../../scripts/lib/user-action-handoff.mjs"
 
 test("ocae help advertises the canonical lifecycle and registry operations", () => {
   const result = runNodeScript("scripts/ocae.mjs", ["--help"])
@@ -20,6 +21,8 @@ test("ocae emits machine-readable fail-closed output for a missing target", () =
   const output = JSON.parse(result.stdout)
   assert.equal(output.classification, "RED_BLOCK")
   assert.ok(output.blockers.length > 0)
+  assert.deepEqual(validateUserActionHandoff(output.user_action_handoff), [])
+  assert.deepEqual(output.user_action_handoff.actions, [])
 })
 
 test("registry export never includes a local absolute target reference", async () => {

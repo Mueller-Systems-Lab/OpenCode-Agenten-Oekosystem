@@ -11,6 +11,7 @@ import {
   classifyBootstrapConflict,
 } from "../../bootstrap/lib/contract.mjs"
 import { runNodeScript } from "../helpers.mjs"
+import { validateUserActionHandoff } from "../../scripts/lib/user-action-handoff.mjs"
 
 const read = (rel) => fs.readFile(path.join(repoRoot, rel), "utf8")
 
@@ -99,7 +100,12 @@ test("published installer records provenance and verifier passes on a fresh Git 
 
   const verify = runNodeScript("bootstrap/verify.mjs", ["--target", target, "--source-commit", installation.source_commit, "--json"])
   assert.equal(verify.status, 0, verify.stderr || verify.stdout)
-  assert.equal(JSON.parse(verify.stdout).classification, "VERIFIED_IN_SCOPE")
+  const verifyJson = JSON.parse(verify.stdout)
+  assert.equal(verifyJson.classification, "VERIFIED_IN_SCOPE")
+  assert.deepEqual(validateUserActionHandoff(verifyJson.user_action_handoff), [])
+  const verifyHuman = runNodeScript("bootstrap/verify.mjs", ["--target", target, "--source-commit", installation.source_commit])
+  assert.equal(verifyHuman.status, 0, verifyHuman.stderr || verifyHuman.stdout)
+  assert.equal(verifyHuman.stdout.trimEnd().endsWith("## Erforderliche Aktion durch den Nutzer\n\nKeine Aktion durch den Nutzer erforderlich."), true)
 
   const secondApply = runNodeScript("scripts/install-governance.mjs", ["--target", target, "--apply", "--json"])
   assert.equal(secondApply.status, 0, secondApply.stderr || secondApply.stdout)

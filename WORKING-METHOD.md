@@ -897,7 +897,7 @@ Bevor Remote-CI ausgeführt wird:
 
 | Agent | Darf delegieren an | Darf NICHT delegieren |
 |-------|-------------------|----------------------|
-| **issue-orchestrator** | Alle Subagenten (plan, build, review-agent, security-agent, compliance-agent, research-agent, architecture-agent, documentation-agent, migration-agent, playwright-agent, ux-review-agent) | Implementierung (niemals selbst code schreiben) |
+| **issue-orchestrator** | Alle Subagenten (plan, build, review-agent, security-agent, compliance-agent, research-agent, architecture-agent, documentation-agent, migration-agent, playwright-agent, ux-review-agent, frontend-design-agent) | Implementierung (niemals selbst code schreiben) |
 | **plan** | research-agent (für Doku-Recherche) | Implementierung, Review |
 | **build** | review-agent (nach Implementierung) | Planung, Security-Beurteilung |
 | **review-agent** | ❌ Niemand (Leaf Node) | Security-Beurteilung, Compliance-Beurteilung |
@@ -909,6 +909,7 @@ Bevor Remote-CI ausgeführt wird:
 | **migration-agent** | security-agent, compliance-agent | Apply |
 | **playwright-agent** | ❌ Niemand | Code-Änderungen |
 | **ux-review-agent** | ❌ Niemand (Leaf Node) | Code-Änderungen, Datei-Schreibzugriff |
+| **frontend-design-agent** | ux-review-agent, playwright-agent (nur für Review) | Eigene UX/Design-System-Review, Deployment, Infrastruktur-Änderungen |
 
 ### Agenten-Katalog
 

@@ -126,6 +126,58 @@ Every finding must include:
 4. CREATE new component — only with justification
 ```
 
+## Extended Technical Design Rules
+
+### Image Dimensions and Layout Shift
+- Every `<img>` must have explicit `width` and `height` attributes to reserve layout space
+- CSS `aspect-ratio` must be set for responsive images to prevent Cumulative Layout Shift (CLS)
+- Background images must have fallback background-color for loading states
+
+### Text Overflow and Long Content
+- Layouts must handle very short, average, and very long content without breaking
+- Text overflow must use `text-overflow: ellipsis` or `line-clamp` with a visible title attribute
+- Tables must handle narrow columns gracefully (truncation with tooltip, not broken layout)
+- User-generated content must not overflow containers or break the layout
+
+### Safe Area Support
+- Respect `env(safe-area-inset-top)`, `env(safe-area-inset-bottom)`, `env(safe-area-inset-left)`, `env(safe-area-inset-right)`
+- Fixed-position elements (headers, bottom navs) must account for notches and system bars
+- `viewport-fit=cover` in meta viewport when full-bleed layouts are intended
+
+### Dark Mode Metadata
+- Set `<meta name="theme-color" content="...">` with dark-mode-appropriate values
+- Set `<meta name="color-scheme" content="dark light">` on `<html>` or via CSS `color-scheme`
+- Explicit `background-color` and `color` on native `<select>` to avoid Windows dark-mode bugs
+- Scrollbars and form controls must have appropriate contrast in forced-colors mode
+
+### Locale and Intl.* Formatting
+- Dates, times, numbers, delimiters, and currencies must use `Intl.DateTimeFormat`, `Intl.NumberFormat`, etc.
+- `font-variant-numeric: tabular-nums` for comparison data (pricing tables, stats)
+- Non-breaking spaces for glued terms: `10&nbsp;MB`, `⌘&nbsp;+&nbsp;K`
+
+### Hydration Safety
+- Inputs must not lose focus or value after React/Vue/Svelte hydration
+- Avoid client-side rendering mismatches that cause hydration warnings
+- Skeleton components must mirror final content dimensions to avoid layout shift during hydration
+- `<Suspense>` or equivalent must handle loading with minimum visible time (300-500ms) to avoid flicker
+
+### Reduced Motion
+- All animations must have a `prefers-reduced-motion: reduce` variant with instant/no animation
+- `@media (prefers-reduced-motion: reduce)` must disable autoplay animations, parallax, and scroll-triggered effects
+- CSS `scroll-behavior: smooth` must be wrapped in `prefers-reduced-motion: no-preference`
+
+### Touch Target Sizes
+- Minimum touch target: 44×44px on mobile, 24×24px on desktop
+- Hit targets should expand to meet minimum when visual target is smaller
+- Checkbox/radio labels must share a single generous hit target
+
+### Native Form Elements in Dark Mode
+- Explicit `background-color` on `<select>`, `<input>`, `<textarea>` for dark mode
+- `color-scheme: dark` on form elements to get native dark styling from the OS
+- Test on Windows + Chrome where native form controls don't automatically adapt
+
+## Priority Rule (Design Tokens)
+
 ## Prohibited Language
 
 Do NOT use these terms without measurable criteria:

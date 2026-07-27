@@ -170,13 +170,14 @@
         "*.svelte",
         "*.astro",
         "next.config.*",
+        "vite.config.*",
         "tailwind.config.*",
         "astro.config.*",
         ".storybook/",
         "*.stories.*"
       ],
       "domain": "conditional",
-      "recommend": ["ux-flow-review", "ui-design-system-review", "mcp-selection", "living-truth-mirror"]
+      "recommend": ["frontend-design-build", "ux-flow-review", "ui-design-system-review", "playwright-visual-review", "mcp-selection", "living-truth-mirror"]
     },
     {
       "id": "civic-tech-pii",
@@ -263,6 +264,10 @@
         {
           "name": "ux-review-agent",
           "description": "Analyzes UX flows, UI consistency, and user journeys. Read-only — produces structured, evidence-based findings. Never modifies product files."
+        },
+        {
+          "name": "frontend-design-agent",
+          "description": "Designs and builds distinctive web UI. Discovers existing design systems, creates design plans, implements after approval. Delegates review to ux-review-agent and visual QA to playwright-agent. Never self-reviews."
         }
       ],
       "domain_specific": [],
@@ -303,6 +308,7 @@
         "mcp-selection",
         "hermes-handoff",
         "remote-ci-approval-gate",
+        "frontend-design-build",
         "ux-flow-review",
         "ui-design-system-review"
       ],

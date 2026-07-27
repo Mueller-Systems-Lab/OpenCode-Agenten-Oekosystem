@@ -137,12 +137,53 @@ Each finding must contain:
 | Acceptance Criteria | Yes | Testable, verifiable criteria |
 | Uncertainties | If any | Explicitly stated unknowns |
 
+## Extended Review Rules
+
+### URL and Deep-Link States
+- Verify that filters, tabs, pagination, expanded panels, and modal states are reflected in the URL
+- Back/Forward browser navigation must restore prior state correctly
+- Deep-linked URLs must render the correct UI state (not reset to default)
+- Shareable URLs must reconstruct the exact view state
+
+### Clear Action Labels
+- Buttons must describe the action, not generic commands: "Save changes" not "Submit", "Delete account" not "OK"
+- Labels must remain consistent across the flow: "Publish" button → "Published" toast
+- Menu options that open follow-up dialogs end with ellipsis: "Rename…", "Export…"
+- Active voice preferred: "Install the CLI" not "The CLI will be installed"
+
+### Focus on First Error
+- On form submission failure, focus must move to the first field with a validation error
+- Error messages must appear adjacent to the relevant field, not only in a summary banner
+- Inline validation (on blur or after submission) must be announced via polite aria-live
+
+### Unsaved Changes Protection
+- Warn before navigation when form data could be lost
+- Use `beforeunload` or framework-specific navigation guards
+- The warning must be clear about what will be lost
+
+### Mobile and Touch Flows
+- Touch targets must be ≥ 44px on mobile (≥ 24px on desktop)
+- `<input>` font size must be ≥ 16px on mobile to prevent iOS auto-zoom
+- Touch-action: manipulation on interactive controls to prevent double-tap zoom
+- Safe area insets respected via `env(safe-area-inset-*)`
+
+### Recovery Paths
+- Error states must include clear next steps, not just problem statements
+- Example: "Your API key is incorrect. Generate a new key in your account settings." not "Invalid API key"
+- Empty states must invite action: "No projects yet. Create your first project."
+- Irreversible actions must have confirmation or undo within a safe window
+
+### Locale-Aware Content
+- Dates, times, numbers, and currencies must use `Intl.*` or locale-aware formatters
+- Language detection via `Accept-Language` header and `navigator.languages`, not IP/geo
+- Brand names, code tokens, and technical identifiers must use `translate="no"`
+
 ## Severity Classification
 
 | Severity | Criteria |
 |----------|----------|
 | **BLOCKER** | Primary task cannot be completed, or significant harm (data loss, financial loss, safety) is likely |
-| **HIGH** | Substantial risk of misoperation, high abandonment probability, or WCAG 2.1 AA accessibility barrier |
+| **HIGH** | Substantial risk of misoperation, high abandonment probability, or WCAG 2.2 AA accessibility barrier |
 | **MEDIUM** | Noticeable friction or inconsistency; workaround exists but degrades experience |
 | **LOW** | Minor friction without significant task impairment |
 | **OBSERVATION** | Note or hypothesis without sufficient evidence for a formal finding; requires further investigation |

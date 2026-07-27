@@ -1,0 +1,86 @@
+{
+  "version": "1.0.0",
+  "description": "Provenance lock for third-party derived skills in the OpenCode Agent Ecosystem. Records upstream sources, commits, licenses, and local adaptations for supply-chain auditability.",
+  "entries": [
+    {
+      "name": "frontend-design-build",
+      "derived_from": "anthropics/skills/skills/frontend-design",
+      "upstream_commit": "2235be7c60b551f5de82ade908fd3816455afcda",
+      "upstream_commit_verified_at": "2026-07-23T09:30:45Z",
+      "upstream_url": "https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md",
+      "license": "Apache-2.0",
+      "license_note": "Upstream repository README states Apache 2.0 for open-source skills. The referenced LICENSE.txt file did not exist at the pinned commit; license assignment is based on repository-level declaration.",
+      "adapted": true,
+      "local_content_sha256": "60d764ce536497c3c93bfc0e812e677355180ee5b930b5724341fc9da90e5049",
+      "runtime_network_fetch": false,
+      "modifications_summary": [
+        "Added Scenario Classification (A-E) with routing rules for existing system vs. greenfield vs. review vs. bugfix scenarios",
+        "Added Existing-System-First discovery workflow with token, component, brand, layout, dark mode, motion, form, and navigation audit layers",
+        "Added Owner/Approval Gate integration requiring explicit approval for new visual direction, fonts, images, npm dependencies, component libraries, token migration, and navigation restructure",
+        "Added structured Design Plan requirement with mandatory sections: product, audience, primary task, existing system, direction, color tokens, typography, layout, signature element, desktop/mobile behavior, all states (loading/empty/error/success/focus/reduced-motion), and open assumptions",
+        "Added Assumption marking protocol (ASSUMPTION/EVIDENCE/IMPACT/OWNER_CONFIRMATION_REQUIRED) for missing brief elements — never invent personas, research, or brand data",
+        "Added strict implementation rules: semantic HTML, visible focus-visible rings, keyboard operability, prefers-reduced-motion respect, responsive 375px-1280px+, real content or labeled placeholders, explicit states, no fake functionality, no fake APIs, no silent external requests",
+        "Added explicit Completion Boundary separating design/build scope from independent review: UX review, design system review, visual regression, and production readiness are owned by separate review agents",
+        "Added activation/deactivation rules for OpenCode detector integration",
+        "Added Security Boundaries: owner approval for new deps, no runtime network fetch, redaction rules, no production data access",
+        "Prohibited self-review and self-approval of UX/accessibility/production claims — these must go through independent review agents"
+      ],
+      "reviewed_at": "2026-07-23T09:30:45Z"
+    },
+    {
+      "name": "ux-flow-review",
+      "version": "1.1.0",
+      "derived_from": "original (OpenCode Agent Ecosystem)",
+      "license": "MIT",
+      "runtime_network_fetch": false,
+      "local_content_sha256": "012d582d5d55437b7a544466b89401a19b6271e6a81baae2903ed0bfdacfb50f",
+      "modifications_summary": [
+        "Added URL and Deep-Link States section: verify state persistence in URLs, Back/Forward navigation, shareable links",
+        "Added Clear Action Labels section: descriptive button labels, consistent terminology, ellipsis for follow-up actions, active voice",
+        "Added Focus on First Error section: focus moves to first validation error on form submission, inline errors with aria-live",
+        "Added Unsaved Changes Protection section: beforeunload warnings, navigation guards",
+        "Added Mobile and Touch Flows section: minimum 44px touch targets, 16px input font size for iOS, touch-action manipulation, safe area insets",
+        "Added Recovery Paths section: actionable error messages, empty state invitations, undo for irreversible actions",
+        "Added Locale-Aware Content section: Intl.* formatting, Accept-Language detection, translate=no for brand terms"
+      ]
+    },
+    {
+      "name": "ui-design-system-review",
+      "version": "1.1.0",
+      "derived_from": "original (OpenCode Agent Ecosystem)",
+      "license": "MIT",
+      "runtime_network_fetch": false,
+      "local_content_sha256": "ffac12243f7c182ab50452958cd342ee112bc93603a3cd6a1844dd1d1cec3fb4",
+      "modifications_summary": [
+        "Added Image Dimensions and Layout Shift section: explicit width/height on img, aspect-ratio, CLS prevention",
+        "Added Text Overflow and Long Content section: handling very short to very long content, text-overflow, line-clamp, user-generated content resilience",
+        "Added Safe Area Support section: env(safe-area-inset-*), viewport-fit, fixed element notches",
+        "Added Dark Mode Metadata section: meta theme-color, color-scheme, native select styling, forced-colors mode",
+        "Added Locale and Intl.* Formatting section: tabular-nums, non-breaking spaces, locale-aware formatting",
+        "Added Hydration Safety section: input focus preservation, SSR/client mismatch prevention, skeleton dimensions, Suspense minimum visible time",
+        "Added Reduced Motion section: prefers-reduced-motion variants, no autoplay, scroll-behavior gating",
+        "Added Touch Target Sizes section: 44px mobile / 24px desktop minimums, hit target expansion, checkbox/radio shared targets",
+        "Added Native Form Elements in Dark Mode section: explicit background-color, color-scheme on form elements, Windows Chrome testing"
+      ]
+    },
+    {
+      "name": "playwright-visual-review",
+      "version": "1.1.0",
+      "derived_from": "original (OpenCode Agent Ecosystem)",
+      "license": "MIT",
+      "runtime_network_fetch": false,
+      "local_content_sha256": "44edfebd4333e132cbc0e0664ac6f1e8e775ffd1d99a1915dd799a3c996237c3",
+      "modifications_summary": [
+        "Updated WCAG target from 2.1 AA to 2.2 AA",
+        "Added axe configuration details: wcag22aa, wcag21aa, best-practice tag sets",
+        "Added explicit documentation of axe limitations (~30-40% coverage, cannot verify focus order, alt text quality, link purpose, error recovery, content readability)",
+        "Added mandatory disclaimer: Automated axe scan is partial verification; manual keyboard and screen reader testing still required",
+        "Added WCAG 2.2 contrast ratio for UI components and graphical objects (3:1)",
+        "Added focus order verification requirement (separate from axe)",
+        "Added reduced motion verification for no-autoplay and instant transitions",
+        "Added rule: missing baselines must be marked NEEDS_HUMAN_REVIEW, never auto-approved",
+        "Added GitHub comment gate: never post autonomously — requires orchestrator/owner approval"
+      ]
+    }
+  ]
+}

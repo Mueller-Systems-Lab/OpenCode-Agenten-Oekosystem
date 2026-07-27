@@ -419,6 +419,55 @@
           "*": "deny"
         }
       }
+    },
+
+    "frontend-design-agent": {
+      "description": "Designs and builds distinctive web UI. Discovers existing design systems, creates design plans, implements after approval. Delegates review to ux-review-agent and visual QA to playwright-agent. Never self-reviews.",
+      "mode": "subagent",
+      "temperature": 0.2,
+      "permission": {
+        "edit": {
+          "*": "deny",
+          "designs/**": "allow",
+          "components/**": "allow",
+          "pages/**": "allow",
+          "layouts/**": "allow",
+          "app/**": "allow",
+          "src/**": "allow",
+          "public/**": "allow",
+          "styles/**": "allow",
+          "*.css": "allow",
+          "*.scss": "allow",
+          "tailwind.config.*": "ask",
+          "theme.*": "ask",
+          "package.json": "ask"
+        },
+        "bash": {
+          "*": "deny",
+          "git status *": "allow",
+          "git diff *": "allow",
+          "git log *": "allow",
+          "git add *": "ask",
+          "git commit *": "ask",
+          "npm install *": "ask",
+          "npm run dev *": "allow",
+          "npm run build *": "allow",
+          "npm test *": "allow",
+          "npx *": "ask",
+          "grep *": "allow",
+          "rg *": "allow"
+        },
+        "task": {
+          "*": "deny",
+          "ux-review-agent": "allow",
+          "playwright-agent": "allow"
+        },
+        "skill": {
+          "frontend-design-build": "allow",
+          "audit-trail-enforcer": "allow",
+          "*": "deny"
+        }
+      }
     }
   }
 }

@@ -15,6 +15,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { existsSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import { repoRoot, runNodeScript } from '../helpers.mjs';
 
 const INSTALL_SCRIPT = 'scripts/install-governance.mjs';
@@ -125,7 +126,7 @@ describe('Resident Runtime', () => {
     const kernelPath = path.join(target, '.agent-governance', 'runtime', 'gates', 'kernel.mjs');
     assert.ok(existsSync(kernelPath), 'kernel.mjs should be installed in runtime/gates/');
 
-    const mod = await import(kernelPath);
+    const mod = await import(pathToFileURL(kernelPath).href);
     assert.ok(typeof mod.evaluateKernelGates === 'function', 'evaluateKernelGates should export');
     assert.ok(typeof mod.getKernelGates === 'function', 'getKernelGates should export');
     assert.ok(typeof mod.isKernelGate === 'function', 'isKernelGate should export');
@@ -163,7 +164,7 @@ describe('Resident Runtime', () => {
     );
     assert.ok(existsSync(redactionPath), 'redaction.mjs must be installed');
 
-    const mod = await import(redactionPath);
+    const mod = await import(pathToFileURL(redactionPath).href);
     assert.ok(typeof mod.safeRedactText === 'function', 'safeRedactText must be a function');
     assert.ok(typeof mod.safeSerialize === 'function', 'safeSerialize must be a function');
     assert.ok(typeof mod.secretValuesFromEnv === 'function', 'secretValuesFromEnv must be a function');
@@ -175,7 +176,7 @@ describe('Resident Runtime', () => {
     );
     // This import should resolve without ERR_MODULE_NOT_FOUND
     // (it imports ../security/redaction.mjs which must be installed)
-    const mod = await import(opencodePath);
+    const mod = await import(pathToFileURL(opencodePath).href);
     assert.strictEqual(mod.ADAPTER_ID, 'opencode', 'opencode adapter must identify itself');
     assert.ok(typeof mod.detect === 'function', 'detect must be a function');
   });
@@ -185,7 +186,7 @@ describe('Resident Runtime', () => {
       target, '.agent-governance', 'runtime', 'gates', 'evaluate-all.mjs'
     );
     // Full import chain: evaluate-all → runtimes/opencode → security/redaction
-    const mod = await import(evalAllPath);
+    const mod = await import(pathToFileURL(evalAllPath).href);
     assert.ok(typeof mod.evaluateAllGates === 'function', 'evaluateAllGates must export');
   });
 
@@ -218,7 +219,7 @@ describe('Resident Runtime', () => {
     const classificationsPath = path.join(target, '.agent-governance', 'runtime', 'gates', 'classifications.mjs');
     assert.ok(existsSync(classificationsPath), 'classifications.mjs should exist in runtime/gates/');
 
-    const mod = await import(classificationsPath);
+    const mod = await import(pathToFileURL(classificationsPath).href);
     assert.strictEqual(mod.CLASSIFICATIONS.RED_BLOCK, 'RED_BLOCK');
     assert.strictEqual(mod.CLASSIFICATIONS.GREEN_SAFE, 'GREEN_SAFE');
 

@@ -2,6 +2,7 @@ import test from "node:test"
 import assert from "node:assert/strict"
 import fs from "node:fs"
 import path from "node:path"
+import os from "node:os"
 import { spawnSync } from "node:child_process"
 import { repoRoot } from "../helpers.mjs"
 
@@ -79,7 +80,7 @@ test("canonical runner emits parseable bounded diagnostics and cleans capture fi
 
 test("canonical runner creates a missing isolated temporary root", () => {
   const isolatedRoot = path.join(
-    fs.mkdtempSync(path.join(fs.realpathSync.native(process.env.TMPDIR || "/tmp"), "ocae-runner-contract-")),
+    fs.mkdtempSync(path.join(fs.realpathSync.native(process.env.TMPDIR || os.tmpdir()), "ocae-runner-contract-")),
     "fresh-temp-root",
   )
   try {

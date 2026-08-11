@@ -35,6 +35,9 @@ function runInstall({ home, configHome, args = [] } = {}) {
   const env = { ...process.env }
   if (home) {
     env.HOME = home
+    // Node on Windows resolves os.homedir() from USERPROFILE. Keep the
+    // isolated fake-home contract portable across POSIX and Windows hosts.
+    env.USERPROFILE = home
   }
   if (configHome) {
     env.XDG_CONFIG_HOME = configHome

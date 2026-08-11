@@ -23,9 +23,11 @@ import { join, resolve, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 // Resolve repo root
-const REPO_ROOT = resolve(dirname(new URL(import.meta.url).pathname), '../..');
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+const importFromRoot = (relativePath) => import(pathToFileURL(join(REPO_ROOT, relativePath)).href);
 
 // ── Helpers ────────────────────────────────────────────────────
 
@@ -82,7 +84,7 @@ describe('R-001: OpenCode Plugin Export Contract', () => {
 
   before(async () => {
     try {
-      pluginModule = await import(join(REPO_ROOT, '.opencode/plugins/canonical-governance.mjs'));
+      pluginModule = await importFromRoot('.opencode/plugins/canonical-governance.mjs');
     } catch (e) {
       pluginModule = null;
     }
@@ -345,7 +347,7 @@ describe('R-003: Source-Lock Schema Unification', () => {
 
       // Try to evaluate — should fail without source-lock
       try {
-        const mod = await import(join(REPO_ROOT, 'scripts/lib/gates/evaluate-all.mjs'));
+        const mod = await importFromRoot('scripts/lib/gates/evaluate-all.mjs');
         const result = await mod.evaluateAllGates({
           targetRoot: projectDir,
           runtime: 'generic',
@@ -431,7 +433,7 @@ describe('R-004: Gate Decision Contract', () => {
       writeFileSync(join(projectDir, 'package.json'), '{"name":"test"}');
       // No .agent-governance/ at all
 
-      const result = await (await import(join(REPO_ROOT, 'scripts/lib/gates/evaluate-all.mjs')))
+      const result = await (await importFromRoot('scripts/lib/gates/evaluate-all.mjs'))
         .evaluateAllGates({
           targetRoot: projectDir,
           runtime: 'generic',
@@ -662,7 +664,7 @@ describe('R-007: Enforcement Level Evidence Requirements', () => {
 
 describe('R-008: Approval Metadata Enforcement', () => {
   it('requiredApprovals present but no matching receipt → allowed=false', async () => {
-    const mod = await import(join(REPO_ROOT, 'scripts/lib/gates/evaluate-all.mjs'));
+    const mod = await importFromRoot('scripts/lib/gates/evaluate-all.mjs');
 
     const projectDir = tempDir();
     try {
@@ -692,7 +694,7 @@ describe('R-008: Approval Metadata Enforcement', () => {
   });
 
   it('wrong action in approval receipt → blocked', async () => {
-    const mod = await import(join(REPO_ROOT, 'scripts/lib/gates/approval.mjs'));
+    const mod = await importFromRoot('scripts/lib/gates/approval.mjs');
 
     // Create a push approval, then try to use it for merge
     const receipt = mod.createApprovalReceipt({

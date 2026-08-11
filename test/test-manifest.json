@@ -17,6 +17,7 @@
       "test/contracts/bootstrap-v2-classification-output.test.mjs",
       "test/contracts/ci-workflow-contract.test.mjs",
       "test/contracts/completion-runtime-contracts.test.mjs",
+      "test/contracts/governance-generator-platform-contract.test.mjs",
       "test/contracts/runtime-enforcement-contracts.test.mjs",
       "test/spec-kit/bridge-contract.test.mjs",
       "test/spec-kit/bridge-red.test.mjs",

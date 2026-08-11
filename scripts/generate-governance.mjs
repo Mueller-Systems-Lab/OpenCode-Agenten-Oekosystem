@@ -45,6 +45,7 @@ function outputs(policy) {
   }
 }
 
+export function normalizeGeneratedText(text) { return text.replace(/\r\n/g, "\n") }
 function rendered(value) { return `${JSON.stringify({ _generated_notice: generatedNotice, ...value }, null, 2)}\n` }
 function checkOrWrite(checkOnly) {
   const policy = readPolicy()
@@ -54,7 +55,7 @@ function checkOrWrite(checkOnly) {
     const target = path.join(generatedDir, name)
     const expected = rendered(value)
     if (checkOnly) {
-      if (!fs.existsSync(target) || fs.readFileSync(target, 'utf8') !== expected) drift.push(name)
+      if (!fs.existsSync(target) || normalizeGeneratedText(fs.readFileSync(target, 'utf8')) !== expected) drift.push(name)
     } else {
       fs.mkdirSync(generatedDir, { recursive: true })
       fs.writeFileSync(target, expected)
@@ -65,10 +66,12 @@ function checkOrWrite(checkOnly) {
 }
 
 const checkOnly = process.argv.includes('--check')
-try {
-  const result = checkOrWrite(checkOnly)
-  process.stdout.write(`${checkOnly ? 'GOVERNANCE_GENERATION_CHECK_OK' : 'GOVERNANCE_GENERATED'} ${result.generated.length}\n`)
-} catch (error) {
-  process.stderr.write(`RED_BLOCK_GOVERNANCE_GENERATOR: ${error.message}\n`)
-  process.exitCode = 2
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    const result = checkOrWrite(checkOnly)
+    process.stdout.write(`${checkOnly ? 'GOVERNANCE_GENERATION_CHECK_OK' : 'GOVERNANCE_GENERATED'} ${result.generated.length}\n`)
+  } catch (error) {
+    process.stderr.write(`RED_BLOCK_GOVERNANCE_GENERATOR: ${error.message}\n`)
+    process.exitCode = 2
+  }
 }

@@ -14,6 +14,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { existsSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import { repoRoot, runNodeScript } from '../helpers.mjs';
 
 const INSTALL_SCRIPT = 'scripts/install-governance.mjs';
@@ -89,7 +90,7 @@ describe('RED TEST — redaction.mjs installed (pre-fix: expected FAIL)', () => 
     const redactionPath = path.join(
       target, '.agent-governance', 'runtime', 'security', 'redaction.mjs'
     );
-    const mod = await import(redactionPath);
+    const mod = await import(pathToFileURL(redactionPath).href);
     assert.ok(typeof mod.safeRedactText === 'function', 'safeRedactText must be a function');
     assert.ok(typeof mod.safeSerialize === 'function', 'safeSerialize must be a function');
     assert.ok(typeof mod.secretValuesFromEnv === 'function', 'secretValuesFromEnv must be a function');

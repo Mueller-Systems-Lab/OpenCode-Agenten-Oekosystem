@@ -1,0 +1,41 @@
+import fs from "node:fs/promises"
+import path from "node:path"
+
+export const GOVERNANCE_EVENTS = Object.freeze([
+  "agent.start", "agent.preflight.start", "agent.preflight.result", "agent.task.start",
+  "agent.task.result", "agent.resume", "policy.allow", "policy.deny",
+])
+
+export function governanceAttributes(input = {}) {
+  const allowed = [
+    "project.id", "run.id", "task.id", "agent.role", "agent.execution.id",
+    "run_card.sha256", "source.commit", "target.environment", "classification",
+    "status", "code", "step", "tool", "reason", "mode",
+  ]
+  return Object.fromEntries(Object.entries(input).filter(([key, value]) => allowed.includes(key) && value !== undefined && value !== null))
+}
+
+export function createGovernanceEvent({ name, trace_id = null, span_id = null, parent_span_id = null, attributes = {}, timestamp = new Date().toISOString() } = {}) {
+  if (!GOVERNANCE_EVENTS.includes(name)) throw new Error(`Unknown governance event: ${name}`)
+  return {
+    timestamp,
+    name,
+    trace_id,
+    span_id,
+    parent_span_id,
+    attributes: governanceAttributes(attributes),
+  }
+}
+
+export async function appendGovernanceEvent(filePath, event) {
+  const target = path.resolve(filePath)
+  await fs.mkdir(path.dirname(target), { recursive: true, mode: 0o700 })
+  await fs.appendFile(target, `${JSON.stringify(event)}\n`, { encoding: "utf8", mode: 0o600 })
+  return target
+}
+
+export async function recordGovernanceEvent(filePath, input) {
+  const event = createGovernanceEvent(input)
+  await appendGovernanceEvent(filePath, event)
+  return event
+}

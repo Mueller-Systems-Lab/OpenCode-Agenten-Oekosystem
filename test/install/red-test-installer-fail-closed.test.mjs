@@ -17,6 +17,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import { repoRoot, runNodeScript } from '../helpers.mjs';
 
 const INSTALL_SCRIPT = 'scripts/install-governance.mjs';
@@ -162,7 +163,7 @@ describe('RED TEST — Installer fail-closed (pre-fix: expected FAIL)', () => {
     );
 
     await assert.doesNotReject(
-      import(evalAllPath),
+      import(pathToFileURL(evalAllPath).href),
       /ERR_MODULE_NOT_FOUND/,
       'Installed evaluate-all.mjs must import all transitive dependencies without ERR_MODULE_NOT_FOUND'
     );

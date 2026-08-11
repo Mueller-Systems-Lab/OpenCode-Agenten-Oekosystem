@@ -21,6 +21,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import { repoRoot, runNodeScript } from '../helpers.mjs';
 
 const INSTALL_SCRIPT = 'scripts/install-governance.mjs';
@@ -59,7 +60,7 @@ async function installGovernance(target) {
  */
 async function callValidatePostApply(targetRoot) {
   const harnessCode = `
-    import { validatePostApply } from ${JSON.stringify(path.join(repoRoot, INSTALL_SCRIPT))};
+    import { validatePostApply } from ${JSON.stringify(pathToFileURL(path.join(repoRoot, INSTALL_SCRIPT)).href)};
     const result = await validatePostApply(${JSON.stringify(targetRoot)});
     process.stdout.write(JSON.stringify(result));
   `;

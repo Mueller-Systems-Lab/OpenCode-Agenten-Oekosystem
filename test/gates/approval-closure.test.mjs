@@ -15,8 +15,9 @@ import {
   APPROVAL_STATUSES
 } from '../../scripts/lib/gates/approval.mjs';
 import { ApprovalIntegrityViolation } from '../../scripts/lib/gates/errors.mjs';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const repoRoot = path.resolve(new URL('../..', import.meta.url).pathname);
+const repoRoot = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const tempRoots = [];
 
 async function makeRepo() {
@@ -74,7 +75,7 @@ function consumeContext(repo, receipt, overrides = {}) {
 function runChild(receiptFile, context) {
   const code = `
     import fs from 'node:fs';
-    import { consumeReceipt } from ${JSON.stringify(path.join(repoRoot, 'scripts/lib/gates/approval.mjs'))};
+    import { consumeReceipt } from ${JSON.stringify(pathToFileURL(path.join(repoRoot, 'scripts/lib/gates/approval.mjs')).href)};
     const receipt = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
     const context = JSON.parse(process.argv[2]);
     try {

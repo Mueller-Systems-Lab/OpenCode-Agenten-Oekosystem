@@ -15,6 +15,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import { repoRoot, runNodeScript } from '../helpers.mjs';
 
 const INSTALL_SCRIPT = 'scripts/install-governance.mjs';
@@ -67,7 +68,7 @@ describe('RED TEST — Resident runtime import (pre-fix: expected FAIL)', () => 
 
     // Dynamic import should resolve WITHOUT ERR_MODULE_NOT_FOUND
     await assert.doesNotReject(
-      import(evalAllPath),
+      import(pathToFileURL(evalAllPath).href),
       /ERR_MODULE_NOT_FOUND/,
       'evaluate-all.mjs must import all its transitive dependencies'
     );
@@ -77,7 +78,7 @@ describe('RED TEST — Resident runtime import (pre-fix: expected FAIL)', () => 
     const evalAllPath = path.join(
       target, '.agent-governance', 'runtime', 'gates', 'evaluate-all.mjs'
     );
-    const mod = await import(evalAllPath);
+    const mod = await import(pathToFileURL(evalAllPath).href);
     assert.ok(
       typeof mod.evaluateAllGates === 'function',
       'evaluateAllGates must be a function export'
@@ -88,7 +89,7 @@ describe('RED TEST — Resident runtime import (pre-fix: expected FAIL)', () => 
     const opencodePath = path.join(
       target, '.agent-governance', 'runtime', 'runtimes', 'opencode.mjs'
     );
-    const mod = await import(opencodePath);
+    const mod = await import(pathToFileURL(opencodePath).href);
     assert.ok(typeof mod.detect === 'function', 'opencode adapter must export detect');
     assert.strictEqual(mod.ADAPTER_ID, 'opencode');
   });
@@ -97,7 +98,7 @@ describe('RED TEST — Resident runtime import (pre-fix: expected FAIL)', () => 
     const evalAllPath = path.join(
       target, '.agent-governance', 'runtime', 'gates', 'evaluate-all.mjs'
     );
-    const mod = await import(evalAllPath);
+    const mod = await import(pathToFileURL(evalAllPath).href);
     // evaluateAllGates works with or without a specific context
     // The key assertion: the function exists and does not throw
     assert.ok(typeof mod.evaluateAllGates === 'function', 'evaluateAllGates must be a function');

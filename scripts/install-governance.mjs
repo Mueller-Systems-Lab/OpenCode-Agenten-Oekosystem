@@ -13,6 +13,7 @@ import {
   pathExists,
   toAbsolutePath,
   relativePath,
+  normalizePosix,
   assertSafePath,
   readTextIfExists,
   writeText,
@@ -30,6 +31,14 @@ import {
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const REDACTION_OPTIONS = Object.freeze({ secrets: [] })
+
+function manifestPath(relative) {
+  return normalizePosix(relative)
+}
+
+function previousHash(previousHashes, relative) {
+  return previousHashes[manifestPath(relative)] ?? previousHashes[relative] ?? null
+}
 
 function timestampSlug(date = new Date()) {
   return date.toISOString().replace(/[:.]/g, "-")
@@ -259,9 +268,9 @@ async function findConflicts(targetRoot, filePlan) {
     const destination = path.join(targetRoot, file.path)
     const stat = await (async () => { try { return await fsPromises.lstat(destination) } catch { return null } })()
     if (!stat) continue
-    const managed = previousFiles.has(file.path) || file.action === "create-installation-manifest"
+    const managed = previousFiles.has(manifestPath(file.path)) || previousFiles.has(file.path) || file.action === "create-installation-manifest"
     const currentHash = stat.isFile() ? await hashIfFile(destination) : null
-    const currentMatchesPrevious = managed && currentHash && previousHashes[file.path] === currentHash
+    const currentMatchesPrevious = managed && currentHash && previousHash(previousHashes, file.path) === currentHash
     let classification = classifyBootstrapConflict({
       exists: true,
       managed,
@@ -279,7 +288,7 @@ async function findConflicts(targetRoot, filePlan) {
       classification,
       managed,
       current_hash: currentHash,
-      previous_hash: previousHashes[file.path] || null,
+      previous_hash: previousHash(previousHashes, file.path),
       reason: classification === "OWNER_CONTENT_PRESERVE" ? "existing owner content is preserved" : null,
     })
   }
@@ -970,8 +979,8 @@ async function writeInstallationManifest({ targetRoot, sourceRoot, sourceCommit,
     const absolute = path.join(targetRoot, file.path)
     const hash = await hashIfFile(absolute)
     if (hash) {
-      managedFiles.push(file.path)
-      fileHashes[file.path] = hash
+      managedFiles.push(manifestPath(file.path))
+      fileHashes[manifestPath(file.path)] = hash
     }
   }
   const preservedFiles = conflicts.filter((conflict) => conflict.classification === "OWNER_CONTENT_PRESERVE").map((conflict) => conflict.path)

@@ -270,6 +270,144 @@
           "description": "Designs and builds distinctive web UI. Discovers existing design systems, creates design plans, implements after approval. Delegates review to ux-review-agent and visual QA to playwright-agent. Never self-reviews."
         }
       ],
+      "profiles": {
+        "issue-orchestrator": {
+          "agent_id": "issue-orchestrator", "role": "orchestrator",
+          "required_tools": [], "optional_tools": ["github"],
+          "allowed_operations": ["inspect", "plan", "delegate", "review"],
+          "denied_operations": ["approve", "merge", "deploy", "production_write"],
+          "allowed_paths": ["**"], "write_paths": [],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "0_readonly",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "plan": {
+          "agent_id": "plan", "role": "planner",
+          "required_tools": [], "optional_tools": [],
+          "allowed_operations": ["inspect", "plan"], "denied_operations": ["write", "merge", "deploy"],
+          "allowed_paths": ["**"], "write_paths": [],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "0_readonly",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "build": {
+          "agent_id": "build", "role": "builder",
+          "required_tools": [], "optional_tools": [],
+          "allowed_operations": ["inspect", "test", "write"], "denied_operations": ["merge", "deploy", "production_write"],
+          "allowed_paths": ["**"], "write_paths": [],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "0_readonly",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "executor": {
+          "agent_id": "executor", "role": "bounded_executor",
+          "required_tools": [], "optional_tools": ["github", "context7", "sqlite", "docker", "playwright"],
+          "allowed_operations": ["inspect", "test", "write"], "denied_operations": ["merge", "deploy", "production_write", "secret_read"],
+          "allowed_paths": ["**"], "write_paths": [],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "1_sandboxed",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "approval-coordinator": {
+          "agent_id": "approval-coordinator", "role": "approval_coordinator",
+          "required_tools": [], "optional_tools": ["github"],
+          "allowed_operations": ["inspect", "bundle", "route"], "denied_operations": ["approve", "revoke", "merge", "write"],
+          "allowed_paths": ["**"], "write_paths": [],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "0_readonly",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "review-agent": {
+          "agent_id": "review-agent", "role": "reviewer",
+          "required_tools": [], "optional_tools": ["github"],
+          "allowed_operations": ["inspect", "review", "test"], "denied_operations": ["write", "merge", "deploy"],
+          "allowed_paths": ["**"], "write_paths": [],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "0_readonly",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "security-agent": {
+          "agent_id": "security-agent", "role": "security_reviewer",
+          "required_tools": [], "optional_tools": ["docker", "github"],
+          "allowed_operations": ["inspect", "test", "review"], "denied_operations": ["write", "merge", "deploy", "production_write"],
+          "allowed_paths": ["**"], "write_paths": ["test/security/**", ".opencode/reports/security/**"],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "1_sandboxed",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "compliance-agent": {
+          "agent_id": "compliance-agent", "role": "compliance_reviewer",
+          "required_tools": [], "optional_tools": ["github"],
+          "allowed_operations": ["inspect", "review"], "denied_operations": ["write", "merge", "deploy", "production_write"],
+          "allowed_paths": ["**"], "write_paths": [],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "0_readonly",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "research-agent": {
+          "agent_id": "research-agent", "role": "researcher",
+          "required_tools": [], "optional_tools": ["github", "context7", "brave-search"],
+          "allowed_operations": ["inspect", "research"], "denied_operations": ["write", "merge", "deploy"],
+          "allowed_paths": ["**"], "write_paths": [],
+          "network_policy": "allow_readonly", "egress_policy": "allow_documentation_only", "trust_tier": "0_readonly",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "architecture-agent": {
+          "agent_id": "architecture-agent", "role": "architecture_reviewer",
+          "required_tools": [], "optional_tools": ["github", "context7"],
+          "allowed_operations": ["inspect", "review", "document"], "denied_operations": ["merge", "deploy", "production_write"],
+          "allowed_paths": ["**"], "write_paths": ["docs/adr/**", ".opencode/reports/architecture/**"],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "0_readonly",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "documentation-agent": {
+          "agent_id": "documentation-agent", "role": "documenter",
+          "required_tools": [], "optional_tools": ["github", "context7"],
+          "allowed_operations": ["inspect", "document"], "denied_operations": ["merge", "deploy", "production_write"],
+          "allowed_paths": ["**"], "write_paths": ["docs/**", "README.md", "CHANGELOG.md"],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "0_readonly",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "migration-agent": {
+          "agent_id": "migration-agent", "role": "migration_reviewer",
+          "required_tools": [], "optional_tools": ["sqlite", "docker"],
+          "allowed_operations": ["inspect", "test", "review"], "denied_operations": ["production_write", "merge", "deploy"],
+          "allowed_paths": ["**"], "write_paths": ["migrations/**", "data/migrations/**"],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "1_sandboxed",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "playwright-agent": {
+          "agent_id": "playwright-agent", "role": "visual_qa",
+          "required_tools": [], "optional_tools": ["playwright"],
+          "allowed_operations": ["inspect", "test"], "denied_operations": ["write", "merge", "deploy"],
+          "allowed_paths": ["**"], "write_paths": ["e2e-screenshots/**", ".opencode/reports/visual-qa/**"],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "1_sandboxed",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "ux-review-agent": {
+          "agent_id": "ux-review-agent", "role": "ux_reviewer",
+          "required_tools": [], "optional_tools": ["playwright"],
+          "allowed_operations": ["inspect", "review"], "denied_operations": ["write", "merge", "deploy"],
+          "allowed_paths": ["**"], "write_paths": [],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "1_sandboxed",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "frontend-design-agent": {
+          "agent_id": "frontend-design-agent", "role": "frontend_builder",
+          "required_tools": [], "optional_tools": ["playwright"],
+          "allowed_operations": ["inspect", "write", "test"], "denied_operations": ["merge", "deploy", "production_write"],
+          "allowed_paths": ["**"], "write_paths": ["designs/**", "components/**", "pages/**", "layouts/**", "app/**", "src/**", "public/**", "styles/**"],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "1_sandboxed",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        }
+      },
       "domain_specific": [],
       "experimental": [
         {

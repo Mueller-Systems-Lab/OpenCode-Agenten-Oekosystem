@@ -78,6 +78,8 @@ async function main() {
     "docs/reports/working-method-deep-dive-2026-07-15.md",
     // Gate Kernel
     "docs/architecture/runtime-neutral-gate-kernel.md",
+    "docs/architecture/local-completion-runtime.md",
+    "docs/run-cards/hermes-ct108-runtime-closure-package.md",
     "docs/reports/runtime-gate-kernel-research.md",
     "docs/reports/odysseus-integration-research.md",
     "docs/reports/gate-kernel-security-review.md",
@@ -117,6 +119,7 @@ async function main() {
     "scripts/lib/backup.mjs",
     "scripts/lib/manifest.mjs",
     "scripts/lib/mcp.mjs",
+    "scripts/lib/mcp-preflight.mjs",
     "scripts/lib/opencode.mjs",
     "scripts/lib/paths.mjs",
     "scripts/lib/report.mjs",
@@ -144,12 +147,17 @@ async function main() {
     "runtime/approval/approval-bundler.mjs",
     "runtime/approval/approval-audit.mjs",
     "runtime/approval/capability-registry.mjs",
+    "runtime/agent/run-state.mjs",
+    "runtime/agent/start.mjs",
+    "runtime/observability/events.mjs",
     "scripts/evaluate-governance-v2.mjs",
     "scripts/install-governance.mjs",
+    "scripts/run-completion-canary.mjs",
   ]))
 
   issues.push(...await validateNoAbsoluteUserPaths())
   issues.push(...await validateManifestCatalogNames(manifest))
+  issues.push(...validateAgentCapabilityProfiles(manifest))
   issues.push(...await validateSkillAndAgentNames())
   warnings.push(...await validateOptionalArtifacts())
 
@@ -310,6 +318,38 @@ async function validateManifestCatalogNames(manifest) {
         }
         names.add(`${section}:${name}`)
       }
+    }
+  }
+  return issues
+}
+
+function validateAgentCapabilityProfiles(manifest) {
+  const issues = []
+  const profiles = manifest?.catalogs?.agents?.profiles
+  if (!profiles || typeof profiles !== "object" || Array.isArray(profiles)) {
+    return ["catalogs.agents.profiles must be an object"]
+  }
+  const required = [
+    "agent_id", "role", "required_tools", "optional_tools", "allowed_operations",
+    "denied_operations", "allowed_paths", "write_paths", "network_policy",
+    "egress_policy", "trust_tier", "tool_version_constraints", "auth_requirement",
+    "timeout_ms", "preflight_failure_policy",
+  ]
+  for (const [profileId, profile] of Object.entries(profiles)) {
+    if (!profile || typeof profile !== "object" || Array.isArray(profile)) {
+      issues.push(`agent capability profile ${profileId} must be an object`)
+      continue
+    }
+    for (const key of required) if (!(key in profile)) issues.push(`agent capability profile ${profileId} missing ${key}`)
+    if (profile.agent_id !== profileId) issues.push(`agent capability profile ${profileId} agent_id mismatch`)
+    for (const key of ["required_tools", "optional_tools", "allowed_operations", "denied_operations", "allowed_paths", "write_paths"]) {
+      if (key in profile && !Array.isArray(profile[key])) issues.push(`agent capability profile ${profileId}.${key} must be an array`)
+    }
+    if (profile.timeout_ms !== undefined && (!Number.isInteger(profile.timeout_ms) || profile.timeout_ms <= 0)) {
+      issues.push(`agent capability profile ${profileId}.timeout_ms must be a positive integer`)
+    }
+    if (profile.preflight_failure_policy !== "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT") {
+      issues.push(`agent capability profile ${profileId} must use fail-closed MCP preflight policy`)
     }
   }
   return issues
@@ -518,6 +558,10 @@ async function validateGovernanceV2() {
     'runtime/approval/approval-bundler.mjs',
     'runtime/approval/approval-audit.mjs',
     'runtime/approval/capability-registry.mjs',
+    'scripts/lib/mcp-preflight.mjs',
+    'runtime/agent/run-state.mjs',
+    'runtime/agent/start.mjs',
+    'runtime/observability/events.mjs',
     'scripts/evaluate-governance-v2.mjs',
   ]
   for (const rel of required) if (!(await pathExists(path.join(repoRoot, rel)))) issues.push(`governance-v2: missing ${rel}`)

@@ -1,0 +1,22 @@
+{
+  "canary": "LOCAL_COMPLETION_CANARY",
+  "valid_agent": {
+    "classification": "VERIFIED_IN_SCOPE",
+    "code": "RUN_COMPLETE",
+    "preflight": "DEGRADED_OPTIONAL_MCP_CAPABILITY"
+  },
+  "missing_required_mcp": {
+    "classification": "RED_BLOCK",
+    "code": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT",
+    "executed": []
+  },
+  "policy_deny": {
+    "allowed": false,
+    "code": "MCP_OPERATION_DENIED"
+  },
+  "resume": {
+    "first": "RUN_PAUSED",
+    "second": "RUN_COMPLETE"
+  },
+  "trace_path": "evidence/completion-canary-r3/events.jsonl"
+}

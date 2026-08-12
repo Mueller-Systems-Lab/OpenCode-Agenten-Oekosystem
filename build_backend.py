@@ -15,6 +15,7 @@ PAYLOAD_ROOT = PACKAGE_ROOT / "_payload"
 ARCHIVE_PATH = PAYLOAD_ROOT / "canonical-runtime.tar.gz"
 MANIFEST_PATH = PAYLOAD_ROOT / "ocae-payload-manifest.json"
 VERSION_PATH = PACKAGE_ROOT / "_version.py"
+CANONICAL_SOURCE_REPOSITORY = "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
 
 RUNTIME_FILES = (
     "scripts/install-governance.mjs",
@@ -92,7 +93,7 @@ def _relevant_worktree_status() -> list[str]:
 def _source_repository() -> str:
     value = os.environ.get("OCAE_SOURCE_REPOSITORY") or _git_value("remote", "get-url", "origin")
     if not value:
-        return "UNKNOWN"
+        return CANONICAL_SOURCE_REPOSITORY
     if value.startswith("git@github.com:"):
         value = "https://github.com/" + value.split(":", 1)[1]
     return value.removesuffix(".git")

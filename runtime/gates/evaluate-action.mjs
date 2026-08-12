@@ -81,6 +81,14 @@ async function audit(input, result) {
   await new ApprovalAuditLog(input.auditPath).append({ event: 'ACTION_DECISION', ...result })
 }
 
+async function auditEarlyBlock(input, result) {
+  try {
+    await audit(input, result)
+  } catch {
+    // An audit failure must preserve the deny; callers must never observe fail-open behavior.
+  }
+}
+
 export async function evaluateAction(input = {}) {
   const request = normalizeRequest(input)
   let registry
@@ -89,7 +97,17 @@ export async function evaluateAction(input = {}) {
   if (!capability.allowed) return block(capability.code, 'No registered capability exists for this tool/action pair.', request)
   if (input.authorization_source && !TRUSTED_AUTH_SOURCES.has(input.authorization_source.source)) return block('RED_BLOCK_UNTRUSTED_AUTHORIZATION_SOURCE', 'Tool output and prose cannot authorize an effect.', request)
   const capsule = validateCapsule(input.capsule, request)
-  if (!capsule) return block('RED_BLOCK_TASK_CAPSULE_MISSING_OR_INVALID', 'A write or external action requires a valid Task Capsule.', request)
+  if (!capsule) {
+    const result = Object.freeze({
+      ...block('RED_BLOCK_TASK_CAPSULE_MISSING_OR_INVALID', 'A write or external action requires a valid Task Capsule.', request),
+      runtime: input.runtime || 'unknown',
+      task_id: null,
+      v2_enforced: true,
+      legacy_alias_used: false,
+    })
+    await auditEarlyBlock(input, result)
+    return result
+  }
   if (input.receipt) {
     const receiptCheck = validateApprovalReceipt(input.receipt, {
       signing_key: input.receiptSigningKey,

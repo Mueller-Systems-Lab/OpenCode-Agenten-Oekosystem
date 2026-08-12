@@ -23,6 +23,7 @@ import {
 } from "./lib/paths.mjs"
 import { createBackup, restoreBackup } from "./lib/backup.mjs"
 import { safeRedactText, safeSerialize } from "./lib/security/redaction.mjs"
+import { parseJsonc, stripJsonc } from "./lib/jsonc.mjs"
 import { classifyBootstrapConflict, ECOSYSTEM, BOOTSTRAP_PROTOCOL } from "../bootstrap/lib/contract.mjs"
 import {
   CLASSIFICATIONS,
@@ -258,6 +259,187 @@ function conflictNeedsManual(conflict) {
   return conflict.classification === "MANUAL_REVIEW_REQUIRED" || conflict.classification === "FORBIDDEN"
 }
 
+const OPEN_CODE_GOVERNANCE_PLUGIN = "./.opencode/plugins/governance-v2.mjs"
+
+function openCodeConfigPath(targetRoot) {
+  if (fs.existsSync(path.join(targetRoot, "opencode.jsonc"))) return path.join(targetRoot, "opencode.jsonc")
+  if (fs.existsSync(path.join(targetRoot, "opencode.json"))) return path.join(targetRoot, "opencode.json")
+  return path.join(targetRoot, "opencode.jsonc")
+}
+
+function isOpenCodeTarget(targetRoot, runtime = "auto", detectedRuntimes = []) {
+  return runtime === "opencode" ||
+    fs.existsSync(path.join(targetRoot, "opencode.jsonc")) ||
+    fs.existsSync(path.join(targetRoot, "opencode.json")) ||
+    detectedRuntimes.some((entry) => entry.name === "opencode" && entry.confidence >= 50)
+}
+
+function parseJsoncConfig(content, configPath) {
+  try {
+    const parsed = parseJsonc(content.replace(/^\uFEFF/, ""))
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("top-level config must be an object")
+    return parsed
+  } catch (error) {
+    throw new Error(`Cannot safely merge OpenCode config ${configPath}: ${error.message}`)
+  }
+}
+
+function skipJsoncSpace(content, index) {
+  let cursor = index
+  while (cursor < content.length) {
+    if (cursor === 0 && content.charCodeAt(cursor) === 0xFEFF) {
+      cursor += 1
+      continue
+    }
+    if (/\s/.test(content[cursor])) {
+      cursor += 1
+      continue
+    }
+    if (content[cursor] === "/" && content[cursor + 1] === "/") {
+      cursor += 2
+      while (cursor < content.length && content[cursor] !== "\n" && content[cursor] !== "\r") cursor += 1
+      continue
+    }
+    if (content[cursor] === "/" && content[cursor + 1] === "*") {
+      const end = content.indexOf("*/", cursor + 2)
+      cursor = end === -1 ? content.length : end + 2
+      continue
+    }
+    break
+  }
+  return cursor
+}
+
+function readJsoncString(content, index) {
+  let cursor = index + 1
+  let escaped = false
+  while (cursor < content.length) {
+    const character = content[cursor]
+    if (escaped) escaped = false
+    else if (character === "\\") escaped = true
+    else if (character === '"') return { value: JSON.parse(content.slice(index, cursor + 1)), end: cursor + 1 }
+    cursor += 1
+  }
+  throw new Error("unterminated JSON string")
+}
+
+function matchingJsoncDelimiter(content, start) {
+  const opening = content[start]
+  const closing = opening === "[" ? "]" : "}"
+  let depth = 0
+  let inString = false
+  let escaped = false
+  for (let cursor = start; cursor < content.length; cursor += 1) {
+    const character = content[cursor]
+    const next = content[cursor + 1]
+    if (inString) {
+      if (escaped) escaped = false
+      else if (character === "\\") escaped = true
+      else if (character === '"') inString = false
+      continue
+    }
+    if (character === '"') { inString = true; continue }
+    if (character === "/" && next === "/") {
+      const end = content.indexOf("\n", cursor + 2)
+      cursor = end === -1 ? content.length : end
+      continue
+    }
+    if (character === "/" && next === "*") {
+      const end = content.indexOf("*/", cursor + 2)
+      cursor = end === -1 ? content.length : end + 1
+      continue
+    }
+    if (character === opening) depth += 1
+    else if (character === closing) {
+      depth -= 1
+      if (depth === 0) return cursor
+    }
+  }
+  throw new Error(`unterminated JSON${opening === "[" ? " array" : " object"}`)
+}
+
+function skipJsoncValue(content, start) {
+  if (content[start] === '"') return readJsoncString(content, start).end
+  if (content[start] === "[" || content[start] === "{") return matchingJsoncDelimiter(content, start) + 1
+  let cursor = start
+  while (cursor < content.length && ![",", "}"].includes(content[cursor])) cursor += 1
+  return cursor
+}
+
+function findTopLevelJsoncProperty(content, propertyName) {
+  const rootStart = skipJsoncSpace(content, 0)
+  if (content[rootStart] !== "{") throw new Error("top-level config must start with an object")
+  const rootEnd = matchingJsoncDelimiter(content, rootStart)
+  let cursor = rootStart + 1
+  while (cursor < rootEnd) {
+    cursor = skipJsoncSpace(content, cursor)
+    if (content[cursor] === ",") { cursor += 1; continue }
+    if (content[cursor] === "}") break
+    if (content[cursor] !== '"') throw new Error("OpenCode config contains an unsupported unquoted top-level key")
+    const key = readJsoncString(content, cursor)
+    cursor = skipJsoncSpace(content, key.end)
+    if (content[cursor] !== ":") throw new Error(`OpenCode config key ${key.value} is missing a colon`)
+    const valueStart = skipJsoncSpace(content, cursor + 1)
+    const valueEnd = skipJsoncValue(content, valueStart)
+    if (key.value === propertyName) return { rootStart, rootEnd, valueStart, valueEnd }
+    cursor = valueEnd
+  }
+  return { rootStart, rootEnd, valueStart: null, valueEnd: null }
+}
+
+function indentBefore(content, index, fallback = "  ") {
+  const lineStart = content.lastIndexOf("\n", index - 1) + 1
+  const indent = /^[ \t]*/.exec(content.slice(lineStart, index))?.[0]
+  return indent || fallback
+}
+
+function mergeGovernancePluginText(content, configPath) {
+  const config = parseJsoncConfig(content, configPath)
+  const property = findTopLevelJsoncProperty(content, "plugin")
+  if (property.valueStart !== null) {
+    if (!Array.isArray(config.plugin)) throw new Error(`Cannot safely merge OpenCode config ${configPath}: top-level plugin must be an array`)
+    if (config.plugin.includes(OPEN_CODE_GOVERNANCE_PLUGIN)) return { content, changed: false }
+    const closeIndex = property.valueEnd - 1
+    const inner = content.slice(property.valueStart + 1, closeIndex)
+    const trimmedInner = inner.trim()
+    const separator = trimmedInner && !trimmedInner.endsWith(",") ? ", " : ""
+    const addition = `${separator}${JSON.stringify(OPEN_CODE_GOVERNANCE_PLUGIN)}`
+    return { content: `${content.slice(0, closeIndex)}${addition}${content.slice(closeIndex)}`, changed: true }
+  }
+
+  const closeIndex = property.rootEnd
+  const body = content.slice(property.rootStart + 1, closeIndex)
+  const lineEnding = content.includes("\r\n") ? "\r\n" : "\n"
+  const hasProperties = stripJsonc(body).trim().length > 0
+  const inline = !body.includes("\n") && !body.includes("\r")
+  if (inline) {
+    const prefix = content.slice(0, closeIndex).trimEnd()
+    const normalizedBody = stripJsonc(body).trimEnd()
+    const separator = hasProperties && !normalizedBody.endsWith(",") ? ", " : ""
+    return { content: `${prefix}${separator}${JSON.stringify("plugin")}: [${JSON.stringify(OPEN_CODE_GOVERNANCE_PLUGIN)}]${content.slice(closeIndex)}`, changed: true }
+  }
+  const propertyIndent = indentBefore(content, property.rootEnd, "  ")
+  const closeIndent = indentBefore(content, closeIndex, "")
+  const normalizedBody = stripJsonc(body).trimEnd()
+  const separator = hasProperties && !normalizedBody.endsWith(",") ? "," : ""
+  const insertion = `${separator}${lineEnding}${propertyIndent}${JSON.stringify("plugin")}: [${lineEnding}${propertyIndent}  ${JSON.stringify(OPEN_CODE_GOVERNANCE_PLUGIN)}${lineEnding}${closeIndent}]`
+  return { content: `${content.slice(0, closeIndex)}${insertion}${content.slice(closeIndex)}`, changed: true }
+}
+
+async function mergeOpenCodePluginConfig(targetRoot) {
+  const configPath = openCodeConfigPath(targetRoot)
+  await assertSafePath(targetRoot, configPath, "OpenCode config destination")
+  const existing = await readTextIfExists(configPath)
+  const merged = mergeGovernancePluginText(existing ?? "{}\n", configPath)
+  if (merged.changed) {
+    await ensureParentDirectory(configPath)
+    const temporary = `${configPath}.bootstrap-tmp-${process.pid}`
+    await fsPromises.writeFile(temporary, merged.content, "utf8")
+    await fsPromises.rename(temporary, configPath)
+  }
+  return { configPath, changed: merged.changed }
+}
+
 async function findConflicts(targetRoot, filePlan) {
   const previous = await readInstallationManifest(targetRoot)
   const previousFiles = new Set(previous?.managed_files || [])
@@ -277,6 +459,25 @@ async function findConflicts(targetRoot, filePlan) {
       currentHashMatchesPrevious: Boolean(currentMatchesPrevious),
       forbidden: stat.isSymbolicLink() || (!stat.isFile() && !stat.isDirectory()),
     })
+    if (file.action === "merge-opencode-plugin-config" && stat.isFile() && !stat.isSymbolicLink()) {
+      try {
+        const current = await fsPromises.readFile(destination, "utf8")
+        mergeGovernancePluginText(current, destination)
+        classification = "SAFE_MERGE"
+      } catch (error) {
+        classification = "MANUAL_REVIEW_REQUIRED"
+        conflicts.push({
+          path: file.path,
+          action: file.action,
+          classification,
+          managed,
+          current_hash: currentHash,
+          previous_hash: previousHash(previousHashes, file.path),
+          reason: error.message,
+        })
+        continue
+      }
+    }
     if (file.action === "create-installation-manifest" && previous) {
       classification = "SAFE_MANAGED_UPDATE"
     } else if (["create-manifest", "create-source-lock", "create-installation-manifest", "create-report"].includes(file.action) && !managed) {
@@ -323,9 +524,7 @@ async function detectRuntimes(targetRoot) {
 
 function assessRiskTier(detectedRuntimes, targetRoot) {
   const isGitRepo = fs.existsSync(path.join(targetRoot, ".git"))
-  const opencodeDetected = fs.existsSync(path.join(targetRoot, "opencode.jsonc")) || fs.existsSync(path.join(targetRoot, "opencode.json")) || detectedRuntimes.some(
-    (r) => r.name === "opencode" && r.confidence >= 50
-  )
+  const opencodeDetected = isOpenCodeTarget(targetRoot, "auto", detectedRuntimes)
   const hermesDetected = detectedRuntimes.some(
     (r) => r.name === "hermes" && r.confidence >= 50
   )
@@ -355,7 +554,7 @@ function determineEnforcementLevel(detectedRuntimes) {
   return "ADVISORY_ONLY"
 }
 
-function buildFilePlan(targetRoot, sourceRoot = repoRoot) {
+function buildFilePlan(targetRoot, sourceRoot = repoRoot, runtime = "auto") {
   const governanceRoot = path.join(targetRoot, ".agent-governance")
   const files = []
 
@@ -438,9 +637,12 @@ function buildFilePlan(targetRoot, sourceRoot = repoRoot) {
     action: "create-report",
   })
 
-  const opencodeDetected = fs.existsSync(path.join(targetRoot, "opencode.jsonc")) ||
-    fs.existsSync(path.join(targetRoot, "opencode.json"))
+  const opencodeDetected = isOpenCodeTarget(targetRoot, runtime)
   if (opencodeDetected) {
+    files.push({
+      path: relativePath(targetRoot, openCodeConfigPath(targetRoot)),
+      action: "merge-opencode-plugin-config",
+    })
     files.push({
       path: relativePath(targetRoot, path.join(governanceRoot, "hooks", "opencode")),
       action: "create-directory",
@@ -1092,7 +1294,7 @@ async function runApplyPhase(args) {
   const detectedRuntimes = await detectRuntimes(targetRoot)
 
   // Phase 5: Build and enforce a conflict-aware plan before any write.
-  const filePlan = buildFilePlan(targetRoot, repoRoot)
+  const filePlan = buildFilePlan(targetRoot, repoRoot, args.runtime)
   const conflicts = await findConflicts(targetRoot, filePlan)
   if (conflicts.some(conflictNeedsManual)) {
     const packet = { type: "BOOTSTRAP_OWNER_DECISION_PACKET", target_root: targetRoot, conflicts }
@@ -1106,7 +1308,12 @@ async function runApplyPhase(args) {
 
   // Phase 5: Create backup
   const governanceRoot = path.join(targetRoot, ".agent-governance")
-  const backupFiles = [governanceRoot, path.join(targetRoot, ".opencode", "ecosystem-installation.json")]
+  const backupFiles = [
+    governanceRoot,
+    path.join(targetRoot, ".opencode", "ecosystem-installation.json"),
+    path.join(targetRoot, "opencode.jsonc"),
+    path.join(targetRoot, "opencode.json"),
+  ]
   if (fs.existsSync(path.join(targetRoot, ".hermes", "governance"))) {
     backupFiles.push(path.join(targetRoot, ".hermes", "governance"))
   }
@@ -1152,11 +1359,10 @@ async function runApplyPhase(args) {
   }
 
   // Phase 11: Install OpenCode hook if detected
-  const opencodeDetected = fs.existsSync(path.join(targetRoot, "opencode.jsonc")) || fs.existsSync(path.join(targetRoot, "opencode.json")) || detectedRuntimes.some(
-    (r) => r.name === "opencode" && r.confidence >= 50
-  )
+  const opencodeDetected = isOpenCodeTarget(targetRoot, args.runtime, detectedRuntimes)
   if (opencodeDetected) {
     await installOpenCodeHook(targetRoot)
+    await mergeOpenCodePluginConfig(targetRoot)
   }
 
   // Phase 12: Install Hermes plugin if detected
@@ -1379,7 +1585,7 @@ async function runDryRunPhase(args) {
   const enforcementLevel = determineEnforcementLevel(detectedRuntimes)
 
   // Phase 5: Build file plan
-  const filePlan = buildFilePlan(targetRoot)
+  const filePlan = buildFilePlan(targetRoot, repoRoot, args.runtime)
   const conflicts = await findConflicts(targetRoot, filePlan)
   const classification = classify(conflicts, sourceMissing, args.apply ? targetWritable : true, detectedRuntimes)
 

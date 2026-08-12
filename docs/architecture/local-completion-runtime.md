@@ -1,7 +1,8 @@
 # Local Completion Runtime
 
-This document describes the small runtime closure layer added to the current
-`master` branch. It does not claim a live Hermes or CT108 installation.
+This document describes the runtime-neutral closure layer for the current
+`master` branch. OpenCode is the primary verified runtime; Hermes remains an
+optional adapter and handoff path.
 
 ## Agent capability profiles
 
@@ -50,6 +51,13 @@ mandatory preflight, policy/tool governance, trust tiers, skills, runtime
 security, Hermes integration, restart/resume, evidence, observability,
 evaluation, bootstrap, governance, and runtime closure.
 
+Runtime adapters are optional and non-blocking. No concrete infrastructure
+instance, remote deployment, reachability check, plugin hash, maintenance
+window, or owner activation is required for installation, local runtime
+success, completion, release, freeze, or production classification. Historical
+runtime-assurance evidence may remain archived, but it does not affect the
+active validator or completion status.
+
 Text-to-speech, speech synthesis, audio narration, prompt read-aloud, voice UI,
 and speech output are explicitly outside this project's scope. They are not
 production components, capabilities, runtime hooks, observability events,
@@ -69,7 +77,3 @@ The complete project gates remain:
 node scripts/run-tests.mjs --all --reporter dot
 node scripts/validate-ecosystem.mjs
 ```
-
-The separate [Hermes CT108 runtime closure package](../run-cards/hermes-ct108-runtime-closure-package.md)
-must be executed from the authorized network before any production runtime
-classification is made.

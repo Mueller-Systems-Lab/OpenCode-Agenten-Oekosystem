@@ -1,203 +1,97 @@
-# AI-INSTALL.md — Canonical Agent Governance Install Contract
+# AI-INSTALL.md — Automation Install Contract
 
-## What This Repository Contains
+This document is the automation-specific installation path. For a human
+install, use the versioned [OCAE CLI quick start](README.md#quick-install).
 
-This repository provides **Canonical Agent Governance** — a universal, runtime-neutral gate evaluation system for AI coding agents (OpenCode, Hermes, Odysseus, and generic runtimes).
+## Product boundary
 
-It enforces 19 immutable **kernel gates** that prevent dangerous operations across all AI agent runtimes:
-force-push, secret leaks, path/symlink escapes, production writes without approval, fake execution claims, reviewer write operations, approval reuse, cross-scope bypasses, and more.
+OCAE CLI v1.0.0 installs the complete project-local OpenCode ecosystem:
 
-The governance is installed as a local `.agent-governance/` directory inside any target project. It does **not** require global install, root access, or system-wide configuration changes.
+- 13 installable agents and 13 capability profiles
+- skills, policies, and the OpenCode Governance Plugin
+- MCP preflight, source-lock integrity, provenance, backup, and rollback
 
-## How To Install Governance
+The Python CLI owns package validation, provenance, and subprocess orchestration.
+[`scripts/install-governance.mjs`](scripts/install-governance.mjs) remains the
+only canonical governance/installation implementation and is executed from a
+hash-verified payload.
 
-### 1. Clone This Repository
+## Preferred automation entry point
 
-```bash
-git clone https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem /tmp/OpenCode-Agenten-Oekosystem
-```
-
-### 2. Run Dry-Run First (Mandatory)
-
-```bash
-node /tmp/OpenCode-Agenten-Oekosystem/scripts/install-governance.mjs --target /path/to/your-project
-```
-
-The dry-run **never** modifies files. It shows:
-- Which runtimes are detected (OpenCode, Hermes, etc.)
-- Risk tier assessment
-- Enforcement level reachable
-- Files that would be created/modified
-- Conflicts or existing installations
-- Planned backup path and rollback command
-- Final classification (GREEN_SAFE, AMBER_REVIEW, RED_BLOCK)
-
-### 3. Review The Output
-
-Inspect the dry-run output **before** applying. The classification tells you:
-- **GREEN_SAFE**: Safe to apply — no conflicts, all signals clean.
-- **AMBER_REVIEW**: Review conflicts or weak detection before applying.
-- **RED_BLOCK**: Cannot proceed — source or target has blocking issues.
-- **TOOL_GAP**: Missing tooling prevents full verification.
-
-### 4. Apply
+Automation should pin the published release and use the same CLI commands as a
+human operator:
 
 ```bash
-node /tmp/OpenCode-Agenten-Oekosystem/scripts/install-governance.mjs \
-  --target /path/to/your-project \
-  --apply \
-  --approval-file /path/to/receipt.json
+uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.0
+ocae doctor <target>
+ocae install <target> --dry-run
+ocae install <target>
+ocae verify <target>
 ```
 
-The `--apply` flag:
-1. Re-runs all preflight checks
-2. Validates the approval receipt (if provided)
-3. Verifies source fingerprint hasn't changed
-4. Creates a full backup before any writes
-5. Copies runtime gate libraries to `.agent-governance/runtime/`
-6. Copies governance policies to `.agent-governance/policies/`
-7. Generates cryptographically hashed `source-lock.json`
-8. Generates `manifest.json` with enforcement level
-9. Creates `bin/evaluate.mjs` wrapper for standalone evaluation
-10. Installs OpenCode pre-evaluate hook (if OpenCode detected)
-11. Installs Hermes governance plugin (if Hermes detected)
-12. Runs post-apply validation
-13. Generates install report with rollback command
+The dry-run must be reviewed before an apply. The target path is project-local;
+never read target secrets, credential files, or `.env` contents.
 
-### 5. Rollback (If Needed)
+## Direct Node compatibility path
+
+A URL-only automation caller that cannot use `uv` may invoke the canonical Node
+installer from an exact checkout. This is a compatibility path, not the primary
+human workflow:
 
 ```bash
-node /tmp/OpenCode-Agenten-Oekosystem/scripts/install-governance.mjs \
-  --target /path/to/your-project \
-  --rollback /path/to/backup-dir
+node scripts/install-governance.mjs --target <target>       # dry-run
+node scripts/install-governance.mjs --target <target> --apply
+node scripts/install-governance.mjs --target <target> --rollback <backup-dir>
 ```
 
-Rollback restores all files from backup and removes the `.agent-governance/` directory.
+The source repository, ref, and commit must be recorded from the same checkout.
+`AI-BOOTSTRAP.md` defines the full URL-only protocol, including target-boundary
+and provenance rules.
 
-## What The AI Should Do When Given This URL
+## Safety contract
 
-When an AI agent receives `https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem`:
+- dry-run is required before apply
+- existing project configuration, providers, models, MCPs, user agents, and
+  third-party plugins are preserved
+- backups are created before mutation
+- name conflicts and source-lock tampering fail closed
+- no global OpenCode or Hermes configuration is rewritten
+- no MCP is enabled automatically
+- no secrets are read or written to reports
 
-1. **Read** `AI-INSTALL.md` (this file)
-2. **Read** `governance-install.json` for machine-readable install metadata
-3. **Clone** the repository to a temporary directory
-4. **Run dry-run** against the target project
-5. **Present classification** to the human user
-6. **Wait for approval** before applying
-7. **Apply** with `--apply` flag only after explicit human approval
-8. **Provide rollback instructions** as part of the completion report
+## Installed structure
 
-## Dry-Run First Policy
+The managed target contains the selected `.opencode/agents/`, skills, policies,
+capability bindings, `.opencode/ecosystem-installation.json`, and governance
+runtime assets under `.agent-governance/`. Provenance records the source
+repository, source ref, commit, managed files, and installed agents.
 
-- **ALWAYS** run dry-run before apply.
-- Dry-run is the **default mode** — it changes no files.
-- Classification of `RED_BLOCK` means **do not proceed**.
-- Classification of `AMBER_REVIEW` means **review conflicts and decide**.
-- Classification of `GREEN_SAFE` means **safe to apply with human approval**.
+## Modes and classifications
 
-## Approval Requirements
+Automation must distinguish:
 
-For `--apply`, an approval receipt JSON file is recommended:
+- `VERIFIED_IN_SCOPE` — preflight, apply, and verification passed
+- `NOOP_IDEMPOTENT` — the requested state already matches
+- `NEEDS_REVIEW` — a conflict or owner decision remains
+- `TOOL_GAP` — required runtime verification tooling is unavailable
+- `RED_BLOCK` — a safety or integrity check blocked the operation
 
-```json
-{
-  "version": "1.0.0",
-  "action": "apply",
-  "runtime": "opencode",
-  "scope": {
-    "repository": "my-project",
-    "branch": "main",
-    "commit": "<SHA>",
-    "paths": [".agent-governance/"]
-  },
-  "riskTier": "MEDIUM_REVIEW",
-  "status": "APPROVED",
-  "approvedBy": "human-operator",
-  "approvedAt": "2026-01-01T00:00:00.000Z",
-  "expiresAt": "2026-01-01T01:00:00.000Z",
-  "singleUse": true,
-  "nonce": "<UUID>",
-  "contextFingerprint": "<SHA-256>"
-}
-```
-
-Approval receipts are:
-- Single-use (nonce prevents replay)
-- Scope-bound (branch, runtime, action locked)
-- Time-limited (expires after 1 hour max)
-- Fingerprinted (context change invalidates receipt)
-
-## Rollback Procedure
-
-1. Locate the backup directory (printed during apply, stored in install report)
-2. Run the rollback command with that directory
-3. Verify the `.agent-governance/` directory is removed
-4. Verify target project matches pre-install state
-
-## Installed Structure
-
-After apply, the target project will contain:
-
-```
-.agent-governance/
-├── manifest.json              # Install manifest (version, runtimes, enforcement)
-├── source-lock.json            # SHA-256 hashes of all runtime files
-├── runtime/
-│   ├── evaluate-all.mjs        # Canonical gate evaluation entry point
-│   ├── kernel.mjs              # 19 immutable kernel gates
-│   ├── policy.mjs              # Policy gate evaluator (comment policy)
-│   ├── decision.mjs            # Gate decision contract
-│   ├── approval.mjs            # Approval receipt model
-│   ├── evidence.mjs            # Evidence validation
-│   ├── classifications.mjs     # Classification system
-│   ├── errors.mjs              # Gate kernel error types
-│   ├── context-fingerprint.mjs # Non-PII context fingerprinting
-│   ├── contract.mjs            # Runtime adapter contract
-│   ├── generic.mjs             # Generic runtime adapter
-│   ├── opencode.mjs            # OpenCode runtime adapter
-│   ├── hermes.mjs              # Hermes runtime adapter
-│   └── odysseus.mjs            # Odysseus runtime adapter
-├── policies/
-│   ├── evidence-gates.json
-│   ├── mcp-trust-tiers.json
-│   ├── write-protection.json
-│   ├── data-retention.json
-│   └── model-routing.json
-├── bin/
-│   └── evaluate.mjs            # Standalone CLI wrapper for gate evaluation
-└── hooks/
-    └── opencode/
-        ├── README.md
-        └── pre-evaluate.mjs    # OpenCode pre-action hook
-```
-
-## Integration With Existing Projects
-
-- **Existing `.agent-governance/`**: If governance is already installed, the installer checks the existing `source-lock.json` for fingerprint match. If the source repository hasn't changed, re-install is idempotent.
-- **Existing OpenCode config**: OpenCode hooks are installed alongside existing config — no overwrite.
-- **Existing Hermes config**: Hermes governance plugin is installed under `.hermes/governance/` — no overwrite.
-- **No global state**: All governance files are project-local. No `~/.config`, `/etc`, or global path changes.
-
-## Security Model
-
-- **Fail-closed**: Any step failure during apply disables further writes.
-- **Backup always**: Every apply creates a timestamped backup before writes.
-- **Fingerprint verification**: Source commit is locked before copy.
-- **Approval receipts**: Single-use, time-limited, scope-bound.
-- **Path safety**: No symlink escapes, no path traversal, no `.env` write.
-- **Secrets safety**: No secrets in reports, no `.env` files touched.
+Do not turn a tool gap or review state into a success claim.
 
 ## Requirements
 
-- **Node.js**: >= 20 (ES module support)
-- **Git**: For commit SHA locking
-- **Write access**: To target project directory (no root/sudo)
-- **No network**: Does not require network access during install
+- Python >= 3.11 and `uv` for the CLI path
+- Node.js for the canonical installer
+- OpenCode for runtime discovery and governed agent execution
+- write access to the target project; no root or sudo
 
-## Exit Codes
+## Rollback
 
-| Code | Meaning |
-|------|---------|
-| 0 | GREEN_SAFE — operation safe |
-| 1 | AMBER_REVIEW or TOOL_GAP — review required or tooling missing |
-| 2 | RED_BLOCK — operation blocked, do not proceed |
+Use the backup path emitted by the installer:
+
+```bash
+ocae rollback <target> --backup <backup-dir>
+```
+
+Rollback restores managed changes, detects later edits, and preserves owner
+content. Do not invent a backup path.

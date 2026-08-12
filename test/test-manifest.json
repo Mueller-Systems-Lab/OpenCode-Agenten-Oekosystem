@@ -46,6 +46,7 @@
       "test/install/resident-runtime.test.mjs",
       "test/install/runtime-hardening.test.mjs",
       "test/install/tamper-detection.test.mjs",
+      "test/install/agent-installation.test.mjs",
       "test/install/url-installer.test.mjs"
     ],
     "governance": [

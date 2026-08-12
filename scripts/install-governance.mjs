@@ -147,6 +147,9 @@ function validateSourceRepository(repoRoot) {
     "scripts/lib/runtimes/opencode.mjs",
     "scripts/lib/runtimes/hermes.mjs",
     "scripts/lib/runtimes/odysseus.mjs",
+    "ecosystem.manifest.json",
+    ".opencode/agents",
+    ".opencode/skills",
   ]
   const missing = []
   for (const rel of required) {
@@ -215,7 +218,97 @@ function getPolicyFileList(sourceRoot = repoRoot) {
   return files
 }
 
+function listSourceFiles(root, prefix = "") {
+  if (!fs.existsSync(root)) return []
+  const result = []
+  for (const entry of fs.readdirSync(root, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
+    if (entry.name.startsWith(".")) continue
+    const relative = prefix ? path.join(prefix, entry.name) : entry.name
+    const absolute = path.join(root, entry.name)
+    if (entry.isSymbolicLink()) continue
+    if (entry.isDirectory()) result.push(...listSourceFiles(absolute, relative))
+    else if (entry.isFile()) result.push(relative)
+  }
+  return result
+}
+
+function getAgentDefinitionFileList(sourceRoot = repoRoot) {
+  const directory = path.join(sourceRoot, ".opencode", "agents")
+  return listSourceFiles(directory)
+    .filter((relative) => relative.endsWith(".md") && !relative.includes(path.sep))
+    .map((name) => ({
+      id: name.slice(0, -3),
+      source: path.join(directory, name),
+      destination: path.join(".opencode", "agents", name),
+      action: "copy-agent-definition",
+    }))
+}
+
+function getSkillDefinitionFileList(sourceRoot = repoRoot) {
+  const directory = path.join(sourceRoot, ".opencode", "skills")
+  return listSourceFiles(directory).map((relative) => ({
+    source: path.join(directory, relative),
+    destination: path.join(".opencode", "skills", relative),
+    action: "copy-skill-definition",
+  }))
+}
+
+function readAgentFrontmatter(sourcePath) {
+  const content = fs.readFileSync(sourcePath, "utf8")
+  const match = /^---\r?\n([\s\S]*?)\r?\n---/.exec(content)
+  const frontmatter = match?.[1] || ""
+  const mode = /^mode:\s*(\S+)\s*$/m.exec(frontmatter)?.[1] || "all"
+  const skills = []
+  let inSkills = false
+  for (const line of frontmatter.split(/\r?\n/)) {
+    if (/^\s*skill:\s*$/.test(line)) {
+      inSkills = true
+      continue
+    }
+    if (inSkills) {
+      const skill = /^\s{2,}["']?([^"':\s]+)["']?:\s*allow\s*$/.exec(line)
+      if (skill) {
+        skills.push(skill[1])
+        continue
+      }
+      if (line && !/^\s/.test(line)) inSkills = false
+    }
+  }
+  return { mode, skills }
+}
+
+function getAgentInventory(sourceRoot = repoRoot) {
+  const manifest = JSON.parse(fs.readFileSync(path.join(sourceRoot, "ecosystem.manifest.json"), "utf8"))
+  const catalog = manifest?.catalogs?.agents
+  const categories = new Map([
+    ...(catalog?.generic || []).map((entry) => [entry.name, "GENERIC"]),
+    ...(catalog?.conditional || []).map((entry) => [entry.name, "CONDITIONAL"]),
+  ])
+  return getAgentDefinitionFileList(sourceRoot).map((definition) => {
+    const profile = catalog?.profiles?.[definition.id]
+    if (!profile) throw new Error(`Missing capability profile for agent ${definition.id}`)
+    const metadata = readAgentFrontmatter(definition.source)
+    return {
+      agent_id: definition.id,
+      source_definition: `.opencode/agents/${path.basename(definition.source)}`.replaceAll("\\", "/"),
+      installed_path: definition.destination.replaceAll("\\", "/"),
+      category: categories.get(definition.id) || "UNCLASSIFIED",
+      runtime_target: metadata.mode === "primary" ? "PRIMARY" : metadata.mode === "subagent" ? "SUBAGENT" : "INTERNAL_ONLY",
+      mode: metadata.mode,
+      skills: metadata.skills,
+      capability_profile: profile,
+      required_tools: profile.required_tools || [],
+      optional_tools: profile.optional_tools || [],
+      permissions: profile.allowed_operations || [],
+      write_scope: profile.write_paths || [],
+      trust_tier: profile.trust_tier,
+    }
+  })
+}
+
 function getSourceRef(sourceRoot) {
+  const pinnedRef = process.env.OCAE_BOOTSTRAP_SOURCE_REF
+  if (typeof pinnedRef === "string" && /^[A-Za-z0-9._/-]+$/.test(pinnedRef)) return pinnedRef
   try {
     return execSync("git symbolic-ref --short -q HEAD || git rev-parse --short HEAD", { cwd: sourceRoot, encoding: "utf8", timeout: 10000 }).trim() || null
   } catch {
@@ -256,7 +349,7 @@ async function hashIfFile(filePath) {
 }
 
 function conflictNeedsManual(conflict) {
-  return conflict.classification === "MANUAL_REVIEW_REQUIRED" || conflict.classification === "FORBIDDEN"
+  return ["MANUAL_REVIEW_REQUIRED", "FORBIDDEN", "NAME_CONFLICT"].includes(conflict.classification)
 }
 
 const OPEN_CODE_GOVERNANCE_PLUGIN = "./.opencode/plugins/governance-v2.mjs"
@@ -459,6 +552,11 @@ async function findConflicts(targetRoot, filePlan) {
       currentHashMatchesPrevious: Boolean(currentMatchesPrevious),
       forbidden: stat.isSymbolicLink() || (!stat.isFile() && !stat.isDirectory()),
     })
+    if (file.action === "copy-agent-definition" && stat.isFile() && !stat.isSymbolicLink()) {
+      const sourceHash = await hashIfFile(file.source)
+      if (sourceHash && currentHash === sourceHash) classification = "ALREADY_IDENTICAL"
+      else if (!managed) classification = "NAME_CONFLICT"
+    }
     if (file.action === "merge-opencode-plugin-config" && stat.isFile() && !stat.isSymbolicLink()) {
       try {
         const current = await fsPromises.readFile(destination, "utf8")
@@ -490,7 +588,9 @@ async function findConflicts(targetRoot, filePlan) {
       managed,
       current_hash: currentHash,
       previous_hash: previousHash(previousHashes, file.path),
-      reason: classification === "OWNER_CONTENT_PRESERVE" ? "existing owner content is preserved" : null,
+      reason: ["OWNER_CONTENT_PRESERVE", "NAME_CONFLICT", "ALREADY_IDENTICAL"].includes(classification)
+        ? "existing owner content is preserved"
+        : null,
     })
   }
   return conflicts
@@ -557,6 +657,31 @@ function determineEnforcementLevel(detectedRuntimes) {
 function buildFilePlan(targetRoot, sourceRoot = repoRoot, runtime = "auto") {
   const governanceRoot = path.join(targetRoot, ".agent-governance")
   const files = []
+
+  const opencodeRoot = path.join(targetRoot, ".opencode")
+  files.push({ path: relativePath(targetRoot, opencodeRoot), action: "create-directory" })
+  files.push({ path: relativePath(targetRoot, path.join(opencodeRoot, "agents")), action: "create-directory" })
+  files.push({ path: relativePath(targetRoot, path.join(opencodeRoot, "skills")), action: "create-directory" })
+  files.push({ path: relativePath(targetRoot, path.join(opencodeRoot, "policies")), action: "create-directory" })
+
+  for (const agent of getAgentDefinitionFileList(sourceRoot)) {
+    files.push({
+      path: agent.destination,
+      action: agent.action,
+      source: agent.source,
+      agent_id: agent.id,
+    })
+  }
+  for (const skill of getSkillDefinitionFileList(sourceRoot)) {
+    files.push({ path: skill.destination, action: skill.action, source: skill.source })
+  }
+  for (const policy of getPolicyFileList(sourceRoot)) {
+    files.push({
+      path: path.join(".opencode", "policies", policy),
+      action: "copy-opencode-policy-file",
+      source: path.join(sourceRoot, ".opencode", "policies", policy),
+    })
+  }
 
   files.push({
     path: relativePath(targetRoot, governanceRoot),
@@ -628,6 +753,12 @@ function buildFilePlan(targetRoot, sourceRoot = repoRoot, runtime = "auto") {
   })
 
   files.push({
+    path: relativePath(targetRoot, path.join(governanceRoot, "ecosystem.manifest.json")),
+    action: "copy-ecosystem-manifest",
+    source: path.join(sourceRoot, "ecosystem.manifest.json"),
+  })
+
+  files.push({
     path: relativePath(targetRoot, path.join(targetRoot, ".opencode", "ecosystem-installation.json")),
     action: "create-installation-manifest",
   })
@@ -637,7 +768,7 @@ function buildFilePlan(targetRoot, sourceRoot = repoRoot, runtime = "auto") {
     action: "create-report",
   })
 
-  const opencodeDetected = isOpenCodeTarget(targetRoot, runtime)
+  const opencodeDetected = runtime === "auto" || runtime === "opencode" || isOpenCodeTarget(targetRoot, runtime)
   if (opencodeDetected) {
     files.push({
       path: relativePath(targetRoot, openCodeConfigPath(targetRoot)),
@@ -720,6 +851,37 @@ async function copyPolicies(repoRoot, targetRoot) {
   }
 }
 
+async function copyOpenCodeAssets(repoRoot, targetRoot) {
+  const opencodeRoot = path.join(targetRoot, ".opencode")
+  await ensureDirectory(path.join(opencodeRoot, "agents"))
+  await ensureDirectory(path.join(opencodeRoot, "skills"))
+  await ensureDirectory(path.join(opencodeRoot, "policies"))
+
+  for (const agent of getAgentDefinitionFileList(repoRoot)) {
+    const destination = path.join(targetRoot, agent.destination)
+    await assertSafePath(targetRoot, destination, "agent definition destination")
+    await copySourceIfSafe(agent.source, destination, targetRoot)
+  }
+  for (const skill of getSkillDefinitionFileList(repoRoot)) {
+    const destination = path.join(targetRoot, skill.destination)
+    await assertSafePath(targetRoot, destination, "skill definition destination")
+    await copySourceIfSafe(skill.source, destination, targetRoot)
+  }
+  for (const policy of getPolicyFileList(repoRoot)) {
+    const source = path.join(repoRoot, ".opencode", "policies", policy)
+    const destination = path.join(opencodeRoot, "policies", policy)
+    await assertSafePath(targetRoot, destination, "OpenCode policy destination")
+    await copySourceIfSafe(source, destination, targetRoot)
+  }
+}
+
+async function copyEcosystemManifest(repoRoot, targetRoot) {
+  const source = path.join(repoRoot, "ecosystem.manifest.json")
+  const destination = path.join(targetRoot, ".agent-governance", "ecosystem.manifest.json")
+  await assertSafePath(targetRoot, destination, "ecosystem manifest destination")
+  await copySourceIfSafe(source, destination, targetRoot)
+}
+
 async function copySourceIfSafe(sourcePath, destPath, targetRoot) {
   await assertSafePath(targetRoot, destPath, "managed destination")
   const existing = await (async () => { try { return await fsPromises.lstat(destPath) } catch { return null } })()
@@ -771,6 +933,63 @@ async function generateSourceLock(repoRoot, targetRoot) {
     }
   }
 
+  async function addManagedSource({ sourcePath, sourceRelative, installedPath, kind, metadata = {} }) {
+    const sourceHash = await hashIfFile(sourcePath)
+    const installedHash = await hashIfFile(path.join(targetRoot, installedPath))
+    const lockHash = (value) => value && value !== "UNAVAILABLE" && !value.startsWith("sha256:") ? `sha256:${value}` : value
+    let size = 0
+    try { size = (await fsPromises.stat(sourcePath)).size } catch {}
+    files.push({
+      path: sourceRelative,
+      source_path: sourceRelative,
+      installed_path: installedPath,
+      sha256: lockHash(sourceHash || "UNAVAILABLE"),
+      installed_sha256: lockHash(installedHash || "UNAVAILABLE"),
+      size,
+      kind,
+      ...metadata,
+    })
+  }
+
+  const inventoryById = new Map(getAgentInventory(repoRoot).map((entry) => [entry.agent_id, entry]))
+  for (const agent of getAgentDefinitionFileList(repoRoot)) {
+    const inventory = inventoryById.get(agent.id)
+    await addManagedSource({
+      sourcePath: agent.source,
+      sourceRelative: `.opencode/agents/${path.basename(agent.source)}`,
+      installedPath: agent.destination,
+      kind: "agent_definition",
+      metadata: {
+        agent_id: agent.id,
+        mode: inventory?.mode,
+        capability_profile: agent.id,
+      },
+    })
+  }
+  for (const skill of getSkillDefinitionFileList(repoRoot)) {
+    await addManagedSource({
+      sourcePath: skill.source,
+      sourceRelative: `.opencode/skills/${path.relative(path.join(repoRoot, ".opencode", "skills"), skill.source)}`.replaceAll("\\", "/"),
+      installedPath: skill.destination,
+      kind: "skill_definition",
+    })
+  }
+  for (const policy of getPolicyFileList(repoRoot)) {
+    const source = path.join(repoRoot, ".opencode", "policies", policy)
+    await addManagedSource({
+      sourcePath: source,
+      sourceRelative: `.opencode/policies/${policy}`,
+      installedPath: path.join(".opencode", "policies", policy),
+      kind: "opencode_policy",
+    })
+  }
+  await addManagedSource({
+    sourcePath: path.join(repoRoot, "ecosystem.manifest.json"),
+    sourceRelative: "ecosystem.manifest.json",
+    installedPath: path.join(".agent-governance", "ecosystem.manifest.json"),
+    kind: "ecosystem_manifest",
+  })
+
   // Derive source repository URL from git remote (no hardcoded usernames)
   let sourceRepo = getSourceRepository(repoRoot) || "UNKNOWN";
   if (sourceRepo === "UNKNOWN") try {
@@ -797,7 +1016,7 @@ async function generateSourceLock(repoRoot, targetRoot) {
   return sourceLock
 }
 
-async function generateManifest(targetRoot, detectedRuntimes, enforcementLevel) {
+async function generateManifest(targetRoot, detectedRuntimes, enforcementLevel, agentInventory = getAgentInventory(repoRoot)) {
   const governanceRoot = path.join(targetRoot, ".agent-governance")
   const installedRuntimes = []
   for (const r of detectedRuntimes) {
@@ -812,6 +1031,15 @@ async function generateManifest(targetRoot, detectedRuntimes, enforcementLevel) 
     installed_runtimes: installedRuntimes,
     enforcement_level: enforcementLevel,
     kernel_gates: 19,
+    installed_agents: agentInventory.map((agent) => agent.agent_id),
+    capability_profile_bindings: Object.fromEntries(agentInventory.map((agent) => [agent.agent_id, {
+      profile: agent.agent_id,
+      mode: agent.mode,
+      runtime_target: agent.runtime_target,
+      skills: agent.skills,
+      required_tools: agent.required_tools,
+      optional_tools: agent.optional_tools,
+    }])),
   }
 
   const sourceLockPath = path.join(governanceRoot, "source-lock.json")
@@ -904,9 +1132,26 @@ process.exit(result.allowed ? 0 : result.requires_owner ? 1 : 2);
 
   const canonicalPlugin = `import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { evaluateAction, recordActionOutcome } from '../../runtime/gates/evaluate-action.mjs';
 
 const readJson = (file) => { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return null; } };
+const hashFile = (filePath) => 'sha256:' + crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+const validateSourceLock = (targetRoot) => {
+  const lockPath = path.join(targetRoot, '.agent-governance', 'source-lock.json');
+  if (!fs.existsSync(lockPath)) return { valid: true };
+  const lock = readJson(lockPath);
+  if (!lock || !Array.isArray(lock.files)) return { valid: false, reason: 'source-lock.json missing files array' };
+  const mismatches = [];
+  for (const entry of lock.files) {
+    const filePath = entry.installed_path
+      ? path.join(targetRoot, entry.installed_path)
+      : path.join(targetRoot, '.agent-governance', 'runtime', entry.path);
+    if (!fs.existsSync(filePath)) mismatches.push({ path: entry.path, reason: 'file missing' });
+    else if (entry.installed_sha256 && hashFile(filePath) !== entry.installed_sha256) mismatches.push({ path: entry.path, reason: 'hash mismatch' });
+  }
+  return mismatches.length ? { valid: false, reason: 'source-lock integrity failed', mismatches } : { valid: true };
+};
 
 export const CanonicalGovernancePlugin = async ({ directory, worktree } = {}) => {
   const targetRoot = directory || worktree || process.cwd();
@@ -920,8 +1165,13 @@ export const CanonicalGovernancePlugin = async ({ directory, worktree } = {}) =>
   });
   return {
     'tool.execute.before': async (input, output) => {
+      const integrity = validateSourceLock(targetRoot);
+      if (!integrity.valid) throw new Error('[governance-v2] TAMPER_DETECTED: ' + integrity.reason);
       const args = output?.args || {};
-      const decision = await evaluateAction({ ...context(), tool: input?.tool, command: args.command, args, resource: args.filePath || args.path || args.url || input?.tool });
+      const resource = input?.tool === 'task' ? (args.subagent_type || input.tool)
+        : input?.tool === 'skill' ? (args.name || input.tool)
+        : (args.filePath || args.path || args.url || input?.tool);
+      const decision = await evaluateAction({ ...context(), tool: input?.tool, command: args.command, args, resource });
       decisions.set(input?.callID || input?.callId || input?.tool, decision);
       output.__governanceDecision = decision;
       if (!decision.allowed) throw new Error('[governance-v2] ' + decision.code + ': ' + (decision.message || 'effect rejected'));
@@ -1091,7 +1341,9 @@ async function validatePostApply(targetRoot) {
   const requiredFiles = [
     path.join(governanceRoot, "manifest.json"),
     path.join(governanceRoot, "source-lock.json"),
+    path.join(governanceRoot, "ecosystem.manifest.json"),
     path.join(governanceRoot, "bin", "evaluate.mjs"),
+    path.join(targetRoot, "opencode.jsonc"),
   ]
 
   for (const file of requiredFiles) {
@@ -1109,6 +1361,23 @@ async function validatePostApply(targetRoot) {
     }
   }
 
+  const agentInventory = getAgentInventory(repoRoot)
+  const agentsRoot = path.join(targetRoot, ".opencode", "agents")
+  for (const agent of agentInventory) {
+    const destination = path.join(targetRoot, agent.installed_path)
+    if (!fs.existsSync(destination)) issues.push(`Missing agent definition: ${relativePath(targetRoot, destination)}`)
+  }
+  const skillFiles = getSkillDefinitionFileList(repoRoot)
+  for (const skill of skillFiles) {
+    const destination = path.join(targetRoot, skill.destination)
+    if (!fs.existsSync(destination)) issues.push(`Missing skill definition: ${relativePath(targetRoot, destination)}`)
+  }
+  for (const policy of getPolicyFileList(repoRoot)) {
+    const destination = path.join(targetRoot, ".opencode", "policies", policy)
+    if (!fs.existsSync(destination)) issues.push(`Missing OpenCode policy: ${relativePath(targetRoot, destination)}`)
+  }
+  if (!fs.existsSync(agentsRoot)) issues.push("Missing .opencode/agents directory")
+
   // ── Source-lock integrity ──
   const sourceLockPath = path.join(governanceRoot, "source-lock.json")
   if (fs.existsSync(sourceLockPath)) {
@@ -1119,6 +1388,13 @@ async function validatePostApply(targetRoot) {
       }
       if (!sourceLock.files || !Array.isArray(sourceLock.files) || sourceLock.files.length < 5) {
         warnings.push("source-lock.json has fewer files than expected")
+      }
+      const agentLocks = sourceLock.files.filter((entry) => entry.kind === "agent_definition")
+      if (agentLocks.length !== agentInventory.length) issues.push("source-lock.json does not cover every agent definition")
+      for (const entry of agentLocks) {
+        if (!entry.installed_path || !entry.installed_sha256 || entry.installed_sha256 === "UNAVAILABLE") {
+          issues.push(`source-lock.json has incomplete agent hash: ${entry.agent_id || entry.path}`)
+        }
       }
     } catch {
       issues.push("source-lock.json is not valid JSON")
@@ -1157,6 +1433,7 @@ async function isIdempotentInstallation(targetRoot, previousInstallation, source
   const entries = Object.entries(expectedHashes)
   if (entries.length === 0) return false
   for (const [relative, expectedHash] of entries) {
+    if (relative === ".opencode/ecosystem-installation.json") continue
     const currentHash = await hashIfFile(path.join(targetRoot, relative))
     if (!currentHash || currentHash !== expectedHash) return false
   }
@@ -1178,6 +1455,9 @@ async function writeInstallationManifest({ targetRoot, sourceRoot, sourceCommit,
   const fileHashes = {}
   for (const file of filePlan) {
     if (file.action === "create-directory") continue
+    if (file.action === "create-installation-manifest") continue
+    const conflict = conflicts.find((entry) => entry.path === file.path)
+    if (["OWNER_CONTENT_PRESERVE", "NAME_CONFLICT", "ALREADY_IDENTICAL"].includes(conflict?.classification)) continue
     const absolute = path.join(targetRoot, file.path)
     const hash = await hashIfFile(absolute)
     if (hash) {
@@ -1185,7 +1465,10 @@ async function writeInstallationManifest({ targetRoot, sourceRoot, sourceCommit,
       fileHashes[manifestPath(file.path)] = hash
     }
   }
-  const preservedFiles = conflicts.filter((conflict) => conflict.classification === "OWNER_CONTENT_PRESERVE").map((conflict) => conflict.path)
+  const preservedFiles = conflicts
+    .filter((conflict) => ["OWNER_CONTENT_PRESERVE", "NAME_CONFLICT", "ALREADY_IDENTICAL"].includes(conflict.classification))
+    .map((conflict) => conflict.path)
+  const agentInventory = getAgentInventory(sourceRoot)
   const installation = {
     ecosystem: ECOSYSTEM,
     source_repository: sourceRepository,
@@ -1197,6 +1480,19 @@ async function writeInstallationManifest({ targetRoot, sourceRoot, sourceCommit,
     managed_files: managedFiles,
     file_hashes: fileHashes,
     preserved_files: preservedFiles,
+    installed_agents: agentInventory.map((agent) => agent.agent_id),
+    capability_profile_bindings: Object.fromEntries(agentInventory.map((agent) => [agent.agent_id, {
+      source_definition: agent.source_definition,
+      installed_path: agent.installed_path,
+      mode: agent.mode,
+      runtime_target: agent.runtime_target,
+      capability_profile: agent.agent_id,
+      skills: agent.skills,
+      required_tools: agent.required_tools,
+      optional_tools: agent.optional_tools,
+      write_scope: agent.write_scope,
+      trust_tier: agent.trust_tier,
+    }])),
     conflicts,
     verification: {
       classification: verification.classification,
@@ -1311,6 +1607,10 @@ async function runApplyPhase(args) {
   const backupFiles = [
     governanceRoot,
     path.join(targetRoot, ".opencode", "ecosystem-installation.json"),
+    path.join(targetRoot, ".opencode", "agents"),
+    path.join(targetRoot, ".opencode", "skills"),
+    path.join(targetRoot, ".opencode", "policies"),
+    path.join(targetRoot, ".opencode", "plugins"),
     path.join(targetRoot, "opencode.jsonc"),
     path.join(targetRoot, "opencode.json"),
   ]
@@ -1334,6 +1634,10 @@ async function runApplyPhase(args) {
 
   // Phase 7: Copy policies
   await copyPolicies(repoRoot, targetRoot)
+
+  // Phase 7b: Install the actual OpenCode ecosystem surface.
+  await copyOpenCodeAssets(repoRoot, targetRoot)
+  await copyEcosystemManifest(repoRoot, targetRoot)
 
   // Phase 8: Generate source-lock.json
   const sourceLock = await generateSourceLock(repoRoot, targetRoot)
@@ -1359,7 +1663,7 @@ async function runApplyPhase(args) {
   }
 
   // Phase 11: Install OpenCode hook if detected
-  const opencodeDetected = isOpenCodeTarget(targetRoot, args.runtime, detectedRuntimes)
+  const opencodeDetected = args.runtime === "auto" || args.runtime === "opencode" || isOpenCodeTarget(targetRoot, args.runtime, detectedRuntimes)
   if (opencodeDetected) {
     await installOpenCodeHook(targetRoot)
     await mergeOpenCodePluginConfig(targetRoot)

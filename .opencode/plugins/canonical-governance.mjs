@@ -51,7 +51,9 @@ function validateRuntimeIntegrity() {
   }
   const mismatches = [];
   for (const entry of lock.files) {
-    const filePath = join(GOVERNANCE_ROOT, entry.path);
+    const filePath = entry.installed_path
+      ? join(PROJECT_ROOT, entry.installed_path)
+      : join(GOVERNANCE_ROOT, 'runtime', entry.path);
     if (!existsSync(filePath)) {
       mismatches.push({ path: entry.path, reason: 'file missing' });
       continue;
@@ -142,9 +144,9 @@ function mapToolToDescriptor(tool, args) {
     case 'websearch':
       return { ...base, action: 'external-search' };
     case 'task':
-      return { ...base, action: 'delegate', subagentType: args.subagent_type };
+      return { ...base, action: 'delegate', subagentType: args.subagent_type, resource: args.subagent_type || tool };
     case 'skill':
-      return { ...base, action: 'delegate', skillName: args.name };
+      return { ...base, action: 'delegate', skillName: args.name, resource: args.name || tool };
     case 'question':
       return { ...base, action: 'ask-user' };
     default:

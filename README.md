@@ -32,6 +32,22 @@ Explicit branch or commit refs remain supported for legacy compatibility and
 pinned reproduction. `BOOTSTRAP.md` remains historical background; it is not a
 second URL-only entrypoint.
 
+## Installable CLI product
+
+The versioned distribution layer is ocae-cli. It bundles a build-generated,
+hash-verified closure of this repository and delegates all installation
+decisions to scripts/install-governance.mjs.
+
+    uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.0
+    cd /path/to/target-project
+    ocae doctor .
+    ocae install .
+    ocae verify .
+
+The package does not clone this repository during target installation. Node.js
+is required by the canonical installer; OpenCode is required for runtime
+discovery and agent verification.
+
 ## What it does
 
 - analyzes the target project
@@ -97,6 +113,9 @@ node scripts/validate-ecosystem.mjs
 Typical outputs in the target project include:
 
 - `opencode.jsonc`
+- `.opencode/agents/` with the runtime-installable Ecosystem agents
+- `.opencode/skills/` and `.opencode/policies/`
+- `.opencode/ecosystem-installation.json` with capability bindings and source-lock provenance
 - `AGENTS.md`
 - `CONTRIBUTING.md`
 - `SECURITY.md`

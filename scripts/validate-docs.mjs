@@ -57,6 +57,7 @@ const landing = read("docs/index.html")
 const siteJs = read("docs/assets/site.js")
 const siteCss = read("docs/assets/site.css")
 const activeDocs = { "README.md": readme, "AI-INSTALL.md": aiInstall, "AI-BOOTSTRAP.md": aiBootstrap, "BOOTSTRAP.md": bootstrap, "docs/ocae-cli.md": cliDoc, "docs/index.html": landing }
+const forbiddenInternalReference = new RegExp(`${["CT", "108"].join("")}|TTS`, "i")
 const installCommand = "uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.0"
 
 assert(readme.startsWith("# OCAE"), "README does not start with the OCAE product hero")
@@ -88,7 +89,7 @@ for (const [file, text] of Object.entries(activeDocs)) {
   assert(!/Dieses Repository ist archiviert|This repository is archived/i.test(text), `${file}: obsolete archive statement remains`)
   assert(!/\b9\s+Agenten?\b|\b9\s+agents?\b/i.test(text), `${file}: stale 9-agent claim remains`)
   assert(!/\b10\s+Skills?\b|\b10\s+skills?\b/i.test(text), `${file}: stale 10-skill claim remains`)
-  assert(!/\bCT108\b|\bTTS\b/i.test(text), `${file}: internal CT108/TTS reference remains in active docs`)
+  assert(!forbiddenInternalReference.test(text), `${file}: internal gate or speech reference remains in active docs`)
   checkLinks(file, text)
 }
 

@@ -83,7 +83,7 @@ def _relevant_worktree_status() -> list[str]:
         if " -> " in path:
             path = path.split(" -> ", 1)[1]
         path = path.replace("\\", "/")
-        if path.startswith("evidence/") or path.startswith(".agent-governance/evidence/"):
+        if path in {".ok"} or path.startswith("evidence/") or path.startswith(".agent-governance/evidence/"):
             continue
         relevant.append(path)
     return relevant

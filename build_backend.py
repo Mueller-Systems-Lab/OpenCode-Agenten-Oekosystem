@@ -96,6 +96,8 @@ def _source_repository() -> str:
         return CANONICAL_SOURCE_REPOSITORY
     if value.startswith("git@github.com:"):
         value = "https://github.com/" + value.split(":", 1)[1]
+    if not value.startswith("https://github.com/"):
+        return CANONICAL_SOURCE_REPOSITORY
     return value.removesuffix(".git")
 
 

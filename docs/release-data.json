@@ -1,0 +1,76 @@
+{
+  "version": "1.0.0",
+  "tag": "v1.0.0",
+  "releaseCommit": "4f97bdd6ed78a607a64742352a372ef453a7b009",
+  "sourceRepository": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+  "primaryAgent": "issue-orchestrator",
+  "agentCount": 13,
+  "capabilityProfileCount": 13,
+  "agents": [
+    {
+      "id": "approval-coordinator",
+      "mode": "subagent",
+      "description": "Central approval coordinator that deduplicates, bundles, audits, and routes owner decisions without granting them."
+    },
+    {
+      "id": "architecture-agent",
+      "mode": "subagent",
+      "description": "Reviews architecture decisions, dependency graphs, and coupling. Read-only for code, produces Architecture Decision Records (ADRs). Evaluates alternatives and documents tradeoffs."
+    },
+    {
+      "id": "compliance-agent",
+      "mode": "subagent",
+      "description": "Audits GDPR/DSGVO compliance, data minimization, consent validation. Read-only for canonical data — never modifies production data. Produces compliance reports."
+    },
+    {
+      "id": "documentation-agent",
+      "mode": "subagent",
+      "description": "Generates and maintains documentation, wiki pages, changelogs, and release notes. Write access limited to docs/ directory. Can produce funding proposals for civic-tech projects."
+    },
+    {
+      "id": "executor",
+      "mode": "subagent",
+      "description": "Executes a bounded Task Capsule with effect-based runtime capabilities. Technical reversible decisions are autonomous; owner questions go to the orchestrator."
+    },
+    {
+      "id": "frontend-design-agent",
+      "mode": "subagent",
+      "description": "Designs and builds distinctive, intentional web UI. Discovers existing design systems, creates design plans, implements after approval. Delegates review to ux-review-agent and visual QA to playwright-agent. Never self-reviews or self-approves UX/accessibility/production claims."
+    },
+    {
+      "id": "issue-orchestrator",
+      "mode": "primary",
+      "description": "Primary orchestrator. Reads GitHub issues as single source of truth, delegates to specialized subagents, enforces spec-driven workflow and evidence gates. Never implements directly — always delegates to appropriate subagents."
+    },
+    {
+      "id": "migration-agent",
+      "mode": "subagent",
+      "description": "Validates database migrations: schema changes, rollback safety, data integrity checks. Limited write access — only to migration files and test databases."
+    },
+    {
+      "id": "playwright-agent",
+      "mode": "subagent",
+      "description": "Executes visual regression tests via Playwright: screenshots, DOM snapshots, accessibility checks, visual diff classification. Write access limited to screenshot and report directories."
+    },
+    {
+      "id": "research-agent",
+      "mode": "subagent",
+      "description": "Researches external documentation, CVEs, and dependency info using Brave Search and Context7. Read-only. Caches NVD results for cross-session use."
+    },
+    {
+      "id": "review-agent",
+      "mode": "subagent",
+      "description": "Reviews code for quality, security, performance, and spec compliance. Read-only — never modifies files. Produces structured review comments."
+    },
+    {
+      "id": "security-agent",
+      "mode": "subagent",
+      "description": "Security research: PoC reproduction, vulnerability validation, CVSS scoring. Evidence-gated — NO finding without proof. Uses Docker for isolated test environments. Can delegate to research-agent for CVE lookups."
+    },
+    {
+      "id": "ux-review-agent",
+      "mode": "subagent",
+      "description": "Analyzes UX flows, UI design system consistency, and user journey quality. Read-only — never modifies product files. Produces structured UX/UI findings with evidence-based acceptance criteria."
+    }
+  ]
+}

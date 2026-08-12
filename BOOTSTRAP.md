@@ -1,5 +1,10 @@
 # OpenCode Agent Ecosystem Bootstrap
 
+> **Legacy / architecture background:** The current user-facing installation is
+> [OCAE CLI v1.0.0](README.md#quick-install) and its [CLI reference](docs/ocae-cli.md).
+> This document describes the lower-level/manual bootstrap contract for
+> automation and compatibility.
+
 This repository is the source of truth for a safe, project-local bootstrap of OpenCode and Hermes Agent.
 
 It also serves as the **canonical workflow contract + policy source** — see [`WORKING-METHOD.md`](WORKING-METHOD.md) for the evidence-driven, risk-tiered execution model, and `.hermes/skill-bundles/canonical-working-method.yaml` for the Hermes-native YAML skill bundle.

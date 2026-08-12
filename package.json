@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "docs:data": "node scripts/generate-docs-data.mjs",
+    "test:docs": "node scripts/validate-docs.mjs",
     "test": "node scripts/run-tests.mjs --all --reporter spec",
     "test:unit": "node scripts/run-tests.mjs --group unit --reporter spec",
     "test:integration": "node scripts/run-tests.mjs --group integration --reporter spec",

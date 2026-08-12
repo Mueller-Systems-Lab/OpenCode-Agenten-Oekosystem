@@ -1,8 +1,12 @@
 # AI Bootstrap Contract — `url-only-v1`
 
+> **Automation path:** For normal installation use the released `ocae-cli`
+> workflow in [README.md](README.md#quick-install). This document preserves the
+> URL-only compatibility contract for AI-driven automation and exact checkouts.
+
 This file is the complete operating contract for an AI that receives this repository URL without local source paths, prior chat history, copied files, or development-machine knowledge.
 
-Never invent a raw URL, branch, commit, or example path. Use the repository and ref from the URL provided by the caller. The root launcher `bootstrap.mjs` is a thin entrypoint; it delegates to the manifest installer and is dry-run by default.
+Never invent a raw URL, branch, commit, or example path. Use the repository and ref from the URL provided by the caller. The root launcher `bootstrap.mjs` is a thin entrypoint; it delegates to the manifest installer and is dry-run by default. The current product installs 13 OpenCode agents and their capability profiles; the Python CLI is the preferred human-facing distribution layer, while `scripts/install-governance.mjs` remains the canonical installer implementation.
 
 ## Canonical handoff
 

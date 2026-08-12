@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="OCAE CLI v1.0.0 — 13 governed OpenCode agents in one installable ecosystem.">
+    <meta name="theme-color" content="#10151c">
+    <title>OCAE — OpenCode Agent Ecosystem</title>
+    <link rel="stylesheet" href="assets/site.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <nav class="nav shell" aria-label="Primary navigation">
+        <a class="brand" href="#top" aria-label="OCAE home"><span class="brand-mark">O</span><span>OCAE</span></a>
+        <div class="nav-links">
+          <a href="#quick-start">Quick start</a>
+          <a href="#agents">Agents</a>
+          <a href="#governance">Governance</a>
+          <a href="#cli">CLI</a>
+          <a class="nav-github" href="https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section id="top" class="hero shell">
+        <div class="eyebrow"><span class="status-dot" aria-hidden="true"></span> OCAE CLI <span class="release-version">v1.0.0</span></div>
+        <h1>13 governed agents.<br><em>One install command.</em></h1>
+        <p class="hero-copy">A versioned OpenCode agent ecosystem with capability profiles, fail-closed governance, runtime verification, and safe project-local installation.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#quick-start">Install OCAE <span aria-hidden="true">↓</span></a>
+          <a class="button button-secondary" href="https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem" target="_blank" rel="noopener noreferrer">View on GitHub <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="command-card" aria-label="OCAE installation command">
+          <div class="command-label"><span>Install CLI</span><span class="command-ref">release <span class="release-tag">v1.0.0</span></span></div>
+          <code id="install-command">uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.0</code>
+          <button class="copy-button" type="button" data-copy-target="install-command" aria-label="Copy OCAE installation command">Copy</button>
+          <span class="copy-status" role="status" aria-live="polite"></span>
+        </div>
+        <div class="hero-meta" aria-label="Release facts">
+          <span><strong class="agent-count">13</strong> installable agents</span>
+          <span><strong>1</strong> primary + <strong>12</strong> subagents</span>
+          <span>OpenCode runtime verified</span>
+        </div>
+      </section>
+
+      <section id="quick-start" class="section shell">
+        <div class="section-heading"><p class="eyebrow">Quick start</p><h2>From a clean CLI install to a verified project.</h2></div>
+        <div class="steps">
+          <article class="step"><span class="step-number">01</span><h3>Install the CLI</h3><p>Pin the published release with <code>uv</code>.</p><code class="block-code">uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.0</code></article>
+          <article class="step"><span class="step-number">02</span><h3>Install the ecosystem</h3><p>Run the preflight, review the dry-run when needed, then apply to your project.</p><code class="block-code">ocae doctor .<br>ocae install .</code></article>
+          <article class="step"><span class="step-number">03</span><h3>Verify the runtime</h3><p>Check integrity and let OpenCode discover the installed agents.</p><code class="block-code">ocae verify .</code></article>
+        </div>
+        <p class="micro-note">Need a preview first? Run <code>ocae install . --dry-run</code>. Existing project content stays in scope and is preserved.</p>
+      </section>
+
+      <section id="agents" class="section section-dark">
+        <div class="shell">
+          <div class="section-heading split-heading"><div><p class="eyebrow">Agent inventory</p><h2>A specialist for each governed role.</h2></div><p class="section-intro"><strong class="agent-count">13</strong> installable definitions, each paired with a capability profile and runtime permissions.</p></div>
+          <div class="agent-layout">
+            <div class="primary-agent-card"><span class="card-kicker">Primary agent</span><h3 class="primary-agent">issue-orchestrator</h3><p>Coordinates the workflow, routes work to leaf agents, and keeps product decisions and evidence in scope.</p><span class="verified-pill">13/13 discovered · canary PASS</span></div>
+            <div class="agent-inventory-wrap">
+              <p class="card-kicker">Subagents</p>
+              <!-- BEGIN GENERATED AGENT INVENTORY -->
+        <ul class="agent-list">
+          <li><code>approval-coordinator</code><span>Subagent</span></li>
+          <li><code>architecture-agent</code><span>Subagent</span></li>
+          <li><code>compliance-agent</code><span>Subagent</span></li>
+          <li><code>documentation-agent</code><span>Subagent</span></li>
+          <li><code>executor</code><span>Subagent</span></li>
+          <li><code>frontend-design-agent</code><span>Subagent</span></li>
+          <li><code>issue-orchestrator</code><span>Primary agent</span></li>
+          <li><code>migration-agent</code><span>Subagent</span></li>
+          <li><code>playwright-agent</code><span>Subagent</span></li>
+          <li><code>research-agent</code><span>Subagent</span></li>
+          <li><code>review-agent</code><span>Subagent</span></li>
+          <li><code>security-agent</code><span>Subagent</span></li>
+          <li><code>ux-review-agent</code><span>Subagent</span></li>
+        </ul>
+        <!-- END GENERATED AGENT INVENTORY -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="governance" class="section shell">
+        <div class="section-heading"><p class="eyebrow">Governance</p><h2>Safety is part of the install surface.</h2><p class="section-intro">OCAE installs a project-local control plane that makes runtime capabilities explicit and fails closed when the source, scope, or environment cannot be verified.</p></div>
+        <div class="feature-grid">
+          <article class="feature"><span class="feature-icon" aria-hidden="true">↯</span><h3>Fail-closed decisions</h3><p>Capability profiles, MCP preflight, name-conflict checks, and source-lock integrity gate tool execution.</p></article>
+          <article class="feature"><span class="feature-icon" aria-hidden="true">⌁</span><h3>Preserve the project</h3><p>Existing config, providers, models, user agents, and third-party plugins are merged conservatively, not silently replaced.</p></article>
+          <article class="feature"><span class="feature-icon" aria-hidden="true">↩</span><h3>Recoverable changes</h3><p>Backups happen before mutation. Provenance, audit trails, idempotence, and rollback make the state reviewable.</p></article>
+          <article class="feature"><span class="feature-icon" aria-hidden="true">∅</span><h3>Secrets stay out</h3><p>No secret contents are read by default, and MCPs remain disabled unless an owner explicitly enables them.</p></article>
+        </div>
+      </section>
+
+      <section id="how-it-works" class="section section-tint">
+        <div class="shell">
+          <div class="section-heading"><p class="eyebrow">How it works</p><h2>Thin CLI. Canonical runtime.</h2></div>
+          <div class="architecture" aria-label="OCAE installation architecture">
+            <div class="architecture-node"><span class="node-label">Package manager</span><strong>uv</strong></div><span class="architecture-arrow" aria-hidden="true">↓</span>
+            <div class="architecture-node accent-node"><span class="node-label">Distribution layer</span><strong>ocae-cli</strong><small>Python CLI · integrity · provenance</small></div><span class="architecture-arrow" aria-hidden="true">↓</span>
+            <div class="architecture-node"><span class="node-label">Canonical installer</span><strong>scripts/install-governance.mjs</strong><small>bundled · hash-verified · Node.js</small></div><span class="architecture-arrow" aria-hidden="true">↓</span>
+            <div class="architecture-node project-node"><span class="node-label">Target project</span><strong>OpenCode ecosystem</strong><small>13 agents · skills · policies · plugin · profiles</small></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="cli" class="section shell">
+        <div class="section-heading split-heading"><div><p class="eyebrow">CLI surface</p><h2>Small commands, explicit outcomes.</h2></div><a class="text-link" href="ocae-cli.md">Read the full CLI reference ↗</a></div>
+        <div class="cli-table" role="table" aria-label="OCAE CLI commands">
+          <div class="cli-row cli-head" role="row"><span>Command</span><span>Purpose</span></div>
+          <div class="cli-row" role="row"><code>ocae doctor .</code><span>Preflight package, tools, target, and existing installation</span></div>
+          <div class="cli-row" role="row"><code>ocae install . --dry-run</code><span>Preview the canonical installation plan</span></div>
+          <div class="cli-row" role="row"><code>ocae verify .</code><span>Verify integrity and OpenCode agent discovery</span></div>
+          <div class="cli-row" role="row"><code>ocae provenance</code><span>Inspect source ref, commit, and payload provenance</span></div>
+          <div class="cli-row" role="row"><code>ocae update .</code><span>Update an existing managed project installation</span></div>
+          <div class="cli-row" role="row"><code>ocae rollback . --backup …</code><span>Restore a recorded backup without bypassing safeguards</span></div>
+        </div>
+      </section>
+
+      <section id="release" class="section section-dark">
+        <div class="shell release-grid">
+          <div><p class="eyebrow">Release / provenance</p><h2>Reproducible by design.</h2><p class="section-intro">The distribution is pinned to a release ref and carries the source commit and payload integrity evidence needed to inspect what is installed.</p></div>
+          <dl class="release-facts"><div><dt>Version</dt><dd class="release-version">v1.0.0</dd></div><div><dt>Tag</dt><dd class="release-tag">v1.0.0</dd></div><div><dt>Release commit</dt><dd class="release-commit">4f97bdd6…</dd></div><div><dt>Runtime</dt><dd>OpenCode · verified</dd></div></dl>
+        </div>
+      </section>
+
+      <section id="docs" class="section shell docs-section">
+        <div class="section-heading"><p class="eyebrow">Documentation</p><h2>Start where your task starts.</h2></div>
+        <div class="docs-grid">
+          <a class="doc-card" href="../README.md"><span class="card-kicker">Product overview</span><strong>README</strong><span>Install, agents, governance, and requirements.</span></a>
+          <a class="doc-card" href="ocae-cli.md"><span class="card-kicker">Reference</span><strong>CLI reference</strong><span>Commands, outcomes, provenance, troubleshooting, rollback.</span></a>
+          <a class="doc-card" href="../AI-BOOTSTRAP.md"><span class="card-kicker">Automation</span><strong>AI bootstrap</strong><span>URL-only and exact-checkout compatibility contract.</span></a>
+          <a class="doc-card" href="../WORKING-METHOD.md"><span class="card-kicker">Engineering</span><strong>Working method</strong><span>Risk tiers, evidence gates, and governance workflow.</span></a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell footer-inner"><div><a class="brand" href="#top"><span class="brand-mark">O</span><span>OCAE</span></a><p>OpenCode Agent Ecosystem · <span class="release-version">v1.0.0</span></p></div><div class="footer-links"><a href="https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="../LICENSE">MIT License</a><a href="../README.md">README</a></div></div>
+    </footer>
+    <script src="assets/site.js" defer></script>
+  </body>
+</html>

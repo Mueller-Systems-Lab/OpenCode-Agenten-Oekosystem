@@ -121,6 +121,10 @@ export async function restoreBackup({ backupRoot, expectedTargetRoot }) {
   for (const entry of manifest.files) {
     const destination = path.resolve(targetRoot, entry.path)
     await assertSafePath(targetRoot, destination, "restore target")
+    if (entry.is_directory) {
+      await ensureDirectory(destination)
+      continue
+    }
     if (!entry.existed) {
       if (await pathExists(destination)) {
         await fs.rm(destination, { recursive: true, force: true })

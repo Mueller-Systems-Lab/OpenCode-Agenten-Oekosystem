@@ -101,7 +101,7 @@ node bootstrap.mjs --target <target> --verify        # verify
 node bootstrap.mjs --target <target> --rollback <backup-dir>
 ```
 
-The installer writes provenance to `.opencode/ecosystem-installation.json`. It must contain no secrets and no private absolute source paths. The source commit is the reproducibility anchor; a branch URL is never treated as immutable evidence by itself.
+The installer writes provenance to `.opencode/ecosystem-installation.json`. It must contain no secrets and no private absolute source paths. The same URL-only apply installs the runtime-installable `.opencode/agents/*.md` definitions, active `.opencode/skills/` and `.opencode/policies/` assets, capability-profile bindings, and the OpenCode governance plugin/config merge. The source commit is the reproducibility anchor; a branch URL is never treated as immutable evidence by itself.
 
 ## Completion classification
 

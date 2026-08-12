@@ -1,0 +1,122 @@
+from __future__ import annotations
+
+import json
+import os
+from pathlib import Path
+
+from .payload import verify_payload, verify_package_record
+from .runtime import resolve_node, resolve_opencode, run_external, tool_version
+
+
+def _target_check(target: Path) -> dict:
+    resolved = target.resolve()
+    if not target.exists():
+        return {"status": "FAIL", "reason": "target does not exist", "path": str(resolved)}
+    if not target.is_dir():
+        return {"status": "FAIL", "reason": "target is not a directory", "path": str(resolved)}
+    if target.is_symlink():
+        return {"status": "FAIL", "reason": "target is a symlink", "path": str(resolved)}
+    return {
+        "status": "PASS" if os.access(target, os.W_OK) else "FAIL",
+        "reason": None if os.access(target, os.W_OK) else "target is not writable",
+        "path": str(resolved),
+    }
+
+
+def _installation_check(target: Path) -> dict:
+    manifest = target / ".opencode" / "ecosystem-installation.json"
+    if not manifest.is_file():
+        return {"status": "ABSENT", "managed_files": 0, "agents": 0}
+    try:
+        value = json.loads(manifest.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {"status": "FAIL", "reason": "installation manifest is unreadable"}
+    return {
+        "status": "PRESENT",
+        "managed_files": len(value.get("managed_files", [])),
+        "agents": len(value.get("installed_agents", [])),
+        "source_commit": value.get("source_commit"),
+    }
+
+
+def _runtime_check(target: Path) -> dict:
+    config = target / "opencode.jsonc"
+    if not config.exists():
+        config = target / "opencode.json"
+    agents = target / ".opencode" / "agents"
+    return {
+        "config": {"status": "PASS" if config.is_file() else "ABSENT"},
+        "agent_directory": {
+            "status": "PASS" if agents.is_dir() else "ABSENT",
+            "count": len(list(agents.glob("*.md"))) if agents.is_dir() else 0,
+        },
+        "runtime": "opencode" if config.is_file() or agents.is_dir() else "unknown",
+    }
+
+
+def doctor(target: Path) -> dict:
+    target = Path(target)
+    package = verify_package_record()
+    payload = verify_payload()
+    target_result = _target_check(target)
+    node_path, node_version = tool_version("node")
+    opencode_path, opencode_version = tool_version("opencode")
+    checks = {
+        "python_package_integrity": package,
+        "payload_integrity": payload,
+        "node": {
+            "status": "PASS" if node_path else "TOOL_GAP_NODE_RUNTIME",
+            "path": node_path,
+            "version": node_version,
+        },
+        "opencode": {
+            "status": "PASS" if opencode_path else "TOOL_GAP_OPENCODE_RUNTIME_VERIFICATION",
+            "path": opencode_path,
+            "version": opencode_version,
+        },
+        "target": target_result,
+        "runtime_detection": _runtime_check(target) if target_result["status"] != "FAIL" else {"status": "SKIPPED"},
+        "existing_ecosystem_installation": _installation_check(target) if target_result["status"] != "FAIL" else {"status": "SKIPPED"},
+    }
+    if payload["status"] != "PASS" or target_result["status"] == "FAIL":
+        classification = "RED_BLOCK"
+        exit_code = 2
+    elif not node_path:
+        classification = "TOOL_GAP_NODE_RUNTIME"
+        exit_code = 1
+    elif not opencode_path:
+        classification = "TOOL_GAP_OPENCODE_RUNTIME_VERIFICATION"
+        exit_code = 1
+    else:
+        classification = "VERIFIED_IN_SCOPE"
+        exit_code = 0
+    return {
+        "classification": classification,
+        "exit_code": exit_code,
+        "target": str(target.resolve()),
+        "checks": checks,
+    }
+
+
+def runtime_discovery(target: Path) -> dict:
+    executable = resolve_opencode()
+    if not executable:
+        return {
+            "classification": "TOOL_GAP_OPENCODE_RUNTIME_VERIFICATION",
+            "exit_code": 1,
+            "agents": [],
+            "stdout": "",
+            "stderr": "OpenCode is not available.",
+        }
+    result = run_external(executable, ["agent", "list"], target.resolve())
+    if result["exit_code"] != 0:
+        return {
+            "classification": "TOOL_GAP_OPENCODE_RUNTIME_VERIFICATION",
+            "agents": [],
+            **result,
+        }
+    return {
+        "classification": "VERIFIED_IN_SCOPE",
+        "agents": [line.strip() for line in result["stdout"].splitlines() if line.strip()],
+        **result,
+    }

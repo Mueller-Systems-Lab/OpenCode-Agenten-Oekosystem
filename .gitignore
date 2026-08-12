@@ -17,6 +17,12 @@ node_modules/
 # Python
 __pycache__/
 *.pyc
+build/
+dist/
+*.egg-info/
+src/ocae_cli/_payload/canonical-runtime.tar.gz
+src/ocae_cli/_payload/ocae-payload-manifest.json
+src/ocae_cli/_version.py
 
 # Logs
 *.log

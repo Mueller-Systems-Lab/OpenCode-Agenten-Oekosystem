@@ -1,0 +1,4 @@
+include build_backend.py
+include docs/ocae-cli.md
+recursive-include src/ocae_cli/_payload *.tar.gz *.json
+include src/ocae_cli/_version.py

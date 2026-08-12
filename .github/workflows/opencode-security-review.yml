@@ -6,6 +6,7 @@ on:
       - '.github/workflows/opencode-security-review.yml'
       - '.opencode/**'
       - 'bootstrap/**'
+      - 'docs/**'
       - 'governance/**'
       - 'runtime/**'
       - 'scripts/**'

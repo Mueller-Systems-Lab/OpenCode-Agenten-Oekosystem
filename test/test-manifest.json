@@ -43,6 +43,7 @@
       "test/install/red-test-resident-import.test.mjs",
       "test/install/red-test-validate-post-apply-security.test.mjs",
       "test/install/resident-runtime.test.mjs",
+      "test/install/runtime-hardening.test.mjs",
       "test/install/tamper-detection.test.mjs",
       "test/install/url-installer.test.mjs"
     ],

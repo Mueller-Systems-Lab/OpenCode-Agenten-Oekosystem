@@ -19,6 +19,7 @@
       "test/contracts/completion-runtime-contracts.test.mjs",
       "test/contracts/governance-generator-platform-contract.test.mjs",
       "test/contracts/runtime-enforcement-contracts.test.mjs",
+      "test/contracts/runtime-neutral-completion.test.mjs",
       "test/spec-kit/bridge-contract.test.mjs",
       "test/spec-kit/bridge-red.test.mjs",
       "test/validation/working-method.test.mjs"

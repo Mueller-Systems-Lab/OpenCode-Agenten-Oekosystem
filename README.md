@@ -127,6 +127,11 @@ The bootstrap writes portable handoff assets only. It does not rewrite `~/.herme
 
 Hermes is treated as an opt-in runtime:
 
+Hermes support is `OPTIONAL / NON-BLOCKING`: its adapter and handoff assets are
+available when explicitly selected, but no concrete Hermes deployment,
+reachability, or owner activation is required for installation, completion,
+release, or production classification.
+
 ```bash
 hermes --skills project-bootstrap,project-reality-refresh,run-card,mcp-selection,hermes-handoff,worktree-safety,checkpoint-and-rollback,living-truth-mirror,remote-ci-approval-gate,provider-neutral-config
 ```

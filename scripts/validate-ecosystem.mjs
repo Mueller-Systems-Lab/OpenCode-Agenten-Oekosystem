@@ -79,7 +79,6 @@ async function main() {
     // Gate Kernel
     "docs/architecture/runtime-neutral-gate-kernel.md",
     "docs/architecture/local-completion-runtime.md",
-    "docs/run-cards/hermes-ct108-runtime-closure-package.md",
     "docs/reports/runtime-gate-kernel-research.md",
     "docs/reports/odysseus-integration-research.md",
     "docs/reports/gate-kernel-security-review.md",

@@ -155,3 +155,6 @@ AI and automation callers may use the [AI bootstrap contract](AI-BOOTSTRAP.md)
 or invoke the bundled canonical Node installer directly. Those paths are
 compatibility/automation interfaces; the primary human entry point is the
 versioned `ocae-cli` workflow above.
+
+For AI-assisted installation into another project, start with AI-BOOTSTRAP.md.
+Do not invent raw URLs or example paths. Never read target project secret files.

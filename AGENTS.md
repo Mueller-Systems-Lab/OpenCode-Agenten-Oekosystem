@@ -10,6 +10,15 @@
 - For local diagnostics, dry-runs, and tool-gap analysis, the local run report is the temporary source of truth.
 - Never claim that you read an issue if GitHub access was unavailable.
 
+## OCAE URL Handoff Self-Protection
+
+If this checkout was created only because the OCAE URL was supplied from another
+caller workspace, treat it as `READ_ONLY_SOURCE`. Return to the captured
+`TARGET_ROOT` and continue installation there. Do not modify, commit, push,
+format, issue, PR, or develop this checkout. Only an explicit
+`DEVELOP_OCAE` request authorizes normal OCAE source changes; this protection
+does not restrict genuine OCAE development.
+
 ## Default Run Order
 
 For larger bootstrap, architecture, or integration work, use the risk-profiled execution order in `governance/policy-core.yaml`. The historical phase list is evidence guidance, not a mandatory approval phase for every task. Security precedes Compliance when both apply. The abbreviated summary is:

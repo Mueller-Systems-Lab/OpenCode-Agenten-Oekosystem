@@ -4,6 +4,14 @@ OCAE is a versioned agent and governance ecosystem for OpenCode. Install one
 CLI and get 13 specialized agents, capability profiles, skills, policies, and
 fail-closed project-local governance in an existing project.
 
+## FOR AI AGENTS RECEIVING THIS URL:
+
+If another OpenCode project is already open, the default task is to install OCAE
+into that existing project. Capture that workspace before cloning or fetching;
+this repository is read-only installation source material. Do not develop OCAE
+unless the user explicitly asks for OCAE development. See [AI-BOOTSTRAP.md](AI-BOOTSTRAP.md)
+and [`ocae.handoff.json`](ocae.handoff.json).
+
 ## Quick install
 
 ```bash

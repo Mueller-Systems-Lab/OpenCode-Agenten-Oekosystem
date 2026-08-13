@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/blob/master/ocae.handoff.schema.json",
+  "title": "OCAE AI Handoff Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "product",
+    "canonical_repository",
+    "bare_url_default_intent",
+    "source_role",
+    "target_resolution",
+    "target_immutable",
+    "source_target_identity_forbidden",
+    "preferred_distribution",
+    "development_requires_explicit_intent",
+    "source_mutations_for_install_intent",
+    "target_commands_require_absolute_root"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "product": { "const": "OCAE" },
+    "canonical_repository": { "const": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem" },
+    "bare_url_default_intent": { "const": "INSTALL_IN_CALLER_WORKSPACE" },
+    "source_role": { "const": "READ_ONLY_DISTRIBUTION_SOURCE" },
+    "target_resolution": { "const": "CALLER_WORKSPACE_AT_HANDOFF" },
+    "target_immutable": { "const": true },
+    "source_target_identity_forbidden": { "const": true },
+    "preferred_distribution": { "const": "ocae-cli" },
+    "development_requires_explicit_intent": { "const": true },
+    "source_mutations_for_install_intent": { "const": 0 },
+    "target_commands_require_absolute_root": { "const": true }
+  }
+}

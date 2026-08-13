@@ -1,7 +1,7 @@
 {
   "version": "1.0.1",
   "tag": "v1.0.1",
-  "releaseCommit": "72302c248eb033f5fbbf9880595710539d839fac",
+  "releaseCommit": "56a05589245ee0881ee7f20bd374cbf9f2a5c095",
   "sourceRepository": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
   "primaryAgent": "issue-orchestrator",
   "agentCount": 13,

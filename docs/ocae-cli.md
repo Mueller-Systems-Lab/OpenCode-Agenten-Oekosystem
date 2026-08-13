@@ -1,6 +1,6 @@
 # OCAE CLI Reference
 
-OCAE CLI v1.0.0 is the versioned distribution layer for the OpenCode Agent
+OCAE CLI v1.0.1 is the versioned distribution layer for the OpenCode Agent
 Ecosystem. It bundles a build-generated, hash-verified closure of the canonical
 Node installer and invokes it from an isolated payload directory.
 
@@ -15,10 +15,10 @@ runtime assets remain owned by
 Install the published release with `uv`:
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.0
+uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.1
 ```
 
-The source ref is pinned to `v1.0.0`. The package does not clone the repository
+The source ref is pinned to `v1.0.1`. The package does not clone the repository
 during target installation.
 
 ## Quick start
@@ -70,6 +70,30 @@ Every target apply creates or updates project-local governance assets and
 records managed files, installed agents, capability-profile bindings, source
 repository, source commit, and source-lock hashes. OpenCode remains the primary
 verified runtime. Hermes is optional and non-blocking.
+
+### Global OpenCode bare-URL handoff
+
+Enable the optional one-time integration after installing the CLI:
+
+```bash
+ocae integrate opencode
+ocae integrate opencode --verify
+```
+
+The command discovers the installed OpenCode 1.18.x global plugin directory,
+writes one OCAE-owned adapter plus a provenance manifest, and verifies that
+OpenCode loads it. The adapter intercepts only the canonical OCAE repository URL
+in `chat.message`, captures OpenCode's current workspace, and invokes the
+absolute, hash-bound `ocae` launcher with structured arguments and
+`shell=false`. It performs doctor → verify → install/update → verify in the
+caller workspace, then replaces the model message with a trusted result block.
+Explicit OCAE development requests, unrelated URLs, source-target collisions,
+symlinked targets, and manifest or executable tampering fail closed. OpenCode's
+existing config and third-party plugins are not rewritten.
+
+Use `ocae integrate opencode --remove` to remove only the OCAE-owned adapter and
+manifest. Re-running the command is safe and returns `NOOP_IDEMPOTENT` when the
+binding is already current.
 
 ## Product inventory
 

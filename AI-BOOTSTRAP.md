@@ -57,6 +57,28 @@ mutation remains independently forbidden unless development intent is explicit.
 For missing caller context, use the safe classification
 `NEEDS_REVIEW_AMBIGUOUS_NON_ROOT_CONTEXT` and do not mutate anything.
 
+## One-time OpenCode global handoff integration
+
+After installing the released CLI, an owner may enable the global bare-URL UX
+once per machine:
+
+```text
+ocae integrate opencode
+ocae integrate opencode --verify
+```
+
+This explicit command discovers the supported OpenCode 1.18.x global plugin
+directory, installs one OCAE-owned adapter and provenance manifest, and verifies
+that OpenCode loads it. The adapter receives OpenCode's `directory`/`worktree`,
+accepts only the exact canonical OCAE URL, and invokes the absolute hash-bound
+`ocae` launcher with structured arguments and `shell=false`. It runs the normal
+doctor → verify → install/update → verify sequence in the captured caller
+workspace and converts the result into trusted context before model dispatch.
+Development wording, unrelated input, source-target collisions, symlinked
+targets, manifest tampering, and executable substitution fail closed. The
+integration does not rewrite `opencode.jsonc` or third-party plugins; `--remove`
+removes only the OCAE-owned adapter and manifest.
+
 ## Source safety
 
 If a source checkout is needed, use a temporary source root only for

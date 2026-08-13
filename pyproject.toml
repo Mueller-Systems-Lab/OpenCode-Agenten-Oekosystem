@@ -32,6 +32,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 ocae_cli = ["_payload/*.tar.gz", "_payload/*.json", "_version.py"]
+"ocae_cli._adapter" = ["*.js"]
 
 [tool.setuptools.dynamic]
 version = { attr = "ocae_cli.__version__" }

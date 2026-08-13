@@ -16,7 +16,7 @@ only an explicit OCAE development request authorizes source changes. See the
 
 ## Product boundary
 
-OCAE CLI v1.0.0 installs the complete project-local OpenCode ecosystem:
+OCAE CLI v1.0.1 installs the complete project-local OpenCode ecosystem:
 
 - 13 installable agents and 13 capability profiles
 - skills, policies, and the OpenCode Governance Plugin
@@ -33,11 +33,12 @@ Automation should pin the published release and use the same CLI commands as a
 human operator:
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.0
+uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.1
 ocae doctor "<TARGET_ROOT>"
 ocae install "<TARGET_ROOT>" --dry-run
 ocae install "<TARGET_ROOT>"
 ocae verify "<TARGET_ROOT>"
+ocae integrate opencode
 ```
 
 The dry-run must be reviewed before an apply. The target path is project-local;
@@ -66,7 +67,9 @@ and provenance rules.
   third-party plugins are preserved
 - backups are created before mutation
 - name conflicts and source-lock tampering fail closed
-- no global OpenCode or Hermes configuration is rewritten
+- `ocae integrate opencode` is an explicit one-time global opt-in: it writes
+  only the OCAE-owned adapter/manifest, does not rewrite OpenCode config or
+  third-party plugins, and is removable with `--remove`
 - no MCP is enabled automatically
 - no secrets are read or written to reports
 

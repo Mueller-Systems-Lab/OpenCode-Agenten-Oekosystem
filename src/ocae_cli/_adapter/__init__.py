@@ -1,0 +1,1 @@
+"""Packaged OpenCode runtime adapters."""

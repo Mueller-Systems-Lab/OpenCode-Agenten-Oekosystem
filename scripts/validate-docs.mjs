@@ -58,10 +58,10 @@ const siteJs = read("docs/assets/site.js")
 const siteCss = read("docs/assets/site.css")
 const activeDocs = { "README.md": readme, "AI-INSTALL.md": aiInstall, "AI-BOOTSTRAP.md": aiBootstrap, "BOOTSTRAP.md": bootstrap, "docs/ocae-cli.md": cliDoc, "docs/index.html": landing }
 const forbiddenInternalReference = new RegExp(`${["CT", "108"].join("")}|TTS`, "i")
-const installCommand = "uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.0"
+const installCommand = `uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v${cliVersion}`
 
 assert(readme.startsWith("# OCAE"), "README does not start with the OCAE product hero")
-assert(readme.includes("OCAE CLI v1.0.0"), "README product version is missing or stale")
+assert(readme.includes(`OCAE CLI v${cliVersion}`), "README product version is missing or stale")
 assert(readme.includes(installCommand), "README is missing the pinned CLI install command")
 assert(readme.includes("ocae doctor .") && readme.includes("ocae install .") && readme.includes("ocae verify ."), "README quick start is incomplete")
 assert(!/^>.*archiv/i.test(readme), "README still contains an archive banner")

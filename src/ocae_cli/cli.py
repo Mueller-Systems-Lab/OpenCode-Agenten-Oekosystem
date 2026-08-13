@@ -7,6 +7,7 @@ from pathlib import Path
 
 from . import __version__
 from .doctor import doctor, runtime_discovery
+from .opencode import integrate_opencode, remove_opencode_integration, verify_opencode_integration
 from .payload import verify_payload
 from .provenance import provenance
 from .runtime import run_canonical
@@ -32,6 +33,12 @@ def _parser() -> argparse.ArgumentParser:
     rollback.add_argument("target", nargs="?", default=".")
     rollback.add_argument("--backup", required=True)
     rollback.add_argument("--json", action="store_true")
+
+    integrate = subparsers.add_parser("integrate")
+    integrate.add_argument("runtime", choices=["opencode"])
+    integrate.add_argument("--remove", action="store_true")
+    integrate.add_argument("--verify", action="store_true")
+    integrate.add_argument("--json", action="store_true")
     return parser
 
 
@@ -149,6 +156,14 @@ def main(argv: list[str] | None = None) -> int:
         return _exit(value)
     if args.command == "rollback":
         value = _strip_process_output(run_canonical(target, rollback=Path(args.backup)))
+        _emit(value, as_json)
+        return _exit(value)
+    if args.command == "integrate":
+        if args.remove and args.verify:
+            raise SystemExit("--remove and --verify are mutually exclusive")
+        if args.runtime != "opencode":
+            return 2
+        value = remove_opencode_integration() if args.remove else verify_opencode_integration() if args.verify else integrate_opencode()
         _emit(value, as_json)
         return _exit(value)
     return 2

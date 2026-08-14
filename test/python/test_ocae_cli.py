@@ -136,6 +136,88 @@ class OpenCodeIntegrationTests(unittest.TestCase):
             self.assertFalse((config / "plugins" / opencode.ADAPTER_FILENAME).exists())
             self.assertFalse((config / opencode.MANIFEST_FILENAME).exists())
 
+    def test_failed_runtime_verification_rolls_back_new_integration(self):
+        with tempfile.TemporaryDirectory() as directory:
+            config = Path(directory) / "config"
+            executable = Path(directory) / "ocae.exe"
+            executable.write_bytes(b"validated ocae launcher")
+            fake_opencode = Path(directory) / "opencode.exe"
+            fake_opencode.write_bytes(b"validated opencode launcher")
+            discovered = (fake_opencode, "1.18.18", config)
+            with patch.object(opencode, "_discover_opencode", return_value=discovered), patch.object(
+                opencode, "_resolve_ocae", return_value=executable
+            ), patch.object(opencode, "tool_version", return_value=(str(executable), opencode.__version__)), patch.object(
+                opencode, "run_external", return_value={
+                    "exit_code": 0,
+                    "stdout": json.dumps({
+                        "version": opencode.__version__,
+                        "source_repository": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+                        "source_commit": "4f97bdd6ed78a607a64742352a372ef453a7b009",
+                    }),
+                    "stderr": "",
+                }
+            ), patch.object(
+                opencode, "_verify_impl", return_value={
+                    "classification": "RED_BLOCK_PLUGIN_RUNTIME_SMOKE",
+                    "exit_code": 2,
+                    "runtime_smoke": {"passed": False, "state": "EXITED_EARLY", "exit_code": 1},
+                }
+            ):
+                result = opencode.integrate_opencode()
+
+            self.assertEqual(result["classification"], "INTEGRATION_ROLLED_BACK")
+            self.assertFalse((config / "plugins" / opencode.ADAPTER_FILENAME).exists())
+            self.assertFalse((config / opencode.MANIFEST_FILENAME).exists())
+
+    def test_failed_runtime_verification_restores_previous_integration(self):
+        with tempfile.TemporaryDirectory() as directory:
+            config = Path(directory) / "config"
+            adapter = config / "plugins" / opencode.ADAPTER_FILENAME
+            manifest_path = config / opencode.MANIFEST_FILENAME
+            executable = Path(directory) / "ocae.exe"
+            executable.write_bytes(b"validated ocae launcher")
+            fake_opencode = Path(directory) / "opencode.exe"
+            fake_opencode.write_bytes(b"validated opencode launcher")
+            previous_adapter = b"previous adapter content"
+            adapter.parent.mkdir(parents=True)
+            adapter.write_bytes(previous_adapter)
+            previous_manifest = json.dumps({
+                "integration_id": opencode.INTEGRATION_ID,
+                "integration_version": "1.0.3",
+                "opencode_version": "1.18.18",
+                "supported_opencode_range": opencode.SUPPORTED_OPENCODE_RANGE,
+                "adapter_path": str(adapter),
+                "adapter_sha256": opencode._sha256_bytes(previous_adapter),
+                "cli_path": str(executable),
+                "cli_sha256": opencode._sha256_file(executable),
+            }, sort_keys=True).encode("utf-8")
+            manifest_path.write_bytes(previous_manifest)
+            discovered = (fake_opencode, "1.18.18", config)
+            with patch.object(opencode, "_discover_opencode", return_value=discovered), patch.object(
+                opencode, "_resolve_ocae", return_value=executable
+            ), patch.object(opencode, "tool_version", return_value=(str(executable), opencode.__version__)), patch.object(
+                opencode, "run_external", return_value={
+                    "exit_code": 0,
+                    "stdout": json.dumps({
+                        "version": opencode.__version__,
+                        "source_repository": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+                        "source_commit": "4f97bdd6ed78a607a64742352a372ef453a7b009",
+                    }),
+                    "stderr": "",
+                }
+            ), patch.object(
+                opencode, "_verify_impl", return_value={
+                    "classification": "RED_BLOCK_PLUGIN_RUNTIME_SMOKE",
+                    "exit_code": 2,
+                    "runtime_smoke": {"passed": False, "state": "EXITED_EARLY", "exit_code": 1},
+                }
+            ):
+                result = opencode.integrate_opencode()
+
+            self.assertEqual(result["classification"], "INTEGRATION_ROLLED_BACK")
+            self.assertEqual(adapter.read_bytes(), previous_adapter)
+            self.assertEqual(manifest_path.read_bytes(), previous_manifest)
+
     def test_adapter_rejects_unowned_global_filename(self):
         with tempfile.TemporaryDirectory() as directory:
             config = Path(directory) / "config"

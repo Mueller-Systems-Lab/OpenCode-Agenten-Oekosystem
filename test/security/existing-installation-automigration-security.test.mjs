@@ -6,12 +6,14 @@ import os from "node:os"
 import crypto from "node:crypto"
 import { spawnSync } from "node:child_process"
 import { repoRoot } from "../helpers.mjs"
-import { inspectProjectMetadata, reconcileProject } from "../../src/ocae_cli/_adapter/opencode-handoff.js"
+import adapter from "../../src/ocae_cli/_adapter/opencode-handoff.js"
+
+const { inspectProjectMetadata, reconcileProject } = adapter
 
 const sourceCommit = spawnSync("git", ["rev-parse", "HEAD"], { cwd: repoRoot, encoding: "utf8" }).stdout.trim()
 const manifest = {
-  adapter_version: "1.0.3",
-  ocae_version: "1.0.3",
+  adapter_version: "1.0.4",
+  ocae_version: "1.0.4",
   opencode_version: "1.18.18",
   cli_path: "C:\\trusted\\ocae.exe",
   source_commit: sourceCommit,

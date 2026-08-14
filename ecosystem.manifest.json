@@ -1,6 +1,6 @@
 {
   "$schema": "./.opencode/validation/schema-validators/ecosystem-manifest-schema.json",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "schema_version": "1.0.0",
   "name": "universal-open-code-hermes-bootstrap",
   "description": "Manifest for safe, project-local OpenCode and Hermes Agent bootstrap across heterogeneous repositories.",

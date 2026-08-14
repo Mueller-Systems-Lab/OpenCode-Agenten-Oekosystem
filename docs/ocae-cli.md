@@ -1,6 +1,6 @@
 # OCAE CLI Reference
 
-OCAE CLI v1.0.2 is the versioned distribution layer for the OpenCode Agent
+OCAE CLI v1.0.3 is the versioned distribution layer for the OpenCode Agent
 Ecosystem. It bundles a build-generated, hash-verified closure of the canonical
 Node installer and invokes it from an isolated payload directory.
 
@@ -15,10 +15,10 @@ runtime assets remain owned by
 Install the published release with `uv`:
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.2
+uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.3
 ```
 
-The source ref is pinned to `v1.0.2`. The package does not clone the repository
+The source ref is pinned to `v1.0.3`. The package does not clone the repository
 during target installation.
 
 ## Quick start
@@ -35,6 +35,17 @@ ocae verify .
 `doctor` reports package integrity, Node.js, OpenCode, target permissions, and
 existing installation state. `install --dry-run` performs the canonical plan
 without changing the target. Apply only after reviewing that plan.
+
+### Existing-project pre-task reconciliation
+
+The global OpenCode adapter reconciles an installed OCAE project before the
+first ordinary task. It reads the trusted project marker and source-lock
+metadata without using the task prompt as authority. Older compatible installs
+are migrated through the canonical installer and verified, current installs
+continue directly to task bootstrap, and foreign projects pass through. Newer,
+corrupt, tampered, or incompatible projects fail closed as
+`PROJECT_INCOMPATIBLE`, `PROJECT_CORRUPT`, or `MIGRATION_BLOCKED_MANAGED_DRIFT`.
+No manual task-capsule or owner-intent preparation is part of this product flow.
 
 ## Commands
 
@@ -83,7 +94,9 @@ ocae integrate opencode --verify
 The command discovers the installed OpenCode 1.18.x global plugin directory,
 writes one OCAE-owned adapter plus a provenance manifest, and verifies that
 OpenCode loads it. The adapter intercepts only the canonical OCAE repository URL
-in `chat.message`, captures OpenCode's current workspace, and invokes the
+in `chat.message`; for ordinary tasks in an existing OCAE project it first
+performs the pre-task reconciliation described above. It captures OpenCode's
+current workspace, and invokes the
 absolute, hash-bound `ocae` launcher with structured arguments and
 `shell=false`. It performs doctor → verify → install/update → verify in the
 caller workspace, then replaces the model message with a trusted result block.

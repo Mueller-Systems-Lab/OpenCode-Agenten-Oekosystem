@@ -7,6 +7,10 @@ import { fileURLToPath } from "node:url"
 const ADAPTER_ID = "ocae-opencode-handoff"
 const CANONICAL_REPOSITORY = "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
 const CANONICAL_URL_RE = /https:\/\/github\.com\/xxammaxx\/OpenCode-Agenten-Oekosystem(?:\.git)?\/?(?=$|[\s"'<>),.!?])/iu
+const RUNTIME_STATE_SCHEMA_VERSION = "ocae-project-runtime-state.1"
+const GOVERNANCE_RUNTIME_VERSION = "governance-v2.runtime.1"
+const TASK_BOOTSTRAP_CONTRACT_VERSION = "governance-v2.task-bootstrap.1"
+const INSTALLER_CONTRACT_VERSION = "url-only-v1.installer.1"
 const DEVELOPMENT_RE = /(?:\b(?:develop|edit|fix|modify|work\s+on|open|bearbeite|entwickl|aendere|ändere|arbeite|oeffne|öffne)\b)[\s\S]{0,120}(?:OCAE|OpenCode-Agenten-Oekosystem|repository|installer)|(?:OCAE|OpenCode-Agenten-Oekosystem|repository|installer)[\s\S]{0,120}(?:\b(?:develop|edit|fix|modify|work\s+on|open|bearbeite|entwickl|aendere|ändere|arbeite|oeffne|öffne)\b)/iu
 
 const adapterDirectory = path.dirname(fileURLToPath(import.meta.url))
@@ -18,8 +22,36 @@ function recordHash(value) {
   return createHash("sha256").update(value).digest("hex")
 }
 
+function canonicalJson(value) {
+  return JSON.stringify(value)
+}
+
 function fileHash(file) {
   return recordHash(readFileSync(file))
+}
+
+function fileHashMatches(expected, file) {
+  const actual = fileHash(file)
+  return expected === actual || expected === `sha256:${actual}`
+}
+
+function jsonHash(value) {
+  return `sha256:${recordHash(canonicalJson(value))}`
+}
+
+function versionTuple(value) {
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(String(value || "").trim())
+  return match ? match.slice(1).map(Number) : null
+}
+
+function compareVersions(left, right) {
+  const a = versionTuple(left)
+  const b = versionTuple(right)
+  if (!a || !b) return null
+  for (let index = 0; index < a.length; index += 1) {
+    if (a[index] !== b[index]) return a[index] > b[index] ? 1 : -1
+  }
+  return 0
 }
 
 function pathExecutable(name) {
@@ -98,6 +130,101 @@ function sourceCollision(targetRoot) {
     }
   }
   return false
+}
+
+function regularJsonMetadata(file, label) {
+  try {
+    const stat = lstatSync(file)
+    if (!stat.isFile() || stat.isSymbolicLink()) return { value: null, error: `${label}_SYMLINK_OR_NOT_FILE` }
+    const value = JSON.parse(readFileSync(file, "utf8"))
+    return { value, error: null }
+  } catch {
+    return { value: null, error: `${label}_UNREADABLE` }
+  }
+}
+
+function inspectProjectMetadata(targetRoot, desired = {}) {
+  const installationPath = path.join(targetRoot, ".opencode", "ecosystem-installation.json")
+  if (!existsSync(installationPath)) return { state: "NOT_INSTALLED", reason: "OCAE installation manifest is absent" }
+  const installationResult = regularJsonMetadata(installationPath, "INSTALLATION_MANIFEST")
+  if (installationResult.error || !installationResult.value || Array.isArray(installationResult.value)) {
+    return { state: "CORRUPT", reason: installationResult.error || "INSTALLATION_MANIFEST_INVALID" }
+  }
+
+  const governanceRoot = path.join(targetRoot, ".agent-governance")
+  try {
+    const stat = lstatSync(governanceRoot)
+    if (stat.isSymbolicLink() || !stat.isDirectory()) return { state: "CORRUPT", reason: "GOVERNANCE_ROOT_SYMLINK_OR_NOT_DIRECTORY" }
+  } catch {
+    return { state: "CORRUPT", reason: "GOVERNANCE_ROOT_MISSING" }
+  }
+
+  const sourceLockPath = path.join(governanceRoot, "source-lock.json")
+  const lockResult = regularJsonMetadata(sourceLockPath, "SOURCE_LOCK")
+  if (lockResult.error || !lockResult.value || !Array.isArray(lockResult.value.files)) {
+    return { state: "CORRUPT", reason: lockResult.error || "SOURCE_LOCK_INVALID" }
+  }
+  const expectedLockHash = installationResult.value.file_hashes?.[".agent-governance/source-lock.json"]
+  if (expectedLockHash && !fileHashMatches(expectedLockHash, sourceLockPath)) {
+    return { state: "CORRUPT", reason: "SOURCE_LOCK_TAMPERED" }
+  }
+
+  const markerPath = path.join(governanceRoot, "runtime-state.json")
+  if (!existsSync(markerPath)) {
+    return { state: "MIGRATION_REQUIRED", reason: "RUNTIME_STATE_MISSING", installed_source_commit: lockResult.value.source_commit || null }
+  }
+  const markerResult = regularJsonMetadata(markerPath, "RUNTIME_STATE")
+  if (markerResult.error || !markerResult.value || Array.isArray(markerResult.value)) {
+    return { state: "CORRUPT", reason: markerResult.error || "RUNTIME_STATE_INVALID" }
+  }
+  const marker = markerResult.value
+  const { integrity, ...body } = marker
+  if (!integrity || integrity.algorithm !== "sha256" || integrity.value !== jsonHash(body)) {
+    return { state: "CORRUPT", reason: "RUNTIME_STATE_INTEGRITY_FAILED" }
+  }
+  const expectedMarkerHash = installationResult.value.file_hashes?.[".agent-governance/runtime-state.json"]
+  if (expectedMarkerHash && !fileHashMatches(expectedMarkerHash, markerPath)) {
+    return { state: "MIGRATION_REQUIRED", reason: "RUNTIME_STATE_MANAGED_DRIFT", marker: body }
+  }
+  const expectedContract = {
+    schema_version: RUNTIME_STATE_SCHEMA_VERSION,
+    governance_runtime_version: GOVERNANCE_RUNTIME_VERSION,
+    task_bootstrap_contract_version: TASK_BOOTSTRAP_CONTRACT_VERSION,
+    installer_contract_version: INSTALLER_CONTRACT_VERSION,
+    runtime_state: "CURRENT",
+  }
+  if (Object.entries(expectedContract).some(([key, value]) => body[key] !== value)) {
+    return { state: "MIGRATION_REQUIRED", reason: "RUNTIME_STATE_CONTRACT_STALE", marker: body }
+  }
+
+  const desiredVersion = desired.ocae_version || null
+  const versionComparison = compareVersions(body.ocae_version, desiredVersion)
+  if (versionComparison === null) return { state: "CORRUPT", reason: "RUNTIME_STATE_VERSION_INVALID", marker: body }
+  if (versionComparison > 0) return { state: "INCOMPATIBLE", reason: "PROJECT_VERSION_NEWER_THAN_TRUSTED_CLI", marker: body }
+  if (versionComparison < 0 || (desired.source_commit && body.source_commit !== desired.source_commit)) {
+    return { state: "MIGRATION_REQUIRED", reason: "PROJECT_RUNTIME_STALE", marker: body }
+  }
+  if (!/^[0-9a-f]{40}$/iu.test(String(body.source_commit || ""))) {
+    return { state: "CORRUPT", reason: "RUNTIME_STATE_SOURCE_COMMIT_INVALID", marker: body }
+  }
+  if (lockResult.value.source_commit !== body.source_commit) {
+    return { state: "MIGRATION_REQUIRED", reason: "SOURCE_LOCK_OLDER_THAN_RUNTIME_MARKER", marker: body }
+  }
+  const markerLock = lockResult.value.files.find((entry) => entry.kind === "runtime_state")
+  if (markerLock?.installed_sha256 && !fileHashMatches(markerLock.installed_sha256, markerPath)) {
+    return { state: "MIGRATION_REQUIRED", reason: "RUNTIME_STATE_MANAGED_DRIFT", marker: body }
+  }
+
+  const requiredRuntime = [
+    path.join(governanceRoot, "runtime", "bootstrap", "task-bootstrap.mjs"),
+    path.join(governanceRoot, "policies", "task-bootstrap-policy.json"),
+    path.join(governanceRoot, "runtime", "governance", "owner-intent.schema.json"),
+    path.join(governanceRoot, "runtime", "governance", "task-capsule.schema.json"),
+  ]
+  if (requiredRuntime.some((file) => !existsSync(file) || lstatSync(file).isSymbolicLink())) {
+    return { state: "MIGRATION_REQUIRED", reason: "TASK_BOOTSTRAP_RUNTIME_INCOMPLETE", marker: body }
+  }
+  return { state: "CURRENT", reason: "RUNTIME_STATE_CURRENT", marker: body }
 }
 
 function textParts(output) {
@@ -200,16 +327,102 @@ function taskBootstrapRuntime(targetRoot) {
   return existsSync(runtime) && existsSync(policy) ? runtime : null
 }
 
+function migrationFailure(updateResult, fallback = "OCAE_PROJECT_MIGRATION_BLOCKED") {
+  if (updateResult?.classification === "NEEDS_REVIEW" || updateResult?.classification === "MIGRATION_BLOCKED_MANAGED_DRIFT") {
+    return "MIGRATION_BLOCKED_MANAGED_DRIFT"
+  }
+  return updateResult?.classification || fallback
+}
+
+async function reconcileProject({ client, targetRoot, manifest, runner = runCli }) {
+  const startedAt = Date.now()
+  await logEvent(client, "OCAE_PROJECT_RECONCILE_STARTED", manifest)
+  const detected = inspectProjectMetadata(targetRoot, {
+    ocae_version: manifest.ocae_version,
+    source_commit: manifest.source_commit,
+  })
+  await logEvent(client, "OCAE_PROJECT_VERSION_DETECTED", manifest, {
+    state: detected.state,
+    installed_source_commit: detected.installed_source_commit || detected.marker?.source_commit || null,
+  })
+
+  if (detected.state === "NOT_INSTALLED") {
+    return { state: detected.state, classification: "PROJECT_NOT_INSTALLED", duration_ms: Date.now() - startedAt }
+  }
+  if (detected.state === "CURRENT") {
+    await logEvent(client, "OCAE_PROJECT_CURRENT", manifest, { duration_ms: Date.now() - startedAt })
+    return { state: detected.state, classification: "PROJECT_CURRENT", duration_ms: Date.now() - startedAt }
+  }
+  if (detected.state === "CORRUPT" || detected.state === "INCOMPATIBLE") {
+    await logEvent(client, "OCAE_PROJECT_MIGRATION_BLOCKED", manifest, {
+      classification: detected.state === "CORRUPT" ? "PROJECT_CORRUPT" : "PROJECT_INCOMPATIBLE",
+      reason: detected.reason,
+      duration_ms: Date.now() - startedAt,
+    })
+    return {
+      state: detected.state,
+      classification: detected.state === "CORRUPT" ? "PROJECT_CORRUPT" : "PROJECT_INCOMPATIBLE",
+      reason: detected.reason,
+    }
+  }
+
+  await logEvent(client, "OCAE_PROJECT_MIGRATION_REQUIRED", manifest, {
+    reason: detected.reason,
+    installed_source_commit: detected.installed_source_commit || detected.marker?.source_commit || null,
+  })
+  await logEvent(client, "OCAE_PROJECT_MIGRATION_STARTED", manifest)
+
+  const doctor = await runner(manifest.cli_path, ["doctor", targetRoot, "--json"], targetRoot)
+  const doctorResult = jsonResult(doctor.stdout)
+  if (doctor.exit_code === 2 && !["PROJECT_MIGRATION_REQUIRED"].includes(doctorResult.classification)) {
+    const classification = migrationFailure(doctorResult, "PROJECT_CORRUPT")
+    await logEvent(client, "OCAE_PROJECT_MIGRATION_BLOCKED", manifest, { classification, duration_ms: Date.now() - startedAt })
+    return { state: "MIGRATION_BLOCKED", classification, reason: doctorResult.reason || "doctor failed" }
+  }
+
+  const update = await runner(manifest.cli_path, ["update", targetRoot, "--json"], targetRoot)
+  const updateResult = jsonResult(update.stdout)
+  if (update.exit_code !== 0) {
+    const classification = migrationFailure(updateResult)
+    await logEvent(client, "OCAE_PROJECT_MIGRATION_BLOCKED", manifest, { classification, duration_ms: Date.now() - startedAt })
+    return { state: "MIGRATION_BLOCKED", classification, reason: updateResult.reason || "update failed" }
+  }
+
+  const verify = await runner(manifest.cli_path, ["verify", targetRoot, "--json"], targetRoot)
+  const verifyResult = jsonResult(verify.stdout)
+  const after = inspectProjectMetadata(targetRoot, {
+    ocae_version: manifest.ocae_version,
+    source_commit: manifest.source_commit,
+  })
+  if (verify.exit_code !== 0 || after.state !== "CURRENT") {
+    const classification = after.state === "CORRUPT" ? "PROJECT_CORRUPT" : after.state === "INCOMPATIBLE" ? "PROJECT_INCOMPATIBLE" : migrationFailure(verifyResult, "OCAE_PROJECT_VERIFY_BLOCKED")
+    await logEvent(client, "OCAE_PROJECT_MIGRATION_BLOCKED", manifest, { classification, duration_ms: Date.now() - startedAt })
+    return { state: "MIGRATION_BLOCKED", classification, reason: verifyResult.reason || after.reason || "verify failed" }
+  }
+  await logEvent(client, "OCAE_PROJECT_MIGRATION_COMPLETED", manifest, { duration_ms: Date.now() - startedAt })
+  await logEvent(client, "OCAE_PROJECT_VERIFY_COMPLETED", manifest, { result: "PASS", duration_ms: Date.now() - startedAt })
+  return { state: "CURRENT", classification: "PROJECT_CURRENT", migrated: true, duration_ms: Date.now() - startedAt }
+}
+
 async function handleTaskBootstrap({ client, directory, worktree, input, output }) {
   if (output?.message?.role && output.message.role !== "user") return
   const text = textParts(output)
   if (!text || /https:\/\/github\.com\/xxammaxx\/OpenCode-Agenten-Oekosystem(?:\.git)?\/?/iu.test(text)) return
   let targetRoot
   try { targetRoot = capturedTarget(directory || worktree) } catch { return }
-  const runtime = taskBootstrapRuntime(targetRoot)
-  if (!runtime) return
   let manifest
   try { manifest = loadManifest() } catch { return }
+  const reconciliation = await reconcileProject({ client, targetRoot, manifest })
+  if (reconciliation.state === "NOT_INSTALLED") return
+  if (reconciliation.state !== "CURRENT") {
+    replaceWithTrustedContext(output, trustedBlock(reconciliation.classification, "TASK_BOOTSTRAP"))
+    return reconciliation
+  }
+  const runtime = taskBootstrapRuntime(targetRoot)
+  if (!runtime) {
+    replaceWithTrustedContext(output, trustedBlock("OCAE_PROJECT_MIGRATION_BLOCKED", "TASK_BOOTSTRAP"))
+    return { state: "MIGRATION_BLOCKED", classification: "OCAE_PROJECT_MIGRATION_BLOCKED" }
+  }
   const key = `${input.sessionID}:${input.messageID || output?.message?.id || "unknown"}:task-bootstrap`
   if (inFlight.has(key)) return inFlight.get(key)
   const work = (async () => {
@@ -266,7 +479,8 @@ async function handleHandoff({ client, directory, worktree, input, output }) {
       await logEvent(client, "OCAE_HANDOFF_INTENT_RESOLVED", manifest, { intent })
       const doctor = await runCli(manifest.cli_path, ["doctor", targetRoot, "--json"], targetRoot)
       const doctorResult = jsonResult(doctor.stdout)
-      if (doctor.exit_code !== 0 || doctorResult.classification !== "VERIFIED_IN_SCOPE") {
+      const doctorAllowed = new Set(["VERIFIED_IN_SCOPE", "PROJECT_CURRENT", "PROJECT_NOT_INSTALLED", "PROJECT_MIGRATION_REQUIRED"])
+      if ((doctor.exit_code === 2) || !doctorAllowed.has(doctorResult.classification)) {
         return { classification: doctorResult.classification || "RED_BLOCK_PREFLIGHT", operation: "PREFLIGHT" }
       }
 
@@ -319,3 +533,5 @@ export const OcaeOpenCodeHandoff = async ({ client, directory, worktree }) => ({
     return handleHandoff({ client, directory, worktree, input, output })
   },
 })
+
+export { compareVersions, inspectProjectMetadata, reconcileProject }

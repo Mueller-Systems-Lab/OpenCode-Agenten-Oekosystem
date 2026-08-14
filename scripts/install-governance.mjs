@@ -36,6 +36,11 @@ import {
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const REDACTION_OPTIONS = Object.freeze({ secrets: [] })
+const RUNTIME_STATE_SCHEMA_VERSION = "ocae-project-runtime-state.1"
+const GOVERNANCE_RUNTIME_VERSION = "governance-v2.runtime.1"
+const TASK_BOOTSTRAP_CONTRACT_VERSION = "governance-v2.task-bootstrap.1"
+const INSTALLER_CONTRACT_VERSION = "url-only-v1.installer.1"
+const RUNTIME_STATE_RELATIVE_PATH = ".agent-governance/runtime-state.json"
 
 function manifestPath(relative) {
   return normalizePosix(relative)
@@ -125,6 +130,77 @@ async function sha256(input) {
 async function sha256File(filePath) {
   const buf = await fsPromises.readFile(filePath)
   return `sha256:${crypto.createHash("sha256").update(buf).digest("hex")}`
+}
+
+function canonicalJson(value) {
+  return JSON.stringify(value)
+}
+
+function ecosystemVersion(sourceRoot = repoRoot) {
+  try {
+    const manifest = JSON.parse(fs.readFileSync(path.join(sourceRoot, "ecosystem.manifest.json"), "utf8"))
+    return typeof manifest.version === "string" ? manifest.version : "UNKNOWN"
+  } catch {
+    return "UNKNOWN"
+  }
+}
+
+function runtimeStateBody({ sourceCommit, ocaeVersion }) {
+  return {
+    schema_version: RUNTIME_STATE_SCHEMA_VERSION,
+    ocae_version: ocaeVersion,
+    source_commit: sourceCommit || "UNKNOWN",
+    governance_runtime_version: GOVERNANCE_RUNTIME_VERSION,
+    task_bootstrap_contract_version: TASK_BOOTSTRAP_CONTRACT_VERSION,
+    installer_contract_version: INSTALLER_CONTRACT_VERSION,
+    runtime_state: "CURRENT",
+  }
+}
+
+function runtimeStateValue(body) {
+  return {
+    ...body,
+    integrity: {
+      algorithm: "sha256",
+      value: `sha256:${crypto.createHash("sha256").update(canonicalJson(body)).digest("hex")}`,
+    },
+  }
+}
+
+async function writeRuntimeState(targetRoot, sourceCommit, sourceRoot = repoRoot) {
+  const destination = path.join(targetRoot, RUNTIME_STATE_RELATIVE_PATH)
+  await assertSafePath(targetRoot, destination, "runtime state destination")
+  await ensureParentDirectory(destination)
+  const value = runtimeStateValue(runtimeStateBody({
+    sourceCommit,
+    ocaeVersion: ecosystemVersion(sourceRoot),
+  }))
+  const temporary = `${destination}.bootstrap-tmp-${process.pid}`
+  await fsPromises.writeFile(temporary, `${canonicalJson(value)}\n`, "utf8")
+  await fsPromises.rename(temporary, destination)
+  return value
+}
+
+async function validateRuntimeState(targetRoot, sourceCommit = null, sourceRoot = repoRoot) {
+  const destination = path.join(targetRoot, RUNTIME_STATE_RELATIVE_PATH)
+  try {
+    const stat = await fsPromises.lstat(destination)
+    if (!stat.isFile() || stat.isSymbolicLink()) return { valid: false, reason: "runtime-state.json is not a regular file" }
+    const value = JSON.parse(await fsPromises.readFile(destination, "utf8"))
+    const { integrity, ...body } = value || {}
+    if (!integrity || integrity.algorithm !== "sha256" || integrity.value !== runtimeStateValue(body).integrity.value) {
+      return { valid: false, reason: "runtime-state.json integrity binding failed" }
+    }
+    if (body.schema_version !== RUNTIME_STATE_SCHEMA_VERSION || body.runtime_state !== "CURRENT") {
+      return { valid: false, reason: "runtime-state.json schema or state is unsupported" }
+    }
+    if (body.ocae_version !== ecosystemVersion(sourceRoot) || (sourceCommit && body.source_commit !== sourceCommit)) {
+      return { valid: false, reason: "runtime-state.json is stale" }
+    }
+    return { valid: true, value }
+  } catch (error) {
+    return { valid: false, reason: `runtime-state.json cannot be validated: ${error.message}` }
+  }
 }
 
 function validateSourceRepository(repoRoot) {
@@ -591,6 +667,8 @@ async function findConflicts(targetRoot, filePlan) {
     }
     if (file.action === "create-installation-manifest" && previous) {
       classification = "SAFE_MANAGED_UPDATE"
+    } else if (file.action === "create-runtime-state" && stat && !managed) {
+      classification = "MANUAL_REVIEW_REQUIRED"
     } else if (["create-manifest", "create-source-lock", "create-installation-manifest", "create-report"].includes(file.action) && !managed) {
       classification = "MANUAL_REVIEW_REQUIRED"
     }
@@ -774,6 +852,11 @@ function buildFilePlan(targetRoot, sourceRoot = repoRoot, runtime = "auto") {
   files.push({
     path: relativePath(targetRoot, path.join(governanceRoot, "source-lock.json")),
     action: "create-source-lock",
+  })
+
+  files.push({
+    path: RUNTIME_STATE_RELATIVE_PATH,
+    action: "create-runtime-state",
   })
 
   files.push({
@@ -1030,6 +1113,17 @@ async function generateSourceLock(repoRoot, targetRoot) {
     kind: "task_bootstrap_policy",
   })
 
+  const runtimeStatePath = path.join(targetRoot, RUNTIME_STATE_RELATIVE_PATH)
+  const runtimeStateHash = await hashIfFile(runtimeStatePath)
+  files.push({
+    path: "runtime-state.json",
+    installed_path: RUNTIME_STATE_RELATIVE_PATH,
+    sha256: "UNAVAILABLE",
+    installed_sha256: runtimeStateHash ? `sha256:${runtimeStateHash}` : "UNAVAILABLE",
+    size: runtimeStateHash ? (await fsPromises.stat(runtimeStatePath)).size : 0,
+    kind: "runtime_state",
+  })
+
   // Derive source repository URL from git remote (no hardcoded usernames)
   let sourceRepo = getSourceRepository(repoRoot) || "UNKNOWN";
   if (sourceRepo === "UNKNOWN") try {
@@ -1143,9 +1237,9 @@ async function writeGeneratedIfSafe(targetRoot, destination, content) {
     if (!existing.isFile()) return false
     const currentHash = await fileHash(destination)
     const previous = await readInstallationManifest(targetRoot)
-    const previousHash = previous?.file_hashes?.[relativePath(targetRoot, destination)]
-    if (previousHash && previousHash !== currentHash) return false
-    if (!previousHash) return false
+    const managedPreviousHash = previousHash(previous?.file_hashes || {}, relativePath(targetRoot, destination))
+    if (managedPreviousHash && managedPreviousHash !== currentHash) return false
+    if (!managedPreviousHash) return false
   }
   await ensureParentDirectory(destination)
   const temporary = `${destination}.bootstrap-tmp-${process.pid}`
@@ -1444,6 +1538,7 @@ async function validatePostApply(targetRoot) {
   const requiredFiles = [
     path.join(governanceRoot, "manifest.json"),
     path.join(governanceRoot, "source-lock.json"),
+    path.join(targetRoot, RUNTIME_STATE_RELATIVE_PATH),
     path.join(governanceRoot, "ecosystem.manifest.json"),
     path.join(governanceRoot, "policies", "task-bootstrap-policy.json"),
     path.join(governanceRoot, "state", "task-bootstrap-state.json"),
@@ -1500,6 +1595,11 @@ async function validatePostApply(targetRoot) {
       }
       const agentLocks = sourceLock.files.filter((entry) => entry.kind === "agent_definition")
       if (agentLocks.length !== agentInventory.length) issues.push("source-lock.json does not cover every agent definition")
+      const runtimeStateLock = sourceLock.files.find((entry) => entry.kind === "runtime_state")
+      if (!runtimeStateLock?.installed_sha256) issues.push("source-lock.json does not bind runtime-state.json")
+      else if (runtimeStateLock.installed_sha256 !== `sha256:${await hashIfFile(path.join(targetRoot, RUNTIME_STATE_RELATIVE_PATH))}`) {
+        issues.push("source-lock.json runtime-state hash mismatch")
+      }
       for (const entry of agentLocks) {
         if (!entry.installed_path || !entry.installed_sha256 || entry.installed_sha256 === "UNAVAILABLE") {
           issues.push(`source-lock.json has incomplete agent hash: ${entry.agent_id || entry.path}`)
@@ -1516,6 +1616,9 @@ async function validatePostApply(targetRoot) {
   } catch (error) {
     issues.push(`Task bootstrap runtime invalid: ${error.message}`)
   }
+
+  const runtimeStateValidation = await validateRuntimeState(targetRoot, null, repoRoot)
+  if (!runtimeStateValidation.valid) issues.push(runtimeStateValidation.reason)
 
   let hookActivationOrder = opencodeHookActive ? "VALID" : "NOT_APPLICABLE"
   if (opencodeHookActive) {
@@ -1541,6 +1644,7 @@ async function validatePostApply(targetRoot) {
     task_bootstrap_runtime: bootstrapValidation?.task_bootstrap_runtime || "MISSING",
     task_bootstrap_policy: bootstrapValidation?.task_bootstrap_policy || "INVALID",
     task_context_writer: bootstrapValidation?.task_context_writer || "INVALID",
+    project_runtime_state: runtimeStateValidation.valid ? "CURRENT" : "INVALID",
     hook_activation_order: hookActivationOrder,
     governance_bootstrap_ready: issues.length === 0,
   }
@@ -1796,6 +1900,10 @@ async function runApplyPhase(args) {
   // Phase 7b: Install the actual OpenCode ecosystem surface.
   await copyOpenCodeAssets(repoRoot, targetRoot)
   await copyEcosystemManifest(repoRoot, targetRoot)
+
+  // The marker is written before source-lock generation so the canonical lock
+  // can bind its installed hash without creating a cyclic source dependency.
+  await writeRuntimeState(targetRoot, sourceCommit, repoRoot)
 
   // Phase 8: Generate source-lock.json
   const sourceLock = await generateSourceLock(repoRoot, targetRoot)

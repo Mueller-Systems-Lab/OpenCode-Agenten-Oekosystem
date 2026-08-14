@@ -17,7 +17,7 @@ from .runtime import resolve_node, resolve_opencode, run_external, tool_version
 
 
 INTEGRATION_ID = "ocae-opencode-handoff"
-INTEGRATION_VERSION = "1.0.2"
+INTEGRATION_VERSION = "1.0.3"
 SUPPORTED_OPENCODE_RANGE = ">=1.18.0 <1.19.0"
 ADAPTER_FILENAME = "opencode-handoff.js"
 MANIFEST_FILENAME = "ocae-opencode-integration.json"

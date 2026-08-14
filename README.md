@@ -15,7 +15,7 @@ and [`ocae.handoff.json`](ocae.handoff.json).
 ## Quick install
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.2
+uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.3
 ```
 
 Then, from the target project:
@@ -35,7 +35,7 @@ does not rewrite `opencode.jsonc`.
 
 ## What is OCAE?
 
-OCAE CLI v1.0.2 is the installable distribution layer for this repository. The
+OCAE CLI v1.0.3 is the installable distribution layer for this repository. The
 Python CLI validates inputs, package integrity, provenance, and tool preflight.
 The canonical governance and installation logic remains in
 [`scripts/install-governance.mjs`](scripts/install-governance.mjs), which is
@@ -63,6 +63,13 @@ configuration and user content:
 The installer is idempotent. Existing providers, models, MCP definitions, user
 agents, third-party plugins, and project configuration are preserved. Name
 conflicts and source-lock tampering fail closed instead of being overwritten.
+
+When the global OCAE adapter sees an ordinary task in an already-installed
+OCAE project, it performs a trusted pre-task reconciliation first. Older
+compatible project installations are upgraded through the canonical installer
+and verified before task bootstrap; current projects take the fast path. A
+foreign project is passed through unchanged, while corrupt, newer, or
+tampered installations fail closed with a precise classification.
 
 ## Agents
 

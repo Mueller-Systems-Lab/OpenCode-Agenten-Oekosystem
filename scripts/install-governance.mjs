@@ -890,8 +890,8 @@ async function copySourceIfSafe(sourcePath, destPath, targetRoot) {
     const [sourceHash, currentHash] = await Promise.all([fileHash(sourcePath), fileHash(destPath)])
     if (sourceHash === currentHash) return { written: false, classification: "SAFE_MANAGED_UPDATE" }
     const previous = await readInstallationManifest(targetRoot)
-    const previousHash = previous?.file_hashes?.[relativePath(targetRoot, destPath)]
-    if (previousHash && previousHash === currentHash) {
+    const managedPreviousHash = previousHash(previous?.file_hashes || {}, relativePath(targetRoot, destPath))
+    if (managedPreviousHash && managedPreviousHash === currentHash) {
       const temporary = `${destPath}.bootstrap-tmp-${process.pid}`
       await ensureParentDirectory(temporary)
       await fsPromises.copyFile(sourcePath, temporary)

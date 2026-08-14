@@ -26,6 +26,7 @@ const TOOL_ALIASES = Object.freeze({
   write: ['filesystem', 'write'], edit: ['filesystem', 'write'], apply_patch: ['filesystem', 'write'],
   task: ['agent', 'delegate'], skill: ['agent', 'delegate'], webfetch: ['network', 'read'], websearch: ['network', 'read'],
 })
+const OPENCODE_STATE_TOOLS = new Set(['todo', 'todowrite', 'todoread'])
 
 function clean(value) { return String(value || '').replaceAll('\\', '/') }
 
@@ -44,6 +45,17 @@ function commandDescriptor(command = '') {
 function normalizeRequest(input = {}) {
   if (input.command && input.tool === 'bash') return { ...input, ...commandDescriptor(input.command) }
   if (input.effect) return { ...input, resource: clean(input.resource || input.args?.filePath || input.args?.path || input.tool) }
+  if (OPENCODE_STATE_TOOLS.has(input.tool)) {
+    return {
+      ...input,
+      tool: 'opencode',
+      action: 'todo',
+      effect: EFFECTS.LOCAL_STATE,
+      reversibility: REVERSIBILITY.FULLY_REVERSIBLE,
+      resource: 'opencode://todo',
+      source_tool: input.tool,
+    }
+  }
   const alias = TOOL_ALIASES[input.tool]
   if (alias) {
     const [tool, action] = alias
@@ -57,6 +69,7 @@ function normalizeRequest(input = {}) {
 
 function validateCapsule(capsule, request) {
   if (request.effect === EFFECTS.LOCAL_READ && !capsule) return { task_id: 'cold-read', read_scope: ['**'], write_scope: [], forbidden_scope: ['.env', '**/.env', '**/.env.*'], allowed_effects: [EFFECTS.LOCAL_READ] }
+  if (request.effect === EFFECTS.LOCAL_STATE && !capsule) return { task_id: 'cold-opencode-state', read_scope: [], write_scope: [], forbidden_scope: ['.env', '**/.env', '**/.env.*'], allowed_effects: [EFFECTS.LOCAL_STATE] }
   if (!capsule?.task_id) return null
   if (!Array.isArray(capsule.read_scope) || !Array.isArray(capsule.write_scope) || !Array.isArray(capsule.forbidden_scope) || !Array.isArray(capsule.allowed_effects)) return null
   return capsule

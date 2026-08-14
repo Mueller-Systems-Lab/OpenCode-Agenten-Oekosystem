@@ -17,6 +17,7 @@ export const DECISION_CLASSES = Object.freeze({
 
 export const EFFECTS = Object.freeze({
   LOCAL_READ: 'LOCAL_READ',
+  LOCAL_STATE: 'LOCAL_STATE',
   LOCAL_WRITE: 'LOCAL_WRITE',
   LOCAL_DELETE: 'LOCAL_DELETE',
   LOCAL_EXECUTE: 'LOCAL_EXECUTE',
@@ -95,6 +96,7 @@ export function matchesScope(resource, patterns = []) {
 }
 
 function effectAllowed(capsule, effect) {
+  if (effect === EFFECTS.LOCAL_STATE) return true
   return Array.isArray(capsule?.allowed_effects) && capsule.allowed_effects.includes(effect)
 }
 
@@ -116,6 +118,7 @@ function normalizeExperiment(reversibility, experiment) {
 
 function inCapsuleScope(capsule, effect, resource) {
   if (effect === EFFECTS.LOCAL_READ) return matchesScope(resource, capsule?.read_scope || [])
+  if (effect === EFFECTS.LOCAL_STATE) return resource === 'opencode://todo'
   if (effect === EFFECTS.LOCAL_COMMIT) return true
   if ([EFFECTS.NETWORK, EFFECTS.DELEGATE].includes(effect)) return matchesScope(resource, capsule?.external_effect_scope || [])
   return matchesScope(resource, capsule?.write_scope || [])

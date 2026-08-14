@@ -4,6 +4,7 @@
   "groups": {
     "unit": [
       "test/approval-v2/approval-engine.test.mjs",
+      "test/approval-v2/opencode-todo-compat.test.mjs",
       "test/gates/approval.test.mjs",
       "test/gates/comment-policy.test.mjs",
       "test/gates/kernel.test.mjs",

@@ -157,18 +157,19 @@ test("stable release resolution understands GitHub release field names", () => {
 })
 
 test("CLI plan uses an exact release and explicit absolute target for every command", () => {
+  const targetRoot = path.resolve("caller-project")
   const plan = buildOcaeCliInstallPlan({
     stableRelease: { tag: "v1.0.0", commit: "4f97bdd000000000000000000000000000000000" },
-    targetRoot: "C:\\caller-project",
+    targetRoot,
   })
   assert.deepEqual(plan.uv_command, [
     "uv", "tool", "install", "ocae-cli",
     "--from", `${canonicalUrl}.git@v1.0.0`,
   ])
   assert.deepEqual(plan.ocae_commands, [
-    ["ocae", "doctor", "C:\\caller-project"],
-    ["ocae", "install", "C:\\caller-project"],
-    ["ocae", "verify", "C:\\caller-project"],
+    ["ocae", "doctor", targetRoot],
+    ["ocae", "install", targetRoot],
+    ["ocae", "verify", targetRoot],
   ])
   assert.ok(plan.ocae_commands.every((command) => command[2] !== "."))
 })

@@ -1119,7 +1119,7 @@ async function generateSourceLock(repoRoot, targetRoot) {
     path: "runtime-state.json",
     installed_path: RUNTIME_STATE_RELATIVE_PATH,
     sha256: "UNAVAILABLE",
-    installed_sha256: runtimeStateHash || "UNAVAILABLE",
+    installed_sha256: runtimeStateHash ? `sha256:${runtimeStateHash}` : "UNAVAILABLE",
     size: runtimeStateHash ? (await fsPromises.stat(runtimeStatePath)).size : 0,
     kind: "runtime_state",
   })
@@ -1597,7 +1597,7 @@ async function validatePostApply(targetRoot) {
       if (agentLocks.length !== agentInventory.length) issues.push("source-lock.json does not cover every agent definition")
       const runtimeStateLock = sourceLock.files.find((entry) => entry.kind === "runtime_state")
       if (!runtimeStateLock?.installed_sha256) issues.push("source-lock.json does not bind runtime-state.json")
-      else if (runtimeStateLock.installed_sha256 !== await hashIfFile(path.join(targetRoot, RUNTIME_STATE_RELATIVE_PATH))) {
+      else if (runtimeStateLock.installed_sha256 !== `sha256:${await hashIfFile(path.join(targetRoot, RUNTIME_STATE_RELATIVE_PATH))}`) {
         issues.push("source-lock.json runtime-state hash mismatch")
       }
       for (const entry of agentLocks) {

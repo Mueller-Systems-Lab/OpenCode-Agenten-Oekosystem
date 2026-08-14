@@ -1427,15 +1427,25 @@ async function verifySourceFingerprint(repoRoot, storedCommit) {
   return currentCommit === storedCommit
 }
 
-async function isIdempotentInstallation(targetRoot, previousInstallation, sourceCommit) {
+async function isIdempotentInstallation(targetRoot, previousInstallation, sourceCommit, filePlan) {
   if (!previousInstallation?.source_commit || previousInstallation.source_commit !== sourceCommit) return false
   const expectedHashes = previousInstallation.file_hashes || {}
   const entries = Object.entries(expectedHashes)
   if (entries.length === 0) return false
+  const sourceByManagedPath = new Map(
+    filePlan
+      .filter((file) => file.source)
+      .map((file) => [manifestPath(file.path), file.source]),
+  )
   for (const [relative, expectedHash] of entries) {
     if (relative === ".opencode/ecosystem-installation.json") continue
     const currentHash = await hashIfFile(path.join(targetRoot, relative))
     if (!currentHash || currentHash !== expectedHash) return false
+    const sourcePath = sourceByManagedPath.get(manifestPath(relative))
+    if (sourcePath) {
+      const sourceHash = await hashIfFile(sourcePath)
+      if (!sourceHash || sourceHash !== currentHash) return false
+    }
   }
   return true
 }
@@ -1544,6 +1554,7 @@ async function runApplyPhase(args) {
 
   // Phase 2: Lock source commit
   const sourceCommit = await getSourceCommit(repoRoot)
+  const filePlan = buildFilePlan(targetRoot, repoRoot, args.runtime)
 
   const previousInstallation = await readInstallationManifest(targetRoot)
   if (previousInstallation?.source_commit && isSourceDowngrade(repoRoot, sourceCommit, previousInstallation.source_commit)) {
@@ -1551,7 +1562,7 @@ async function runApplyPhase(args) {
     process.exit(2)
   }
 
-  if (await isIdempotentInstallation(targetRoot, previousInstallation, sourceCommit)) {
+  if (await isIdempotentInstallation(targetRoot, previousInstallation, sourceCommit, filePlan)) {
     const postValidation = await validatePostApply(targetRoot)
     if (postValidation.classification === "VERIFIED_IN_SCOPE") {
       const result = {
@@ -1590,7 +1601,6 @@ async function runApplyPhase(args) {
   const detectedRuntimes = await detectRuntimes(targetRoot)
 
   // Phase 5: Build and enforce a conflict-aware plan before any write.
-  const filePlan = buildFilePlan(targetRoot, repoRoot, args.runtime)
   const conflicts = await findConflicts(targetRoot, filePlan)
   if (conflicts.some(conflictNeedsManual)) {
     const packet = { type: "BOOTSTRAP_OWNER_DECISION_PACKET", target_root: targetRoot, conflicts }

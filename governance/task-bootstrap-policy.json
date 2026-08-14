@@ -17,6 +17,7 @@
       "LOCAL_EXECUTE",
       "TEST_EXECUTION",
       "LOCAL_COMMIT",
+      "NETWORK",
       "DELEGATE"
     ],
     "denied_effects": [
@@ -31,7 +32,7 @@
     ],
     "read_scope": ["**"],
     "write_scope": ["**"],
-    "external_effect_scope": [],
+    "external_effect_scope": ["network://read/**"],
     "forbidden_scope": [
       ".env",
       "**/.env",

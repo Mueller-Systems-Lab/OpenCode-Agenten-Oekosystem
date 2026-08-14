@@ -3,6 +3,7 @@
   "version": 1,
   "groups": {
     "unit": [
+      "test/compatibility/opencode-native-compatibility.test.mjs",
       "test/approval-v2/approval-engine.test.mjs",
       "test/approval-v2/opencode-todo-compat.test.mjs",
       "test/gates/approval.test.mjs",

@@ -43,6 +43,7 @@ const ALLOWED_EFFECTS = Object.freeze([
   "LOCAL_EXECUTE",
   "TEST_EXECUTION",
   "LOCAL_COMMIT",
+  "NETWORK",
   "DELEGATE",
 ])
 

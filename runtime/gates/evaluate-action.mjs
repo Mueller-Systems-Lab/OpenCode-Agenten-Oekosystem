@@ -9,10 +9,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { evaluateEffect, EFFECTS, REVERSIBILITY } from '../approval/approval-engine.mjs'
+import { evaluateEffect, EFFECTS, REVERSIBILITY, matchesScope } from '../approval/approval-engine.mjs'
 import { validateApprovalReceipt } from '../approval/approval-receipt.mjs'
 import { loadCapabilityRegistry, resolveToolCapability } from '../approval/capability-registry.mjs'
 import { ApprovalAuditLog } from '../approval/approval-audit.mjs'
+import { COMMAND_EFFECT_CLASSES, classifyCommand } from './command-effect-classifier.mjs'
 
 const moduleRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const REGISTRY_CANDIDATES = [
@@ -30,21 +31,24 @@ const OPENCODE_STATE_TOOLS = new Set(['todo', 'todowrite', 'todoread'])
 
 function clean(value) { return String(value || '').replaceAll('\\', '/') }
 
-function commandDescriptor(command = '') {
-  const value = String(command)
-  if (/\bgit\s+push\b/i.test(value)) return { tool: 'git', action: 'push', effect: EFFECTS.PUSH, reversibility: REVERSIBILITY.PARTIALLY_REVERSIBLE, resource: 'git-remote' }
-  if (/\bgit\s+merge\b/i.test(value)) return { tool: 'git', action: 'merge', effect: EFFECTS.MERGE, reversibility: REVERSIBILITY.IRREVERSIBLE, resource: 'protected-branch' }
-  if (/\bgit\s+commit\b/i.test(value)) return { tool: 'git', action: 'commit', effect: EFFECTS.LOCAL_COMMIT, reversibility: REVERSIBILITY.FULLY_REVERSIBLE, resource: 'git-index' }
-  if (/(?:cat|type|get-content|read)\s+[^\r\n]*?(?:^|[\\/])?\.env(?:[.\\s"']|$)/i.test(value)) return { tool: 'filesystem', action: 'secret-read', effect: EFFECTS.SECRET_ACCESS, reversibility: REVERSIBILITY.UNKNOWN_REVERSIBILITY, resource: value }
-  if (/\b(rm|unlink)\s+-rf?\b/i.test(value)) return { tool: 'filesystem', action: 'delete', effect: EFFECTS.IRREVERSIBLE_DELETE, reversibility: REVERSIBILITY.IRREVERSIBLE, resource: value }
-  if (/\b(rm|unlink)\b/i.test(value)) return { tool: 'filesystem', action: 'delete', effect: EFFECTS.LOCAL_DELETE, reversibility: REVERSIBILITY.REVERSIBLE_WITH_BACKUP, resource: value }
-  if (/\b(node\s+--test|npm\s+(run\s+)?test|pnpm\s+(run\s+)?test|pytest)\b/i.test(value)) return { tool: 'test', action: 'run', effect: EFFECTS.TEST_EXECUTION, reversibility: REVERSIBILITY.FULLY_REVERSIBLE, resource: 'test-run' }
-  if (/\b(curl|wget|ssh|nc|telnet)\b/i.test(value)) return { tool: 'network', action: 'read', effect: EFFECTS.NETWORK, reversibility: REVERSIBILITY.FULLY_REVERSIBLE, resource: value }
-  return { tool: 'shell', action: 'execute', effect: EFFECTS.LOCAL_EXECUTE, reversibility: REVERSIBILITY.UNKNOWN_REVERSIBILITY, resource: value }
+function commandDescriptor(command = '', shell = 'auto') {
+  const classification = classifyCommand(command, { shell })
+  return {
+    tool: classification.tool,
+    action: classification.action,
+    effect: classification.governance_effect,
+    reversibility: classification.reversibility,
+    resource: classification.resource,
+    command_effect_class: classification.effect_class,
+    command_classification: classification,
+    command_paths: classification.paths,
+  }
 }
 
 function normalizeRequest(input = {}) {
-  if (input.command && input.tool === 'bash') return { ...input, ...commandDescriptor(input.command) }
+  if (input.command && ['bash', 'shell', 'powershell', 'pwsh', 'cmd', 'cmd.exe'].includes(String(input.tool || '').toLowerCase())) {
+    return { ...input, ...commandDescriptor(input.command, String(input.shell || input.tool || 'auto').toLowerCase()) }
+  }
   if (input.effect) return { ...input, resource: clean(input.resource || input.args?.filePath || input.args?.path || input.tool) }
   if (OPENCODE_STATE_TOOLS.has(input.tool)) {
     return {
@@ -61,9 +65,12 @@ function normalizeRequest(input = {}) {
   if (alias) {
     const [tool, action] = alias
     const effect = tool === 'filesystem' && action === 'read' ? EFFECTS.LOCAL_READ : tool === 'filesystem' ? EFFECTS.LOCAL_WRITE : tool === 'agent' ? EFFECTS.DELEGATE : EFFECTS.NETWORK
-    return { ...input, tool, action, effect, reversibility: input.reversibility || REVERSIBILITY.FULLY_REVERSIBLE, resource: clean(input.resource || input.args?.filePath || input.args?.path || input.args?.url || input.args?.name || input.tool) }
+    const rawResource = clean(input.resource || input.args?.filePath || input.args?.path || input.args?.url || input.args?.name || input.tool)
+    const resource = effect === EFFECTS.NETWORK ? `network://read/${rawResource}` : rawResource
+    return { ...input, tool, action, effect, reversibility: input.reversibility || REVERSIBILITY.FULLY_REVERSIBLE, resource }
   }
-  if (input.tool === 'bash') return { ...input, ...commandDescriptor(input.args?.command || input.command || '') }
+  if (['bash', 'shell', 'powershell', 'pwsh', 'cmd', 'cmd.exe'].includes(String(input.tool || '').toLowerCase())) return { ...input, ...commandDescriptor(input.args?.command || input.command || '', String(input.shell || input.tool || 'auto').toLowerCase()) }
+  if (input.tool === 'git' && input.action && !input.effect && !input.capabilityKey) return { ...input, ...commandDescriptor(['git', input.action, ...(Array.isArray(input.args) ? input.args : [])].join(' ')) }
   if (input.tool && input.action) return { ...input, resource: clean(input.resource || input.args?.filePath || input.args?.path || input.tool) }
   return { ...input, effect: 'UNKNOWN_TOOL_EFFECT', resource: clean(input.resource || input.tool || input.action) }
 }
@@ -71,9 +78,34 @@ function normalizeRequest(input = {}) {
 function validateCapsule(capsule, request) {
   if (request.effect === EFFECTS.LOCAL_READ && !capsule) return { task_id: 'cold-read', read_scope: ['**'], write_scope: [], forbidden_scope: ['.env', '**/.env', '**/.env.*'], allowed_effects: [EFFECTS.LOCAL_READ] }
   if (request.effect === EFFECTS.LOCAL_STATE && !capsule) return { task_id: 'cold-opencode-state', read_scope: [], write_scope: [], forbidden_scope: ['.env', '**/.env', '**/.env.*'], allowed_effects: [EFFECTS.LOCAL_STATE] }
+  if (request.effect === EFFECTS.DELEGATE && !capsule && readOnlyDelegation(request)) return { task_id: 'cold-delegate', read_scope: ['**'], write_scope: [], external_effect_scope: [], forbidden_scope: ['.env', '**/.env', '**/.env.*', '.git/**', '.agent-governance/**'], allowed_effects: [EFFECTS.DELEGATE] }
   if (!capsule?.task_id) return null
   if (!Array.isArray(capsule.read_scope) || !Array.isArray(capsule.write_scope) || !Array.isArray(capsule.forbidden_scope) || !Array.isArray(capsule.allowed_effects)) return null
   return capsule
+}
+
+function readOnlyDelegation(request) {
+  const child = request.childCapsule || request.child_capability || null
+  if (!child) return true
+  const effects = Array.isArray(child.allowed_effects) ? child.allowed_effects : [EFFECTS.LOCAL_READ]
+  return effects.every((effect) => [EFFECTS.LOCAL_READ, EFFECTS.NETWORK, EFFECTS.DELEGATE].includes(effect)) && (child.write_scope || []).length === 0
+}
+
+function scopeSubset(childScope = [], parentScope = []) {
+  return childScope.every((child) => parentScope.some((parent) => child === parent || parent === '**' || matchesScope(child.replace(/\*\*?/g, 'scope'), [parent])))
+}
+
+function delegationBoundary(input, capsule, request) {
+  if (request.effect !== EFFECTS.DELEGATE || !input.childCapsule) return null
+  const child = input.childCapsule
+  const childEffects = Array.isArray(child.allowed_effects) ? child.allowed_effects : []
+  const parentEffects = Array.isArray(capsule.allowed_effects) ? capsule.allowed_effects : []
+  if (!childEffects.every((effect) => parentEffects.includes(effect))) return block('RED_BLOCK_EFFECT_EXPANSION', 'Delegated capability exceeds the parent effect ceiling.', request)
+  if (!scopeSubset(child.write_scope || [], capsule.write_scope || [])) return block('RED_BLOCK_SCOPE_EXPANSION', 'Delegated write scope exceeds the parent task scope.', request)
+  if (!scopeSubset(child.read_scope || [], capsule.read_scope || [])) return block('RED_BLOCK_READ_SCOPE_EXPANSION', 'Delegated read scope exceeds the parent task scope.', request)
+  if (!(capsule.forbidden_scope || []).every((entry) => (child.forbidden_scope || []).includes(entry))) return block('RED_BLOCK_FORBIDDEN_SCOPE_NARROWING', 'Delegation cannot remove a parent forbidden scope.', request)
+  if (input.targetRoot && child.target_root && path.resolve(child.target_root) !== path.resolve(input.targetRoot)) return block('RED_BLOCK_TARGET_ROOT_EXPANSION', 'Delegation cannot change the target root.', request)
+  return null
 }
 
 function capabilityRegistryPath(input) { return input.registryPath || process.env.GOVERNANCE_CAPABILITY_REGISTRY || REGISTRY_CANDIDATES.find((candidate) => fs.existsSync(candidate)) || REGISTRY_CANDIDATES[0] }
@@ -91,7 +123,7 @@ function block(code, message, request) {
 }
 
 function targetRootBoundary(request, targetRoot) {
-  if (!targetRoot || ![EFFECTS.LOCAL_READ, EFFECTS.LOCAL_WRITE, EFFECTS.LOCAL_DELETE, EFFECTS.IRREVERSIBLE_DELETE].includes(request.effect)) return null
+  if (!targetRoot || ![EFFECTS.LOCAL_READ, EFFECTS.LOCAL_WRITE, EFFECTS.LOCAL_DELETE, EFFECTS.LOCAL_EXECUTE, EFFECTS.TEST_EXECUTION, EFFECTS.LOCAL_COMMIT, EFFECTS.IRREVERSIBLE_DELETE].includes(request.effect)) return null
   let root
   try {
     const rootStat = fs.lstatSync(targetRoot)
@@ -101,6 +133,11 @@ function targetRootBoundary(request, targetRoot) {
     return block('RED_BLOCK_TARGET_ROOT_ESCAPE', 'Target root cannot be canonicalized.', request)
   }
   const raw = String(request.resource || '')
+  for (const commandPath of request.command_paths || []) {
+    const candidatePath = path.isAbsolute(commandPath) ? path.resolve(commandPath) : path.resolve(root, commandPath)
+    const candidateRelative = path.relative(root, candidatePath)
+    if (candidateRelative === '..' || candidateRelative.startsWith(`${path.sep}..${path.sep}`) || candidateRelative.startsWith(`..${path.sep}`) || path.isAbsolute(candidateRelative)) return block('RED_BLOCK_TARGET_ROOT_ESCAPE', 'Command argument is outside the immutable target root.', request)
+  }
   if (raw.startsWith('opencode://') || raw === 'git-index' || raw === 'git-remote' || raw === 'protected-branch') return null
   const candidate = path.isAbsolute(raw) ? path.resolve(raw) : path.resolve(root, raw)
   const relative = path.relative(root, candidate)
@@ -173,6 +210,11 @@ export async function evaluateAction(input = {}) {
     await auditEarlyBlock(input, result)
     return result
   }
+  const delegationBlock = delegationBoundary(input, capsule, request)
+  if (delegationBlock) {
+    await auditEarlyBlock(input, delegationBlock)
+    return delegationBlock
+  }
   if (input.receipt) {
     const receiptCheck = validateApprovalReceipt(input.receipt, {
       signing_key: input.receiptSigningKey,
@@ -186,13 +228,14 @@ export async function evaluateAction(input = {}) {
     })
     if (!receiptCheck.valid) return block(receiptCheck.code, 'Approval Receipt validation failed.', request)
   }
+  const governedEffect = request.command_classification ? request.effect : capability.capability.effect_class || request.effect
   const decision = evaluateEffect({
-    intent: input.intent || {}, capsule, effect: capability.capability.effect_class || request.effect, resource: request.resource,
+    intent: input.intent || {}, capsule, effect: governedEffect, resource: request.resource,
     receipt: input.receipt, lease: input.lease, authorization_source: input.authorization_source, tool_output: input.toolOutput,
     reversibility: request.reversibility || capability.capability.reversibility, experiment: input.experiment,
     restore_available: input.restoreAvailable, preference: input.preference,
   })
-  const result = Object.freeze({ ...decision, tool: request.tool, action: request.action, capability_key: capability.key, resource: request.resource, runtime: input.runtime || 'unknown', task_id: capsule.task_id, v2_enforced: true, legacy_alias_used: false })
+  const result = Object.freeze({ ...decision, ...((request.command_classification || request.effect === EFFECTS.DELEGATE || request.effect === EFFECTS.NETWORK) ? { effect: governedEffect } : {}), tool: request.tool, action: request.action, capability_key: capability.key, resource: request.resource, command_effect_class: request.command_effect_class || null, runtime: input.runtime || 'unknown', task_id: capsule.task_id, v2_enforced: true, legacy_alias_used: false })
   await audit(input, result)
   return result
 }

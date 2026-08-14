@@ -32,7 +32,7 @@ function outputs(policy) {
     source_trust: 'action_registry',
     effects: [effect.includes('READ') ? 'READ' : effect === 'LOCAL_STATE' || effect.includes('WRITE') || effect.includes('DELETE') ? 'WRITE' : effect.includes('EXECUTE') || effect.includes('TEST') ? 'EXECUTE' : 'EXTERNAL'],
     approval_class: ['MERGE', 'PRODUCTION_DEPLOY', 'EXTERNAL_COMMUNICATION', 'IRREVERSIBLE_DELETE', 'PUSH'].includes(effect) ? 'C_BUNDLED_OWNER_DECISION' : 'A_AUTONOMOUS',
-    reversibility: effect === 'LOCAL_STATE' ? 'FULLY_REVERSIBLE' : ['MERGE', 'PRODUCTION_DEPLOY', 'EXTERNAL_COMMUNICATION', 'IRREVERSIBLE_DELETE'].includes(effect) ? 'IRREVERSIBLE' : 'UNKNOWN_REVERSIBILITY',
+    reversibility: ['LOCAL_READ', 'LOCAL_STATE', 'TEST_EXECUTION', 'LOCAL_COMMIT', 'NETWORK', 'DELEGATE'].includes(effect) ? 'FULLY_REVERSIBLE' : ['LOCAL_WRITE', 'LOCAL_DELETE', 'LOCAL_EXECUTE'].includes(effect) ? 'REVERSIBLE_WITH_BACKUP' : ['MERGE', 'PRODUCTION_DEPLOY', 'EXTERNAL_COMMUNICATION', 'IRREVERSIBLE_DELETE'].includes(effect) ? 'IRREVERSIBLE' : 'UNKNOWN_REVERSIBILITY',
     lease_compatible: !['APPROVAL_ENGINE_MUTATION', 'CAPABILITY_REGISTRY_MUTATION', 'SECRET_ACCESS'].includes(effect),
     validation: 'runtime-effect-check',
     audit_level: ['MERGE', 'PRODUCTION_DEPLOY', 'EXTERNAL_COMMUNICATION', 'IRREVERSIBLE_DELETE', 'SECRET_ACCESS'].includes(effect) ? 'FULL' : 'STANDARD',

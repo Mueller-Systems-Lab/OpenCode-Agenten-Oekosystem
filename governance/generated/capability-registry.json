@@ -10,7 +10,7 @@
         "READ"
       ],
       "approval_class": "A_AUTONOMOUS",
-      "reversibility": "UNKNOWN_REVERSIBILITY",
+      "reversibility": "FULLY_REVERSIBLE",
       "lease_compatible": true,
       "validation": "runtime-effect-check",
       "audit_level": "STANDARD"
@@ -34,7 +34,7 @@
         "WRITE"
       ],
       "approval_class": "A_AUTONOMOUS",
-      "reversibility": "UNKNOWN_REVERSIBILITY",
+      "reversibility": "REVERSIBLE_WITH_BACKUP",
       "lease_compatible": true,
       "validation": "runtime-effect-check",
       "audit_level": "STANDARD"
@@ -46,7 +46,7 @@
         "WRITE"
       ],
       "approval_class": "A_AUTONOMOUS",
-      "reversibility": "UNKNOWN_REVERSIBILITY",
+      "reversibility": "REVERSIBLE_WITH_BACKUP",
       "lease_compatible": true,
       "validation": "runtime-effect-check",
       "audit_level": "STANDARD"
@@ -58,7 +58,7 @@
         "EXECUTE"
       ],
       "approval_class": "A_AUTONOMOUS",
-      "reversibility": "UNKNOWN_REVERSIBILITY",
+      "reversibility": "REVERSIBLE_WITH_BACKUP",
       "lease_compatible": true,
       "validation": "runtime-effect-check",
       "audit_level": "STANDARD"
@@ -70,7 +70,7 @@
         "EXECUTE"
       ],
       "approval_class": "A_AUTONOMOUS",
-      "reversibility": "UNKNOWN_REVERSIBILITY",
+      "reversibility": "FULLY_REVERSIBLE",
       "lease_compatible": true,
       "validation": "runtime-effect-check",
       "audit_level": "STANDARD"
@@ -82,7 +82,7 @@
         "EXTERNAL"
       ],
       "approval_class": "A_AUTONOMOUS",
-      "reversibility": "UNKNOWN_REVERSIBILITY",
+      "reversibility": "FULLY_REVERSIBLE",
       "lease_compatible": true,
       "validation": "runtime-effect-check",
       "audit_level": "STANDARD"
@@ -94,7 +94,7 @@
         "EXTERNAL"
       ],
       "approval_class": "A_AUTONOMOUS",
-      "reversibility": "UNKNOWN_REVERSIBILITY",
+      "reversibility": "FULLY_REVERSIBLE",
       "lease_compatible": true,
       "validation": "runtime-effect-check",
       "audit_level": "STANDARD"
@@ -190,7 +190,7 @@
         "EXTERNAL"
       ],
       "approval_class": "A_AUTONOMOUS",
-      "reversibility": "UNKNOWN_REVERSIBILITY",
+      "reversibility": "FULLY_REVERSIBLE",
       "lease_compatible": true,
       "validation": "runtime-effect-check",
       "audit_level": "STANDARD"
@@ -281,9 +281,9 @@
       ],
       "effect_class": "LOCAL_EXECUTE",
       "approval_class": "A_AUTONOMOUS",
-      "reversibility": "UNKNOWN_REVERSIBILITY",
+      "reversibility": "REVERSIBLE_WITH_BACKUP",
       "lease_compatible": true,
-      "validation": "command-and-scope",
+      "validation": "command-parser-and-scope",
       "audit_level": "FULL"
     },
     "test.run": {
@@ -302,6 +302,32 @@
     "git.commit": {
       "tool": "git",
       "action": "commit",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_COMMIT",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "branch-and-diff",
+      "audit_level": "FULL"
+    },
+    "git.read": {
+      "tool": "git",
+      "action": "read",
+      "effects": [
+        "READ"
+      ],
+      "effect_class": "LOCAL_READ",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "repository-and-scope",
+      "audit_level": "STANDARD"
+    },
+    "git.write": {
+      "tool": "git",
+      "action": "write",
       "effects": [
         "WRITE"
       ],

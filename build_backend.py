@@ -43,6 +43,7 @@ RUNTIME_FILES = (
     "runtime/approval/approval-bundler.mjs",
     "runtime/approval/approval-audit.mjs",
     "runtime/approval/capability-registry.mjs",
+    "runtime/gates/command-effect-classifier.mjs",
     "runtime/gates/evaluate-action.mjs",
     "runtime/bootstrap/task-bootstrap.mjs",
     "governance/generated/capability-registry.json",

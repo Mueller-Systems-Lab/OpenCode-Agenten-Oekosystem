@@ -120,6 +120,7 @@ function inCapsuleScope(capsule, effect, resource) {
   if (effect === EFFECTS.LOCAL_READ) return matchesScope(resource, capsule?.read_scope || [])
   if (effect === EFFECTS.LOCAL_STATE) return resource === 'opencode://todo'
   if (effect === EFFECTS.LOCAL_COMMIT) return true
+  if (effect === EFFECTS.DELEGATE) return true
   if ([EFFECTS.NETWORK, EFFECTS.DELEGATE].includes(effect)) return matchesScope(resource, capsule?.external_effect_scope || [])
   return matchesScope(resource, capsule?.write_scope || [])
 }

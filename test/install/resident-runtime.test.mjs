@@ -78,6 +78,15 @@ describe('Resident Runtime', () => {
     assert.ok(content.includes('export'), 'Should contain exports');
   });
 
+  it('installed command classifier preserves native shell compatibility', async () => {
+    const classifierPath = path.join(target, '.agent-governance', 'runtime', 'gates', 'command-effect-classifier.mjs');
+    assert.ok(existsSync(classifierPath), 'command-effect-classifier.mjs should be installed');
+    const classifier = await import(pathToFileURL(classifierPath).href);
+    assert.equal(classifier.classifyCommand('git status').effect_class, 'LOCAL_GIT_READ');
+    assert.equal(classifier.classifyCommand('pnpm build').effect_class, 'LOCAL_BUILD');
+    assert.equal(classifier.classifyCommand('git status; git push').governance_effect, 'PUSH');
+  });
+
   // ── bin/evaluate.mjs runs and returns valid JSON ────────────
 
   it('bin/evaluate.mjs runs and returns valid JSON', async () => {

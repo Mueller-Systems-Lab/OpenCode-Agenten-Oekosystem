@@ -12,6 +12,8 @@ export function createChangeLease(input = {}) {
     task_id: input.capsule.task_id,
     allowed_effects: [...new Set(input.allowed_effects)].sort(),
     allowed_paths: [...new Set(input.allowed_paths || [])].sort(),
+    allowed_read_paths: [...new Set(input.allowed_read_paths || input.capsule.read_scope || ['**'])].sort(),
+    forbidden_scope: [...new Set(input.forbidden_scope || input.capsule.forbidden_scope || [])].sort(),
     denied_effects: [...new Set(input.denied_effects || [])].sort(),
     environment: input.environment || 'local',
     repository: input.repository || input.capsule.baseline?.repository || null,
@@ -31,11 +33,15 @@ export function delegateAuthorization({ parent, childCapsule } = {}) {
   if (parent.delegation_allowed !== true || Number(parent.delegation_depth) <= 0) return { valid: false, code: 'RED_BLOCK_DELEGATION_DEPTH' }
   const childScope = childCapsule.write_scope || []
   const parentScope = parent.allowed_paths || []
-  const scopeOk = childScope.every((child) => parentScope.some((allowed) => matchesScope(child.replace(/\*\*?$/, 'x'), [allowed]) || child === allowed))
+  const scopeOk = childScope.every((child) => parentScope.some((allowed) => allowed === '**' || matchesScope(child.replace(/\*\*?$/, 'x'), [allowed]) || child === allowed))
+  const parentReadScope = parent.allowed_read_paths || ['**']
+  const readScopeOk = (childCapsule.read_scope || []).every((child) => parentReadScope.some((allowed) => allowed === '**' || matchesScope(child.replace(/\*\*?$/, 'x'), [allowed]) || child === allowed))
+  const forbiddenScopeOk = (parent.forbidden_scope || []).every((entry) => (childCapsule.forbidden_scope || []).includes(entry))
   const effects = childCapsule.allowed_effects || []
   const effectsOk = effects.every((effect) => parent.allowed_effects.includes(effect) && !parent.denied_effects.includes(effect))
   const riskOk = riskWithin(parent.risk_tier || 'HIGH_HUMAN_GATE', childCapsule.risk_tier || 'LOW_LOCAL')
-  if (!scopeOk) return { valid: false, code: 'RED_BLOCK_SCOPE_EXPANSION' }
+  if (!scopeOk || !readScopeOk) return { valid: false, code: 'RED_BLOCK_SCOPE_EXPANSION' }
+  if (!forbiddenScopeOk) return { valid: false, code: 'RED_BLOCK_FORBIDDEN_SCOPE_NARROWING' }
   if (!effectsOk) return { valid: false, code: 'RED_BLOCK_EFFECT_EXPANSION' }
   if (!riskOk) return { valid: false, code: 'RED_BLOCK_RISK_EXPANSION' }
   return {

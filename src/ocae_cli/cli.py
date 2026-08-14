@@ -63,6 +63,16 @@ def _strip_process_output(value: dict) -> dict:
 
 
 def _verify_target(target: Path) -> dict:
+    reconciliation = doctor(target)
+    project_state = reconciliation.get("project_state")
+    if project_state in {"PROJECT_MIGRATION_REQUIRED", "PROJECT_CORRUPT", "PROJECT_INCOMPATIBLE"}:
+        return {
+            "classification": reconciliation["classification"],
+            "exit_code": reconciliation["exit_code"],
+            "target": str(target.resolve()),
+            "project_state": project_state,
+            "checks": reconciliation.get("checks", {}),
+        }
     canonical = run_canonical(target, mode="VERIFY_ONLY")
     result = _strip_process_output(canonical)
     if canonical.get("exit_code") != 0:
@@ -96,7 +106,7 @@ def _verify_target(target: Path) -> dict:
 
 def _apply(target: Path, mode: str) -> dict:
     preflight = doctor(target)
-    if preflight["classification"] == "RED_BLOCK":
+    if preflight["exit_code"] == 2 or preflight["classification"] in {"PROJECT_CORRUPT", "PROJECT_INCOMPATIBLE"}:
         return preflight
     if verify_payload().get("status") != "PASS":
         return {

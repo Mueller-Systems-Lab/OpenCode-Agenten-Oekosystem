@@ -13,7 +13,7 @@ import { evaluateEffect, EFFECTS, REVERSIBILITY, matchesScope } from '../approva
 import { validateApprovalReceipt } from '../approval/approval-receipt.mjs'
 import { loadCapabilityRegistry, resolveToolCapability } from '../approval/capability-registry.mjs'
 import { ApprovalAuditLog } from '../approval/approval-audit.mjs'
-import { COMMAND_EFFECT_CLASSES, classifyCommand } from './command-effect-classifier.mjs'
+import { COMMAND_EFFECT_CLASSES, classifyCommand, isColdNetworkRead } from './command-effect-classifier.mjs'
 
 const moduleRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const REGISTRY_CANDIDATES = [
@@ -77,6 +77,7 @@ function normalizeRequest(input = {}) {
 
 function validateCapsule(capsule, request) {
   if (request.effect === EFFECTS.LOCAL_READ && !capsule) return { task_id: 'cold-read', read_scope: ['**'], write_scope: [], forbidden_scope: ['.env', '**/.env', '**/.env.*'], allowed_effects: [EFFECTS.LOCAL_READ] }
+  if (request.effect === EFFECTS.NETWORK && isColdNetworkRead(request.command_classification)) return { task_id: 'cold-network-read', read_scope: [], write_scope: [], external_effect_scope: [request.resource], forbidden_scope: ['.env', '**/.env', '**/.env.*'], allowed_effects: [EFFECTS.NETWORK] }
   if (request.effect === EFFECTS.LOCAL_STATE && !capsule) return { task_id: 'cold-opencode-state', read_scope: [], write_scope: [], forbidden_scope: ['.env', '**/.env', '**/.env.*'], allowed_effects: [EFFECTS.LOCAL_STATE] }
   if (request.effect === EFFECTS.DELEGATE && !capsule && readOnlyDelegation(request)) return { task_id: 'cold-delegate', read_scope: ['**'], write_scope: [], external_effect_scope: [], forbidden_scope: ['.env', '**/.env', '**/.env.*', '.git/**', '.agent-governance/**'], allowed_effects: [EFFECTS.DELEGATE] }
   if (!capsule?.task_id) return null
@@ -201,7 +202,7 @@ export async function evaluateAction(input = {}) {
   const capsule = validateCapsule(input.capsule, request)
   if (!capsule) {
     const result = Object.freeze({
-      ...block('RED_BLOCK_TASK_CAPSULE_MISSING_OR_INVALID', 'A write or external action requires a valid Task Capsule.', request),
+      ...block('RED_BLOCK_TASK_CAPSULE_MISSING_OR_INVALID', 'This governed action requires a valid Task Capsule.', request),
       runtime: input.runtime || 'unknown',
       task_id: null,
       v2_enforced: true,

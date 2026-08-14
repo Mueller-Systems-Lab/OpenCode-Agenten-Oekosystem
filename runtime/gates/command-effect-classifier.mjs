@@ -51,6 +51,10 @@ const RANK = Object.freeze({
   [C.UNKNOWN]: 0,
 })
 
+const SAFE_COLD_GIT_FETCH_FLAGS = new Set([
+  "--all", "--dry-run", "--keep", "--no-auto-maintenance", "--no-prune", "--no-tags", "--prune", "--quiet", "--tags", "--verbose", "-q", "-v",
+])
+
 const INSPECTION_COMMANDS = new Set([
   "pwd", "cd", "dir", "ls", "ll", "la", "find", "grep", "rg", "cat", "head", "tail", "type",
   "get-childitem", "get-item", "test-path", "get-content", "resolve-path", "get-filehash",
@@ -192,6 +196,19 @@ function gitSubcommand(tokens) {
   return ""
 }
 
+function isSafeColdGitFetch(tokens) {
+  if (basename(tokens[0]) !== "git" || basename(tokens[1]) !== "fetch") return false
+  let remoteCount = 0
+  for (const token of tokens.slice(2)) {
+    const normalized = token.toLowerCase()
+    if (SAFE_COLD_GIT_FETCH_FLAGS.has(normalized)) continue
+    if (normalized.startsWith("-") || !/^[a-z0-9][a-z0-9._-]*$/iu.test(token)) return false
+    remoteCount += 1
+    if (remoteCount > 1) return false
+  }
+  return true
+}
+
 function hasArg(tokens, ...values) {
   const normalized = new Set(values.map((value) => value.toLowerCase()))
   return tokens.some((token) => normalized.has(token.toLowerCase()))
@@ -248,7 +265,7 @@ function classifySegment(tokens, shell) {
     const subcommand = gitSubcommand(tokens)
     if (subcommand === "push") return result(C.EXTERNAL_WRITE, "PUSH", R.PARTIALLY_REVERSIBLE, "git", "push", "git-remote", tokens)
     if (["merge", "rebase"].includes(subcommand)) return result(C.EXTERNAL_WRITE, subcommand === "merge" ? "MERGE" : "LOCAL_COMMIT", subcommand === "merge" ? R.IRREVERSIBLE : R.REVERSIBLE_WITH_BACKUP, "git", subcommand, subcommand === "merge" ? "protected-branch" : "git-index", tokens)
-    if (["fetch", "ls-remote", "clone"].includes(subcommand)) return result(C.NETWORK_READ, "NETWORK", R.FULLY_REVERSIBLE, "network", "read", `network://read/git-${subcommand}`, tokens)
+    if (["fetch", "ls-remote", "clone"].includes(subcommand)) return result(C.NETWORK_READ, "NETWORK", R.FULLY_REVERSIBLE, "network", "read", `network://read/git-${subcommand}`, tokens, { cold_bootstrap_safe: subcommand === "fetch" && isSafeColdGitFetch(tokens) })
     if (["status", "diff", "log", "show", "branch", "rev-parse", "remote", "config", "ls-files", "describe", "name-rev", "shortlog", "grep"].includes(subcommand) || (subcommand === "tag" && tokens.slice(1).filter((token) => !isFlag(token)).length === 1)) return result(C.LOCAL_GIT_READ, "LOCAL_READ", R.FULLY_REVERSIBLE, "git", "read", "git://read", tokens)
     if (["add", "tag", "reset", "checkout", "switch", "cherry-pick", "commit"].includes(subcommand)) return result(C.LOCAL_GIT_WRITE, subcommand === "commit" ? "LOCAL_COMMIT" : "LOCAL_COMMIT", R.FULLY_REVERSIBLE, "git", subcommand === "commit" ? "commit" : "write", "git-index", tokens)
   }
@@ -300,6 +317,23 @@ function classifySegment(tokens, shell) {
   if (INSPECTION_COMMANDS.has(command)) return result(C.LOCAL_INSPECTION, "LOCAL_READ", R.FULLY_REVERSIBLE, "filesystem", "read", "workspace://inspection", tokens)
 
   return result(C.UNKNOWN, "UNKNOWN_TOOL_EFFECT", R.UNKNOWN_REVERSIBILITY, "shell", "execute", text || "shell://unknown", tokens)
+}
+
+export function isColdNetworkRead(classification = {}) {
+  if (classification.effect_class !== C.NETWORK_READ || !Array.isArray(classification.segments) || classification.segments.length === 0) return false
+  let hasNetworkRead = false
+  for (const segment of classification.segments) {
+    if ([C.LOCAL_GIT_READ, C.LOCAL_INSPECTION].includes(segment.effect_class)) {
+      if ((segment.paths || []).length > 0) return false
+      continue
+    }
+    if (segment.effect_class === C.NETWORK_READ && segment.resource === "network://read/git-fetch" && segment.cold_bootstrap_safe === true) {
+      hasNetworkRead = true
+      continue
+    }
+    return false
+  }
+  return hasNetworkRead
 }
 
 function flattenSegments(parsed) {

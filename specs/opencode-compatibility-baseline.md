@@ -31,7 +31,7 @@ publication, deployment, destructive, and secret effects remain governed.
 | Write/edit/patch | native | bootstrap-dependent | automatic bootstrap + bounded local write | task-bootstrap tests |
 | Bash/PowerShell inspection | native | generic unknown shell effect | deterministic parser and local inspection effect | classifier test |
 | Build/test | native | generic unknown shell effect | bounded local build/test effects | classifier test |
-| Git read/fetch/commit | native | read/fetch generic unknown | Git read, network read, and local Git write classes | classifier test |
+| Git read/fetch/commit | native | read/fetch generic unknown or capsule-blocked during startup | Git read, bounded cold `git fetch`, and local Git write classes | classifier test |
 | Push/merge/release/publish/deploy | native | mixed generic or gated | remains owner-gated by concrete effect | security matrix |
 | Secrets/destructive filesystem | native tool exists | must remain blocked | fail closed | security matrix |
 
@@ -50,11 +50,13 @@ actual resident installer/runtime path.
 3. Unknown commands remain fail-closed.
 4. Cold local inspection and safe read-only delegation pass without a manual
    Task Capsule.
-5. A bootstrapped local build, test, write, and local Git commit are autonomous
+5. The mandatory bounded Reality Refresh (`git fetch origin --prune` plus local
+   Git reads) passes before Task Capsule bootstrap; arbitrary remote URLs do not.
+6. A bootstrapped local build, test, write, and local Git commit are autonomous
    inside the target scope.
-6. Secret access, destructive filesystem commands, push, merge, release,
+7. Secret access, destructive filesystem commands, push, merge, release,
    publish, workflow execution, and deployment remain blocked or owner-gated.
-7. A resident installation includes the classifier and generated capability
+8. A resident installation includes the classifier and generated capability
    registry, and its behavior matches the source runtime.
 
 ## Verification contract

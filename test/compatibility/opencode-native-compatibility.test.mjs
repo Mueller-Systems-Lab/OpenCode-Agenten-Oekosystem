@@ -76,6 +76,23 @@ test("cold local inspection and safe delegation pass without a Task Capsule", as
   assert.equal(delegation.effect, "DELEGATE")
 })
 
+test("Reality Refresh git fetch remains available before Task Capsule bootstrap", async () => {
+  const command = "git fetch origin --prune; git status --short; git branch --show-current; git rev-parse HEAD; git rev-parse origin/master"
+  const result = await evaluateAction({ tool: "bash", command, runtime: "opencode" })
+  assert.equal(result.allowed, true)
+  assert.equal(result.effect, "NETWORK")
+  assert.equal(result.command_effect_class, COMMAND_EFFECT_CLASSES.NETWORK_READ)
+  assert.equal(result.task_id, "cold-network-read")
+
+  const remoteUrl = await evaluateAction({ tool: "bash", command: "git fetch https://example.invalid/repo.git", runtime: "opencode" })
+  assert.equal(remoteUrl.allowed, false)
+  assert.equal(remoteUrl.code, "RED_BLOCK_TASK_CAPSULE_MISSING_OR_INVALID")
+
+  const mixedUnknown = await evaluateAction({ tool: "bash", command: "git fetch origin --prune; unknown-command", runtime: "opencode" })
+  assert.equal(mixedUnknown.allowed, false)
+  assert.equal(mixedUnknown.code, "RED_BLOCK_TASK_CAPSULE_MISSING_OR_INVALID")
+})
+
 test("delegation cannot expand effects or narrow forbidden scope", async () => {
   const child = {
     task_id: "child-task",

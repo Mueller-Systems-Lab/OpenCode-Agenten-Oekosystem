@@ -2,6 +2,7 @@
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
+import { bootstrapTask, readTaskContext } from '../../runtime/bootstrap/task-bootstrap.mjs';
 
 const PROJECT_ROOT = process.cwd();
 const GOVERNANCE_ROOT = join(PROJECT_ROOT, '.agent-governance');
@@ -324,6 +325,21 @@ export const CanonicalGovernancePlugin = async ({ project = {}, client = null, d
   const pluginRoot = directory || worktree || process.cwd();
   
   return {
+    'chat.message': async function (input, output) {
+      const text = (Array.isArray(output?.parts) ? output.parts : [])
+        .filter((part) => part?.type === 'text' && part.synthetic !== true)
+        .map((part) => String(part.text || ''))
+        .join('\n')
+        .trim();
+      if (!text || output?.message?.role !== 'user' || /https:\/\/github\.com\/xxammaxx\/OpenCode-Agenten-Oekosystem(?:\.git)?\/?/i.test(text)) return;
+      const result = await bootstrapTask({
+        targetRoot: pluginRoot,
+        sessionId: input?.sessionID || output?.message?.sessionID || '',
+        messageId: input?.messageID || output?.message?.id || 'unknown',
+        userMessage: text,
+      });
+      if (result.state !== 'TASK_READY') throw new Error(`[canonical-governance] ${result.code || 'RED_BLOCK_TASK_BOOTSTRAP'}`);
+    },
     'tool.execute.before': async function (input, output) {
       return handleToolExecution(input, output);
     },

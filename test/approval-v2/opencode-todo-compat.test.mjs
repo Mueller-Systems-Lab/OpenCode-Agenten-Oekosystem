@@ -40,6 +40,20 @@ test('OpenCode todo state does not expand a project write capsule', async () => 
   assert.equal(result.resource, 'opencode://todo')
 })
 
+test('OpenCode skill loading is a local read without a task capsule', async () => {
+  const request = normalizeRequest({ tool: 'skill', args: { name: 'audit-trail-enforcer' }, runtime: 'opencode' })
+  assert.equal(request.tool, 'filesystem')
+  assert.equal(request.action, 'read')
+  assert.equal(request.effect, EFFECTS.LOCAL_READ)
+  assert.equal(request.resource, 'audit-trail-enforcer')
+
+  const result = await evaluateAction({ tool: 'skill', args: { name: 'audit-trail-enforcer' }, runtime: 'opencode' })
+  assert.equal(result.allowed, true)
+  assert.equal(result.decision_class, 'A_AUTONOMOUS')
+  assert.equal(result.capability_key, 'filesystem.read')
+  assert.equal(result.task_id, 'cold-read')
+})
+
 test('unknown tools remain fail-closed', async () => {
   const result = await evaluateAction({ tool: 'unknown-tool', action: 'update', runtime: 'opencode', capsule })
   assert.equal(result.allowed, false)

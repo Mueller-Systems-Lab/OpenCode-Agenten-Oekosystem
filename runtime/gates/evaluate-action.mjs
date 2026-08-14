@@ -24,7 +24,7 @@ const TRUSTED_AUTH_SOURCES = new Set(['SYSTEM_POLICY', 'OWNER_INTENT', 'PROJECT_
 const TOOL_ALIASES = Object.freeze({
   read: ['filesystem', 'read'], grep: ['filesystem', 'read'], glob: ['filesystem', 'read'], lsp: ['filesystem', 'read'],
   write: ['filesystem', 'write'], edit: ['filesystem', 'write'], apply_patch: ['filesystem', 'write'],
-  task: ['agent', 'delegate'], skill: ['agent', 'delegate'], webfetch: ['network', 'read'], websearch: ['network', 'read'],
+  task: ['agent', 'delegate'], skill: ['filesystem', 'read'], webfetch: ['network', 'read'], websearch: ['network', 'read'],
 })
 const OPENCODE_STATE_TOOLS = new Set(['todo', 'todowrite', 'todoread'])
 
@@ -60,7 +60,7 @@ function normalizeRequest(input = {}) {
   if (alias) {
     const [tool, action] = alias
     const effect = tool === 'filesystem' && action === 'read' ? EFFECTS.LOCAL_READ : tool === 'filesystem' ? EFFECTS.LOCAL_WRITE : tool === 'agent' ? EFFECTS.DELEGATE : EFFECTS.NETWORK
-    return { ...input, tool, action, effect, reversibility: input.reversibility || REVERSIBILITY.FULLY_REVERSIBLE, resource: clean(input.resource || input.args?.filePath || input.args?.path || input.args?.url || input.tool) }
+    return { ...input, tool, action, effect, reversibility: input.reversibility || REVERSIBILITY.FULLY_REVERSIBLE, resource: clean(input.resource || input.args?.filePath || input.args?.path || input.args?.url || input.args?.name || input.tool) }
   }
   if (input.tool === 'bash') return { ...input, ...commandDescriptor(input.args?.command || input.command || '') }
   if (input.tool && input.action) return { ...input, resource: clean(input.resource || input.args?.filePath || input.args?.path || input.tool) }

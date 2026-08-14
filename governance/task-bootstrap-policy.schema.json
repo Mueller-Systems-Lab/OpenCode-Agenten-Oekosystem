@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencode-agent-ecosystem.local/governance/task-bootstrap-policy.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "version", "states", "bootstrap_ceiling", "required_for_ready", "observability_events"],
+  "properties": {
+    "schema_version": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "minLength": 1 },
+    "states": { "type": "array", "minItems": 5, "items": { "type": "string" } },
+    "bootstrap_ceiling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed_effects", "denied_effects", "read_scope", "write_scope", "external_effect_scope", "forbidden_scope"],
+      "properties": {
+        "allowed_effects": { "type": "array", "items": { "type": "string" } },
+        "denied_effects": { "type": "array", "items": { "type": "string" } },
+        "read_scope": { "type": "array", "items": { "type": "string" } },
+        "write_scope": { "type": "array", "items": { "type": "string" } },
+        "external_effect_scope": { "type": "array", "items": { "type": "string" } },
+        "forbidden_scope": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "required_for_ready": { "type": "array", "items": { "type": "string" } },
+    "observability_events": { "type": "array", "items": { "type": "string" } }
+  }
+}

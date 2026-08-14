@@ -11,6 +11,7 @@
       "test/gates/runtime-adapters.test.mjs",
       "test/security/bootstrap-secret-isolation.test.mjs",
       "test/security/bootstrap-bypass-red-team.test.mjs",
+      "test/security/task-bootstrap-security.test.mjs",
       "test/security/redaction.test.mjs"
     ],
     "contract": [
@@ -41,6 +42,8 @@
       "test/bootstrap/install-global.test.mjs",
       "test/bootstrap/url-only-contract.test.mjs",
       "test/bootstrap/url-only-intent-resolution.test.mjs",
+      "test/bootstrap/task-bootstrap.test.mjs",
+      "test/bootstrap/task-bootstrap-installer-order.test.mjs",
       "test/install/red-test-installer-fail-closed.test.mjs",
       "test/install/red-test-redaction-installed.test.mjs",
       "test/install/red-test-resident-import.test.mjs",

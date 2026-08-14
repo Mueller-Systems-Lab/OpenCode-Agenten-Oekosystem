@@ -35,6 +35,7 @@ function commandDescriptor(command = '') {
   if (/\bgit\s+push\b/i.test(value)) return { tool: 'git', action: 'push', effect: EFFECTS.PUSH, reversibility: REVERSIBILITY.PARTIALLY_REVERSIBLE, resource: 'git-remote' }
   if (/\bgit\s+merge\b/i.test(value)) return { tool: 'git', action: 'merge', effect: EFFECTS.MERGE, reversibility: REVERSIBILITY.IRREVERSIBLE, resource: 'protected-branch' }
   if (/\bgit\s+commit\b/i.test(value)) return { tool: 'git', action: 'commit', effect: EFFECTS.LOCAL_COMMIT, reversibility: REVERSIBILITY.FULLY_REVERSIBLE, resource: 'git-index' }
+  if (/(?:cat|type|get-content|read)\s+[^\r\n]*?(?:^|[\\/])?\.env(?:[.\\s"']|$)/i.test(value)) return { tool: 'filesystem', action: 'secret-read', effect: EFFECTS.SECRET_ACCESS, reversibility: REVERSIBILITY.UNKNOWN_REVERSIBILITY, resource: value }
   if (/\b(rm|unlink)\s+-rf?\b/i.test(value)) return { tool: 'filesystem', action: 'delete', effect: EFFECTS.IRREVERSIBLE_DELETE, reversibility: REVERSIBILITY.IRREVERSIBLE, resource: value }
   if (/\b(rm|unlink)\b/i.test(value)) return { tool: 'filesystem', action: 'delete', effect: EFFECTS.LOCAL_DELETE, reversibility: REVERSIBILITY.REVERSIBLE_WITH_BACKUP, resource: value }
   if (/\b(node\s+--test|npm\s+(run\s+)?test|pnpm\s+(run\s+)?test|pytest)\b/i.test(value)) return { tool: 'test', action: 'run', effect: EFFECTS.TEST_EXECUTION, reversibility: REVERSIBILITY.FULLY_REVERSIBLE, resource: 'test-run' }
@@ -89,6 +90,47 @@ function block(code, message, request) {
   return Object.freeze({ decision_class: 'D_TECHNICAL_BLOCK', code, message, allowed: false, requires_owner: false, v2_enforced: true, tool: request.tool || null, action: request.action || null, effect: request.effect || null, resource: request.resource || null })
 }
 
+function targetRootBoundary(request, targetRoot) {
+  if (!targetRoot || ![EFFECTS.LOCAL_READ, EFFECTS.LOCAL_WRITE, EFFECTS.LOCAL_DELETE, EFFECTS.IRREVERSIBLE_DELETE].includes(request.effect)) return null
+  let root
+  try {
+    const rootStat = fs.lstatSync(targetRoot)
+    if (rootStat.isSymbolicLink() || !rootStat.isDirectory()) return block('RED_BLOCK_TARGET_ROOT_ESCAPE', 'Target root is not a canonical directory.', request)
+    root = fs.realpathSync(targetRoot)
+  } catch {
+    return block('RED_BLOCK_TARGET_ROOT_ESCAPE', 'Target root cannot be canonicalized.', request)
+  }
+  const raw = String(request.resource || '')
+  if (raw.startsWith('opencode://') || raw === 'git-index' || raw === 'git-remote' || raw === 'protected-branch') return null
+  const candidate = path.isAbsolute(raw) ? path.resolve(raw) : path.resolve(root, raw)
+  const relative = path.relative(root, candidate)
+  if (relative === '..' || relative.startsWith(`${path.sep}..${path.sep}`) || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    return block('RED_BLOCK_TARGET_ROOT_ESCAPE', 'Resource is outside the immutable target root.', request)
+  }
+  let current = root
+  for (const segment of relative.split(path.sep).filter(Boolean)) {
+    current = path.join(current, segment)
+    try {
+      if (fs.lstatSync(current).isSymbolicLink()) return block('RED_BLOCK_SYMLINK_ESCAPE', 'Resource path contains a symlink.', request)
+    } catch (error) {
+      if (error.code !== 'ENOENT') return block('RED_BLOCK_TARGET_ROOT_ESCAPE', 'Resource path cannot be safely inspected.', request)
+    }
+  }
+  return null
+}
+
+function bootstrapStateBlock(input, request) {
+  if (!input.targetRoot || request.effect === EFFECTS.LOCAL_READ || request.effect === EFFECTS.LOCAL_STATE) return null
+  try {
+    const statePath = path.join(input.targetRoot, '.agent-governance', 'state', 'task-bootstrap-state.json')
+    const state = JSON.parse(fs.readFileSync(statePath, 'utf8'))
+    if (state.state === 'TASK_BLOCKED') return block('RED_BLOCK_TASK_BOOTSTRAP_BLOCKED', 'Trusted task bootstrap is blocked; no normal write may proceed.', request)
+  } catch {
+    // Missing state is handled by the regular fail-closed capsule check.
+  }
+  return null
+}
+
 async function audit(input, result) {
   if (!input.auditPath) return
   await new ApprovalAuditLog(input.auditPath).append({ event: 'ACTION_DECISION', ...result })
@@ -109,6 +151,16 @@ export async function evaluateAction(input = {}) {
   const capability = capabilityFor(request, registry)
   if (!capability.allowed) return block(capability.code, 'No registered capability exists for this tool/action pair.', request)
   if (input.authorization_source && !TRUSTED_AUTH_SOURCES.has(input.authorization_source.source)) return block('RED_BLOCK_UNTRUSTED_AUTHORIZATION_SOURCE', 'Tool output and prose cannot authorize an effect.', request)
+  const boundary = targetRootBoundary(request, input.targetRoot)
+  if (boundary) {
+    await auditEarlyBlock(input, boundary)
+    return boundary
+  }
+  const stateBlock = bootstrapStateBlock(input, request)
+  if (stateBlock) {
+    await auditEarlyBlock(input, stateBlock)
+    return stateBlock
+  }
   const capsule = validateCapsule(input.capsule, request)
   if (!capsule) {
     const result = Object.freeze({

@@ -48,6 +48,12 @@ export async function verifyInstallation({ targetRoot, sourceRoot: source = sour
     ".agent-governance/runtime/governance/generated/policy-core.json",
     ".agent-governance/runtime/governance/generated/risk-profiles.json",
     ".agent-governance/runtime/governance/generated/capability-registry.json",
+    ".agent-governance/runtime/governance/owner-intent.schema.json",
+    ".agent-governance/runtime/governance/task-capsule.schema.json",
+    ".agent-governance/runtime/governance/task-bootstrap-policy.schema.json",
+    ".agent-governance/runtime/bootstrap/task-bootstrap.mjs",
+    ".agent-governance/policies/task-bootstrap-policy.json",
+    ".agent-governance/state/task-bootstrap-state.json",
     ".agent-governance/runtime/PROMPT-KERNEL.md",
   ]
   if (manifest) {
@@ -60,10 +66,50 @@ export async function verifyInstallation({ targetRoot, sourceRoot: source = sour
     if (!fsSync.existsSync(path.join(target, rel))) issues.push(`missing installed file: ${rel}`)
   }
 
+  let taskBootstrapPolicy = null
+  let taskBootstrapPolicyStatus = "INVALID"
+  try {
+    taskBootstrapPolicy = JSON.parse(await fs.readFile(path.join(target, ".agent-governance/policies/task-bootstrap-policy.json"), "utf8"))
+    if (taskBootstrapPolicy.schema_version !== "governance-v2.task-bootstrap-policy.1") issues.push("task bootstrap policy has an unsupported schema version")
+    if (!taskBootstrapPolicy.bootstrap_ceiling?.allowed_effects?.includes("LOCAL_WRITE")) issues.push("task bootstrap policy does not allow bounded local writes")
+    if (taskBootstrapPolicy.bootstrap_ceiling?.allowed_effects?.includes("PUSH")) issues.push("task bootstrap policy expands the automatic PUSH ceiling")
+    if (taskBootstrapPolicy.schema_version === "governance-v2.task-bootstrap-policy.1" && taskBootstrapPolicy.bootstrap_ceiling?.allowed_effects?.includes("LOCAL_WRITE") && !taskBootstrapPolicy.bootstrap_ceiling?.allowed_effects?.includes("PUSH")) taskBootstrapPolicyStatus = "VALID"
+  } catch {
+    issues.push("task bootstrap policy cannot be read")
+  }
+  let bootstrapState = null
+  try {
+    bootstrapState = JSON.parse(await fs.readFile(path.join(target, ".agent-governance/state/task-bootstrap-state.json"), "utf8"))
+    if (!['COLD_READ_ONLY', 'TASK_BOOTSTRAPPING', 'TASK_READY', 'TASK_BLOCKED', 'TASK_COMPLETED'].includes(bootstrapState.state)) issues.push("task bootstrap state is invalid")
+  } catch {
+    issues.push("task bootstrap state cannot be read")
+  }
+  const opencodeConfig = path.join(target, fsSync.existsSync(path.join(target, "opencode.jsonc")) ? "opencode.jsonc" : "opencode.json")
+  let hookActivationOrder = "VALID"
+  try {
+    const configText = await fs.readFile(opencodeConfig, "utf8")
+    if (!configText.includes(".opencode/plugins/governance-v2.mjs")) {
+      hookActivationOrder = "INVALID"
+      issues.push("governance hook is not activated through the installed project plugin")
+    }
+  } catch {
+    hookActivationOrder = "INVALID"
+    issues.push("OpenCode config cannot be read for hook activation verification")
+  }
+  const bootstrapRuntimePath = path.join(target, ".agent-governance/runtime/bootstrap/task-bootstrap.mjs")
+  const bootstrapSchemasPresent = [
+    ".agent-governance/runtime/governance/owner-intent.schema.json",
+    ".agent-governance/runtime/governance/task-capsule.schema.json",
+    ".agent-governance/runtime/governance/task-bootstrap-policy.schema.json",
+  ].every((rel) => fsSync.existsSync(path.join(target, rel)))
+  const taskBootstrapRuntimeStatus = fsSync.existsSync(bootstrapRuntimePath) ? "PRESENT" : "MISSING"
+
   if (installation) {
     if (installation.bootstrap_protocol !== "url-only-v1") issues.push("installation manifest has wrong bootstrap protocol")
     if (!/^[0-9a-f]{40}$/i.test(installation.source_commit || "")) issues.push("installation manifest has no full source commit")
     if (sourceCommit && installation.source_commit !== sourceCommit) issues.push("installation source commit differs from current source checkout")
+    if (installation.governance_bootstrap_ready !== true) issues.push("installation manifest does not confirm governance bootstrap readiness")
+    if (installation.manual_bootstrap_required === true) issues.push("installation manifest requires manual bootstrap")
     if (!Array.isArray(installation.managed_files)) issues.push("installation manifest managed_files must be an array")
     if (!Array.isArray(installation.preserved_files)) issues.push("installation manifest preserved_files must be an array")
     const serialized = JSON.stringify(installation)
@@ -90,6 +136,13 @@ export async function verifyInstallation({ targetRoot, sourceRoot: source = sour
     expected_commit: expectedCommit,
     issues,
     warnings,
+    task_bootstrap_runtime: taskBootstrapRuntimeStatus,
+    task_bootstrap_policy: taskBootstrapPolicyStatus,
+    task_context_writer: taskBootstrapRuntimeStatus === "PRESENT" && taskBootstrapPolicyStatus === "VALID" && bootstrapSchemasPresent ? "VALID" : "INVALID",
+    hook_activation_order: hookActivationOrder,
+    bootstrap_state: bootstrapState?.state || null,
+    governance_bootstrap_ready: classification === "VERIFIED_IN_SCOPE",
+    manual_bootstrap_required: false,
     checked_at: new Date().toISOString(),
   }
 }

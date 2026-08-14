@@ -29,6 +29,10 @@ import {
   CLASSIFICATIONS,
   classificationToExitCode,
 } from "./lib/gates/classifications.mjs"
+import {
+  selfTestBootstrapRuntime,
+  validateBootstrapRuntime,
+} from "../runtime/bootstrap/task-bootstrap.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const REDACTION_OPTIONS = Object.freeze({ secrets: [] })
@@ -141,6 +145,11 @@ function validateSourceRepository(repoRoot) {
     "runtime/approval/approval-audit.mjs",
     "runtime/approval/capability-registry.mjs",
     "runtime/gates/evaluate-action.mjs",
+    "runtime/bootstrap/task-bootstrap.mjs",
+    "governance/owner-intent.schema.json",
+    "governance/task-capsule.schema.json",
+    "governance/task-bootstrap-policy.schema.json",
+    "governance/task-bootstrap-policy.json",
     "governance/generated/capability-registry.json",
     "scripts/lib/runtimes/contract.mjs",
     "scripts/lib/runtimes/generic.mjs",
@@ -193,7 +202,11 @@ function getRuntimeFileList() {
     { source: "runtime/approval/approval-audit.mjs", dest: "approval/approval-audit.mjs" },
     { source: "runtime/approval/capability-registry.mjs", dest: "approval/capability-registry.mjs" },
     { source: "runtime/gates/evaluate-action.mjs", dest: "gates/evaluate-action.mjs" },
+    { source: "runtime/bootstrap/task-bootstrap.mjs", dest: "bootstrap/task-bootstrap.mjs" },
     { source: "governance/generated/capability-registry.json", dest: "governance/generated/capability-registry.json" },
+    { source: "governance/owner-intent.schema.json", dest: "governance/owner-intent.schema.json" },
+    { source: "governance/task-capsule.schema.json", dest: "governance/task-capsule.schema.json" },
+    { source: "governance/task-bootstrap-policy.schema.json", dest: "governance/task-bootstrap-policy.schema.json" },
     { source: "governance/policy-core.yaml", dest: "governance/policy-core.yaml" },
     { source: "governance/generated/policy-core.json", dest: "governance/generated/policy-core.json" },
     { source: "governance/generated/risk-profiles.json", dest: "governance/generated/risk-profiles.json" },
@@ -737,6 +750,17 @@ function buildFilePlan(targetRoot, sourceRoot = repoRoot, runtime = "auto") {
   }
 
   files.push({
+    path: relativePath(targetRoot, path.join(governanceRoot, "policies", "task-bootstrap-policy.json")),
+    action: "copy-task-bootstrap-policy",
+    source: path.join(sourceRoot, "governance", "task-bootstrap-policy.json"),
+  })
+
+  files.push({
+    path: relativePath(targetRoot, path.join(governanceRoot, "state", "task-bootstrap-state.json")),
+    action: "create-bootstrap-state",
+  })
+
+  files.push({
     path: relativePath(targetRoot, path.join(governanceRoot, "bin", "evaluate.mjs")),
     action: "copy-bin-file",
     source: path.join(repoRoot, ".agent-governance", "bin", "evaluate.mjs"),
@@ -849,6 +873,16 @@ async function copyPolicies(repoRoot, targetRoot) {
     await assertSafePath(policiesDir, destPath, "policy destination")
     await copySourceIfSafe(sourcePath, destPath, targetRoot)
   }
+}
+
+async function copyTaskBootstrapPolicy(repoRoot, targetRoot) {
+  const governanceRoot = path.join(targetRoot, ".agent-governance")
+  const policiesDir = path.join(governanceRoot, "policies")
+  await ensureDirectory(policiesDir)
+  const sourcePath = path.join(repoRoot, "governance", "task-bootstrap-policy.json")
+  const destPath = path.join(policiesDir, "task-bootstrap-policy.json")
+  await assertSafePath(policiesDir, destPath, "task bootstrap policy destination")
+  return copySourceIfSafe(sourcePath, destPath, targetRoot)
 }
 
 async function copyOpenCodeAssets(repoRoot, targetRoot) {
@@ -989,6 +1023,12 @@ async function generateSourceLock(repoRoot, targetRoot) {
     installedPath: path.join(".agent-governance", "ecosystem.manifest.json"),
     kind: "ecosystem_manifest",
   })
+  await addManagedSource({
+    sourcePath: path.join(repoRoot, "governance", "task-bootstrap-policy.json"),
+    sourceRelative: "governance/task-bootstrap-policy.json",
+    installedPath: path.join(".agent-governance", "policies", "task-bootstrap-policy.json"),
+    kind: "task_bootstrap_policy",
+  })
 
   // Derive source repository URL from git remote (no hardcoded usernames)
   let sourceRepo = getSourceRepository(repoRoot) || "UNKNOWN";
@@ -1030,6 +1070,11 @@ async function generateManifest(targetRoot, detectedRuntimes, enforcementLevel, 
     name: "canonical-agent-governance",
     installed_runtimes: installedRuntimes,
     enforcement_level: enforcementLevel,
+    task_bootstrap_runtime: "PRESENT",
+    task_bootstrap_policy: "VALID",
+    task_context_writer: "VALID",
+    governance_bootstrap_ready: true,
+    manual_bootstrap_required: false,
     kernel_gates: 19,
     installed_agents: agentInventory.map((agent) => agent.agent_id),
     capability_profile_bindings: Object.fromEntries(agentInventory.map((agent) => [agent.agent_id, {
@@ -1071,6 +1116,24 @@ async function createBinEvaluate(targetRoot, repoRoot) {
   await assertSafePath(binDir, destPath, "bin destination")
   await copySourceIfSafe(sourcePath, destPath, targetRoot)
   await fsPromises.chmod(destPath, 0o755)
+}
+
+async function initializeBootstrapState(targetRoot) {
+  const destination = path.join(targetRoot, ".agent-governance", "state", "task-bootstrap-state.json")
+  await assertSafePath(targetRoot, destination, "task bootstrap state destination")
+  if (fs.existsSync(destination)) return { created: false, preserved: true }
+  await ensureParentDirectory(destination)
+  const temporary = `${destination}.bootstrap-tmp-${process.pid}`
+  const state = {
+    schema_version: "governance-v2.task-bootstrap-state.1",
+    state: "COLD_READ_ONLY",
+    bootstrap_attempted: false,
+    governance_bootstrap_ready: true,
+    updated_at: new Date().toISOString(),
+  }
+  await fsPromises.writeFile(temporary, `${JSON.stringify(state, null, 2)}\n`, "utf8")
+  await fsPromises.rename(temporary, destination)
+  return { created: true, preserved: false }
 }
 
 async function writeGeneratedIfSafe(targetRoot, destination, content) {
@@ -1134,6 +1197,7 @@ process.exit(result.allowed ? 0 : result.requires_owner ? 1 : 2);
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { evaluateAction, recordActionOutcome } from '../../runtime/gates/evaluate-action.mjs';
+import { bootstrapTask, readTaskContext } from '../../runtime/bootstrap/task-bootstrap.mjs';
 
 const readJson = (file) => { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return null; } };
 const hashFile = (filePath) => 'sha256:' + crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
@@ -1153,32 +1217,69 @@ const validateSourceLock = (targetRoot) => {
   return mismatches.length ? { valid: false, reason: 'source-lock integrity failed', mismatches } : { valid: true };
 };
 
-export const CanonicalGovernancePlugin = async ({ directory, worktree } = {}) => {
+export const CanonicalGovernancePlugin = async ({ directory, worktree, client = null } = {}) => {
   const targetRoot = directory || worktree || process.cwd();
   const decisions = new Map();
   const governanceRoot = path.join(targetRoot, '.agent-governance');
-  const context = () => ({
-    targetRoot, runtime: 'opencode',
-    capsule: readJson(path.join(governanceRoot, 'task-capsule.json')),
-    intent: readJson(path.join(governanceRoot, 'owner-intent.json')),
-    auditPath: path.join(governanceRoot, 'evidence', 'action-audit.jsonl'),
-  });
+  const context = async () => {
+    const pair = await readTaskContext(targetRoot);
+    return {
+      targetRoot, runtime: 'opencode',
+      capsule: pair?.capsule || null,
+      intent: pair?.intent || null,
+      auditPath: path.join(governanceRoot, 'evidence', 'action-audit.jsonl'),
+    };
+  };
+  const directText = (output) => (Array.isArray(output?.parts) ? output.parts : [])
+    .filter((part) => part?.type === 'text' && part.synthetic !== true)
+    .map((part) => String(part.text || ''))
+    .join('\\n')
+    .trim();
+  const bootstrapFromSession = async (input) => {
+    if (!client?.session?.messages || !input?.sessionID) return null;
+    try {
+      const response = await client.session.messages({ path: { id: input.sessionID }, query: { limit: 20, directory: targetRoot } });
+      const messages = response?.data || response || [];
+      const latest = [...messages].reverse().find((entry) => entry?.info?.role === 'user');
+      const text = directText({ parts: latest?.parts });
+      if (!text) return null;
+      return bootstrapTask({ targetRoot, sessionId: input.sessionID, messageId: latest.info.id, userMessage: text });
+    } catch { return null; }
+  };
   return {
+    'chat.message': async (input, output) => {
+      const text = directText(output);
+      if (!text || output?.message?.role !== 'user' || /https:\\/\\/github\\.com\\/xxammaxx\\/OpenCode-Agenten-Oekosystem(?:\\.git)?\\/?/i.test(text)) return;
+      const result = await bootstrapTask({
+        targetRoot,
+        sessionId: input?.sessionID || output?.message?.sessionID || '',
+        messageId: input?.messageID || output?.message?.id || 'unknown',
+        userMessage: text,
+      });
+      if (result.state !== 'TASK_READY') throw new Error('[governance-v2] ' + (result.code || 'RED_BLOCK_TASK_BOOTSTRAP'));
+    },
     'tool.execute.before': async (input, output) => {
       const integrity = validateSourceLock(targetRoot);
       if (!integrity.valid) throw new Error('[governance-v2] TAMPER_DETECTED: ' + integrity.reason);
+      let currentContext = await context();
+      if (!currentContext.capsule || !currentContext.intent) {
+        const state = readJson(path.join(governanceRoot, 'state', 'task-bootstrap-state.json')) || {};
+        if (state.state === 'COLD_READ_ONLY' || state.bootstrap_attempted === false) await bootstrapFromSession(input);
+        currentContext = await context();
+      }
+      if (!currentContext.capsule || !currentContext.intent) throw new Error('[governance-v2] RED_BLOCK_TASK_BOOTSTRAP_NOT_ATTEMPTED');
       const args = output?.args || {};
       const resource = input?.tool === 'task' ? (args.subagent_type || input.tool)
         : input?.tool === 'skill' ? (args.name || input.tool)
         : (args.filePath || args.path || args.url || input?.tool);
-      const decision = await evaluateAction({ ...context(), tool: input?.tool, command: args.command, args, resource });
+      const decision = await evaluateAction({ ...currentContext, tool: input?.tool, command: args.command, args, resource });
       decisions.set(input?.callID || input?.callId || input?.tool, decision);
       output.__governanceDecision = decision;
       if (!decision.allowed) throw new Error('[governance-v2] ' + decision.code + ': ' + (decision.message || 'effect rejected'));
     },
     'tool.execute.after': async (input, output) => {
       const key = input?.callID || input?.callId || input?.tool;
-      await recordActionOutcome({ auditPath: context().auditPath, decision: output?.__governanceDecision || decisions.get(key) || null, success: true, output: output?.result || null });
+      await recordActionOutcome({ auditPath: path.join(governanceRoot, 'evidence', 'action-audit.jsonl'), decision: output?.__governanceDecision || decisions.get(key) || null, success: true, output: output?.result || null });
       decisions.delete(key);
     },
   };
@@ -1308,6 +1409,8 @@ async function validatePostApply(targetRoot) {
   const governanceRoot = path.join(targetRoot, ".agent-governance")
   const issues = []
   const warnings = []
+  const configPath = openCodeConfigPath(targetRoot)
+  const opencodeHookActive = fs.existsSync(configPath)
 
   // ── Use authoritative runtime file list (same as install + source_lock) ──
   // This prevents drift between what getRuntimeFileList() installs and what
@@ -1342,9 +1445,15 @@ async function validatePostApply(targetRoot) {
     path.join(governanceRoot, "manifest.json"),
     path.join(governanceRoot, "source-lock.json"),
     path.join(governanceRoot, "ecosystem.manifest.json"),
+    path.join(governanceRoot, "policies", "task-bootstrap-policy.json"),
+    path.join(governanceRoot, "state", "task-bootstrap-state.json"),
     path.join(governanceRoot, "bin", "evaluate.mjs"),
-    path.join(targetRoot, "opencode.jsonc"),
   ]
+  if (opencodeHookActive) requiredFiles.push(
+    configPath,
+    path.join(targetRoot, ".opencode", "plugins", "governance-v2.mjs"),
+    path.join(governanceRoot, "hooks", "opencode", "canonical-governance.mjs"),
+  )
 
   for (const file of requiredFiles) {
     if (!fs.existsSync(file)) {
@@ -1401,10 +1510,40 @@ async function validatePostApply(targetRoot) {
     }
   }
 
+  let bootstrapValidation = null
+  try {
+    bootstrapValidation = await validateBootstrapRuntime({ targetRoot })
+  } catch (error) {
+    issues.push(`Task bootstrap runtime invalid: ${error.message}`)
+  }
+
+  let hookActivationOrder = opencodeHookActive ? "VALID" : "NOT_APPLICABLE"
+  if (opencodeHookActive) {
+    try {
+      const configText = await fsPromises.readFile(configPath, "utf8")
+      if (!configText.includes(OPEN_CODE_GOVERNANCE_PLUGIN)) {
+        hookActivationOrder = "INVALID"
+        issues.push("OpenCode governance hook is not activated after bootstrap validation")
+      }
+    } catch {
+      hookActivationOrder = "INVALID"
+      issues.push("OpenCode governance hook activation cannot be verified")
+    }
+  }
+
   const classification =
     issues.length > 0 ? "RED_BLOCK" : warnings.length > 0 ? "NEEDS_REVIEW" : "VERIFIED_IN_SCOPE"
 
-  return { classification, issues, warnings }
+  return {
+    classification,
+    issues,
+    warnings,
+    task_bootstrap_runtime: bootstrapValidation?.task_bootstrap_runtime || "MISSING",
+    task_bootstrap_policy: bootstrapValidation?.task_bootstrap_policy || "INVALID",
+    task_context_writer: bootstrapValidation?.task_context_writer || "INVALID",
+    hook_activation_order: hookActivationOrder,
+    governance_bootstrap_ready: issues.length === 0,
+  }
 }
 
 async function loadApprovalReceipt(approvalFile) {
@@ -1447,6 +1586,7 @@ async function isIdempotentInstallation(targetRoot, previousInstallation, source
       if (!sourceHash || sourceHash !== currentHash) return false
     }
   }
+
   return true
 }
 
@@ -1486,6 +1626,9 @@ async function writeInstallationManifest({ targetRoot, sourceRoot, sourceCommit,
     source_commit: sourceCommit,
     installed_at: new Date().toISOString(),
     bootstrap_protocol: BOOTSTRAP_PROTOCOL,
+    governance_bootstrap_ready: verification.governance_bootstrap_ready === true,
+    manual_bootstrap_required: false,
+    hook_activation_order: verification.hook_activation_order || "UNKNOWN",
     mode,
     managed_files: managedFiles,
     file_hashes: fileHashes,
@@ -1569,6 +1712,10 @@ async function runApplyPhase(args) {
         classification: "NOOP_IDEMPOTENT",
         mode: "NOOP_IDEMPOTENT",
         source_commit: sourceCommit,
+        governance_bootstrap_ready: postValidation.governance_bootstrap_ready === true,
+        manual_bootstrap_required: false,
+        hook_activation_order: postValidation.hook_activation_order,
+        bootstrap_self_test: postValidation.governance_bootstrap_ready === true ? "PASS" : "FAIL",
         files: [],
         backup_root: null,
         post_validation: postValidation,
@@ -1644,6 +1791,7 @@ async function runApplyPhase(args) {
 
   // Phase 7: Copy policies
   await copyPolicies(repoRoot, targetRoot)
+  await copyTaskBootstrapPolicy(repoRoot, targetRoot)
 
   // Phase 7b: Install the actual OpenCode ecosystem surface.
   await copyOpenCodeAssets(repoRoot, targetRoot)
@@ -1672,20 +1820,24 @@ async function runApplyPhase(args) {
     }
   }
 
-  // Phase 11: Install OpenCode hook if detected
-  const opencodeDetected = args.runtime === "auto" || args.runtime === "opencode" || isOpenCodeTarget(targetRoot, args.runtime, detectedRuntimes)
-  if (opencodeDetected) {
-    await installOpenCodeHook(targetRoot)
-    await mergeOpenCodePluginConfig(targetRoot)
-  }
+  // Phase 10c: Prepare and validate the trusted task-bootstrap boundary.
+  await initializeBootstrapState(targetRoot)
+  await validateBootstrapRuntime({ targetRoot })
+  const bootstrapSelfTest = await selfTestBootstrapRuntime({ targetRoot })
 
-  // Phase 12: Install Hermes plugin if detected
+  // Phase 11: Install non-activating runtime adapters.
+  // Hook activation is deliberately deferred until after bootstrap validation.
+  const opencodeDetected = args.runtime === "auto" || args.runtime === "opencode" || isOpenCodeTarget(targetRoot, args.runtime, detectedRuntimes)
   const hermesDetected = detectedRuntimes.some(
     (r) => r.name === "hermes" && r.confidence >= 50
   )
   if (hermesDetected) {
     await installHermesFiles(targetRoot)
   }
+  if (opencodeDetected) await installOpenCodeHook(targetRoot)
+
+  // Phase 12: Activate the governance hook LAST.
+  if (opencodeDetected) await mergeOpenCodePluginConfig(targetRoot)
 
   // Phase 13: Post-apply validation
   const postValidation = await validatePostApply(targetRoot)
@@ -1700,6 +1852,10 @@ async function runApplyPhase(args) {
     target_root: targetRoot,
     source_commit: sourceCommit,
     classification: postValidation.classification,
+    governance_bootstrap_ready: postValidation.governance_bootstrap_ready === true,
+    manual_bootstrap_required: false,
+    hook_activation_order: postValidation.hook_activation_order,
+    bootstrap_self_test: bootstrapSelfTest.bootstrap_self_test,
     enforcement_level: enforcementLevel,
     detected_runtimes: detectedRuntimes.map((r) => ({
       name: r.name,

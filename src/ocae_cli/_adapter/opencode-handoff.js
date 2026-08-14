@@ -194,6 +194,55 @@ function trustedBlock(reason, intent = "INSTALL_OCAE_IN_CALLER_WORKSPACE") {
   ].join("\n")
 }
 
+function taskBootstrapRuntime(targetRoot) {
+  const runtime = path.join(targetRoot, ".agent-governance", "runtime", "bootstrap", "task-bootstrap.mjs")
+  const policy = path.join(targetRoot, ".agent-governance", "policies", "task-bootstrap-policy.json")
+  return existsSync(runtime) && existsSync(policy) ? runtime : null
+}
+
+async function handleTaskBootstrap({ client, directory, worktree, input, output }) {
+  if (output?.message?.role && output.message.role !== "user") return
+  const text = textParts(output)
+  if (!text || /https:\/\/github\.com\/xxammaxx\/OpenCode-Agenten-Oekosystem(?:\.git)?\/?/iu.test(text)) return
+  let targetRoot
+  try { targetRoot = capturedTarget(directory || worktree) } catch { return }
+  const runtime = taskBootstrapRuntime(targetRoot)
+  if (!runtime) return
+  let manifest
+  try { manifest = loadManifest() } catch { return }
+  const key = `${input.sessionID}:${input.messageID || output?.message?.id || "unknown"}:task-bootstrap`
+  if (inFlight.has(key)) return inFlight.get(key)
+  const work = (async () => {
+    await logEvent(client, "TASK_BOOTSTRAP_STARTED", manifest, { session_id: input.sessionID })
+    const node = pathExecutable("node")
+    if (!node) return { classification: "TOOL_GAP_NODE_RUNTIME", operation: "TASK_BOOTSTRAP" }
+    const message = Buffer.from(text, "utf8").toString("base64url")
+    const result = await runCli(node, [
+      runtime,
+      "--target", targetRoot,
+      "--session-id", input.sessionID || "unknown-session",
+      "--message-id", input.messageID || output?.message?.id || "unknown-message",
+      "--message-b64", message,
+    ], targetRoot)
+    const payload = jsonResult(result.stdout)
+    if (result.exit_code !== 0 || payload.state !== "TASK_READY") {
+      const code = payload.code || "RED_BLOCK_TASK_BOOTSTRAP"
+      await logEvent(client, "TASK_BOOTSTRAP_BLOCKED", manifest, { code })
+      return { classification: code, operation: "TASK_BOOTSTRAP" }
+    }
+    await logEvent(client, "TASK_READY", manifest, { task_id: payload.task_id || null })
+    return { classification: "VERIFIED_IN_SCOPE", operation: "TASK_BOOTSTRAP", task_id: payload.task_id || null }
+  })()
+  inFlight.set(key, work)
+  try {
+    const result = await work
+    if (result.classification !== "VERIFIED_IN_SCOPE") replaceWithTrustedContext(output, trustedBlock(result.classification, "TASK_BOOTSTRAP"))
+    return result
+  } finally {
+    inFlight.delete(key)
+  }
+}
+
 async function handleHandoff({ client, directory, worktree, input, output }) {
   const text = textParts(output)
   const intent = intentFor(text)
@@ -263,5 +312,10 @@ async function handleHandoff({ client, directory, worktree, input, output }) {
 }
 
 export const OcaeOpenCodeHandoff = async ({ client, directory, worktree }) => ({
-  "chat.message": async (input, output) => handleHandoff({ client, directory, worktree, input, output }),
+  "chat.message": async (input, output) => {
+    const text = textParts(output)
+    const intent = intentFor(text)
+    if (intent === "NEEDS_REVIEW_UNRELATED_INPUT") return handleTaskBootstrap({ client, directory, worktree, input, output })
+    return handleHandoff({ client, directory, worktree, input, output })
+  },
 })

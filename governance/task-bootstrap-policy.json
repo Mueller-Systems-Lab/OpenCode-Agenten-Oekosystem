@@ -1,0 +1,66 @@
+{
+  "schema_version": "governance-v2.task-bootstrap-policy.1",
+  "version": "1.0.0",
+  "states": [
+    "COLD_READ_ONLY",
+    "TASK_BOOTSTRAPPING",
+    "TASK_READY",
+    "TASK_BLOCKED",
+    "TASK_COMPLETED"
+  ],
+  "bootstrap_ceiling": {
+    "allowed_effects": [
+      "LOCAL_READ",
+      "LOCAL_STATE",
+      "LOCAL_WRITE",
+      "LOCAL_DELETE",
+      "LOCAL_EXECUTE",
+      "TEST_EXECUTION",
+      "LOCAL_COMMIT",
+      "DELEGATE"
+    ],
+    "denied_effects": [
+      "PUSH",
+      "MERGE",
+      "PRODUCTION_DEPLOY",
+      "EXTERNAL_COMMUNICATION",
+      "SECRET_ACCESS",
+      "IRREVERSIBLE_DELETE",
+      "APPROVAL_ENGINE_MUTATION",
+      "CAPABILITY_REGISTRY_MUTATION"
+    ],
+    "read_scope": ["**"],
+    "write_scope": ["**"],
+    "external_effect_scope": [],
+    "forbidden_scope": [
+      ".env",
+      "**/.env",
+      "**/.env.*",
+      ".git",
+      ".git/**",
+      "**/.git",
+      "**/.git/**",
+      ".agent-governance",
+      ".agent-governance/**",
+      "**/.agent-governance",
+      "**/.agent-governance/**"
+    ]
+  },
+  "required_for_ready": [
+    "owner-intent.schema.json",
+    "task-capsule.schema.json",
+    "task-bootstrap.mjs",
+    "task-bootstrap-policy.json"
+  ],
+  "observability_events": [
+    "TASK_BOOTSTRAP_STARTED",
+    "OWNER_INTENT_COMPILED",
+    "OWNER_INTENT_VALIDATED",
+    "TASK_CAPSULE_COMPILED",
+    "TASK_CAPSULE_VALIDATED",
+    "TASK_CONTEXT_PERSISTED",
+    "TASK_READY",
+    "TASK_BOOTSTRAP_BLOCKED",
+    "TASK_CAPSULE_RECONCILED"
+  ]
+}

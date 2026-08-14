@@ -6,6 +6,7 @@ import {
   classifyCommand,
 } from "../../runtime/gates/command-effect-classifier.mjs"
 import { commandDescriptor, evaluateAction } from "../../runtime/gates/evaluate-action.mjs"
+import { CanonicalGovernancePlugin } from "../../.opencode/plugins/canonical-governance.mjs"
 
 const capsule = {
   task_id: "compatibility-task",
@@ -91,6 +92,19 @@ test("Reality Refresh git fetch remains available before Task Capsule bootstrap"
   const mixedUnknown = await evaluateAction({ tool: "bash", command: "git fetch origin --prune; unknown-command", runtime: "opencode" })
   assert.equal(mixedUnknown.allowed, false)
   assert.equal(mixedUnknown.code, "RED_BLOCK_TASK_CAPSULE_MISSING_OR_INVALID")
+})
+
+test("source OpenCode plugin delegates bash reads to the effect gate before install", async () => {
+  const hooks = await CanonicalGovernancePlugin({ directory: process.cwd(), worktree: process.cwd() })
+  const output = { args: { command: "git fetch origin --prune; git status --short" } }
+  await hooks["tool.execute.before"]({ tool: "bash", callID: "cold-reality-refresh" }, output)
+  assert.equal(output.__governanceDecision.allowed, true)
+  assert.equal(output.__governanceDecision.task_id, "cold-network-read")
+
+  await assert.rejects(
+    hooks["tool.execute.before"]({ tool: "bash", callID: "cold-write" }, { args: { command: "git add README.md" } }),
+    /RED_BLOCK_TASK_CAPSULE_MISSING_OR_INVALID/u,
+  )
 })
 
 test("delegation cannot expand effects or narrow forbidden scope", async () => {

@@ -2,6 +2,7 @@
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
+import { pathToFileURL } from 'node:url';
 import { bootstrapTask, readTaskContext } from '../../runtime/bootstrap/task-bootstrap.mjs';
 
 const PROJECT_ROOT = process.cwd();
@@ -76,7 +77,7 @@ async function loadEvaluateModule() {
   if (evaluateModule !== null) return evaluateModule;
   if (!existsSync(EVALUATE_PATH)) return null;
   try {
-    evaluateModule = await import(EVALUATE_PATH);
+    evaluateModule = await import(pathToFileURL(EVALUATE_PATH).href);
     return evaluateModule;
   } catch (err) {
     console.error('[canonical-governance] failed to load evaluate-action.mjs:', err.message);
@@ -176,7 +177,7 @@ async function evaluateByGate(descriptor) {
       targetRoot: PROJECT_ROOT,
       capsule: readJson(CAPSULE_PATH),
       intent: readJson(INTENT_PATH),
-      auditPath: join(EVIDENCE_DIR, 'action-audit.jsonl'),
+      auditPath: governanceIsInstalled() ? join(EVIDENCE_DIR, 'action-audit.jsonl') : undefined,
     });
     return result;
   } catch (err) {
@@ -210,10 +211,18 @@ async function handleToolExecution(input, output) {
     if (risk === 'READ' || risk === 'NON_BLOCKING') {
       return undefined;
     }
-    throw new Error(
-      `[canonical-governance] BLOCKED: tool "${tool}" (${risk}) requires governance to be installed. ` +
-      `Reason: write/external/delegate operations are blocked without .agent-governance/manifest.json in the workspace root.`
-    );
+    // Bash is a transport for many concrete effects. Let the shared effect
+    // gate distinguish cold local/network reads from writes and external
+    // actions before applying the install-only preflight boundary.
+    if (tool !== 'bash') {
+      throw new Error(
+        `[canonical-governance] BLOCKED: tool "${tool}" (${risk}) requires governance to be installed. ` +
+        `Reason: write/external/delegate operations are blocked without .agent-governance/manifest.json in the workspace root.`
+      );
+    }
+    // Fall through to the shared gate below. Cold git Reality Refresh and
+    // local inspection are allowed; writes, unknown effects, and external
+    // actions still fail closed because they have no valid capsule.
   }
 
   const integrity = validateRuntimeIntegrity();
@@ -278,11 +287,12 @@ async function handleToolExecution(input, output) {
       return undefined;
 
     case 'RED_BLOCK':
+    case 'D_TECHNICAL_BLOCK':
     case 'DENY':
     case 'BLOCK':
       throw new Error(
         `[canonical-governance] BLOCKED: tool "${tool}" (${risk}) blocked by gate: ` +
-        `${gateResult.reason || 'policy violation'}.`
+        `${gateResult.code || gateResult.reason || 'policy violation'}.`
       );
 
     case 'C_BUNDLED_OWNER_DECISION':

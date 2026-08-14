@@ -114,6 +114,7 @@
   },
   "effect_classes": [
     "LOCAL_READ",
+    "LOCAL_STATE",
     "LOCAL_WRITE",
     "LOCAL_DELETE",
     "LOCAL_EXECUTE",
@@ -225,6 +226,19 @@
       "reversibility": "FULLY_REVERSIBLE",
       "lease_compatible": true,
       "validation": "path-and-scope",
+      "audit_level": "STANDARD"
+    },
+    "opencode.todo": {
+      "tool": "opencode",
+      "action": "todo",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "internal-runtime-state",
       "audit_level": "STANDARD"
     },
     "filesystem.write": {

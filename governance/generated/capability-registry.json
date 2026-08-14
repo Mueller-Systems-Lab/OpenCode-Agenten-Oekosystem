@@ -15,6 +15,18 @@
       "validation": "runtime-effect-check",
       "audit_level": "STANDARD"
     },
+    "LOCAL_STATE": {
+      "effect": "LOCAL_STATE",
+      "source_trust": "action_registry",
+      "effects": [
+        "WRITE"
+      ],
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "runtime-effect-check",
+      "audit_level": "STANDARD"
+    },
     "LOCAL_WRITE": {
       "effect": "LOCAL_WRITE",
       "source_trust": "action_registry",
@@ -220,6 +232,19 @@
       "reversibility": "FULLY_REVERSIBLE",
       "lease_compatible": true,
       "validation": "path-and-scope",
+      "audit_level": "STANDARD"
+    },
+    "opencode.todo": {
+      "tool": "opencode",
+      "action": "todo",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "internal-runtime-state",
       "audit_level": "STANDARD"
     },
     "filesystem.write": {

@@ -3,9 +3,20 @@
 This document is the automation-specific installation path. For a human
 install, use the versioned [OCAE CLI quick start](README.md#quick-install).
 
+## Handoff boundary
+
+`DEFAULT_INTENT = INSTALL_IN_CALLER_WORKSPACE` for the bare canonical OCAE URL.
+`TARGET_CAPTURE_BEFORE_CLONE`, `TARGET_IMMUTABLE`, `SOURCE_IS_NOT_TARGET`, and
+`SOURCE_MUTATION_FORBIDDEN` are mandatory. Resolve and save the absolute caller
+`TARGET_ROOT` before any fetch, clone, checkout, CWD change, or source read; all
+commands below receive that saved path explicitly. `DEVELOPMENT_REQUIRES_EXPLICIT_INTENT`:
+only an explicit OCAE development request authorizes source changes. See the
+[machine-readable handoff contract](ocae.handoff.json) and the complete
+[AI bootstrap protocol](AI-BOOTSTRAP.md).
+
 ## Product boundary
 
-OCAE CLI v1.0.0 installs the complete project-local OpenCode ecosystem:
+OCAE CLI v1.0.1 installs the complete project-local OpenCode ecosystem:
 
 - 13 installable agents and 13 capability profiles
 - skills, policies, and the OpenCode Governance Plugin
@@ -22,11 +33,12 @@ Automation should pin the published release and use the same CLI commands as a
 human operator:
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.0
-ocae doctor <target>
-ocae install <target> --dry-run
-ocae install <target>
-ocae verify <target>
+uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.1
+ocae doctor "<TARGET_ROOT>"
+ocae install "<TARGET_ROOT>" --dry-run
+ocae install "<TARGET_ROOT>"
+ocae verify "<TARGET_ROOT>"
+ocae integrate opencode
 ```
 
 The dry-run must be reviewed before an apply. The target path is project-local;
@@ -39,9 +51,9 @@ installer from an exact checkout. This is a compatibility path, not the primary
 human workflow:
 
 ```bash
-node scripts/install-governance.mjs --target <target>       # dry-run
-node scripts/install-governance.mjs --target <target> --apply
-node scripts/install-governance.mjs --target <target> --rollback <backup-dir>
+node scripts/install-governance.mjs --target "<TARGET_ROOT>"       # dry-run
+node scripts/install-governance.mjs --target "<TARGET_ROOT>" --apply
+node scripts/install-governance.mjs --target "<TARGET_ROOT>" --rollback <backup-dir>
 ```
 
 The source repository, ref, and commit must be recorded from the same checkout.
@@ -55,7 +67,9 @@ and provenance rules.
   third-party plugins are preserved
 - backups are created before mutation
 - name conflicts and source-lock tampering fail closed
-- no global OpenCode or Hermes configuration is rewritten
+- `ocae integrate opencode` is an explicit one-time global opt-in: it writes
+  only the OCAE-owned adapter/manifest, does not rewrite OpenCode config or
+  third-party plugins, and is removable with `--remove`
 - no MCP is enabled automatically
 - no secrets are read or written to reports
 

@@ -44,7 +44,7 @@ def tool_version(command: str) -> tuple[str | None, str | None]:
     return executable, output[0] if output else None
 
 
-def run_external(executable: str, arguments: list[str], cwd: Path) -> dict:
+def run_external(executable: str, arguments: list[str], cwd: Path, env: dict[str, str] | None = None) -> dict:
     try:
         completed = subprocess.run(
             [executable, *arguments],
@@ -54,6 +54,7 @@ def run_external(executable: str, arguments: list[str], cwd: Path) -> dict:
             timeout=120,
             check=False,
             shell=False,
+            env=env,
         )
     except (OSError, subprocess.SubprocessError) as error:
         return {"exit_code": 2, "stdout": "", "stderr": str(error)}

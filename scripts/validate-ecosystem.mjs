@@ -11,6 +11,7 @@ import { extractFrontmatter, validateAgentFrontmatter, validateSkillFrontmatter 
 import { parseJsonc } from "./lib/jsonc.mjs"
 import { pathExists, readTextIfExists, toAbsolutePath, normalizePosix } from "./lib/paths.mjs"
 import { safeRedactText, secretValuesFromEnv } from "./lib/security/redaction.mjs"
+import { validateHandoffContract } from "../bootstrap/lib/handoff.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 
@@ -33,6 +34,7 @@ async function main() {
   issues.push(...await validateJsonFile(path.join(repoRoot, ".opencode/policies/data-retention.json"), "data-retention.json"))
   issues.push(...await validateJsonFile(path.join(repoRoot, ".opencode/policies/write-protection.json"), "write-protection.json"))
   issues.push(...await validateJsonFile(path.join(repoRoot, ".opencode/policies/model-routing.json"), "model-routing.json"))
+  issues.push(...await validateHandoffContractFiles())
 
   issues.push(...await validateMarkdownDirs(path.join(repoRoot, ".opencode/skills"), "skill"))
   issues.push(...await validateMarkdownDirs(path.join(repoRoot, ".opencode/agents"), "agent"))
@@ -46,6 +48,9 @@ async function main() {
     "bootstrap/manifest.schema.json",
     "bootstrap/verify.mjs",
     "bootstrap/lib/contract.mjs",
+    "bootstrap/lib/handoff.mjs",
+    "ocae.handoff.json",
+    "ocae.handoff.schema.json",
     "README.md",
     "AGENTS.md",
     "CONTRIBUTING.md",
@@ -231,6 +236,39 @@ async function validateJsonFile(filePath, label) {
   } catch (error) {
     return [`invalid JSON/JSONC in ${label}: ${error instanceof Error ? error.message : String(error)}`]
   }
+}
+
+async function validateHandoffContractFiles() {
+  const issues = []
+  const contractPath = path.join(repoRoot, "ocae.handoff.json")
+  const schemaPath = path.join(repoRoot, "ocae.handoff.schema.json")
+  try {
+    const contract = JSON.parse(await fs.readFile(contractPath, "utf8"))
+    issues.push(...validateHandoffContract(contract).map((issue) => `ocae.handoff.json: ${issue}`))
+    const schema = JSON.parse(await fs.readFile(schemaPath, "utf8"))
+    for (const key of [
+      "schema_version",
+      "product",
+      "canonical_repository",
+      "bare_url_default_intent",
+      "source_role",
+      "target_resolution",
+      "target_immutable",
+      "source_target_identity_forbidden",
+      "preferred_distribution",
+      "development_requires_explicit_intent",
+      "source_mutations_for_install_intent",
+      "target_commands_require_absolute_root",
+    ]) {
+      if (!schema.required?.includes(key)) issues.push(`ocae.handoff.schema.json: missing required field ${key}`)
+      if (schema.properties?.[key]?.const !== contract[key]) {
+        issues.push(`ocae.handoff.schema.json: const mismatch for ${key}`)
+      }
+    }
+  } catch (error) {
+    issues.push(`handoff contract validation failed: ${error instanceof Error ? error.message : String(error)}`)
+  }
+  return issues
 }
 
 async function validateMarkdownDirs(dirPath, kind) {

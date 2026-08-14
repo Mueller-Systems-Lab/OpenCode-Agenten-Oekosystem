@@ -4,10 +4,18 @@ OCAE is a versioned agent and governance ecosystem for OpenCode. Install one
 CLI and get 13 specialized agents, capability profiles, skills, policies, and
 fail-closed project-local governance in an existing project.
 
+## FOR AI AGENTS RECEIVING THIS URL:
+
+If another OpenCode project is already open, the default task is to install OCAE
+into that existing project. Capture that workspace before cloning or fetching;
+this repository is read-only installation source material. Do not develop OCAE
+unless the user explicitly asks for OCAE development. See [AI-BOOTSTRAP.md](AI-BOOTSTRAP.md)
+and [`ocae.handoff.json`](ocae.handoff.json).
+
 ## Quick install
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.0
+uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.1
 ```
 
 Then, from the target project:
@@ -16,15 +24,18 @@ Then, from the target project:
 ocae doctor .
 ocae install .
 ocae verify .
+ocae integrate opencode
 ```
 
 `ocae install . --dry-run` previews the changes. The package requires Python
 3.11+, `uv`, and Node.js. OpenCode is required for runtime discovery and agent
-verification.
+verification. The optional `ocae integrate opencode` command installs one
+OCAE-owned global OpenCode adapter for bare-URL handoff; it is idempotent and
+does not rewrite `opencode.jsonc`.
 
 ## What is OCAE?
 
-OCAE CLI v1.0.0 is the installable distribution layer for this repository. The
+OCAE CLI v1.0.1 is the installable distribution layer for this repository. The
 Python CLI validates inputs, package integrity, provenance, and tool preflight.
 The canonical governance and installation logic remains in
 [`scripts/install-governance.mjs`](scripts/install-governance.mjs), which is
@@ -45,6 +56,9 @@ configuration and user content:
 1. Install the CLI with `uv tool install` above.
 2. In an existing project, run `ocae doctor .` and review the preflight.
 3. Run `ocae install .`, then `ocae verify .`.
+4. Once per machine, run `ocae integrate opencode` to enable bare canonical-URL
+   handoff in OpenCode. Use `--verify` to inspect the binding or `--remove` to
+   remove only the OCAE-owned adapter.
 
 The installer is idempotent. Existing providers, models, MCP definitions, user
 agents, third-party plugins, and project configuration are preserved. Name
@@ -106,6 +120,9 @@ canonical Node installer from the pinned payload.
 | `ocae verify .` | Verify installation and OpenCode agent discovery |
 | `ocae update .` | Update an existing managed installation |
 | `ocae rollback . --backup <backup>` | Restore from a recorded backup |
+| `ocae integrate opencode` | Install and verify the global bare-URL adapter |
+| `ocae integrate opencode --verify` | Verify the global adapter binding |
+| `ocae integrate opencode --remove` | Remove only the OCAE global adapter |
 
 See the complete [CLI reference](docs/ocae-cli.md).
 

@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "product": "OCAE",
+  "canonical_repository": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+  "bare_url_default_intent": "INSTALL_IN_CALLER_WORKSPACE",
+  "source_role": "READ_ONLY_DISTRIBUTION_SOURCE",
+  "target_resolution": "CALLER_WORKSPACE_AT_HANDOFF",
+  "target_immutable": true,
+  "source_target_identity_forbidden": true,
+  "preferred_distribution": "ocae-cli",
+  "development_requires_explicit_intent": true,
+  "source_mutations_for_install_intent": 0,
+  "target_commands_require_absolute_root": true
+}

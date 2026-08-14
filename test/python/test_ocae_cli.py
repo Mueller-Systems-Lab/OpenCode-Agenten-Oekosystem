@@ -18,6 +18,7 @@ build_backend._prepare_payload()
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from ocae_cli import cli, payload, provenance, runtime
+from ocae_cli import opencode
 
 
 class PayloadTests(unittest.TestCase):
@@ -89,3 +90,58 @@ class CliTests(unittest.TestCase):
                 code = cli.main(["install", ".", "--dry-run", "--json"])
         self.assertEqual(code, 0)
         self.assertEqual(json.loads(output.getvalue())["classification"], "VERIFIED_IN_SCOPE")
+
+
+class OpenCodeIntegrationTests(unittest.TestCase):
+    def test_integrate_command_is_available(self):
+        args = cli._parser().parse_args(["integrate", "opencode", "--verify", "--json"])
+        self.assertEqual(args.runtime, "opencode")
+        self.assertTrue(args.verify)
+
+    def test_global_adapter_is_packaged_and_uses_structured_spawn(self):
+        adapter = opencode._adapter_bytes().decode("utf-8")
+        self.assertIn('spawn(executable, args, {', adapter)
+        self.assertIn('shell: false', adapter)
+        self.assertIn('directory', adapter)
+        self.assertIn('worktree', adapter)
+
+    def test_integration_is_idempotent_and_removal_is_scoped(self):
+        with tempfile.TemporaryDirectory() as directory:
+            config = Path(directory) / "config"
+            executable = Path(directory) / "ocae.exe"
+            executable.write_bytes(b"validated ocae launcher")
+            fake_opencode = Path(directory) / "opencode.exe"
+            fake_opencode.write_bytes(b"validated opencode launcher")
+            discovered = (fake_opencode, "1.18.18", config)
+            with patch.object(opencode, "_discover_opencode", return_value=discovered), patch.object(
+                opencode, "_resolve_ocae", return_value=executable
+            ), patch.object(opencode, "tool_version", return_value=(str(executable), opencode.__version__)), patch.object(
+                opencode, "run_external", return_value={
+                    "exit_code": 0,
+                    "stdout": json.dumps({
+                        "version": opencode.__version__,
+                        "source_repository": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+                        "source_commit": "4f97bdd6ed78a607a64742352a372ef453a7b009",
+                    }),
+                    "stderr": "",
+                }
+            ), patch.object(opencode, "_verify_impl", return_value={"classification": "VERIFIED_IN_SCOPE", "exit_code": 0}
+            ):
+                first = opencode.integrate_opencode()
+                second = opencode.integrate_opencode()
+                removed = opencode.remove_opencode_integration()
+            self.assertEqual(first["classification"], "VERIFIED_IN_SCOPE")
+            self.assertEqual(second["classification"], "NOOP_IDEMPOTENT")
+            self.assertEqual(removed["classification"], "VERIFIED_IN_SCOPE")
+            self.assertFalse((config / "plugins" / opencode.ADAPTER_FILENAME).exists())
+            self.assertFalse((config / opencode.MANIFEST_FILENAME).exists())
+
+    def test_adapter_rejects_unowned_global_filename(self):
+        with tempfile.TemporaryDirectory() as directory:
+            config = Path(directory) / "config"
+            adapter = config / "plugins" / opencode.ADAPTER_FILENAME
+            adapter.parent.mkdir(parents=True)
+            adapter.write_bytes(b"owner content")
+            with patch.object(opencode, "_discover_opencode", return_value=(Path(directory) / "opencode.exe", "1.18.18", config)):
+                result = opencode.integrate_opencode()
+            self.assertEqual(result["classification"], "RED_BLOCK_INTEGRATION_OWNERSHIP")

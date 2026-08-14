@@ -120,6 +120,8 @@ test("trusted reconciliation updates the real old fixture and preserves owner fi
   assert.deepEqual(await fs.readFile(path.join(target, "README.md")), readmeBefore)
   assert.deepEqual(await fs.readFile(untracked), untrackedBefore)
   assert.equal((await fs.stat(path.join(target, ".agent-governance/runtime/bootstrap/task-bootstrap.mjs"))).isFile(), true)
+  const migratedPlugin = await fs.readFile(path.join(target, ".agent-governance/hooks/opencode/canonical-governance.mjs"), "utf8")
+  assert.match(migratedPlugin, /chat\.message/)
   const marker = JSON.parse(await fs.readFile(path.join(target, ".agent-governance/runtime-state.json"), "utf8"))
   assert.equal(marker.source_commit, CURRENT_COMMIT)
 

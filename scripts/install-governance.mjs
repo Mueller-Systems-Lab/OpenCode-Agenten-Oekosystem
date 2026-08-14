@@ -1237,9 +1237,9 @@ async function writeGeneratedIfSafe(targetRoot, destination, content) {
     if (!existing.isFile()) return false
     const currentHash = await fileHash(destination)
     const previous = await readInstallationManifest(targetRoot)
-    const previousHash = previous?.file_hashes?.[relativePath(targetRoot, destination)]
-    if (previousHash && previousHash !== currentHash) return false
-    if (!previousHash) return false
+    const managedPreviousHash = previousHash(previous?.file_hashes || {}, relativePath(targetRoot, destination))
+    if (managedPreviousHash && managedPreviousHash !== currentHash) return false
+    if (!managedPreviousHash) return false
   }
   await ensureParentDirectory(destination)
   const temporary = `${destination}.bootstrap-tmp-${process.pid}`

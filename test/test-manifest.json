@@ -14,7 +14,12 @@
       "test/security/bootstrap-bypass-red-team.test.mjs",
       "test/security/task-bootstrap-security.test.mjs",
       "test/security/existing-installation-automigration-security.test.mjs",
-      "test/security/redaction.test.mjs"
+      "test/security/redaction.test.mjs",
+      "test/controller/controller.test.mjs",
+      "test/controller/retry.test.mjs",
+      "test/controller/preflight.test.mjs",
+      "test/controller/observability.test.mjs",
+      "test/controller/vertical-slice.test.mjs"
     ],
     "contract": [
       "test/contracts/bootstrap-capability-contract.test.mjs",
@@ -26,7 +31,8 @@
       "test/contracts/runtime-neutral-completion.test.mjs",
       "test/spec-kit/bridge-contract.test.mjs",
       "test/spec-kit/bridge-red.test.mjs",
-      "test/validation/working-method.test.mjs"
+      "test/validation/working-method.test.mjs",
+      "test/contracts/runtime-pipeline-contracts.test.mjs"
     ],
     "integration": [
       "test/integration/approval-enforcement.test.mjs",

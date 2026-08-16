@@ -12,7 +12,7 @@ import path from 'node:path'
 import { create as createReview } from '../contracts/review.mjs'
 
 const SECRET_ASSIGNMENT = /(?:api[_-]?key|access[_-]?token|secret|password)\s*[:=]\s*['"][A-Za-z0-9+/=_-]{12,}['"]/i
-const PRIVATE_KEY_BLOCK = /BEGIN (?:RSA|EC|OPENSSH|DSA|PGP|PRIVATE) KEY/
+const PRIVATE_KEY_BLOCK = /BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY/
 const HARDCODED_SECRET_HEADER = /(?:authorization|api-key|x-api-key)\s*:\s*['"][A-Za-z0-9+/=_-]{12,}['"]/i
 const DANGEROUS_EXEC = /\b(?:eval|child_process\.exec|child_process\.execSync)\s*\(/
 const PATH_TRAVERSAL = /\.\.(?:[\\/]\.\.)+/

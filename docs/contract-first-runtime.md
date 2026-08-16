@@ -208,3 +208,148 @@ Legacy classification aliases (e.g. `GREEN_SAFE` as an input alias for
 - The native OpenCode seam consumes plan text/plan data via the adapter; the
   vertical-slice tests inject a deterministic build executor so the pipeline is
   fully testable without a live LLM backend.
+
+
+## Canonical Runtime Entry
+
+`runtime/run.mjs` is the single official entry point for normal development
+tasks. It exports:
+
+- `runTask(task, options)` — the canonical entry. It normalizes the task into
+  `ecosystem.task.v1` (the `run_id` is created here, once), validates the task
+  contract, runs capability detection + preflight (capabilities, MCP, skills),
+  starts the deterministic pipeline when workers (native plan + build executor)
+  are supplied, emits real `ecosystem.run-event.v1` telemetry for every phase,
+  and returns a validated `ecosystem.decision.v1` terminal decision.
+- `enterTask(options)` — entry-mode seam (normalize, validate, preflight,
+  events) without starting the pipeline. Used by the productive plugin path.
+- `enterRun({ targetRoot, taskText, sessionId, messageId })` — idempotent
+  plugin seam that persists the canonical run context to
+  `.agent-governance/runtime/run-context.json` so the `run_id` is stable across
+  a session; a required capability/MCP/skill failure blocks the task before
+  any agent work (fail fast).
+
+`scripts/run-task.mjs` is the CLI entry:
+
+```
+node scripts/run-task.mjs --task "..." --repo . [--plan-text "..."] [--verify "node --test test/x.mjs"] [--exec module]
+```
+
+## Runtime Adoption
+
+The runtime is the canonical execution path, not an optional architecture:
+
+```
+USER TASK
+   │
+   ▼
+OpenCode-Agenten-Ökosystem (plugin chat.message → enterRun)
+   │
+   ▼
+ecosystem.task.v1  (run_id created once, immutable)
+   │
+   ▼
+BASELINE / CAPABILITY PREFLIGHT  (fail fast → BLOCKED)
+   │
+   ▼
+RESEARCH → NATIVE PLAN → DETERMINISTIC PLAN GATE
+   │
+   ▼
+NATIVE BUILD → VERIFY → bounded FIX / retry
+   │
+   ▼
+REVIEWS (correctness, security, quality)
+   │
+   ▼
+DETERMINISTIC CONTROLLER → DONE | FIX | SPLIT | BLOCKED
+```
+
+The OpenCode plugin (`.opencode/plugins/canonical-governance.mjs` and the
+installed hook `installOpenCodeHook`) routes every real user task through
+`enterRun` after `bootstrapTask` produces the task capsule: the run enters the
+canonical runtime (task contract, `run_id`, capability/MCP preflight, real run
+events) before any agent works. `scripts/install-governance.mjs` installs the
+complete contract-first runtime (contracts, baseline, pipeline, adapters,
+controller, observability, reviews, `run.mjs`) plus the shared MCP preflight
+helper into target projects, so installed ecosystems use the same canonical
+entry.
+
+## Agent as Worker
+
+Agents, models, skills and tools are implementations/capabilities inside the
+runtime; they never own the global control authority (`LLMs ARE WORKERS, LLMs
+ARE NOT THE CONTROLLER`). The preferred logical worker roles are `research`,
+`plan`, `build`, `review`, plus the existing specialized skills/tools. A
+worker may report `build completed`, but it can never declare the whole task
+`DONE` — the controller is the sole terminal authority. There is no agent zoo:
+no additional roles are added when existing workers cover the capability.
+
+## Skill as Capability
+
+A skill is not a workflow controller. Skills keep providing domain knowledge,
+procedures, tool combinations, run cards and specialized execution, but the
+runtime decides which skill is needed, whether it is available (preflight via
+`required_skills`), and which contract is expected afterwards.
+
+## Tool/MCP Preflight
+
+`runtime/baseline/capability-detector.mjs` derives exactly the capabilities a
+run needs from the task text and the approved plan (`deriveRequiredCapabilities`
+/ `deriveOptionalCapabilities`). `runBaseline` then runs the real checks.
+Required capability / MCP / skill failures make the baseline `approved: false`
+→ the run is `BLOCKED` before research/plan/build (fail fast). Optional
+failures degrade but do not stop the run. This prevents both false `BLOCKED`
+and late tool failures mid-run. Credentials are only represented as
+`AVAILABLE | MISSING | DENIED`; secret values are never read, logged, or
+written into any contract, event, or prompt.
+
+## Completion Authority
+
+Only `runtime/controller/` produces the canonical task terminal state:
+`DONE | FIX | SPLIT | BLOCKED`. Every other component may hold local status
+values but cannot overwrite the global completion state. The pipeline wraps
+the controller decision in a validated `ecosystem.decision.v1` contract.
+
+## Retry Authority
+
+Business build/fix retries are authorized exclusively by
+`runtime/controller/retry-policy.mjs`. `max_attempts` cannot be bypassed by a
+worker, skill, wrapper, or parallel controller. A worker that tries to force an
+additional attempt, or that supplies a meaningless `strategy_delta` (e.g.
+"try again"), is denied deterministically. Infrastructure/transport retries
+(short HTTP transients, temporary file locks, one-time API timeouts) may exist
+separately but are strictly distinct from business retries and are never
+presented as a new problem-solving strategy.
+
+## Migration / Compatibility
+
+Existing entry points are preserved through a compatibility seam:
+
+```
+existing entry → compatibility seam → canonical runtime
+```
+
+- The plugin `chat.message` hook first runs `bootstrapTask` (legacy task
+  capsule) and then routes the task into the canonical runtime entry; if the
+  installed runtime entry is unavailable, the bootstrapped task context
+  remains the `LEGACY_COMPATIBILITY_PATH`.
+- `runtime/agent/run-state.mjs` `RUN_COMPLETE`/`VERIFIED_IN_SCOPE` and the gate
+  kernel classifications remain as worker/step-level results and legacy
+  aliases (`GREEN_SAFE` → `VERIFIED_IN_SCOPE`); they are not the runtime
+  terminal authority. `scripts/validate-ecosystem.mjs` classifications are
+  ecosystem-validator results, not task terminal states.
+- `run_id` is created once by the task contract; retries differ by `attempt`,
+  never by a new run id. A worker-supplied replacement `run_id` aborts the run
+  deterministically with `CONTRACT_INVALID`.
+
+## Real Execution Path
+
+A real run emits `ecosystem.run-event.v1` records with `run_id`, `phase`,
+`job`, `attempt`, `timestamp`, `status`, `duration_ms` (optional: agent,
+provider, model, fingerprints, `failure_signature`, `strategy_delta`,
+`contract_in`, `contract_out`). `FIRST_BAD_BOUNDARY` is derived from the real
+ordered phase history — e.g. `BASELINE`, `PLAN_GATE`, `VERIFY` — and resets to
+`null` after a bounded retry that eventually succeeds. Provider/model routing
+stays a worker detail: providers never decide DONE, models never decide retry,
+and the controller is provider-independent. Provider credentials never enter
+contracts, events, prompts, evidence, tests, or logs.

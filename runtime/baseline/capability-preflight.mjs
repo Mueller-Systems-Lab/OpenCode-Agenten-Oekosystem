@@ -76,7 +76,10 @@ export function checkCapability(name, { repoRoot, env = process.env, root } = {}
     case 'npm':
       return toolAvailable('npm') ? 'PASS' : 'MISSING'
     case 'test':
-      return toolAvailable(process.execPath) && (target ? fs.existsSync(path.join(target, 'test')) || fs.existsSync(path.join(target, 'package.json')) : true) ? 'PASS' : 'MISSING'
+      // 'test' is the capability to EXECUTE tests (worker tooling). Whether a test
+      // suite exists is discovered in research and enforced by VERIFY; a repo
+      // without tests does not lack the test-execution capability.
+      return toolAvailable(process.execPath) ? 'PASS' : 'MISSING'
     case 'build':
       return toolAvailable(process.execPath) ? 'PASS' : 'MISSING'
     case 'write':

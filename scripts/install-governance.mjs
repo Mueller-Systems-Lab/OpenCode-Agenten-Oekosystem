@@ -223,6 +223,7 @@ function validateSourceRepository(repoRoot) {
     "runtime/gates/command-effect-classifier.mjs",
     "runtime/gates/evaluate-action.mjs",
     "runtime/bootstrap/task-bootstrap.mjs",
+    "runtime/run.mjs",
     "governance/owner-intent.schema.json",
     "governance/task-capsule.schema.json",
     "governance/task-bootstrap-policy.schema.json",
@@ -281,6 +282,40 @@ function getRuntimeFileList() {
     { source: "runtime/gates/command-effect-classifier.mjs", dest: "gates/command-effect-classifier.mjs" },
     { source: "runtime/gates/evaluate-action.mjs", dest: "gates/evaluate-action.mjs" },
     { source: "runtime/bootstrap/task-bootstrap.mjs", dest: "bootstrap/task-bootstrap.mjs" },
+    // contracts/ — contract-first runtime contracts (canonical runtime)
+    { source: "runtime/contracts/index.mjs", dest: "contracts/index.mjs" },
+    { source: "runtime/contracts/task.mjs", dest: "contracts/task.mjs" },
+    { source: "runtime/contracts/baseline.mjs", dest: "contracts/baseline.mjs" },
+    { source: "runtime/contracts/research.mjs", dest: "contracts/research.mjs" },
+    { source: "runtime/contracts/plan.mjs", dest: "contracts/plan.mjs" },
+    { source: "runtime/contracts/build.mjs", dest: "contracts/build.mjs" },
+    { source: "runtime/contracts/verification.mjs", dest: "contracts/verification.mjs" },
+    { source: "runtime/contracts/review.mjs", dest: "contracts/review.mjs" },
+    { source: "runtime/contracts/decision.mjs", dest: "contracts/decision.mjs" },
+    { source: "runtime/contracts/run-event.mjs", dest: "contracts/run-event.mjs" },
+    // baseline/ — capability detection + preflight
+    { source: "runtime/baseline/capability-detector.mjs", dest: "baseline/capability-detector.mjs" },
+    { source: "runtime/baseline/capability-preflight.mjs", dest: "baseline/capability-preflight.mjs" },
+    // pipeline/ — deterministic pipeline composition
+    { source: "runtime/pipeline/pipeline.mjs", dest: "pipeline/pipeline.mjs" },
+    { source: "runtime/pipeline/research.mjs", dest: "pipeline/research.mjs" },
+    // adapters/ — native OpenCode seam
+    { source: "runtime/adapters/native-opencode.mjs", dest: "adapters/native-opencode.mjs" },
+    // controller/ — deterministic gates, retry policy, terminal authority
+    { source: "runtime/controller/plan-gate.mjs", dest: "controller/plan-gate.mjs" },
+    { source: "runtime/controller/retry-policy.mjs", dest: "controller/retry-policy.mjs" },
+    { source: "runtime/controller/review-decision.mjs", dest: "controller/review-decision.mjs" },
+    { source: "runtime/controller/severity.mjs", dest: "controller/severity.mjs" },
+    { source: "runtime/controller/controller.mjs", dest: "controller/controller.mjs" },
+    { source: "runtime/controller/verify.mjs", dest: "controller/verify.mjs" },
+    { source: "runtime/controller/first-bad-boundary.mjs", dest: "controller/first-bad-boundary.mjs" },
+    // observability/ — run events + governance events
+    { source: "runtime/observability/events.mjs", dest: "observability/events.mjs" },
+    { source: "runtime/observability/run-events.mjs", dest: "observability/run-events.mjs" },
+    // reviews/ — deterministic review analyzers
+    { source: "runtime/reviews/analyze.mjs", dest: "reviews/analyze.mjs" },
+    // canonical contract-first runtime entry point
+    { source: "runtime/run.mjs", dest: "run.mjs" },
     { source: "governance/generated/capability-registry.json", dest: "governance/generated/capability-registry.json" },
     { source: "governance/owner-intent.schema.json", dest: "governance/owner-intent.schema.json" },
     { source: "governance/task-capsule.schema.json", dest: "governance/task-capsule.schema.json" },
@@ -944,6 +979,17 @@ async function copyRuntimeFiles(repoRoot, targetRoot) {
     await assertSafePath(runtimeDir, destPath, "runtime destination")
     await copySourceIfSafe(sourcePath, destPath, targetRoot)
   }
+
+  // Shared MCP preflight helper. It must live at
+  // <target>/.agent-governance/scripts/lib/mcp-preflight.mjs so the relative
+  // import ../../scripts/lib/mcp-preflight.mjs resolves from the installed
+  // runtime subdirectories (runtime/baseline/, runtime/observability/).
+  {
+    const sharedSource = path.join(repoRoot, "scripts", "lib", "mcp-preflight.mjs")
+    const sharedDest = path.join(governanceRoot, "scripts", "lib", "mcp-preflight.mjs")
+    await assertSafePath(governanceRoot, sharedDest, "runtime shared helper destination")
+    await copySourceIfSafe(sharedSource, sharedDest, targetRoot)
+  }
 }
 
 async function copyPolicies(repoRoot, targetRoot) {
@@ -957,6 +1003,17 @@ async function copyPolicies(repoRoot, targetRoot) {
     const destPath = path.join(policiesDir, pf)
     await assertSafePath(policiesDir, destPath, "policy destination")
     await copySourceIfSafe(sourcePath, destPath, targetRoot)
+  }
+
+  // Shared MCP preflight helper. It must live at
+  // <target>/.agent-governance/scripts/lib/mcp-preflight.mjs so the relative
+  // import ../../scripts/lib/mcp-preflight.mjs resolves from the installed
+  // runtime subdirectories (runtime/baseline/, runtime/observability/).
+  {
+    const sharedSource = path.join(repoRoot, "scripts", "lib", "mcp-preflight.mjs")
+    const sharedDest = path.join(governanceRoot, "scripts", "lib", "mcp-preflight.mjs")
+    await assertSafePath(governanceRoot, sharedDest, "runtime shared helper destination")
+    await copySourceIfSafe(sharedSource, sharedDest, targetRoot)
   }
 }
 
@@ -1113,6 +1170,12 @@ async function generateSourceLock(repoRoot, targetRoot) {
     sourceRelative: "governance/task-bootstrap-policy.json",
     installedPath: path.join(".agent-governance", "policies", "task-bootstrap-policy.json"),
     kind: "task_bootstrap_policy",
+  })
+  await addManagedSource({
+    sourcePath: path.join(repoRoot, "scripts", "lib", "mcp-preflight.mjs"),
+    sourceRelative: "scripts/lib/mcp-preflight.mjs",
+    installedPath: path.join(".agent-governance", "scripts", "lib", "mcp-preflight.mjs"),
+    kind: "runtime_shared",
   })
 
   const runtimeStatePath = path.join(targetRoot, RUNTIME_STATE_RELATIVE_PATH)
@@ -1353,6 +1416,26 @@ export const CanonicalGovernancePlugin = async ({ directory, worktree, client = 
         userMessage: text,
       });
       if (result.state !== 'TASK_READY') throw new Error('[governance-v2] ' + (result.code || 'RED_BLOCK_TASK_BOOTSTRAP'));
+      // Canonical contract-first runtime entry. The real user task enters the
+      // deterministic runtime (ecosystem.task.v1 + run_id + capability/MCP
+      // preflight + run events) before any agent work. If the runtime entry is
+      // not installed, the bootstrapped task context remains the legacy path.
+      try {
+        const runtimeEntry = await import('../../runtime/run.mjs');
+        if (runtimeEntry && typeof runtimeEntry.enterRun === 'function') {
+          const entry = await runtimeEntry.enterRun({
+            targetRoot,
+            taskText: text,
+            sessionId: input?.sessionID || output?.message?.sessionID || '',
+            messageId: input?.messageID || output?.message?.id || 'unknown',
+          });
+          if (entry.blocked) throw new Error('[governance-v2] RUNTIME_ENTRY_BLOCKED:' + (entry.decision?.reason_code || entry.code || 'BLOCKED'));
+        }
+      } catch (error) {
+        if (error instanceof Error && String(error.message).indexOf('[governance-v2] RUNTIME_ENTRY_BLOCKED') === 0) throw error;
+        // Legacy compatibility: runtime entry unavailable — continue with the
+        // bootstrapped task context (LEGACY_COMPATIBILITY_PATH).
+      }
     },
     'tool.execute.before': async (input, output) => {
       const integrity = validateSourceLock(targetRoot);

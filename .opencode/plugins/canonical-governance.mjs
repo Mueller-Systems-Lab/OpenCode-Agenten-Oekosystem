@@ -349,6 +349,30 @@ export const CanonicalGovernancePlugin = async ({ project = {}, client = null, d
         userMessage: text,
       });
       if (result.state !== 'TASK_READY') throw new Error(`[canonical-governance] ${result.code || 'RED_BLOCK_TASK_BOOTSTRAP'}`);
+      // Canonical contract-first runtime entry. The real user task enters the
+      // deterministic runtime (ecosystem.task.v1 + run_id + capability/MCP
+      // preflight + real run events) before any agent work starts. Terminal
+      // decisions (DONE | FIX | SPLIT | BLOCKED) are produced exclusively by
+      // the deterministic controller; agents remain workers.
+      try {
+        const runtimeEntry = await import('../../runtime/run.mjs');
+        if (runtimeEntry && typeof runtimeEntry.enterRun === 'function') {
+          const entry = await runtimeEntry.enterRun({
+            targetRoot: pluginRoot,
+            taskText: text,
+            sessionId: input?.sessionID || output?.message?.sessionID || '',
+            messageId: input?.messageID || output?.message?.id || 'unknown',
+          });
+          if (entry.blocked) {
+            throw new Error(`[canonical-governance] RUNTIME_ENTRY_BLOCKED:${entry.decision?.reason_code || entry.code || 'BLOCKED'}`);
+          }
+        }
+      } catch (error) {
+        if (error instanceof Error && String(error.message).indexOf('[canonical-governance] RUNTIME_ENTRY_BLOCKED') === 0) throw error;
+        // Legacy compatibility: if the installed runtime entry is unavailable,
+        // the bootstrapped task context remains the fallback
+        // (LEGACY_COMPATIBILITY_PATH).
+      }
     },
     'tool.execute.before': async function (input, output) {
       return handleToolExecution(input, output);

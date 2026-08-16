@@ -181,6 +181,8 @@ async function main() {
     "runtime/pipeline/pipeline.mjs",
     "runtime/pipeline/research.mjs",
     "runtime/reviews/analyze.mjs",
+    "runtime/run.mjs",
+    "scripts/run-task.mjs",
   ]))
 
   issues.push(...await validateNoAbsoluteUserPaths())

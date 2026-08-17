@@ -1,0 +1,103 @@
+{
+  "real_sessions": [
+    {
+      "case_id": "rw-01-isolated-bugfix",
+      "round": 1,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    },
+    {
+      "case_id": "rw-02-multifile-change",
+      "round": 1,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    },
+    {
+      "case_id": "rw-03-existing-test-failure",
+      "round": 1,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    },
+    {
+      "case_id": "rw-04-code-docs-tests",
+      "round": 1,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    },
+    {
+      "case_id": "rw-05-skill-task",
+      "round": 1,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    },
+    {
+      "case_id": "rw-06-mcp-tool-task",
+      "round": 1,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    },
+    {
+      "case_id": "rw-07-controlled-retry",
+      "round": 1,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    },
+    {
+      "case_id": "rw-08-split-decision",
+      "round": 1,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    },
+    {
+      "case_id": "rw-09-security-sensitive",
+      "round": 1,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    },
+    {
+      "case_id": "rw-10-plan-gate-reject",
+      "round": 1,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    },
+    {
+      "case_id": "rw-11-controlled-two-attempt-retry",
+      "round": 1,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    }
+  ],
+  "forced_legacy_tests": [
+    {
+      "case_id": "rw-09-security-sensitive",
+      "forced_legacy_test": true,
+      "runtime_unavailable": true,
+      "legacy_observable": true,
+      "run_context_created": false,
+      "task_context_created": true,
+      "plugin_error": null
+    }
+  ]
+}

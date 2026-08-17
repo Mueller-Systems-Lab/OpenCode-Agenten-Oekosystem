@@ -1,0 +1,99 @@
+{
+  "case_id": "rw-08-split-decision",
+  "task_class": "split_decision",
+  "round": 1,
+  "run_id": "18c826eb-f2fb-4479-b0b0-4304a051831c",
+  "entry_run_id": "18c826eb-f2fb-4479-b0b0-4304a051831c",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "18c826eb-f2fb-4479-b0b0-4304a051831c"
+  ],
+  "entry_source": "plugin:chat.message",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null,
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "plan_fingerprint": "sha256:4f742bc4d3b22c66e406fc2e7a36c0cc1508c569d1b5f23a4cf2f3141e65a68e",
+  "plan_has_text": true,
+  "plan_gate_status": "PASS",
+  "plan_gate_approved": true,
+  "plan_gate_errors": [],
+  "build_status": "SUCCESS",
+  "build_calls": 1,
+  "verify_status": "FAIL",
+  "failure_signatures": [
+    "TEST_FAILURE:parse reads fixture"
+  ],
+  "strategy_deltas": [],
+  "attempt_count": 1,
+  "retry_count": 0,
+  "final_decision": "SPLIT",
+  "reason_code": "RETRY_DENIED_NO_STRATEGY_DELTA",
+  "first_bad_boundary": "VERIFY",
+  "phase_history": [
+    {
+      "name": "TASK",
+      "status": "PASS"
+    },
+    {
+      "name": "BASELINE",
+      "status": "PASS"
+    },
+    {
+      "name": "RESEARCH",
+      "status": "PASS"
+    },
+    {
+      "name": "PLAN",
+      "status": "PASS"
+    },
+    {
+      "name": "PLAN_GATE",
+      "status": "PASS"
+    },
+    {
+      "name": "BUILD",
+      "status": "PASS"
+    },
+    {
+      "name": "VERIFY",
+      "status": "FAIL"
+    },
+    {
+      "name": "CONTROLLER",
+      "status": "FAIL"
+    }
+  ],
+  "reviews": [],
+  "research_findings": [
+    {
+      "focus": "code",
+      "findings": [
+        "src/parse.mjs"
+      ]
+    },
+    {
+      "focus": "docs",
+      "findings": []
+    },
+    {
+      "focus": "tests",
+      "findings": [
+        "test/parse.test.mjs"
+      ]
+    }
+  ],
+  "changed_files": [],
+  "out_of_scope": [],
+  "git_diff_files": [],
+  "worker_terminal_claims": [],
+  "worker_terminal_override_denied": true,
+  "contract_validation_failures": [],
+  "contract_repairs": [],
+  "secret_leak": false,
+  "duration_ms": 4033,
+  "event_count": 8,
+  "unexpected_behavior": [],
+  "run_error": null
+}

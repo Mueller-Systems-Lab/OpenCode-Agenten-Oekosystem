@@ -1,0 +1,7 @@
+{
+  "code": [
+    "src/config.mjs — exists, 1 line: export const mode = \"prod\""
+  ],
+  "docs": [],
+  "tests": []
+}

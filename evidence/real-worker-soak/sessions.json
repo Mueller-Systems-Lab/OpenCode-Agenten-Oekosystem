@@ -1,0 +1,1360 @@
+[
+  {
+    "case_id": "rw-01-isolated-bugfix",
+    "task_class": "isolated_bugfix",
+    "round": 1,
+    "run_id": "4af63eea-9116-437f-845d-37b77b9282b4",
+    "entry_run_id": "4af63eea-9116-437f-845d-37b77b9282b4",
+    "run_id_correlation": true,
+    "run_ids_seen": [
+      "4af63eea-9116-437f-845d-37b77b9282b4"
+    ],
+    "entry_source": "plugin:chat.message",
+    "canonical_runtime_used": true,
+    "legacy_fallback_used": false,
+    "legacy_fallback_reason": null,
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "plan_fingerprint": "sha256:b79981f83152042ef967e1db8b73ba6e8531daf440270bc25ea5ce047052ba84",
+    "plan_has_text": true,
+    "plan_gate_status": "PASS",
+    "plan_gate_approved": true,
+    "plan_gate_errors": [],
+    "build_status": "SUCCESS",
+    "build_calls": 1,
+    "verify_status": "PASS",
+    "failure_signatures": [],
+    "strategy_deltas": [],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "final_decision": "DONE",
+    "reason_code": "ALL_HARD_GATES_GREEN",
+    "first_bad_boundary": null,
+    "phase_history": [
+      {
+        "name": "TASK",
+        "status": "PASS"
+      },
+      {
+        "name": "BASELINE",
+        "status": "PASS"
+      },
+      {
+        "name": "RESEARCH",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN_GATE",
+        "status": "PASS"
+      },
+      {
+        "name": "BUILD",
+        "status": "PASS"
+      },
+      {
+        "name": "VERIFY",
+        "status": "PASS"
+      },
+      {
+        "name": "REVIEWS",
+        "status": "PASS"
+      },
+      {
+        "name": "CONTROLLER",
+        "status": "PASS"
+      }
+    ],
+    "reviews": [
+      {
+        "review_type": "correctness",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "security",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "quality",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      }
+    ],
+    "research_findings": [
+      {
+        "focus": "code",
+        "findings": [
+          "src/calc.mjs"
+        ]
+      },
+      {
+        "focus": "docs",
+        "findings": []
+      },
+      {
+        "focus": "tests",
+        "findings": [
+          "test/calc.test.mjs"
+        ]
+      }
+    ],
+    "changed_files": [
+      "src/calc.mjs"
+    ],
+    "out_of_scope": [],
+    "git_diff_files": [
+      "src/calc.mjs"
+    ],
+    "worker_terminal_claims": [],
+    "worker_terminal_override_denied": true,
+    "contract_validation_failures": [],
+    "contract_repairs": [],
+    "secret_leak": false,
+    "duration_ms": 2495,
+    "event_count": 11,
+    "unexpected_behavior": [],
+    "run_error": null,
+    "session_file": "rw-01-isolated-bugfix/run-round-1.json"
+  },
+  {
+    "case_id": "rw-02-multifile-change",
+    "task_class": "multifile_change",
+    "round": 1,
+    "run_id": "2b731195-466b-49d8-a843-8c67f69ab867",
+    "entry_run_id": "2b731195-466b-49d8-a843-8c67f69ab867",
+    "run_id_correlation": true,
+    "run_ids_seen": [
+      "2b731195-466b-49d8-a843-8c67f69ab867"
+    ],
+    "entry_source": "plugin:chat.message",
+    "canonical_runtime_used": true,
+    "legacy_fallback_used": false,
+    "legacy_fallback_reason": null,
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "plan_fingerprint": "sha256:b37c20664a0dcead3f3775a4deb1bf4422f8fd1f0f65ed89326d187841a67149",
+    "plan_has_text": true,
+    "plan_gate_status": "PASS",
+    "plan_gate_approved": true,
+    "plan_gate_errors": [],
+    "build_status": "SUCCESS",
+    "build_calls": 1,
+    "verify_status": "PASS",
+    "failure_signatures": [],
+    "strategy_deltas": [],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "final_decision": "DONE",
+    "reason_code": "ALL_HARD_GATES_GREEN",
+    "first_bad_boundary": null,
+    "phase_history": [
+      {
+        "name": "TASK",
+        "status": "PASS"
+      },
+      {
+        "name": "BASELINE",
+        "status": "PASS"
+      },
+      {
+        "name": "RESEARCH",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN_GATE",
+        "status": "PASS"
+      },
+      {
+        "name": "BUILD",
+        "status": "PASS"
+      },
+      {
+        "name": "VERIFY",
+        "status": "PASS"
+      },
+      {
+        "name": "REVIEWS",
+        "status": "PASS"
+      },
+      {
+        "name": "CONTROLLER",
+        "status": "PASS"
+      }
+    ],
+    "reviews": [
+      {
+        "review_type": "correctness",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "security",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "quality",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      }
+    ],
+    "research_findings": [
+      {
+        "focus": "code",
+        "findings": [
+          "src/format.mjs",
+          "src/user.mjs"
+        ]
+      },
+      {
+        "focus": "docs",
+        "findings": []
+      },
+      {
+        "focus": "tests",
+        "findings": [
+          "test/format.test.mjs"
+        ]
+      }
+    ],
+    "changed_files": [
+      "src/format.mjs",
+      "src/user.mjs",
+      "test/format.test.mjs"
+    ],
+    "out_of_scope": [],
+    "git_diff_files": [
+      "src/format.mjs",
+      "src/user.mjs",
+      "test/format.test.mjs"
+    ],
+    "worker_terminal_claims": [],
+    "worker_terminal_override_denied": true,
+    "contract_validation_failures": [],
+    "contract_repairs": [],
+    "secret_leak": false,
+    "duration_ms": 4756,
+    "event_count": 11,
+    "unexpected_behavior": [],
+    "run_error": null,
+    "session_file": "rw-02-multifile-change/run-round-1.json"
+  },
+  {
+    "case_id": "rw-03-existing-test-failure",
+    "task_class": "existing_test_failure",
+    "round": 1,
+    "run_id": "eeffa47a-59b3-4e3c-a619-efd8a8f0c855",
+    "entry_run_id": "eeffa47a-59b3-4e3c-a619-efd8a8f0c855",
+    "run_id_correlation": true,
+    "run_ids_seen": [
+      "eeffa47a-59b3-4e3c-a619-efd8a8f0c855"
+    ],
+    "entry_source": "plugin:chat.message",
+    "canonical_runtime_used": true,
+    "legacy_fallback_used": false,
+    "legacy_fallback_reason": null,
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "plan_fingerprint": "sha256:a8e2de7636d0781871db73b904422987fe27cf19cca7657a183ce2d39c6786e8",
+    "plan_has_text": true,
+    "plan_gate_status": "PASS",
+    "plan_gate_approved": true,
+    "plan_gate_errors": [],
+    "build_status": "SUCCESS",
+    "build_calls": 1,
+    "verify_status": "PASS",
+    "failure_signatures": [],
+    "strategy_deltas": [],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "final_decision": "DONE",
+    "reason_code": "ALL_HARD_GATES_GREEN",
+    "first_bad_boundary": null,
+    "phase_history": [
+      {
+        "name": "TASK",
+        "status": "PASS"
+      },
+      {
+        "name": "BASELINE",
+        "status": "PASS"
+      },
+      {
+        "name": "RESEARCH",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN_GATE",
+        "status": "PASS"
+      },
+      {
+        "name": "BUILD",
+        "status": "PASS"
+      },
+      {
+        "name": "VERIFY",
+        "status": "PASS"
+      },
+      {
+        "name": "REVIEWS",
+        "status": "PASS"
+      },
+      {
+        "name": "CONTROLLER",
+        "status": "PASS"
+      }
+    ],
+    "reviews": [
+      {
+        "review_type": "correctness",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "security",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "quality",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      }
+    ],
+    "research_findings": [
+      {
+        "focus": "code",
+        "findings": [
+          "src/total.mjs"
+        ]
+      },
+      {
+        "focus": "docs",
+        "findings": []
+      },
+      {
+        "focus": "tests",
+        "findings": [
+          "test/total.test.mjs"
+        ]
+      }
+    ],
+    "changed_files": [
+      "src/total.mjs"
+    ],
+    "out_of_scope": [],
+    "git_diff_files": [
+      "src/total.mjs"
+    ],
+    "worker_terminal_claims": [],
+    "worker_terminal_override_denied": true,
+    "contract_validation_failures": [],
+    "contract_repairs": [],
+    "secret_leak": false,
+    "duration_ms": 4645,
+    "event_count": 11,
+    "unexpected_behavior": [],
+    "run_error": null,
+    "session_file": "rw-03-existing-test-failure/run-round-1.json"
+  },
+  {
+    "case_id": "rw-04-code-docs-tests",
+    "task_class": "code_docs_tests",
+    "round": 1,
+    "run_id": "e1f85950-e27f-4646-802d-e6b5909a0167",
+    "entry_run_id": "e1f85950-e27f-4646-802d-e6b5909a0167",
+    "run_id_correlation": true,
+    "run_ids_seen": [
+      "e1f85950-e27f-4646-802d-e6b5909a0167"
+    ],
+    "entry_source": "plugin:chat.message",
+    "canonical_runtime_used": true,
+    "legacy_fallback_used": false,
+    "legacy_fallback_reason": null,
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "plan_fingerprint": "sha256:b7e3f94bbd93bc0f79c095d569bec14e70c7cbc338baddf003e1d127bc763bf7",
+    "plan_has_text": true,
+    "plan_gate_status": "PASS",
+    "plan_gate_approved": true,
+    "plan_gate_errors": [],
+    "build_status": "SUCCESS",
+    "build_calls": 1,
+    "verify_status": "PASS",
+    "failure_signatures": [],
+    "strategy_deltas": [],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "final_decision": "DONE",
+    "reason_code": "ALL_HARD_GATES_GREEN",
+    "first_bad_boundary": null,
+    "phase_history": [
+      {
+        "name": "TASK",
+        "status": "PASS"
+      },
+      {
+        "name": "BASELINE",
+        "status": "PASS"
+      },
+      {
+        "name": "RESEARCH",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN_GATE",
+        "status": "PASS"
+      },
+      {
+        "name": "BUILD",
+        "status": "PASS"
+      },
+      {
+        "name": "VERIFY",
+        "status": "PASS"
+      },
+      {
+        "name": "REVIEWS",
+        "status": "PASS"
+      },
+      {
+        "name": "CONTROLLER",
+        "status": "PASS"
+      }
+    ],
+    "reviews": [
+      {
+        "review_type": "correctness",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "security",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "quality",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      }
+    ],
+    "research_findings": [
+      {
+        "focus": "code",
+        "findings": [
+          "src/greet.mjs"
+        ]
+      },
+      {
+        "focus": "docs",
+        "findings": [
+          "docs/README.md"
+        ]
+      },
+      {
+        "focus": "tests",
+        "findings": [
+          "test/greet.test.mjs"
+        ]
+      }
+    ],
+    "changed_files": [
+      "docs/README.md"
+    ],
+    "out_of_scope": [],
+    "git_diff_files": [
+      "docs/README.md"
+    ],
+    "worker_terminal_claims": [],
+    "worker_terminal_override_denied": true,
+    "contract_validation_failures": [],
+    "contract_repairs": [],
+    "secret_leak": false,
+    "duration_ms": 4667,
+    "event_count": 11,
+    "unexpected_behavior": [],
+    "run_error": null,
+    "session_file": "rw-04-code-docs-tests/run-round-1.json"
+  },
+  {
+    "case_id": "rw-05-skill-task",
+    "task_class": "skill_task",
+    "round": 1,
+    "run_id": "3f6990f0-e9f5-44b9-8638-5dbafb36aa6b",
+    "entry_run_id": "3f6990f0-e9f5-44b9-8638-5dbafb36aa6b",
+    "run_id_correlation": true,
+    "run_ids_seen": [
+      "3f6990f0-e9f5-44b9-8638-5dbafb36aa6b"
+    ],
+    "entry_source": "plugin:chat.message",
+    "canonical_runtime_used": true,
+    "legacy_fallback_used": false,
+    "legacy_fallback_reason": null,
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "plan_fingerprint": "sha256:18eced4c9bf7d671f3249a6e389aac6b75037b403bee30d34efcaadc12103806",
+    "plan_has_text": true,
+    "plan_gate_status": "PASS",
+    "plan_gate_approved": true,
+    "plan_gate_errors": [],
+    "build_status": "SUCCESS",
+    "build_calls": 1,
+    "verify_status": "PASS",
+    "failure_signatures": [],
+    "strategy_deltas": [],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "final_decision": "DONE",
+    "reason_code": "ALL_HARD_GATES_GREEN",
+    "first_bad_boundary": null,
+    "phase_history": [
+      {
+        "name": "TASK",
+        "status": "PASS"
+      },
+      {
+        "name": "BASELINE",
+        "status": "PASS"
+      },
+      {
+        "name": "RESEARCH",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN_GATE",
+        "status": "PASS"
+      },
+      {
+        "name": "BUILD",
+        "status": "PASS"
+      },
+      {
+        "name": "VERIFY",
+        "status": "PASS"
+      },
+      {
+        "name": "REVIEWS",
+        "status": "PASS"
+      },
+      {
+        "name": "CONTROLLER",
+        "status": "PASS"
+      }
+    ],
+    "reviews": [
+      {
+        "review_type": "correctness",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "security",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "quality",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      }
+    ],
+    "research_findings": [
+      {
+        "focus": "code",
+        "findings": [
+          "src/calc2.mjs"
+        ]
+      },
+      {
+        "focus": "docs",
+        "findings": []
+      },
+      {
+        "focus": "tests",
+        "findings": [
+          "test/calc2.test.mjs"
+        ]
+      }
+    ],
+    "changed_files": [
+      "src/calc2.mjs"
+    ],
+    "out_of_scope": [],
+    "git_diff_files": [
+      "src/calc2.mjs"
+    ],
+    "worker_terminal_claims": [],
+    "worker_terminal_override_denied": true,
+    "contract_validation_failures": [],
+    "contract_repairs": [],
+    "secret_leak": false,
+    "duration_ms": 4359,
+    "event_count": 11,
+    "unexpected_behavior": [],
+    "run_error": null,
+    "session_file": "rw-05-skill-task/run-round-1.json"
+  },
+  {
+    "case_id": "rw-06-mcp-tool-task",
+    "task_class": "mcp_tool_task",
+    "round": 1,
+    "run_id": "c13d5fa7-0b53-4045-b555-637754721a2e",
+    "entry_run_id": "c13d5fa7-0b53-4045-b555-637754721a2e",
+    "run_id_correlation": true,
+    "run_ids_seen": [
+      "c13d5fa7-0b53-4045-b555-637754721a2e"
+    ],
+    "entry_source": "plugin:chat.message",
+    "canonical_runtime_used": true,
+    "legacy_fallback_used": false,
+    "legacy_fallback_reason": null,
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "plan_fingerprint": "sha256:9ad6fa4483a7a685c8c3d6fc7d2da078fdd11fadef0b82084be73e57ada380af",
+    "plan_has_text": true,
+    "plan_gate_status": "PASS",
+    "plan_gate_approved": true,
+    "plan_gate_errors": [],
+    "build_status": "SUCCESS",
+    "build_calls": 1,
+    "verify_status": "PASS",
+    "failure_signatures": [],
+    "strategy_deltas": [],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "final_decision": "DONE",
+    "reason_code": "ALL_HARD_GATES_GREEN",
+    "first_bad_boundary": null,
+    "phase_history": [
+      {
+        "name": "TASK",
+        "status": "PASS"
+      },
+      {
+        "name": "BASELINE",
+        "status": "PASS"
+      },
+      {
+        "name": "RESEARCH",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN_GATE",
+        "status": "PASS"
+      },
+      {
+        "name": "BUILD",
+        "status": "PASS"
+      },
+      {
+        "name": "VERIFY",
+        "status": "PASS"
+      },
+      {
+        "name": "REVIEWS",
+        "status": "PASS"
+      },
+      {
+        "name": "CONTROLLER",
+        "status": "PASS"
+      }
+    ],
+    "reviews": [
+      {
+        "review_type": "correctness",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "security",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "quality",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      }
+    ],
+    "research_findings": [
+      {
+        "focus": "code",
+        "findings": []
+      },
+      {
+        "focus": "docs",
+        "findings": [
+          "notes.md"
+        ]
+      },
+      {
+        "focus": "tests",
+        "findings": [
+          "test/notes.test.mjs"
+        ]
+      }
+    ],
+    "changed_files": [
+      "notes.md"
+    ],
+    "out_of_scope": [],
+    "git_diff_files": [
+      "notes.md"
+    ],
+    "worker_terminal_claims": [],
+    "worker_terminal_override_denied": true,
+    "contract_validation_failures": [],
+    "contract_repairs": [],
+    "secret_leak": false,
+    "duration_ms": 3940,
+    "event_count": 11,
+    "unexpected_behavior": [],
+    "run_error": null,
+    "session_file": "rw-06-mcp-tool-task/run-round-1.json"
+  },
+  {
+    "case_id": "rw-07-controlled-retry",
+    "task_class": "controlled_retry",
+    "round": 1,
+    "run_id": "641b032c-d8ee-45dd-9329-117c275eba30",
+    "entry_run_id": "641b032c-d8ee-45dd-9329-117c275eba30",
+    "run_id_correlation": true,
+    "run_ids_seen": [
+      "641b032c-d8ee-45dd-9329-117c275eba30"
+    ],
+    "entry_source": "plugin:chat.message",
+    "canonical_runtime_used": true,
+    "legacy_fallback_used": false,
+    "legacy_fallback_reason": null,
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "plan_fingerprint": "sha256:a59f2036f831f4010b425d6bab38517e1d6f66608b0689d179dc6d2c11a9b932",
+    "plan_has_text": true,
+    "plan_gate_status": "PASS",
+    "plan_gate_approved": true,
+    "plan_gate_errors": [],
+    "build_status": "SUCCESS",
+    "build_calls": 1,
+    "verify_status": "PASS",
+    "failure_signatures": [],
+    "strategy_deltas": [],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "final_decision": "DONE",
+    "reason_code": "ALL_HARD_GATES_GREEN",
+    "first_bad_boundary": null,
+    "phase_history": [
+      {
+        "name": "TASK",
+        "status": "PASS"
+      },
+      {
+        "name": "BASELINE",
+        "status": "PASS"
+      },
+      {
+        "name": "RESEARCH",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN_GATE",
+        "status": "PASS"
+      },
+      {
+        "name": "BUILD",
+        "status": "PASS"
+      },
+      {
+        "name": "VERIFY",
+        "status": "PASS"
+      },
+      {
+        "name": "REVIEWS",
+        "status": "PASS"
+      },
+      {
+        "name": "CONTROLLER",
+        "status": "PASS"
+      }
+    ],
+    "reviews": [
+      {
+        "review_type": "correctness",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "security",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "quality",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      }
+    ],
+    "research_findings": [
+      {
+        "focus": "code",
+        "findings": [
+          "src/sum2.mjs"
+        ]
+      },
+      {
+        "focus": "docs",
+        "findings": []
+      },
+      {
+        "focus": "tests",
+        "findings": [
+          "test/sum2.test.mjs"
+        ]
+      }
+    ],
+    "changed_files": [
+      "src/sum2.mjs"
+    ],
+    "out_of_scope": [],
+    "git_diff_files": [
+      "src/sum2.mjs"
+    ],
+    "worker_terminal_claims": [],
+    "worker_terminal_override_denied": true,
+    "contract_validation_failures": [],
+    "contract_repairs": [],
+    "secret_leak": false,
+    "duration_ms": 3671,
+    "event_count": 11,
+    "unexpected_behavior": [],
+    "run_error": null,
+    "session_file": "rw-07-controlled-retry/run-round-1.json"
+  },
+  {
+    "case_id": "rw-08-split-decision",
+    "task_class": "split_decision",
+    "round": 1,
+    "run_id": "18c826eb-f2fb-4479-b0b0-4304a051831c",
+    "entry_run_id": "18c826eb-f2fb-4479-b0b0-4304a051831c",
+    "run_id_correlation": true,
+    "run_ids_seen": [
+      "18c826eb-f2fb-4479-b0b0-4304a051831c"
+    ],
+    "entry_source": "plugin:chat.message",
+    "canonical_runtime_used": true,
+    "legacy_fallback_used": false,
+    "legacy_fallback_reason": null,
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "plan_fingerprint": "sha256:4f742bc4d3b22c66e406fc2e7a36c0cc1508c569d1b5f23a4cf2f3141e65a68e",
+    "plan_has_text": true,
+    "plan_gate_status": "PASS",
+    "plan_gate_approved": true,
+    "plan_gate_errors": [],
+    "build_status": "SUCCESS",
+    "build_calls": 1,
+    "verify_status": "FAIL",
+    "failure_signatures": [
+      "TEST_FAILURE:parse reads fixture"
+    ],
+    "strategy_deltas": [],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "final_decision": "SPLIT",
+    "reason_code": "RETRY_DENIED_NO_STRATEGY_DELTA",
+    "first_bad_boundary": "VERIFY",
+    "phase_history": [
+      {
+        "name": "TASK",
+        "status": "PASS"
+      },
+      {
+        "name": "BASELINE",
+        "status": "PASS"
+      },
+      {
+        "name": "RESEARCH",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN_GATE",
+        "status": "PASS"
+      },
+      {
+        "name": "BUILD",
+        "status": "PASS"
+      },
+      {
+        "name": "VERIFY",
+        "status": "FAIL"
+      },
+      {
+        "name": "CONTROLLER",
+        "status": "FAIL"
+      }
+    ],
+    "reviews": [],
+    "research_findings": [
+      {
+        "focus": "code",
+        "findings": [
+          "src/parse.mjs"
+        ]
+      },
+      {
+        "focus": "docs",
+        "findings": []
+      },
+      {
+        "focus": "tests",
+        "findings": [
+          "test/parse.test.mjs"
+        ]
+      }
+    ],
+    "changed_files": [],
+    "out_of_scope": [],
+    "git_diff_files": [],
+    "worker_terminal_claims": [],
+    "worker_terminal_override_denied": true,
+    "contract_validation_failures": [],
+    "contract_repairs": [],
+    "secret_leak": false,
+    "duration_ms": 4033,
+    "event_count": 8,
+    "unexpected_behavior": [],
+    "run_error": null,
+    "session_file": "rw-08-split-decision/run-round-1.json"
+  },
+  {
+    "case_id": "rw-09-security-sensitive",
+    "task_class": "security_sensitive",
+    "round": 1,
+    "run_id": "dee83e93-49bd-42b5-a53f-ea52ae6ce74c",
+    "entry_run_id": "dee83e93-49bd-42b5-a53f-ea52ae6ce74c",
+    "run_id_correlation": true,
+    "run_ids_seen": [
+      "dee83e93-49bd-42b5-a53f-ea52ae6ce74c"
+    ],
+    "entry_source": "plugin:chat.message",
+    "canonical_runtime_used": true,
+    "legacy_fallback_used": false,
+    "legacy_fallback_reason": null,
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "plan_fingerprint": "sha256:3b66762729dae2a94ee6c684750ef9895d930ac0b3e8dddb34b7190fec2572c6",
+    "plan_has_text": true,
+    "plan_gate_status": "PASS",
+    "plan_gate_approved": true,
+    "plan_gate_errors": [],
+    "build_status": "SUCCESS",
+    "build_calls": 1,
+    "verify_status": "PASS",
+    "failure_signatures": [],
+    "strategy_deltas": [],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "final_decision": "BLOCKED",
+    "reason_code": "BLOCKING_HIGH_OR_CRITICAL_FINDING",
+    "first_bad_boundary": "REVIEWS",
+    "phase_history": [
+      {
+        "name": "TASK",
+        "status": "PASS"
+      },
+      {
+        "name": "BASELINE",
+        "status": "PASS"
+      },
+      {
+        "name": "RESEARCH",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN_GATE",
+        "status": "PASS"
+      },
+      {
+        "name": "BUILD",
+        "status": "PASS"
+      },
+      {
+        "name": "VERIFY",
+        "status": "PASS"
+      },
+      {
+        "name": "REVIEWS",
+        "status": "FAIL"
+      },
+      {
+        "name": "CONTROLLER",
+        "status": "FAIL"
+      }
+    ],
+    "reviews": [
+      {
+        "review_type": "correctness",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "security",
+        "status": "FAIL",
+        "severity": "CRITICAL",
+        "blocking": true,
+        "findings": [
+          {
+            "severity": "CRITICAL",
+            "file": "src/config.mjs",
+            "message": "credential-like assignment detected"
+          }
+        ]
+      },
+      {
+        "review_type": "quality",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      }
+    ],
+    "research_findings": [
+      {
+        "focus": "code",
+        "findings": [
+          "src/config.mjs"
+        ]
+      },
+      {
+        "focus": "docs",
+        "findings": []
+      },
+      {
+        "focus": "tests",
+        "findings": []
+      }
+    ],
+    "changed_files": [
+      "src/config.mjs"
+    ],
+    "out_of_scope": [],
+    "git_diff_files": [
+      "src/config.mjs"
+    ],
+    "worker_terminal_claims": [],
+    "worker_terminal_override_denied": true,
+    "contract_validation_failures": [],
+    "contract_repairs": [],
+    "secret_leak": false,
+    "duration_ms": 1540,
+    "event_count": 11,
+    "unexpected_behavior": [],
+    "run_error": null,
+    "session_file": "rw-09-security-sensitive/run-round-1.json"
+  },
+  {
+    "case_id": "rw-10-plan-gate-reject",
+    "task_class": "plan_gate_reject",
+    "round": 1,
+    "run_id": "5bbebed3-9ff7-4351-b2e3-2d61eba5f7ac",
+    "entry_run_id": "5bbebed3-9ff7-4351-b2e3-2d61eba5f7ac",
+    "run_id_correlation": true,
+    "run_ids_seen": [
+      "5bbebed3-9ff7-4351-b2e3-2d61eba5f7ac"
+    ],
+    "entry_source": "plugin:chat.message",
+    "canonical_runtime_used": true,
+    "legacy_fallback_used": false,
+    "legacy_fallback_reason": null,
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "plan_fingerprint": "sha256:aa8fa2a34e291ca7d72bbe7f2d3aa1a40d9a611d3f8d6f81c4c37391f286add9",
+    "plan_has_text": true,
+    "plan_gate_status": "FAIL",
+    "plan_gate_approved": false,
+    "plan_gate_errors": [
+      "ACCEPTANCE_CRITERIA_MISSING"
+    ],
+    "build_status": null,
+    "build_calls": 0,
+    "verify_status": null,
+    "failure_signatures": [],
+    "strategy_deltas": [],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "final_decision": "BLOCKED",
+    "reason_code": "ACCEPTANCE_CRITERIA_MISSING",
+    "first_bad_boundary": "PLAN_GATE",
+    "phase_history": [
+      {
+        "name": "TASK",
+        "status": "PASS"
+      },
+      {
+        "name": "BASELINE",
+        "status": "PASS"
+      },
+      {
+        "name": "RESEARCH",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN_GATE",
+        "status": "FAIL"
+      },
+      {
+        "name": "CONTROLLER",
+        "status": "FAIL"
+      }
+    ],
+    "reviews": [],
+    "research_findings": [
+      {
+        "focus": "code",
+        "findings": [
+          "src/double.mjs"
+        ]
+      },
+      {
+        "focus": "docs",
+        "findings": []
+      },
+      {
+        "focus": "tests",
+        "findings": []
+      }
+    ],
+    "changed_files": [],
+    "out_of_scope": [],
+    "git_diff_files": [],
+    "worker_terminal_claims": [],
+    "worker_terminal_override_denied": true,
+    "contract_validation_failures": [],
+    "contract_repairs": [],
+    "secret_leak": false,
+    "duration_ms": 1878,
+    "event_count": 6,
+    "unexpected_behavior": [],
+    "run_error": null,
+    "plan_gate_rejected_reason": "ACCEPTANCE_CRITERIA_MISSING",
+    "session_file": "rw-10-plan-gate-reject/run-round-1.json"
+  },
+  {
+    "case_id": "rw-11-controlled-two-attempt-retry",
+    "task_class": "controlled_two_attempt_retry",
+    "round": 1,
+    "run_id": "c887e6d6-baf7-4700-9492-f030dd791792",
+    "entry_run_id": "c887e6d6-baf7-4700-9492-f030dd791792",
+    "run_id_correlation": true,
+    "run_ids_seen": [
+      "c887e6d6-baf7-4700-9492-f030dd791792"
+    ],
+    "entry_source": "plugin:chat.message",
+    "canonical_runtime_used": true,
+    "legacy_fallback_used": false,
+    "legacy_fallback_reason": null,
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "plan_fingerprint": "sha256:3d1e0e452f0f28980c5f3ed7c2bb09a03b1e79194b2a8dd7f24ea6a2da2c9ee4",
+    "plan_has_text": true,
+    "plan_gate_status": "PASS",
+    "plan_gate_approved": true,
+    "plan_gate_errors": [],
+    "build_status": "SUCCESS",
+    "build_calls": 2,
+    "verify_status": "PASS",
+    "failure_signatures": [
+      "TEST_FAILURE:average empty array"
+    ],
+    "strategy_deltas": [
+      "Use an empty-array guard (if (items.length === 0) return 0) plus reduce with explicit initial value 0: items.reduce((a, b) => a + b, 0) / items.length"
+    ],
+    "attempt_count": 2,
+    "retry_count": 1,
+    "final_decision": "DONE",
+    "reason_code": "ALL_HARD_GATES_GREEN",
+    "first_bad_boundary": null,
+    "phase_history": [
+      {
+        "name": "TASK",
+        "status": "PASS"
+      },
+      {
+        "name": "BASELINE",
+        "status": "PASS"
+      },
+      {
+        "name": "RESEARCH",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN",
+        "status": "PASS"
+      },
+      {
+        "name": "PLAN_GATE",
+        "status": "PASS"
+      },
+      {
+        "name": "BUILD",
+        "status": "PASS"
+      },
+      {
+        "name": "VERIFY",
+        "status": "PASS"
+      },
+      {
+        "name": "REVIEWS",
+        "status": "PASS"
+      },
+      {
+        "name": "CONTROLLER",
+        "status": "PASS"
+      }
+    ],
+    "reviews": [
+      {
+        "review_type": "correctness",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "security",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      },
+      {
+        "review_type": "quality",
+        "status": "PASS",
+        "severity": "INFO",
+        "blocking": false,
+        "findings": []
+      }
+    ],
+    "research_findings": [
+      {
+        "focus": "code",
+        "findings": [
+          "src/avg.mjs"
+        ]
+      },
+      {
+        "focus": "docs",
+        "findings": []
+      },
+      {
+        "focus": "tests",
+        "findings": [
+          "test/avg.test.mjs"
+        ]
+      }
+    ],
+    "changed_files": [
+      "src/avg.mjs"
+    ],
+    "out_of_scope": [],
+    "git_diff_files": [
+      "src/avg.mjs"
+    ],
+    "worker_terminal_claims": [],
+    "worker_terminal_override_denied": true,
+    "contract_validation_failures": [],
+    "contract_repairs": [],
+    "secret_leak": false,
+    "duration_ms": 5342,
+    "event_count": 13,
+    "unexpected_behavior": [],
+    "run_error": null,
+    "session_file": "rw-11-controlled-two-attempt-retry/run-round-1.json"
+  }
+]

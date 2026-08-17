@@ -1,0 +1,127 @@
+{
+  "case_id": "rw-05-skill-task",
+  "task_class": "skill_task",
+  "round": 1,
+  "run_id": "3f6990f0-e9f5-44b9-8638-5dbafb36aa6b",
+  "entry_run_id": "3f6990f0-e9f5-44b9-8638-5dbafb36aa6b",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "3f6990f0-e9f5-44b9-8638-5dbafb36aa6b"
+  ],
+  "entry_source": "plugin:chat.message",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null,
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "plan_fingerprint": "sha256:18eced4c9bf7d671f3249a6e389aac6b75037b403bee30d34efcaadc12103806",
+  "plan_has_text": true,
+  "plan_gate_status": "PASS",
+  "plan_gate_approved": true,
+  "plan_gate_errors": [],
+  "build_status": "SUCCESS",
+  "build_calls": 1,
+  "verify_status": "PASS",
+  "failure_signatures": [],
+  "strategy_deltas": [],
+  "attempt_count": 1,
+  "retry_count": 0,
+  "final_decision": "DONE",
+  "reason_code": "ALL_HARD_GATES_GREEN",
+  "first_bad_boundary": null,
+  "phase_history": [
+    {
+      "name": "TASK",
+      "status": "PASS"
+    },
+    {
+      "name": "BASELINE",
+      "status": "PASS"
+    },
+    {
+      "name": "RESEARCH",
+      "status": "PASS"
+    },
+    {
+      "name": "PLAN",
+      "status": "PASS"
+    },
+    {
+      "name": "PLAN_GATE",
+      "status": "PASS"
+    },
+    {
+      "name": "BUILD",
+      "status": "PASS"
+    },
+    {
+      "name": "VERIFY",
+      "status": "PASS"
+    },
+    {
+      "name": "REVIEWS",
+      "status": "PASS"
+    },
+    {
+      "name": "CONTROLLER",
+      "status": "PASS"
+    }
+  ],
+  "reviews": [
+    {
+      "review_type": "correctness",
+      "status": "PASS",
+      "severity": "INFO",
+      "blocking": false,
+      "findings": []
+    },
+    {
+      "review_type": "security",
+      "status": "PASS",
+      "severity": "INFO",
+      "blocking": false,
+      "findings": []
+    },
+    {
+      "review_type": "quality",
+      "status": "PASS",
+      "severity": "INFO",
+      "blocking": false,
+      "findings": []
+    }
+  ],
+  "research_findings": [
+    {
+      "focus": "code",
+      "findings": [
+        "src/calc2.mjs"
+      ]
+    },
+    {
+      "focus": "docs",
+      "findings": []
+    },
+    {
+      "focus": "tests",
+      "findings": [
+        "test/calc2.test.mjs"
+      ]
+    }
+  ],
+  "changed_files": [
+    "src/calc2.mjs"
+  ],
+  "out_of_scope": [],
+  "git_diff_files": [
+    "src/calc2.mjs"
+  ],
+  "worker_terminal_claims": [],
+  "worker_terminal_override_denied": true,
+  "contract_validation_failures": [],
+  "contract_repairs": [],
+  "secret_leak": false,
+  "duration_ms": 4359,
+  "event_count": 11,
+  "unexpected_behavior": [],
+  "run_error": null
+}

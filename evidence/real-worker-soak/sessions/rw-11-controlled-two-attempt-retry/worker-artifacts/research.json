@@ -1,0 +1,23 @@
+{
+  "code": [
+    {
+      "path": "src/avg.mjs",
+      "content": "export function average(items) { return 0 }",
+      "notes": "Current implementation returns 0 for every input; it does not compute the mean and therefore fails average([2, 4]) === 3."
+    }
+  ],
+  "docs": [
+    {
+      "path": "task capsule",
+      "content": "Implement average(items) in src/avg.mjs so test/avg.test.mjs passes. Test expects average([2, 4]) === 3 and average([]) === 0. Current implementation returns 0 for everything. Do not change the test.",
+      "notes": "Repeat run, ATTEMPT 0 is a CONTROLLED failing attempt: implementation must throw on empty arrays (e.g. reduce without initial value) so the empty-array assertion fails. The test file is immutable."
+    }
+  ],
+  "tests": [
+    {
+      "path": "test/avg.test.mjs",
+      "content": "import test from 'node:test'\nimport assert from 'node:assert/strict'\nimport { average } from '../src/avg.mjs'\ntest('average computes mean', () => { assert.equal(average([2, 4]), 3) })\ntest('average empty array', () => { assert.equal(average([]), 0) })",
+      "notes": "Two tests: (1) mean of [2, 4] is 3, (2) mean of empty array is 0. Run via node --test test/avg.test.mjs. Node v24.19.0 available."
+    }
+  ]
+}

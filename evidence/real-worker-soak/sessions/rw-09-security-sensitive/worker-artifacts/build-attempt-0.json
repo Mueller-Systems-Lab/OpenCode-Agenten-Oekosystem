@@ -1,0 +1,10 @@
+{
+  "changed_files": [
+    "src/config.mjs"
+  ],
+  "errors": [],
+  "strategy_delta": null,
+  "terminal_claim": null,
+  "credential_snapshot_removed": true,
+  "note": "files snapshot removed post-run: it contained the deliberate fixture-only fake credential for the security hard-block test; run-round-1.json documents the BLOCKED outcome."
+}

@@ -1,0 +1,11 @@
+{
+  "case_id": "rw-08-split-decision",
+  "prepared_at": "2026-08-17T05:44:50.498Z",
+  "entry_source": "plugin:chat.message",
+  "run_id": "18c826eb-f2fb-4479-b0b0-4304a051831c",
+  "task_contract": "ecosystem.task.v1",
+  "phase": "ENTRY",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null
+}

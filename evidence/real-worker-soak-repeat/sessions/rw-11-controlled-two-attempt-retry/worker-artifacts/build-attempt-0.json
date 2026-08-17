@@ -1,0 +1,9 @@
+{
+  "changed_files": ["src/avg.mjs"],
+  "errors": ["TypeError: Reduce of empty array with no initial value"],
+  "strategy_delta": "add an explicit empty-array guard (if items.length === 0 return 0) and use reduce with initial value 0",
+  "terminal_claim": null,
+  "files": {
+    "src/avg.mjs": "export function average(items) { return items.reduce((a, b) => a + b) / items.length }"
+  }
+}

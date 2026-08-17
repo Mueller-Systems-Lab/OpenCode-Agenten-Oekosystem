@@ -1,0 +1,12 @@
+{
+  "case_id": "rw-11-controlled-two-attempt-retry",
+  "failure_signature_before": "TEST_FAILURE:average empty array",
+  "strategy_delta": "Use an empty-array guard (if (items.length === 0) return 0) plus reduce with explicit initial value 0: items.reduce((a, b) => a + b, 0) / items.length",
+  "strategy_delta_classification": "STRATEGY_DELTA_MEANINGFUL",
+  "failure_signature_after": null,
+  "verification_after": "PASS",
+  "final_decision": "DONE",
+  "retry_classification": "RETRY_EFFECTIVE",
+  "attempts": 2,
+  "first_bad_boundary": null
+}

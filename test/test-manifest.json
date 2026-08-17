@@ -1,83 +1,86 @@
 {
-  "$schema": "./test-manifest.schema.json",
-  "version": 1,
-  "groups": {
-    "unit": [
-      "test/compatibility/opencode-native-compatibility.test.mjs",
-      "test/approval-v2/approval-engine.test.mjs",
-      "test/approval-v2/opencode-todo-compat.test.mjs",
-      "test/gates/approval.test.mjs",
-      "test/gates/comment-policy.test.mjs",
-      "test/gates/kernel.test.mjs",
-      "test/gates/runtime-adapters.test.mjs",
-      "test/security/bootstrap-secret-isolation.test.mjs",
-      "test/security/bootstrap-bypass-red-team.test.mjs",
-      "test/security/task-bootstrap-security.test.mjs",
-      "test/security/existing-installation-automigration-security.test.mjs",
-      "test/security/redaction.test.mjs",
-      "test/controller/controller.test.mjs",
-      "test/controller/retry.test.mjs",
-      "test/controller/preflight.test.mjs",
-      "test/controller/observability.test.mjs",
-      "test/controller/vertical-slice.test.mjs",
-      "test/controller/runtime-adoption.test.mjs",
-      "test/controller/negative-bypass.test.mjs",
-      "test/controller/vertical-slice-adoption.test.mjs",
-      "test/controller/security-boundary.test.mjs"
-    ],
-    "contract": [
-      "test/contracts/bootstrap-capability-contract.test.mjs",
-      "test/contracts/bootstrap-v2-classification-output.test.mjs",
-      "test/contracts/ci-workflow-contract.test.mjs",
-      "test/contracts/completion-runtime-contracts.test.mjs",
-      "test/contracts/governance-generator-platform-contract.test.mjs",
-      "test/contracts/runtime-enforcement-contracts.test.mjs",
-      "test/contracts/runtime-neutral-completion.test.mjs",
-      "test/spec-kit/bridge-contract.test.mjs",
-      "test/spec-kit/bridge-red.test.mjs",
-      "test/validation/working-method.test.mjs",
-      "test/contracts/runtime-pipeline-contracts.test.mjs"
-    ],
-    "integration": [
-      "test/integration/approval-enforcement.test.mjs",
-      "test/integration/bootstrap-gate-wiring.test.mjs",
-      "test/integration/gate-cli-smoke.test.mjs",
-      "test/integration/rollback-runtime.test.mjs",
-      "test/integration/secure-bootstrap-controller.test.mjs",
-      "test/integration/post-merge-default-branch.test.mjs"
-    ],
-    "integration_portable": [
-      "test/integration/portable-security-ci.test.mjs"
-    ],
-    "bootstrap": [
-      "test/bootstrap/bootstrap.test.mjs",
-      "test/bootstrap/install-global.test.mjs",
-      "test/bootstrap/url-only-contract.test.mjs",
-      "test/bootstrap/url-only-intent-resolution.test.mjs",
+    "$schema":  "./test-manifest.schema.json",
+    "version":  1,
+    "groups":  {
+                   "unit":  [
+                                "test/compatibility/opencode-native-compatibility.test.mjs",
+                                "test/approval-v2/approval-engine.test.mjs",
+                                "test/approval-v2/opencode-todo-compat.test.mjs",
+                                "test/gates/approval.test.mjs",
+                                "test/gates/comment-policy.test.mjs",
+                                "test/gates/kernel.test.mjs",
+                                "test/gates/runtime-adapters.test.mjs",
+                                "test/security/bootstrap-secret-isolation.test.mjs",
+                                "test/security/bootstrap-bypass-red-team.test.mjs",
+                                "test/security/task-bootstrap-security.test.mjs",
+                                "test/security/existing-installation-automigration-security.test.mjs",
+                                "test/security/redaction.test.mjs",
+                                "test/controller/controller.test.mjs",
+                                "test/controller/retry.test.mjs",
+                                "test/controller/preflight.test.mjs",
+                                "test/controller/observability.test.mjs",
+                                "test/controller/vertical-slice.test.mjs",
+                                "test/controller/runtime-adoption.test.mjs",
+                                "test/controller/negative-bypass.test.mjs",
+                                "test/controller/vertical-slice-adoption.test.mjs",
+                                "test/controller/security-boundary.test.mjs",
+                                "test/controller/real-worker-soak.test.mjs"
+                            ],
+                   "contract":  [
+                                    "test/contracts/bootstrap-capability-contract.test.mjs",
+                                    "test/contracts/bootstrap-v2-classification-output.test.mjs",
+                                    "test/contracts/ci-workflow-contract.test.mjs",
+                                    "test/contracts/completion-runtime-contracts.test.mjs",
+                                    "test/contracts/governance-generator-platform-contract.test.mjs",
+                                    "test/contracts/runtime-enforcement-contracts.test.mjs",
+                                    "test/contracts/runtime-neutral-completion.test.mjs",
+                                    "test/spec-kit/bridge-contract.test.mjs",
+                                    "test/spec-kit/bridge-red.test.mjs",
+                                    "test/validation/working-method.test.mjs",
+                                    "test/contracts/runtime-pipeline-contracts.test.mjs"
+                                ],
+                   "integration":  [
+                                       "test/integration/approval-enforcement.test.mjs",
+                                       "test/integration/bootstrap-gate-wiring.test.mjs",
+                                       "test/integration/gate-cli-smoke.test.mjs",
+                                       "test/integration/rollback-runtime.test.mjs",
+                                       "test/integration/secure-bootstrap-controller.test.mjs",
+                                       "test/integration/post-merge-default-branch.test.mjs"
+                                   ],
+                   "integration_portable":  [
+                                                "test/integration/portable-security-ci.test.mjs"
+                                            ],
+                   "bootstrap":  [
+                                     "test/bootstrap/bootstrap.test.mjs",
+                                     "test/bootstrap/install-global.test.mjs",
+                                     "test/bootstrap/url-only-contract.test.mjs",
+                                     "test/bootstrap/url-only-intent-resolution.test.mjs",
                                      "test/bootstrap/task-bootstrap.test.mjs",
                                      "test/bootstrap/task-bootstrap-installer-order.test.mjs",
                                      "test/bootstrap/opencode-global-adapter-contract.test.mjs",
                                      "test/bootstrap/existing-installation-automigration.test.mjs",
-      "test/install/red-test-installer-fail-closed.test.mjs",
-      "test/install/red-test-redaction-installed.test.mjs",
-      "test/install/red-test-resident-import.test.mjs",
-      "test/install/red-test-validate-post-apply-security.test.mjs",
-      "test/install/resident-runtime.test.mjs",
-      "test/install/runtime-hardening.test.mjs",
-      "test/install/tamper-detection.test.mjs",
-      "test/install/agent-installation.test.mjs",
-      "test/install/url-installer.test.mjs"
-    ],
-    "governance": [
-      "test/gates/approval-closure.test.mjs",
-      "test/prompt-governance/prompt-governance.test.mjs",
-      "test/validation/validation.test.mjs"
-    ],
-    "e2e": [
-      "test/runtime-closure/runtime-entrypoints.test.mjs",
-      "test/validation/ux-ui-governed-layer.test.mjs",
-      "test/harness/runner-contract.test.mjs"
-    ],
-    "provider_optional": []
-  }
+                                     "test/install/red-test-installer-fail-closed.test.mjs",
+                                     "test/install/red-test-redaction-installed.test.mjs",
+                                     "test/install/red-test-resident-import.test.mjs",
+                                     "test/install/red-test-validate-post-apply-security.test.mjs",
+                                     "test/install/resident-runtime.test.mjs",
+                                     "test/install/runtime-hardening.test.mjs",
+                                     "test/install/tamper-detection.test.mjs",
+                                     "test/install/agent-installation.test.mjs",
+                                     "test/install/url-installer.test.mjs"
+                                 ],
+                   "governance":  [
+                                      "test/gates/approval-closure.test.mjs",
+                                      "test/prompt-governance/prompt-governance.test.mjs",
+                                      "test/validation/validation.test.mjs"
+                                  ],
+                   "e2e":  [
+                               "test/runtime-closure/runtime-entrypoints.test.mjs",
+                               "test/validation/ux-ui-governed-layer.test.mjs",
+                               "test/harness/runner-contract.test.mjs"
+                           ],
+                   "provider_optional":  [
+
+                                         ]
+               }
 }

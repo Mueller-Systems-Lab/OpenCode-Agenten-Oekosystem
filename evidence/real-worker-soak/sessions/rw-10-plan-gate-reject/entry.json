@@ -1,0 +1,11 @@
+{
+  "case_id": "rw-10-plan-gate-reject",
+  "prepared_at": "2026-08-17T05:45:33.594Z",
+  "entry_source": "plugin:chat.message",
+  "run_id": "5bbebed3-9ff7-4351-b2e3-2d61eba5f7ac",
+  "task_contract": "ecosystem.task.v1",
+  "phase": "ENTRY",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null
+}

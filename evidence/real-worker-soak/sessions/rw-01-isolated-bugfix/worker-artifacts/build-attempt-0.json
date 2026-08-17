@@ -1,0 +1,11 @@
+{
+  "changed_files": [
+    "src/calc.mjs"
+  ],
+  "errors": [],
+  "strategy_delta": null,
+  "terminal_claim": null,
+  "files": {
+    "src/calc.mjs": "export function add(a, b) { return a + b }\n"
+  }
+}

@@ -1,0 +1,13 @@
+{
+    "changed_files":  [
+                          "docs/README.md"
+                      ],
+    "errors":  [
+
+               ],
+    "strategy_delta":  null,
+    "terminal_claim":  null,
+    "files":  {
+                  "docs/README.md":  "# Fixture\n\n## API\n\n### greet(name)\n\nReturns a greeting string for the given name.\n\n- `name` (string): The name to greet.\n- Returns: `string` — `Hello \u003cname\u003e`.\n\nExample:\n\n```js\nimport { greet } from \u0027../src/greet.mjs\u0027\ngreet(\u0027World\u0027) // \u0027Hello World\u0027\n```\n"
+              }
+}

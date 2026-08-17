@@ -1,0 +1,7 @@
+{
+  "code": [
+    "src/double.mjs: export function double(x) { return x * 2 }"
+  ],
+  "docs": [],
+  "tests": []
+}

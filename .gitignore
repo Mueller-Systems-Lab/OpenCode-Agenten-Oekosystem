@@ -52,3 +52,7 @@ desktop.ini
 .idea/
 *.swp
 *.swo
+
+# Real-worker soak: transient fixture repos inside evidence (own .git, governance state)
+evidence/real-worker-soak/sessions/*/fixture/
+evidence/real-worker-soak-repeat/sessions/*/fixture/

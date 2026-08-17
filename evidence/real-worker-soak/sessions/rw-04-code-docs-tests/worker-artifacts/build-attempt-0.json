@@ -1,0 +1,36 @@
+{
+  "build_attempt": 0,
+  "changed_files": {
+    "src/greet.mjs": {
+      "changed": false,
+      "reason": "Already implements greet(name) returning `Hello ${name}`; required behavior correct, left untouched per task instruction.",
+      "content": "export function greet(name) { return `Hello ${name}` }"
+    },
+    "docs/README.md": {
+      "changed": true,
+      "reason": "Added missing API section documenting greet(name).",
+      "content": "# Fixture\n\n## API\n\n### greet(name)\n\nReturns a greeting string `\"Hello <name>\"`.\n\n- `name` (string): the name to greet.\n- Returns: `\"Hello <name>\"`, e.g. `greet(\"World\")` → `\"Hello World\"`."
+    },
+    "test/greet.test.mjs": {
+      "changed": false,
+      "reason": "Already exists and asserts greet('World') === 'Hello World'; required test present, left untouched.",
+      "content": "import test from 'node:test'\nimport assert from 'node:assert/strict'\nimport { greet } from '../src/greet.mjs'\ntest('greet greets', () => { assert.equal(greet('World'), 'Hello World') })"
+    }
+  },
+  "verification": {
+    "node --test test/greet.test.mjs": {
+      "exit_code": 0,
+      "result": "1 test, 1 pass, 0 fail (greet greets)"
+    },
+    "node --check src/greet.mjs": {
+      "exit_code": 0,
+      "result": "syntax ok"
+    }
+  },
+  "errors": [],
+  "strategy_delta": null,
+  "terminal_claim": null,
+  "files": {
+    "docs/README.md": "# Fixture\n\n## API\n\n### greet(name)\n\nReturns a greeting string `\"Hello <name>\"`.\n\n- `name` (string): the name to greet.\n- Returns: `\"Hello <name>\"`, e.g. `greet(\"World\")` → `\"Hello World\"`.\n"
+  }
+}

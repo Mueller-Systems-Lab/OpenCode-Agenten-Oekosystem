@@ -1,0 +1,14 @@
+{
+  "changed_files": [
+    "notes.md"
+  ],
+  "errors": [],
+  "strategy_delta": null,
+  "terminal_claim": null,
+  "capabilities_used": [
+    "mcp:fixture.read"
+  ],
+  "files": {
+    "notes.md": "# Notes\n\nfixture value: 42\n"
+  }
+}

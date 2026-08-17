@@ -1,0 +1,129 @@
+{
+  "case_id": "rw-04-code-docs-tests",
+  "task_class": "code_docs_tests",
+  "round": 1,
+  "run_id": "e1f85950-e27f-4646-802d-e6b5909a0167",
+  "entry_run_id": "e1f85950-e27f-4646-802d-e6b5909a0167",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "e1f85950-e27f-4646-802d-e6b5909a0167"
+  ],
+  "entry_source": "plugin:chat.message",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null,
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "plan_fingerprint": "sha256:b7e3f94bbd93bc0f79c095d569bec14e70c7cbc338baddf003e1d127bc763bf7",
+  "plan_has_text": true,
+  "plan_gate_status": "PASS",
+  "plan_gate_approved": true,
+  "plan_gate_errors": [],
+  "build_status": "SUCCESS",
+  "build_calls": 1,
+  "verify_status": "PASS",
+  "failure_signatures": [],
+  "strategy_deltas": [],
+  "attempt_count": 1,
+  "retry_count": 0,
+  "final_decision": "DONE",
+  "reason_code": "ALL_HARD_GATES_GREEN",
+  "first_bad_boundary": null,
+  "phase_history": [
+    {
+      "name": "TASK",
+      "status": "PASS"
+    },
+    {
+      "name": "BASELINE",
+      "status": "PASS"
+    },
+    {
+      "name": "RESEARCH",
+      "status": "PASS"
+    },
+    {
+      "name": "PLAN",
+      "status": "PASS"
+    },
+    {
+      "name": "PLAN_GATE",
+      "status": "PASS"
+    },
+    {
+      "name": "BUILD",
+      "status": "PASS"
+    },
+    {
+      "name": "VERIFY",
+      "status": "PASS"
+    },
+    {
+      "name": "REVIEWS",
+      "status": "PASS"
+    },
+    {
+      "name": "CONTROLLER",
+      "status": "PASS"
+    }
+  ],
+  "reviews": [
+    {
+      "review_type": "correctness",
+      "status": "PASS",
+      "severity": "INFO",
+      "blocking": false,
+      "findings": []
+    },
+    {
+      "review_type": "security",
+      "status": "PASS",
+      "severity": "INFO",
+      "blocking": false,
+      "findings": []
+    },
+    {
+      "review_type": "quality",
+      "status": "PASS",
+      "severity": "INFO",
+      "blocking": false,
+      "findings": []
+    }
+  ],
+  "research_findings": [
+    {
+      "focus": "code",
+      "findings": [
+        "src/greet.mjs"
+      ]
+    },
+    {
+      "focus": "docs",
+      "findings": [
+        "docs/README.md"
+      ]
+    },
+    {
+      "focus": "tests",
+      "findings": [
+        "test/greet.test.mjs"
+      ]
+    }
+  ],
+  "changed_files": [
+    "docs/README.md"
+  ],
+  "out_of_scope": [],
+  "git_diff_files": [
+    "docs/README.md"
+  ],
+  "worker_terminal_claims": [],
+  "worker_terminal_override_denied": true,
+  "contract_validation_failures": [],
+  "contract_repairs": [],
+  "secret_leak": false,
+  "duration_ms": 4667,
+  "event_count": 11,
+  "unexpected_behavior": [],
+  "run_error": null
+}

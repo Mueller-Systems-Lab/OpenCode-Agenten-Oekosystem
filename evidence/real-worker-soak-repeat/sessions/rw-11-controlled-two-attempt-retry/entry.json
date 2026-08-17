@@ -1,0 +1,11 @@
+{
+  "case_id": "rw-11-controlled-two-attempt-retry",
+  "prepared_at": "2026-08-17T06:17:14.752Z",
+  "entry_source": "plugin:chat.message",
+  "run_id": "ca626906-5b07-4462-9b39-e48da936c08f",
+  "task_contract": "ecosystem.task.v1",
+  "phase": "ENTRY",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null
+}

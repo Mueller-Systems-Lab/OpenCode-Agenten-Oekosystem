@@ -1,0 +1,121 @@
+{
+  "generated_at": "2026-08-17T06:23:59.820Z",
+  "method": "Three representative tasks driven twice in clean isolation with independent real LLM workers (executor subagents). Compare terminal decision, gate behavior, required capabilities, modified scope, verification result. Worker output may vary; runtime decision must stay stable when technical facts are equal.",
+  "rows": [
+    {
+      "case_id": "rw-01-isolated-bugfix",
+      "runA": {
+        "run_id": "4af63eea-9116-437f-845d-37b77b9282b4",
+        "decision": "DONE",
+        "reason": "ALL_HARD_GATES_GREEN",
+        "attempts": 1,
+        "retry": 0,
+        "plan_gate": "PASS",
+        "build_calls": 1,
+        "verify": "PASS"
+      },
+      "runB": {
+        "run_id": "a5d9ba02-78f8-4eca-a0e7-260f3e3f6607",
+        "decision": "DONE",
+        "reason": "ALL_HARD_GATES_GREEN",
+        "attempts": 1,
+        "retry": 0,
+        "plan_gate": "PASS",
+        "build_calls": 1,
+        "verify": "PASS"
+      },
+      "terminal_decision_stable": true,
+      "plan_fingerprint_a": "sha256:b79981f83152042ef967e1db8b73ba6e8531daf440270bc25ea5ce047052ba84",
+      "plan_fingerprint_b": "sha256:b79981f83152042ef967e1db8b73ba6e8531daf440270bc25ea5ce047052ba84",
+      "plan_variance": false,
+      "changed_scope_a": [
+        "src/calc.mjs"
+      ],
+      "changed_scope_b": [
+        "src/calc.mjs"
+      ]
+    },
+    {
+      "case_id": "rw-04-code-docs-tests",
+      "runA": {
+        "run_id": "e1f85950-e27f-4646-802d-e6b5909a0167",
+        "decision": "DONE",
+        "reason": "ALL_HARD_GATES_GREEN",
+        "attempts": 1,
+        "retry": 0,
+        "plan_gate": "PASS",
+        "build_calls": 1,
+        "verify": "PASS"
+      },
+      "runB": {
+        "run_id": "a96e3579-f742-4de4-a8a7-bdfc6d6b54d8",
+        "decision": "DONE",
+        "reason": "ALL_HARD_GATES_GREEN",
+        "attempts": 1,
+        "retry": 0,
+        "plan_gate": "PASS",
+        "build_calls": 1,
+        "verify": "PASS"
+      },
+      "terminal_decision_stable": true,
+      "plan_fingerprint_a": "sha256:b7e3f94bbd93bc0f79c095d569bec14e70c7cbc338baddf003e1d127bc763bf7",
+      "plan_fingerprint_b": "sha256:b7e3f94bbd93bc0f79c095d569bec14e70c7cbc338baddf003e1d127bc763bf7",
+      "plan_variance": false,
+      "changed_scope_a": [
+        "docs/README.md"
+      ],
+      "changed_scope_b": [
+        "docs/README.md"
+      ]
+    },
+    {
+      "case_id": "rw-11-controlled-two-attempt-retry",
+      "runA": {
+        "run_id": "c887e6d6-baf7-4700-9492-f030dd791792",
+        "decision": "DONE",
+        "reason": "ALL_HARD_GATES_GREEN",
+        "attempts": 2,
+        "retry": 1,
+        "plan_gate": "PASS",
+        "build_calls": 2,
+        "verify": "PASS"
+      },
+      "runB": {
+        "run_id": "ca626906-5b07-4462-9b39-e48da936c08f",
+        "decision": "DONE",
+        "reason": "ALL_HARD_GATES_GREEN",
+        "attempts": 2,
+        "retry": 1,
+        "plan_gate": "PASS",
+        "build_calls": 2,
+        "verify": "PASS"
+      },
+      "terminal_decision_stable": true,
+      "plan_fingerprint_a": "sha256:3d1e0e452f0f28980c5f3ed7c2bb09a03b1e79194b2a8dd7f24ea6a2da2c9ee4",
+      "plan_fingerprint_b": "sha256:3d1e0e452f0f28980c5f3ed7c2bb09a03b1e79194b2a8dd7f24ea6a2da2c9ee4",
+      "plan_variance": false,
+      "changed_scope_a": [
+        "src/avg.mjs"
+      ],
+      "changed_scope_b": [
+        "src/avg.mjs"
+      ]
+    }
+  ],
+  "summary": {
+    "tasks_driven_twice": 3,
+    "terminal_decision_stable": 3,
+    "plan_output_variance_observed": 0,
+    "variability_findings": [
+      {
+        "title": "WORKER_TERMINAL_OVERRIDE_DENIED — real variability finding",
+        "case_id": "rw-11-controlled-two-attempt-retry",
+        "run_id": "def31296-1e48-4c9c-9394-db82079530e2",
+        "what_happened": "In a repeated real-worker run (Round B) the attempt-1 worker CLAIMED \"Implementierung geändert, Test grün (pass 2, fail 0)\" but never persisted build-attempt-1.json and never changed src/avg.mjs on disk.",
+        "runtime_reaction": "Deterministic VERIFY re-ran the real test, observed TEST_FAILURE:average empty array on attempt 1, found no strategy_delta for a further attempt, and the deterministic controller returned SPLIT (RETRY_DENIED_NO_STRATEGY_DELTA) with FIRST_BAD_BOUNDARY=VERIFY.",
+        "significance": "Proves WORKER_TERMINAL_OVERRIDE=DENIED with real workers: a worker success claim never becomes a runtime decision. Also proves VERIFY is ground truth: worker self-reports are not verification.",
+        "classification": "REPEATABILITY_VARIANCE_DETECTED_AND_CORRECTLY_HANDLED"
+      }
+    ]
+  }
+}

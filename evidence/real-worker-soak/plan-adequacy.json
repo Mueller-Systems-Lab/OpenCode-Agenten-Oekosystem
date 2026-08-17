@@ -1,0 +1,103 @@
+[
+  {
+    "case_id": "rw-01-isolated-bugfix",
+    "plan_gate": "GATE_PASSED",
+    "plan_gate_errors": [],
+    "plan_classification": "PLAN_ADEQUATE",
+    "plan_fingerprint": "sha256:b79981f83152042ef967e1db8b73ba6e8531daf440270bc25ea5ce047052ba84",
+    "build_calls": 1,
+    "decision": "DONE"
+  },
+  {
+    "case_id": "rw-02-multifile-change",
+    "plan_gate": "GATE_PASSED",
+    "plan_gate_errors": [],
+    "plan_classification": "PLAN_ADEQUATE",
+    "plan_fingerprint": "sha256:b37c20664a0dcead3f3775a4deb1bf4422f8fd1f0f65ed89326d187841a67149",
+    "build_calls": 1,
+    "decision": "DONE"
+  },
+  {
+    "case_id": "rw-03-existing-test-failure",
+    "plan_gate": "GATE_PASSED",
+    "plan_gate_errors": [],
+    "plan_classification": "PLAN_ADEQUATE",
+    "plan_fingerprint": "sha256:a8e2de7636d0781871db73b904422987fe27cf19cca7657a183ce2d39c6786e8",
+    "build_calls": 1,
+    "decision": "DONE"
+  },
+  {
+    "case_id": "rw-04-code-docs-tests",
+    "plan_gate": "GATE_PASSED",
+    "plan_gate_errors": [],
+    "plan_classification": "PLAN_ADEQUATE",
+    "plan_fingerprint": "sha256:b7e3f94bbd93bc0f79c095d569bec14e70c7cbc338baddf003e1d127bc763bf7",
+    "build_calls": 1,
+    "decision": "DONE"
+  },
+  {
+    "case_id": "rw-05-skill-task",
+    "plan_gate": "GATE_PASSED",
+    "plan_gate_errors": [],
+    "plan_classification": "PLAN_ADEQUATE",
+    "plan_fingerprint": "sha256:18eced4c9bf7d671f3249a6e389aac6b75037b403bee30d34efcaadc12103806",
+    "build_calls": 1,
+    "decision": "DONE"
+  },
+  {
+    "case_id": "rw-06-mcp-tool-task",
+    "plan_gate": "GATE_PASSED",
+    "plan_gate_errors": [],
+    "plan_classification": "PLAN_ADEQUATE",
+    "plan_fingerprint": "sha256:9ad6fa4483a7a685c8c3d6fc7d2da078fdd11fadef0b82084be73e57ada380af",
+    "build_calls": 1,
+    "decision": "DONE"
+  },
+  {
+    "case_id": "rw-07-controlled-retry",
+    "plan_gate": "GATE_PASSED",
+    "plan_gate_errors": [],
+    "plan_classification": "PLAN_ADEQUATE",
+    "plan_fingerprint": "sha256:a59f2036f831f4010b425d6bab38517e1d6f66608b0689d179dc6d2c11a9b932",
+    "build_calls": 1,
+    "decision": "DONE"
+  },
+  {
+    "case_id": "rw-08-split-decision",
+    "plan_gate": "GATE_PASSED",
+    "plan_gate_errors": [],
+    "plan_classification": "PLAN_ADEQUATE_STRUCTURALLY_VERIFY_FAILED",
+    "plan_fingerprint": "sha256:4f742bc4d3b22c66e406fc2e7a36c0cc1508c569d1b5f23a4cf2f3141e65a68e",
+    "build_calls": 1,
+    "decision": "SPLIT"
+  },
+  {
+    "case_id": "rw-09-security-sensitive",
+    "plan_gate": "GATE_PASSED",
+    "plan_gate_errors": [],
+    "plan_classification": "PLAN_ADEQUATE",
+    "plan_fingerprint": "sha256:3b66762729dae2a94ee6c684750ef9895d930ac0b3e8dddb34b7190fec2572c6",
+    "build_calls": 1,
+    "decision": "BLOCKED"
+  },
+  {
+    "case_id": "rw-10-plan-gate-reject",
+    "plan_gate": "GATE_REJECTED",
+    "plan_gate_errors": [
+      "ACCEPTANCE_CRITERIA_MISSING"
+    ],
+    "plan_classification": "PLAN_GATE_REJECT:ACCEPTANCE_CRITERIA_MISSING",
+    "plan_fingerprint": "sha256:aa8fa2a34e291ca7d72bbe7f2d3aa1a40d9a611d3f8d6f81c4c37391f286add9",
+    "build_calls": 0,
+    "decision": "BLOCKED"
+  },
+  {
+    "case_id": "rw-11-controlled-two-attempt-retry",
+    "plan_gate": "GATE_PASSED",
+    "plan_gate_errors": [],
+    "plan_classification": "PLAN_ADEQUATE",
+    "plan_fingerprint": "sha256:3d1e0e452f0f28980c5f3ed7c2bb09a03b1e79194b2a8dd7f24ea6a2da2c9ee4",
+    "build_calls": 2,
+    "decision": "DONE"
+  }
+]

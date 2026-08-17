@@ -1,0 +1,5 @@
+{
+  "code": ["src/greet.mjs"],
+  "docs": ["docs/README.md"],
+  "tests": ["test/greet.test.mjs"]
+}

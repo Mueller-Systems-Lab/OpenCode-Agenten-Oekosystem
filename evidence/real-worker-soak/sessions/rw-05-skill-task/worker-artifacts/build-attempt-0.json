@@ -1,0 +1,14 @@
+{
+  "changed_files": [
+    "src/calc2.mjs"
+  ],
+  "errors": [],
+  "strategy_delta": null,
+  "terminal_claim": null,
+  "capabilities_used": [
+    "skills:run-card"
+  ],
+  "files": {
+    "src/calc2.mjs": "export function multiply(a, b) { return a * b }\n"
+  }
+}

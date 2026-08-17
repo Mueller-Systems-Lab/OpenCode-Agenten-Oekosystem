@@ -1,0 +1,12 @@
+{
+  "code": [
+    "src/parse.mjs",
+    "export function parse(data) { return JSON.parse(data) }"
+  ],
+  "docs": [],
+  "tests": [
+    "test/parse.test.mjs",
+    "import test from 'node:test'; import assert from 'node:assert/strict'; import fs from 'node:fs'; import path from 'node:path'; import { parse } from '../src/parse.mjs'; test('parse reads fixture', () => { const raw = fs.readFileSync(path.join(import.meta.dirname, 'data.json'), 'utf8'); assert.equal(parse(raw).ok, true) })"
+  ],
+  "notes": "data.json missing"
+}

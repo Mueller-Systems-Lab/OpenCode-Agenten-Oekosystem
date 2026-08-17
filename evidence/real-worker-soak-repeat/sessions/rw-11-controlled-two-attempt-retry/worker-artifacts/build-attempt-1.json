@@ -1,0 +1,9 @@
+{
+  "changed_files": ["src/avg.mjs"],
+  "errors": [],
+  "strategy_delta": null,
+  "terminal_claim": null,
+  "files": {
+    "src/avg.mjs": "export function average(items) {\n  if (items.length === 0) return 0\n  return items.reduce((a, b) => a + b, 0) / items.length\n}"
+  }
+}

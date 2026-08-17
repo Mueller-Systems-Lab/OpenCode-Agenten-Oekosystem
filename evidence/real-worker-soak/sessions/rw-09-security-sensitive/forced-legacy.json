@@ -1,0 +1,9 @@
+{
+  "case_id": "rw-09-security-sensitive",
+  "forced_legacy_test": true,
+  "runtime_unavailable": true,
+  "legacy_observable": true,
+  "run_context_created": false,
+  "task_context_created": true,
+  "plugin_error": null
+}

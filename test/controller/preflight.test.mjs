@@ -4,6 +4,7 @@ import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { runBaseline } from '../../runtime/baseline/capability-preflight.mjs'
+import { deriveRequiredCapabilities } from '../../runtime/baseline/capability-detector.mjs'
 import { createTask } from '../../runtime/contracts/index.mjs'
 
 const RUN_ID = 'preflight-test-run'
@@ -135,5 +136,23 @@ describe('capability preflight — negative and positive cases', () => {
     assert.equal(baseline.required_capabilities.filesystem, 'PASS')
     assert.equal(baseline.required_capabilities.write, 'PASS')
     await fs.rm(root, { recursive: true, force: true })
+  })
+
+  it('plan structural key build_scope does NOT derive build capability (soak calibration)', () => {
+    const derived = deriveRequiredCapabilities({
+      task: 'fix the bug in src/calc.mjs so add(2, 3) returns 5',
+      plan: { build_scope: { files: ['src/calc.mjs'] }, required_tests: ['node --test test/calc.test.mjs'] },
+    })
+    assert.ok(derived.includes('write'), 'build_scope.files must derive write')
+    assert.ok(derived.includes('test'), 'required_tests must derive test')
+    assert.ok(!derived.includes('build'), 'plan key build_scope must not derive build')
+  })
+
+  it('task text mentioning build semantics still derives build capability', () => {
+    const derived = deriveRequiredCapabilities({
+      task: 'compile the schema and run the type check for the package',
+      plan: null,
+    })
+    assert.ok(derived.includes('build'), 'task semantics must derive build')
   })
 })

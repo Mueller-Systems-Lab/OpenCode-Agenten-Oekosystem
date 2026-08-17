@@ -30,6 +30,7 @@ import { create as createTask, validate as validateTask, CONTRACT_ID as TASK_CON
 import { create as createDecision, validate as validateDecision } from './contracts/decision.mjs'
 import { runBaseline } from './baseline/capability-preflight.mjs'
 import { runPipeline } from './pipeline/pipeline.mjs'
+import { parsePlanText } from './adapters/native-opencode.mjs'
 import { decide } from './controller/controller.mjs'
 import { createRunEvent, appendRunEvent } from './observability/run-events.mjs'
 import { defaultReviewAnalyzers } from './reviews/analyze.mjs'
@@ -125,8 +126,12 @@ export async function runTask(options = {}) {
   const runId = task.run_id
 
   // 3. Capability detection + preflight (capabilities, MCP, skills).
+  const entryPlanData = typeof nativePlan === 'string'
+    ? parsePlanText(nativePlan)
+    : nativePlan?.plan || (nativePlan?.planText ? parsePlanText(nativePlan.planText) : null)
   const baseline = runBaseline({
     task, repoRoot, root: repoRoot, env, inventory, mcpProfile, required_skills, capability_status,
+    plan: entryPlanData,
   })
 
   // 4. Fail fast: a missing required capability / MCP tool / skill blocks the

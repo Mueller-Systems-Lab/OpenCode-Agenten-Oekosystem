@@ -25,7 +25,13 @@ const CAPABILITY_KEYWORDS = Object.freeze({
 const ALWAYS_REQUIRED = Object.freeze(['repository', 'filesystem', 'runtime'])
 
 export function deriveRequiredCapabilities({ task = '', plan = null } = {}) {
-  const text = `${task || ''}\n${JSON.stringify(plan || {})}`
+  // Keyword derivation is task-semantics only. Plan information is applied
+  // through the explicit rules below (build_scope.files -> write,
+  // required_tests -> test); scanning JSON.stringify(plan) would match
+  // structural keys such as 'build_scope' against keyword regexes and
+  // falsely derive capabilities (measured CAPABILITY_FALSE_REQUIRED:build
+  // in the runtime soak corpus).
+  const text = `${task || ''}`
   const required = [...ALWAYS_REQUIRED]
   const add = (name) => { if (!required.includes(name)) required.push(name) }
   for (const [name, pattern] of Object.entries(CAPABILITY_KEYWORDS)) {

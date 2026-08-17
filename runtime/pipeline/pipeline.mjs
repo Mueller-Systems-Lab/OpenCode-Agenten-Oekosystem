@@ -21,7 +21,7 @@ import { create as createTask } from '../contracts/task.mjs'
 import { createBuildInput } from '../contracts/build.mjs'
 import { create as createVerification } from '../contracts/verification.mjs'
 import { runBaseline } from '../baseline/capability-preflight.mjs'
-import { fromNativePlan, runNativeBuild } from '../adapters/native-opencode.mjs'
+import { fromNativePlan, runNativeBuild, parsePlanText } from '../adapters/native-opencode.mjs'
 import { evaluatePlanGate } from '../controller/plan-gate.mjs'
 import { runVerification } from '../controller/verify.mjs'
 import { decide } from '../controller/controller.mjs'
@@ -84,9 +84,10 @@ export async function runPipeline({
   await emit({ phase: 'TASK', job: 'create-task', status: 'PASS', contract_in: task.contract })
   record('TASK', 'PASS')
 
+  const planData = nativePlan?.plan || (nativePlan?.planText ? parsePlanText(nativePlan.planText) : null)
   const baseline = runBaseline({
     task,
-    plan: nativePlan?.plan || null,
+    plan: planData,
     repoRoot,
     root: repoRoot,
     env,

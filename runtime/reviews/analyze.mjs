@@ -10,6 +10,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { create as createReview } from '../contracts/review.mjs'
+import { severityRank } from '../controller/severity.mjs'
 
 const SECRET_ASSIGNMENT = /(?:api[_-]?key|access[_-]?token|secret|password)\s*[:=]\s*['"][A-Za-z0-9+/=_-]{12,}['"]/i
 const PRIVATE_KEY_BLOCK = /BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY/
@@ -72,14 +73,23 @@ export function reviewSecurity({ run_id, buildResult, repoRoot, changedFiles } =
     }
   }
   const blocking = findings.some((finding) => ['HIGH', 'CRITICAL'].includes(finding.severity))
+  // A review with ANY finding has not passed cleanly. Non-blocking findings
+  // still mark status FAIL + recommendation FIX (consistent with
+  // reviewQuality), so the REVIEWS boundary fails and FIRST_BAD_BOUNDARY is
+  // REVIEWS for every FIX-from-reviews decision. Blocking stays a separate,
+  // fail-closed flag that drives the security hard block in the controller.
+  const maxSeverity = findings.reduce(
+    (max, finding) => (severityRank(finding.severity) > severityRank(max) ? finding.severity : max),
+    'INFO',
+  )
   return createReview({
     run_id,
     review_type: 'security',
     review: {
-      status: blocking ? 'FAIL' : 'PASS',
-      severity: blocking ? 'CRITICAL' : 'INFO',
+      status: findings.length > 0 ? 'FAIL' : 'PASS',
+      severity: blocking ? 'CRITICAL' : maxSeverity,
       blocking,
-      recommendation: blocking ? 'BLOCK' : 'PASS',
+      recommendation: blocking ? 'BLOCK' : findings.length > 0 ? 'FIX' : 'PASS',
       findings,
     },
   })

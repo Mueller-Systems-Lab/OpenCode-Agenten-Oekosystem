@@ -22,7 +22,8 @@
       "test/controller/vertical-slice.test.mjs",
       "test/controller/runtime-adoption.test.mjs",
       "test/controller/negative-bypass.test.mjs",
-      "test/controller/vertical-slice-adoption.test.mjs"
+      "test/controller/vertical-slice-adoption.test.mjs",
+      "test/controller/security-boundary.test.mjs"
     ],
     "contract": [
       "test/contracts/bootstrap-capability-contract.test.mjs",

@@ -201,6 +201,38 @@ function writeEvidence(entry) {
   } catch {}
 }
 
+function safeEntryMessage(error) {
+  const raw = error instanceof Error ? String(error.message || error.name || '') : String(error)
+  return raw.replace(/\s+/g, ' ').trim().slice(0, 240) || 'unknown runtime entry failure'
+}
+
+function writeRuntimeEntryFailure({ pluginRoot, input, output, runtimeAvailability, detail, runId = null }) {
+  const record = {
+    schema_version: 'ocae.runtime-entry-failure.v1',
+    entry_source: 'plugin:chat.message',
+    timestamp: new Date().toISOString(),
+    session_id: input?.sessionID || output?.message?.sessionID || '',
+    message_id: input?.messageID || output?.message?.id || 'unknown',
+    run_id: runId,
+    runtime_availability: runtimeAvailability,
+    failure_reason: 'CANONICAL_RUNTIME_UNAVAILABLE',
+    failure_detail: detail,
+    fallback_attempted: false,
+  }
+  try {
+    if (!governanceIsInstalled()) return
+    const evidenceDir = join(pluginRoot, '.agent-governance', 'evidence')
+    mkdirSync(evidenceDir, { recursive: true })
+    const ts = new Date().toISOString().replace(/[:.]/g, '-')
+    writeFileSync(join(evidenceDir, `runtime-entry-failure-${ts}.json`), JSON.stringify(record, null, 2), 'utf8')
+  } catch { /* observability is best-effort */ }
+}
+
+function runtimeEntryUnavailable({ pluginRoot, input, output, runtimeAvailability, detail }) {
+  writeRuntimeEntryFailure({ pluginRoot, input, output, runtimeAvailability, detail })
+  return new Error(`[canonical-governance] RUNTIME_ENTRY_BLOCKED:CANONICAL_RUNTIME_UNAVAILABLE:${runtimeAvailability}:${detail}`)
+}
+
 async function handleToolExecution(input, output) {
   const tool = input.tool;
   const risk = classifyToolRisk(tool);
@@ -349,29 +381,39 @@ export const CanonicalGovernancePlugin = async ({ project = {}, client = null, d
         userMessage: text,
       });
       if (result.state !== 'TASK_READY') throw new Error(`[canonical-governance] ${result.code || 'RED_BLOCK_TASK_BOOTSTRAP'}`);
-      // Canonical contract-first runtime entry. The real user task enters the
-      // deterministic runtime (ecosystem.task.v1 + run_id + capability/MCP
-      // preflight + real run events) before any agent work starts. Terminal
-      // decisions (DONE | FIX | SPLIT | BLOCKED) are produced exclusively by
-      // the deterministic controller; agents remain workers.
+      // Canonical contract-first runtime entry — MANDATORY. The real user task
+      // enters the deterministic runtime (ecosystem.task.v1 + run_id +
+      // capability/MCP preflight + real run events) before any agent work
+      // starts. Terminal decisions (DONE | FIX | SPLIT | BLOCKED) are produced
+      // exclusively by the deterministic controller; agents remain workers.
+      //
+      // NO SILENT LEGACY FALLBACK: if the canonical runtime cannot be entered
+      // (unavailable, import failure, initialization failure, contract failure
+      // at entry), execution FAILS FAST with CANONICAL_RUNTIME_UNAVAILABLE and
+      // remains observable (runtime-entry-failure record,
+      // fallback_attempted=false). Legacy execution is never started.
+      let runtimeEntry = null
       try {
-        const runtimeEntry = await import('../../runtime/run.mjs');
-        if (runtimeEntry && typeof runtimeEntry.enterRun === 'function') {
-          const entry = await runtimeEntry.enterRun({
-            targetRoot: pluginRoot,
-            taskText: text,
-            sessionId: input?.sessionID || output?.message?.sessionID || '',
-            messageId: input?.messageID || output?.message?.id || 'unknown',
-          });
-          if (entry.blocked) {
-            throw new Error(`[canonical-governance] RUNTIME_ENTRY_BLOCKED:${entry.decision?.reason_code || entry.code || 'BLOCKED'}`);
-          }
-        }
+        runtimeEntry = await import('../../runtime/run.mjs')
       } catch (error) {
-        if (error instanceof Error && String(error.message).indexOf('[canonical-governance] RUNTIME_ENTRY_BLOCKED') === 0) throw error;
-        // Legacy compatibility: if the installed runtime entry is unavailable,
-        // the bootstrapped task context remains the fallback
-        // (LEGACY_COMPATIBILITY_PATH).
+        throw runtimeEntryUnavailable({ pluginRoot, input, output, runtimeAvailability: 'IMPORT_FAILURE', detail: safeEntryMessage(error) })
+      }
+      if (!runtimeEntry || typeof runtimeEntry.enterRun !== 'function') {
+        throw runtimeEntryUnavailable({ pluginRoot, input, output, runtimeAvailability: 'UNAVAILABLE', detail: 'enterRun export missing' })
+      }
+      let entry
+      try {
+        entry = await runtimeEntry.enterRun({
+          targetRoot: pluginRoot,
+          taskText: text,
+          sessionId: input?.sessionID || output?.message?.sessionID || '',
+          messageId: input?.messageID || output?.message?.id || 'unknown',
+        })
+      } catch (error) {
+        throw runtimeEntryUnavailable({ pluginRoot, input, output, runtimeAvailability: 'AVAILABLE', detail: safeEntryMessage(error) })
+      }
+      if (entry.blocked) {
+        throw new Error(`[canonical-governance] RUNTIME_ENTRY_BLOCKED:${entry.decision?.reason_code || entry.code || 'BLOCKED'}`)
       }
     },
     'tool.execute.before': async function (input, output) {

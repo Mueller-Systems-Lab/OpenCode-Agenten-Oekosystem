@@ -24,7 +24,7 @@
  *   node scripts/real-worker-soak.mjs --prepare rw-01 --sessions <dir>
  *   node scripts/real-worker-soak.mjs --probe-verify rw-01 --sessions <dir>
  *   node scripts/real-worker-soak.mjs --run rw-01 --sessions <dir>
- *   node scripts/real-worker-soak.mjs --forced-legacy rw-01 --sessions <dir>
+ *   node scripts/real-worker-soak.mjs --forced-canonical-failure rw-01 --sessions <dir>
  *   node scripts/real-worker-soak.mjs --aggregate --sessions <dir>
  */
 import fs from 'node:fs/promises'
@@ -53,7 +53,7 @@ function parseArgs(argv) {
     if (arg === '--prepare') out.prepare = next()
     else if (arg === '--probe-verify') out.probeVerify = next()
     else if (arg === '--run') out.run = next()
-    else if (arg === '--forced-legacy') out.forcedLegacy = next()
+    else if (arg === '--forced-canonical-failure') out.forcedCanonicalFailure = next()
     else if (arg === '--aggregate') out.aggregate = true
     else if (arg === '--sessions') out.sessions = next()
     else if (arg === '--round') out.round = Number(next())
@@ -337,15 +337,16 @@ async function measureNodeTests(root) {
 }
 
 // ---------------------------------------------------------------------------
-// forced-legacy ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â deliberately break the runtime entry, observe the fallback
+// forced-canonical-failure — deliberately break the runtime entry, prove FAIL
+// FAST. After the legacy-execution retirement a working legacy fallback is
+// NOT a success condition: the expectation is NO_FALLBACK (explicit
+// CANONICAL_RUNTIME_UNAVAILABLE error, no silent run continuation).
 // ---------------------------------------------------------------------------
-export async function forcedLegacy(caseDef, sessionsRoot) {
+export async function forcedCanonicalFailure(caseDef, sessionsRoot) {
   const root = fixtureDir(sessionsRoot, caseDef.case_id)
   const session = sessionDir(sessionsRoot, caseDef.case_id)
   const runMjs = path.join(root, '.agent-governance', 'runtime', 'run.mjs')
-  const moved = path.join(root, '.agent-governance', 'runtime', 'run.mjs.disabled-forced-legacy-test')
-  // Start clean: remove any run-context.json from a previous prepare so the
-  // test can observe whether the legacy path (re)creates it or not.
+  const moved = path.join(root, '.agent-governance', 'runtime', 'run.mjs.disabled-forced-canonical-failure-test')
   await fs.rm(path.join(root, '.agent-governance', 'runtime', 'run-context.json'), { force: true }).catch(() => {})
   await fs.rm(path.join(root, '.agent-governance', 'task-context.json'), { force: true }).catch(() => {})
   await fs.rm(path.join(root, '.agent-governance', 'state', 'task-bootstrap-state.json'), { force: true }).catch(() => {})
@@ -355,43 +356,38 @@ export async function forcedLegacy(caseDef, sessionsRoot) {
     runtimeUnavailable = true
   } catch { /* already unavailable */ }
 
-  let legacyObserved = null
   let pluginError = null
+  let noThrowObserved = false
   try {
     const pluginPath = path.join(root, '.agent-governance', 'hooks', 'opencode', 'canonical-governance.mjs')
     const plugin = await import(pathToFileURL(pluginPath).href)
     const hooks = await plugin.default({ directory: root, worktree: root })
     await hooks['chat.message'](
-      { sessionID: `rw-legacy-${caseDef.case_id}`, messageID: `msg-legacy-${Date.now()}` },
+      { sessionID: `rw-failfast-${caseDef.case_id}`, messageID: `msg-failfast-${Date.now()}` },
       {
-        message: { role: 'user', id: `msg-legacy-${Date.now()}`, sessionID: `rw-legacy-${caseDef.case_id}` },
+        message: { role: 'user', id: `msg-failfast-${Date.now()}`, sessionID: `rw-failfast-${caseDef.case_id}` },
         parts: [{ type: 'text', text: caseDef.task }],
       },
     )
-    const runContextPath = path.join(root, '.agent-governance', 'runtime', 'run-context.json')
-    const runContextExists = await fs.access(runContextPath).then(() => true).catch(() => false)
-    const taskContext = await readJsonSafe(path.join(root, '.agent-governance', 'task-context.json'))
-    legacyObserved = {
-      runtime_unavailable: runtimeUnavailable,
-      run_context_created: runContextExists,
-      task_context_created: Boolean(taskContext),
-      fallback_detected: !runContextExists && Boolean(taskContext),
-    }
+    // Reaching this line means the entry did NOT fail fast (silent continuation).
+    noThrowObserved = true
   } catch (error) {
     pluginError = error instanceof Error ? error.message : String(error)
   } finally {
     if (runtimeUnavailable) await fs.rename(moved, runMjs).catch(() => {})
   }
+  const runContextPath = path.join(root, '.agent-governance', 'runtime', 'run-context.json')
+  const runContextCreated = await fs.access(runContextPath).then(() => true).catch(() => false)
   const result = {
     case_id: caseDef.case_id,
-    forced_legacy_test: true,
+    forced_canonical_failure_test: true,
     runtime_unavailable: runtimeUnavailable,
-    legacy_observable: legacyObserved?.fallback_detected === true,
-    run_context_created: legacyObserved?.run_context_created,
-    task_context_created: legacyObserved?.task_context_created,
+    fail_fast: Boolean(pluginError && String(pluginError).includes('CANONICAL_RUNTIME_UNAVAILABLE')),
+    no_fallback: !noThrowObserved && !runContextCreated,
+    run_context_created: runContextCreated,
     plugin_error: pluginError,
   }
-  await fs.writeFile(path.join(session, 'forced-legacy.json'), `${JSON.stringify(result, null, 2)}\n`, 'utf8')
+  await fs.writeFile(path.join(session, 'forced-canonical-failure.json'), `${JSON.stringify(result, null, 2)}\n`, 'utf8')
   return result
 }
 
@@ -460,11 +456,12 @@ export async function aggregate(sessionsRoot) {
       legacy_fallback_reason: s.legacy_fallback_reason,
       entry_source: s.entry_source,
     })),
-    forced_legacy_tests: [],
+    normal_legacy_fallback_count: count((s) => s.legacy_fallback_used === true),
+    forced_canonical_failure_tests: [],
   }
   for (const caseId of entries) {
-    const forced = await readJsonSafe(path.join(sessionRoot, caseId, 'forced-legacy.json'))
-    if (forced) legacyUsage.forced_legacy_tests.push(forced)
+    const forced = await readJsonSafe(path.join(sessionRoot, caseId, 'forced-canonical-failure.json'))
+    if (forced) legacyUsage.forced_canonical_failure_tests.push(forced)
   }
 
   await fs.mkdir(sessionsRoot, { recursive: true })
@@ -477,7 +474,7 @@ export async function aggregate(sessionsRoot) {
 async function main() {
   const args = parseArgs(process.argv.slice(2))
   if (args.help) {
-    console.log('Usage: node scripts/real-worker-soak.mjs --prepare|--probe-verify|--run|--forced-legacy <case_id> [--sessions <dir>] [--round N] | --aggregate [--sessions <dir>]')
+    console.log('Usage: node scripts/real-worker-soak.mjs --prepare|--probe-verify|--run|--forced-canonical-failure <case_id> [--sessions <dir>] [--round N] | --aggregate [--sessions <dir>]')
     return
   }
   const sessionsRoot = resolveSessions(args.sessions)
@@ -511,10 +508,10 @@ async function main() {
     if (record.run_error) process.exitCode = 2
     return
   }
-  if (args.forcedLegacy) {
-    const caseDef = byId(args.forcedLegacy)
-    if (!caseDef) throw new Error(`unknown case: ${args.forcedLegacy}`)
-    const result = await forcedLegacy(caseDef, sessionsRoot)
+  if (args.forcedCanonicalFailure) {
+    const caseDef = byId(args.forcedCanonicalFailure)
+    if (!caseDef) throw new Error(`unknown case: ${args.forcedCanonicalFailure}`)
+    const result = await forcedCanonicalFailure(caseDef, sessionsRoot)
     console.log(JSON.stringify(result, null, 2))
     return
   }

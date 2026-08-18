@@ -1,0 +1,11 @@
+{
+  "case_id": "rw-09-security-sensitive",
+  "prepared_at": "2026-08-17T12:27:04.340Z",
+  "entry_source": "plugin:chat.message",
+  "run_id": "c0c23ca3-ab4c-47de-b89c-3ce9a7cd4ec1",
+  "task_contract": "ecosystem.task.v1",
+  "phase": "ENTRY",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null
+}

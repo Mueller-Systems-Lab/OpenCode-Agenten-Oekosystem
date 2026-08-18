@@ -8,6 +8,7 @@ import fs from "node:fs/promises"
 import path from "node:path"
 import os from "node:os"
 import { runNodeScript } from "../helpers.mjs"
+import { skipIfHostCannotSymlink } from "../lib/symlink-capability.mjs"
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -237,7 +238,8 @@ test("--rollback restores previous state", async () => {
 // Negative tests — symlink attacks
 // ---------------------------------------------------------------------------
 
-test("target is a symlink → rejected", async () => {
+test("target is a symlink → rejected", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "dir" })) return
   const { home, configHome, configRoot } = await makeFakeHome()
 
   // Create an external directory and symlink opencode → external
@@ -256,7 +258,8 @@ test("target is a symlink → rejected", async () => {
   await fs.rm(home, { recursive: true, force: true })
 })
 
-test("parent directory contains a symlink → rejected", async () => {
+test("parent directory contains a symlink → rejected", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "dir" })) return
   const { home } = await makeFakeHome()
 
   // Create a fake XDG_CONFIG_HOME so that opencode target is a symlink
@@ -277,7 +280,8 @@ test("parent directory contains a symlink → rejected", async () => {
   await fs.rm(home, { recursive: true, force: true })
 })
 
-test("subdirectory agents/ is a symlink → rejected", async () => {
+test("subdirectory agents/ is a symlink → rejected", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "dir" })) return
   const { home, configHome, configRoot } = await makeFakeHome()
 
   // First, do a clean install
@@ -303,7 +307,8 @@ test("subdirectory agents/ is a symlink → rejected", async () => {
   await fs.rm(home, { recursive: true, force: true })
 })
 
-test("subdirectory skills/ is a symlink → rejected", async () => {
+test("subdirectory skills/ is a symlink → rejected", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "dir" })) return
   const { home, configHome, configRoot } = await makeFakeHome()
 
   // First install
@@ -351,7 +356,8 @@ test("XDG_CONFIG_HOME with path traversal (../../etc) → rejected", async () =>
   await fs.rm(home, { recursive: true, force: true })
 })
 
-test("unsafe state produces no partial installation — target unchanged after error", async () => {
+test("unsafe state produces no partial installation — target unchanged after error", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "dir" })) return
   const { home, configHome, configRoot } = await makeFakeHome()
 
   // Pre-populate
@@ -382,7 +388,8 @@ test("unsafe state produces no partial installation — target unchanged after e
 // Source symlink detection test
 // ---------------------------------------------------------------------------
 
-test("source repo contains a symlink → symlink is skipped", async () => {
+test("source repo contains a symlink → symlink is skipped", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "file" })) return
   // This test verifies the concept: if a directory read contains a symlink,
   // the Dirent.isSymbolicLink() check skips it.
   // Since we can't modify the real repo source, we verify the behavior by

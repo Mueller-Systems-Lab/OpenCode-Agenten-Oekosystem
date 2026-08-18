@@ -5,7 +5,7 @@
  * workers. These tests keep the same runtime invariants verifiable WITHOUT a
  * model: the canonical plugin entry chain, run_id correlation, plan gate
  * unbypassability, verify mandatory, bounded retry, security hard block,
- * legacy fallback observability, and secret-leak freedom are all enforced by
+ * no-silent-fallback fail-fast, and secret-leak freedom are all enforced by
  * the deterministic runtime regardless of who produces the worker artifacts.
  *
  * Worker artifacts here are deterministic stand-ins; the runtime treats them
@@ -214,7 +214,7 @@ describe('real-worker soak invariants (deterministic, no model)', () => {
     assert.equal(hasSecretLeak(events), false)
   })
 
-  it('legacy fallback is observable when the runtime entry is deliberately unavailable', async (t) => {
+  it('no silent fallback: runtime entry deliberately unavailable fails fast with CANONICAL_RUNTIME_UNAVAILABLE', async (t) => {
     const root = await makeTarget()
     t.after(() => fs.rm(root, { recursive: true, force: true }))
     const install = runNodeScript('scripts/install-governance.mjs', ['--target', root, '--apply', '--json'])
@@ -226,17 +226,18 @@ describe('real-worker soak invariants (deterministic, no model)', () => {
       const pluginPath = path.join(root, '.agent-governance', 'hooks', 'opencode', 'canonical-governance.mjs')
       const plugin = await import(pathToFileURL(pluginPath).href)
       const hooks = await plugin.default({ directory: root, worktree: root })
-      await hooks['chat.message'](
-        { sessionID: 'legacy-session', messageID: 'legacy-message' },
-        {
-          message: { role: 'user', id: 'legacy-message', sessionID: 'legacy-session' },
-          parts: [{ type: 'text', text: 'Implement add(a, b).' }],
-        },
+      await assert.rejects(
+        () => hooks['chat.message'](
+          { sessionID: 'legacy-session', messageID: 'legacy-message' },
+          {
+            message: { role: 'user', id: 'legacy-message', sessionID: 'legacy-session' },
+            parts: [{ type: 'text', text: 'Implement add(a, b).' }],
+          },
+        ),
+        /CANONICAL_RUNTIME_UNAVAILABLE/,
       )
       const runContextExists = await fs.access(path.join(root, '.agent-governance', 'runtime', 'run-context.json')).then(() => true).catch(() => false)
-      const taskContext = await fs.access(path.join(root, '.agent-governance', 'task-context.json')).then(() => true).catch(() => false)
-      assert.equal(runContextExists, false) // canonical runtime did not run
-      assert.equal(taskContext, true)       // legacy bootstrap context remained
+      assert.equal(runContextExists, false) // canonical runtime did not run and no silent fallback continued
     } finally {
       await fs.rename(moved, runMjs).catch(() => {})
     }

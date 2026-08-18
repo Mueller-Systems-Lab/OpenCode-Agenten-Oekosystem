@@ -19,6 +19,7 @@ import {
 import {
   buildIsolatedOpenCodeConfig,
 } from "../../runtime/security/secure-opencode-config.mjs"
+import { skipIfHostCannotSymlink } from "../lib/symlink-capability.mjs"
 
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 
@@ -54,6 +55,7 @@ test("isolated OpenCode config denies every built-in and permits exactly bootstr
 })
 
 test("real Bubblewrap probes cannot read target secrets, Git metadata, host home, or inherited env", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "file" })) return
   const { targetRoot, sentinel } = await createTarget()
   t.after(() => fs.rm(targetRoot, { recursive: true, force: true }))
 
@@ -76,6 +78,7 @@ test("real Bubblewrap probes cannot read target secrets, Git metadata, host home
 })
 
 test("controller blocks a requested secret read, deduplicates it, recovers, and completes safe dry-run", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "file" })) return
   const { targetRoot, sentinel } = await createTarget()
   t.after(() => fs.rm(targetRoot, { recursive: true, force: true }))
   const controller = await createSecureBootstrapController({
@@ -123,6 +126,7 @@ test("controller blocks a requested secret read, deduplicates it, recovers, and 
 })
 
 test("controller rejects a source URL that does not match the read-only clone", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "file" })) return
   const { targetRoot } = await createTarget()
   t.after(() => fs.rm(targetRoot, { recursive: true, force: true }))
   await assert.rejects(
@@ -136,6 +140,7 @@ test("controller rejects a source URL that does not match the read-only clone", 
 })
 
 test("controller completes apply, verify, idempotence, rollback, re-apply, and final verify", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "file" })) return
   const { targetRoot, sentinel } = await createTarget()
   t.after(() => fs.rm(targetRoot, { recursive: true, force: true }))
   const controller = await createSecureBootstrapController({
@@ -178,6 +183,7 @@ test("controller completes apply, verify, idempotence, rollback, re-apply, and f
 })
 
 test("authenticated MCP broker exposes only typed tools and returns structured gated results", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "file" })) return
   const { targetRoot, sentinel } = await createTarget()
   t.after(() => fs.rm(targetRoot, { recursive: true, force: true }))
   const controller = await createSecureBootstrapController({

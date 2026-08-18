@@ -1,0 +1,11 @@
+{
+  "changed_files": ["src/sum2.mjs"],
+  "files": {
+    "src/sum2.mjs": "export function sum2(items) { return items.reduce((a, b) => a + b) }\n"
+  },
+  "errors": [
+    "TypeError: Reduce of empty array with no initial value (sum2([]) fails)"
+  ],
+  "strategy_delta": "replace the naive reduce with explicit edge-case handling: return 0 for empty arrays and otherwise sum all items with a for loop to avoid numeric edge cases",
+  "capabilities_used": ["read", "write", "test"]
+}

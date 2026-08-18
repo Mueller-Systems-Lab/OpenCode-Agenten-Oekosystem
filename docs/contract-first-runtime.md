@@ -201,13 +201,45 @@ Legacy classification aliases (e.g. `GREEN_SAFE` as an input alias for
 - Windows host without Developer Mode/admin cannot create symlinks →
   symlink-dependent security/integration tests fail with `EPERM` and are
   classified `NON_BLOCKING_HOST_LIMITATION` by `scripts/validate-ecosystem.mjs`
-  (pre-existing, unrelated to this runtime).
+  (pre-existing, unrelated to this runtime). This exception is **platform-bound
+  to `process.platform === "win32"`** (`isKnownWindowsSymlinkCapabilityGap`); it
+  is historical Windows evidence and never masks a Linux `EPERM`.
+- On Linux (e.g. ext4 workspaces), symlinks are real: the capability probe in
+  `test/lib/symlink-capability.mjs` performs a REAL symlink creation and reports
+  `HOST_SYMLINK_CAPABILITY_AVAILABLE`; the symlink security tests then run for
+  real and must PASS. A Linux `EPERM` is a real bug/condition to explain, never
+  a pre-approved Windows exception.
 - The verify layer strips `NODE_TEST_CONTEXT` from spawned children so nested
   `node --test` invocations actually execute (without this, Node skips nested
   test runs and exits 0 → false green).
 - The native OpenCode seam consumes plan text/plan data via the adapter; the
   vertical-slice tests inject a deterministic build executor so the pipeline is
   fully testable without a live LLM backend.
+
+## Linux Test Harness
+
+The canonical test command runs every manifest group in one invocation and
+aggregates at the end:
+
+```text
+npm test                                   # = node scripts/run-tests.mjs --all --reporter spec
+node scripts/run-tests.mjs --all --json    # machine-readable aggregate
+```
+
+- `scripts/run-tests.mjs` executes ALL groups from `test/test-manifest.json`
+  (unit, contract, integration, bootstrap, governance, e2e, provider_optional).
+  A failing group never aborts the remaining groups; the final exit code is 0
+  only when every executed group passed and only explicit capability skips
+  (`PASS_WITH_UNSUPPORTED`) are present.
+- Per-file timeouts come from `test/test-manifest.json` `timeouts` (default
+  300 s). `scripts/validate-ecosystem.mjs` derives its outer suite timeout from
+  the same manifest (sum of effective per-file timeouts + grace), so a
+  legitimately long inner test is never killed by an outer 120 s cutoff.
+- Aggregate output: `FINAL_STATUS`, `FAILED_GROUPS`, `SKIPPED_GROUPS`,
+  `PASSED/FAILED/SKIPPED`, per-group `status` (`PASS | FAIL |
+  PASS_WITH_UNSUPPORTED`), `exit_code`. `test/harness/runner-contract.test.mjs`
+  locks these semantics down (continue-on-failure, final-FAIL, skip semantics,
+  capability probes, timeouts).
 
 
 ## Canonical Runtime Entry
@@ -268,7 +300,9 @@ The OpenCode plugin (`.opencode/plugins/canonical-governance.mjs` and the
 installed hook `installOpenCodeHook`) routes every real user task through
 `enterRun` after `bootstrapTask` produces the task capsule: the run enters the
 canonical runtime (task contract, `run_id`, capability/MCP preflight, real run
-events) before any agent works. `scripts/install-governance.mjs` installs the
+events) before any agent works. If the canonical runtime cannot be entered, the
+plugin fails fast with `CANONICAL_RUNTIME_UNAVAILABLE`; there is no legacy
+fallback. `scripts/install-governance.mjs` installs the
 complete contract-first runtime (contracts, baseline, pipeline, adapters,
 controller, observability, reviews, `run.mjs`) plus the shared MCP preflight
 helper into target projects, so installed ecosystems use the same canonical
@@ -321,23 +355,50 @@ additional attempt, or that supplies a meaningless `strategy_delta` (e.g.
 separately but are strictly distinct from business retries and are never
 presented as a new problem-solving strategy.
 
-## Migration / Compatibility
+## Legacy Execution Retired
 
-Existing entry points are preserved through a compatibility seam:
+The legacy compatibility execution fallback is RETIRED. The contract-first
+runtime is mandatory — there is no silent legacy execution fallback.
 
 ```
-existing entry → compatibility seam → canonical runtime
+USER TASK
+   ↓
+PLUGIN ENTRY (chat.message → bootstrapTask → enterRun)
+   ↓
+CANONICAL RUNTIME AVAILABLE?
+   ├── NO
+   │    ↓
+   │  FAIL FAST — CANONICAL_RUNTIME_UNAVAILABLE
+   │    ↓
+   │  BLOCKED / explicit runtime failure (fallback_attempted=false)
+   ▼
+  YES
+   ↓
+CONTRACT-FIRST RUNTIME
+   ↓
+DONE / FIX / SPLIT / BLOCKED
 ```
 
-- The plugin `chat.message` hook first runs `bootstrapTask` (legacy task
-  capsule) and then routes the task into the canonical runtime entry; if the
-  installed runtime entry is unavailable, the bootstrapped task context
-  remains the `LEGACY_COMPATIBILITY_PATH`.
-- `runtime/agent/run-state.mjs` `RUN_COMPLETE`/`VERIFIED_IN_SCOPE` and the gate
-  kernel classifications remain as worker/step-level results and legacy
-  aliases (`GREEN_SAFE` → `VERIFIED_IN_SCOPE`); they are not the runtime
-  terminal authority. `scripts/validate-ecosystem.mjs` classifications are
-  ecosystem-validator results, not task terminal states.
+- The plugin `chat.message` hook first runs `bootstrapTask` (task capsule, owner
+  intent, entry normalization) and then enters the canonical runtime via
+  `enterRun` (ecosystem.task.v1 + run_id + capability/MCP preflight + real run
+  events). `bootstrapTask` is entry preparation only — it never starts a
+  completion/terminal path.
+- If the canonical runtime cannot be entered — module unavailable, import
+  failure, initialization failure, or contract failure at entry — execution
+  FAILS FAST. The plugin throws
+  `RUNTIME_ENTRY_BLOCKED:CANONICAL_RUNTIME_UNAVAILABLE:<availability>:<detail>`
+  and writes an `ocae.runtime-entry-failure.v1` observability record
+  (`entry_source`, `timestamp`, `runtime_availability`, `failure_reason`,
+  `run_id` when one already exists, `fallback_attempted=false`). No legacy
+  run-state, old completion path, or bootstrapped-context fallback continues
+  the task.
+- `runtime/agent/run-state.mjs` (`RUN_COMPLETE`/`VERIFIED_IN_SCOPE`) and the
+  gate-kernel classifications remain as worker/step-level results and legacy
+  input aliases (`GREEN_SAFE` → `VERIFIED_IN_SCOPE`); they are NOT the runtime
+  terminal authority and are NOT reachable from the normal plugin entry.
+  `scripts/validate-ecosystem.mjs` classifications are ecosystem-validator
+  results, not task terminal states.
 - `run_id` is created once by the task contract; retries differ by `attempt`,
   never by a new run id. A worker-supplied replacement `run_id` aborts the run
   deterministically with `CONTRACT_INVALID`.

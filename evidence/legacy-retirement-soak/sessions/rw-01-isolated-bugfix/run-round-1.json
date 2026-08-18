@@ -1,0 +1,127 @@
+{
+  "case_id": "rw-01-isolated-bugfix",
+  "task_class": "isolated_bugfix",
+  "round": 1,
+  "run_id": "c09dbfe0-7318-4e87-ba9b-bc4e7ac57cf0",
+  "entry_run_id": "c09dbfe0-7318-4e87-ba9b-bc4e7ac57cf0",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "c09dbfe0-7318-4e87-ba9b-bc4e7ac57cf0"
+  ],
+  "entry_source": "plugin:chat.message",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null,
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "plan_fingerprint": "sha256:6dfb5f4864006c21df00571e9ee64096e80c618d812af0de926b31791f073e37",
+  "plan_has_text": true,
+  "plan_gate_status": "PASS",
+  "plan_gate_approved": true,
+  "plan_gate_errors": [],
+  "build_status": "SUCCESS",
+  "build_calls": 1,
+  "verify_status": "PASS",
+  "failure_signatures": [],
+  "strategy_deltas": [],
+  "attempt_count": 1,
+  "retry_count": 0,
+  "final_decision": "DONE",
+  "reason_code": "ALL_HARD_GATES_GREEN",
+  "first_bad_boundary": null,
+  "phase_history": [
+    {
+      "name": "TASK",
+      "status": "PASS"
+    },
+    {
+      "name": "BASELINE",
+      "status": "PASS"
+    },
+    {
+      "name": "RESEARCH",
+      "status": "PASS"
+    },
+    {
+      "name": "PLAN",
+      "status": "PASS"
+    },
+    {
+      "name": "PLAN_GATE",
+      "status": "PASS"
+    },
+    {
+      "name": "BUILD",
+      "status": "PASS"
+    },
+    {
+      "name": "VERIFY",
+      "status": "PASS"
+    },
+    {
+      "name": "REVIEWS",
+      "status": "PASS"
+    },
+    {
+      "name": "CONTROLLER",
+      "status": "PASS"
+    }
+  ],
+  "reviews": [
+    {
+      "review_type": "correctness",
+      "status": "PASS",
+      "severity": "INFO",
+      "blocking": false,
+      "findings": []
+    },
+    {
+      "review_type": "security",
+      "status": "PASS",
+      "severity": "INFO",
+      "blocking": false,
+      "findings": []
+    },
+    {
+      "review_type": "quality",
+      "status": "PASS",
+      "severity": "INFO",
+      "blocking": false,
+      "findings": []
+    }
+  ],
+  "research_findings": [
+    {
+      "focus": "code",
+      "findings": [
+        "src/calc.mjs"
+      ]
+    },
+    {
+      "focus": "docs",
+      "findings": []
+    },
+    {
+      "focus": "tests",
+      "findings": [
+        "test/calc.test.mjs"
+      ]
+    }
+  ],
+  "changed_files": [
+    "src/calc.mjs"
+  ],
+  "out_of_scope": [],
+  "git_diff_files": [
+    "src/calc.mjs"
+  ],
+  "worker_terminal_claims": [],
+  "worker_terminal_override_denied": true,
+  "contract_validation_failures": [],
+  "contract_repairs": [],
+  "secret_leak": false,
+  "duration_ms": 1805,
+  "event_count": 11,
+  "unexpected_behavior": [],
+  "run_error": null
+}

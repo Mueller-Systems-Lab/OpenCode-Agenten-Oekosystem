@@ -304,27 +304,27 @@ Begründung — alle DoD-Kriterien:
 | REPEATABILITY_SAMPLE | PASS (3 Tasks × 2 Läufe, stabil) |
 | LEGACY_USAGE_MEASURED_REAL | PASS |
 | UNEXPECTED_LEGACY_FALLBACKS | 0 |
-| FORCED_LEGACY_FALLBACK_TEST | PASS |
+| FORCED_CANONICAL_FAILURE_TEST | PASS (NO_FALLBACK) |
 | NO_CONTROLLER_BYPASS / NO_SECRET_LEAK | PASS |
 | REGRESSION_TESTS / DOCUMENTATION | PASS |
 
 ### Separates Assessment
 
 ```text
-LEGACY_RETIREMENT_READINESS = READY
+LEGACY_EXECUTION_STATUS = RETIRED
+LEGACY_ARTIFACT_CLEANUP_READINESS = PARTIAL
 ```
 
-- Alle normalen Sessions kanonisch ✅
-- 0 unerwartete Legacy-Fallbacks ✅
-- Forced-Fallback getestet und observierbar ✅
+- Legacy execution is RETIRED: the canonical runtime is the only executable
+  standard path; no normal plugin/user path can reach legacy execution.
+- 0 unerwartete Legacy-Fallbacks (normal_legacy_fallback_count=0) ✅
+- Forced canonical failure → expliziter Fail-Fast (`CANONICAL_RUNTIME_UNAVAILABLE`,
+  `fallback_attempted=false`), kein Fallback ✅
 - Reale Worker ausgeführt ✅
 - Controller-Autorität erhalten (Anti-Fake-Execution-Befund) ✅
 - Contracts stabil ✅
-- Observability vollständig (run-events, Fingerprints) ✅
+- Observability vollständig (run-events, runtime-entry-failure records) ✅
 - Regression grün ✅
-
-> **Legacy wird in diesem Meilenstein NICHT entfernt** (Auftragsvorgabe).
-> Der Rückbau ist ein separater Meilenstein `LEGACY_COMPATIBILITY_RETIREMENT`.
 
 ## 25. Evidence
 
@@ -332,7 +332,7 @@ LEGACY_RETIREMENT_READINESS = READY
 evidence/real-worker-soak/
   sessions.json            — alle Kern-Sessions (kompakt)
   summary.json             — Aggregat + Adequacy + Retry + Repeatability + Secrets
-  legacy-usage.json        — Real-Session-Legacy-Telemetrie + Forced-Legacy-Test
+  legacy-usage.json        — Real-Session-Legacy-Telemetrie (normal_legacy_fallback_count=0) + Forced-Canonical-Failure-Tests (NO_FALLBACK)
   research-adequacy.json   — Research-Klassifikationen
   plan-adequacy.json       — Plan-Klassifikationen
   review-adequacy.json     — Review-Klassifikationen
@@ -349,12 +349,11 @@ Keine vollständigen Prompts, keine Secrets, keine Credential-Werte in Evidence.
 ## 26. Recommended Next Milestone
 
 ```text
-LEGACY_COMPATIBILITY_RETIREMENT
+OCAE PRODUCTION BASELINE / RUNTIME FREEZE
 ```
 
-Kleiner, reversibler Rückbau des `LEGACY_COMPATIBILITY_PATH` mit:
-
-1. Entfernen des Fallback-Catch im Plugin (`chat.message`),
-2. Fail-Fast bei fehlendem Runtime-Entry (statt stiller Legacy-Nutzung),
-3. Regressionstest „no silent fallback“ (erwartet: harter Fehler statt Legacy),
-4. Entfernen der Legacy-Hook-Variante nach Migration aller Consumer.
+Legacy-Compatibility-Retirement ist abgeschlossen (`LEGACY_EXECUTION_STATUS=RETIRED`).
+Der Folgemeilenstein friert die kanonische Runtime ein, inventarisiert/bereinigt
+verbleibende Legacy-Artefakte (siehe Legacy-Artefakt-Inventar), klassifiziert
+technische Schulden, dokumentiert die Baseline und definiert den
+Regression-Sentinel.

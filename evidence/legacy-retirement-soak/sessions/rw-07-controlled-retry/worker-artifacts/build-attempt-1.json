@@ -1,0 +1,9 @@
+{
+  "changed_files": ["src/sum2.mjs"],
+  "files": {
+    "src/sum2.mjs": "export function sum2(items) {\n  let sum = 0\n  for (const item of items) {\n    sum += item\n  }\n  return sum\n}\n"
+  },
+  "errors": [],
+  "strategy_delta": null,
+  "capabilities_used": ["read", "write", "test"]
+}

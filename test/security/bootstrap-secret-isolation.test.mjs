@@ -4,6 +4,7 @@ import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import test from "node:test"
+import { skipIfHostCannotSymlink } from "../lib/symlink-capability.mjs"
 
 import {
   classifySecretPath,
@@ -98,7 +99,8 @@ test("target path normalization blocks traversal, absolute paths, URIs, and proc
   })
 })
 
-test("safe target reads block secret files, symlinks, nested links, and hardlinks before content", async () => {
+test("safe target reads block secret files, symlinks, nested links, and hardlinks before content", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "file" })) return
   await withTarget(async (targetRoot) => {
     const sentinel = `TEST_ONLY_${crypto.randomBytes(24).toString("hex")}`
     await fs.writeFile(path.join(targetRoot, ".env"), `TOKEN=${sentinel}\n`, { mode: 0o600 })

@@ -1,0 +1,9 @@
+{
+  "changed_files": ["src/total.mjs"],
+  "files": {
+    "src/total.mjs": "export function total(items) { return items.reduce((a, b) => a + b, 0) }\n"
+  },
+  "errors": [],
+  "strategy_delta": null,
+  "capabilities_used": ["read", "write", "test"]
+}

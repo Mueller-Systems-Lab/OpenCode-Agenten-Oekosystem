@@ -1,0 +1,11 @@
+{
+  "case_id": "rw-03-existing-test-failure",
+  "prepared_at": "2026-08-17T12:25:41.394Z",
+  "entry_source": "plugin:chat.message",
+  "run_id": "976c746d-90fd-44d5-b0a6-e75e8c3c7617",
+  "task_contract": "ecosystem.task.v1",
+  "phase": "ENTRY",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null
+}

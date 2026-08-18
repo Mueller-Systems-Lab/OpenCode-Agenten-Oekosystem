@@ -1376,6 +1376,31 @@ const validateSourceLock = (targetRoot) => {
   return mismatches.length ? { valid: false, reason: 'source-lock integrity failed', mismatches } : { valid: true };
 };
 
+const safeEntryMessage = (error) => (String((error && error.message) || error || '').replace(/\\s+/g, ' ').trim().slice(0, 240) || 'unknown runtime entry failure');
+const writeRuntimeEntryFailure = (targetRoot, input, output, availability, detail) => {
+  try {
+    const record = {
+      schema_version: 'ocae.runtime-entry-failure.v1',
+      entry_source: 'plugin:chat.message',
+      timestamp: new Date().toISOString(),
+      session_id: (input && (input.sessionID || (output && output.message && output.message.sessionID))) || '',
+      message_id: (input && (input.messageID || (output && output.message && output.message.id))) || 'unknown',
+      run_id: null,
+      runtime_availability: availability,
+      failure_reason: 'CANONICAL_RUNTIME_UNAVAILABLE',
+      failure_detail: detail,
+      fallback_attempted: false,
+    };
+    fs.mkdirSync(path.join(targetRoot, '.agent-governance', 'evidence'), { recursive: true });
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    fs.writeFileSync(path.join(targetRoot, '.agent-governance', 'evidence', 'runtime-entry-failure-' + ts + '.json'), JSON.stringify(record, null, 2), 'utf8');
+  } catch { /* observability is best-effort */ }
+};
+const runtimeEntryUnavailable = (targetRoot, input, output, availability, detail) => {
+  writeRuntimeEntryFailure(targetRoot, input, output, availability, detail);
+  return new Error('[governance-v2] RUNTIME_ENTRY_BLOCKED:CANONICAL_RUNTIME_UNAVAILABLE:' + availability + ':' + detail);
+};
+
 export const CanonicalGovernancePlugin = async ({ directory, worktree, client = null } = {}) => {
   const targetRoot = directory || worktree || process.cwd();
   const decisions = new Map();
@@ -1416,26 +1441,34 @@ export const CanonicalGovernancePlugin = async ({ directory, worktree, client = 
         userMessage: text,
       });
       if (result.state !== 'TASK_READY') throw new Error('[governance-v2] ' + (result.code || 'RED_BLOCK_TASK_BOOTSTRAP'));
-      // Canonical contract-first runtime entry. The real user task enters the
-      // deterministic runtime (ecosystem.task.v1 + run_id + capability/MCP
-      // preflight + run events) before any agent work. If the runtime entry is
-      // not installed, the bootstrapped task context remains the legacy path.
+      // Canonical contract-first runtime entry — MANDATORY. The real user task
+      // enters the deterministic runtime (ecosystem.task.v1 + run_id +
+      // capability/MCP preflight + run events) before any agent work.
+      // NO SILENT LEGACY FALLBACK: if the canonical runtime cannot be entered
+      // (unavailable, import failure, initialization failure, contract failure
+      // at entry), execution FAILS FAST with CANONICAL_RUNTIME_UNAVAILABLE and
+      // remains observable (runtime-entry-failure record, fallback_attempted=false).
+      let runtimeEntry = null;
       try {
-        const runtimeEntry = await import('../../runtime/run.mjs');
-        if (runtimeEntry && typeof runtimeEntry.enterRun === 'function') {
-          const entry = await runtimeEntry.enterRun({
-            targetRoot,
-            taskText: text,
-            sessionId: input?.sessionID || output?.message?.sessionID || '',
-            messageId: input?.messageID || output?.message?.id || 'unknown',
-          });
-          if (entry.blocked) throw new Error('[governance-v2] RUNTIME_ENTRY_BLOCKED:' + (entry.decision?.reason_code || entry.code || 'BLOCKED'));
-        }
+        runtimeEntry = await import('../../runtime/run.mjs');
       } catch (error) {
-        if (error instanceof Error && String(error.message).indexOf('[governance-v2] RUNTIME_ENTRY_BLOCKED') === 0) throw error;
-        // Legacy compatibility: runtime entry unavailable — continue with the
-        // bootstrapped task context (LEGACY_COMPATIBILITY_PATH).
+        throw runtimeEntryUnavailable(targetRoot, input, output, 'IMPORT_FAILURE', safeEntryMessage(error));
       }
+      if (!runtimeEntry || typeof runtimeEntry.enterRun !== 'function') {
+        throw runtimeEntryUnavailable(targetRoot, input, output, 'UNAVAILABLE', 'enterRun export missing');
+      }
+      let entry;
+      try {
+        entry = await runtimeEntry.enterRun({
+          targetRoot,
+          taskText: text,
+          sessionId: input?.sessionID || output?.message?.sessionID || '',
+          messageId: input?.messageID || output?.message?.id || 'unknown',
+        });
+      } catch (error) {
+        throw runtimeEntryUnavailable(targetRoot, input, output, 'AVAILABLE', safeEntryMessage(error));
+      }
+      if (entry.blocked) throw new Error('[governance-v2] RUNTIME_ENTRY_BLOCKED:' + (entry.decision?.reason_code || entry.code || 'BLOCKED'));
     },
     'tool.execute.before': async (input, output) => {
       const integrity = validateSourceLock(targetRoot);
@@ -1638,6 +1671,20 @@ async function validatePostApply(targetRoot) {
   for (const file of requiredFiles) {
     if (!fs.existsSync(file)) {
       issues.push(`Missing required file: ${relativePath(targetRoot, file)}`)
+    }
+  }
+
+  if (opencodeHookActive) {
+    const installedHookPath = path.join(governanceRoot, "hooks", "opencode", "canonical-governance.mjs")
+    if (fs.existsSync(installedHookPath)) {
+      try {
+        const hookText = await fsPromises.readFile(installedHookPath, "utf8")
+        if (hookText.includes("LEGACY_COMPATIBILITY_PATH")) {
+          issues.push("Installed canonical-governance hook still contains the silent legacy fallback (LEGACY_COMPATIBILITY_PATH) — reinstall required")
+        }
+      } catch {
+        issues.push("Installed canonical-governance hook cannot be read for legacy-fallback drift check")
+      }
     }
   }
 

@@ -12,6 +12,7 @@ import { parseJsonc } from "./lib/jsonc.mjs"
 import { pathExists, readTextIfExists, toAbsolutePath, normalizePosix } from "./lib/paths.mjs"
 import { safeRedactText, secretValuesFromEnv } from "./lib/security/redaction.mjs"
 import { validateHandoffContract } from "../bootstrap/lib/handoff.mjs"
+import { runProductionSentinel } from "./lib/production-sentinel.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 
@@ -208,6 +209,20 @@ async function main() {
   issues.push(...await validateInstructions())
   issues.push(...await validateGovernanceV2())
   issues.push(...await validateNoSilentLegacyFallback())
+
+  // Production Sentinel — deterministic drift-watcher for the frozen runtime.
+  // Guards canonical entry, contracts, controller terminal authority, plan
+  // gate, verify, retry, security hard block, run_id, first-bad-boundary,
+  // secret leakage, worker-not-terminal evidence, test harness exhaustiveness,
+  // installer baseline, Linux symlink invariant, validator timeout invariant,
+  // and the structural baseline fingerprint.
+  const sentinel = await runProductionSentinel({ repoRoot })
+  issues.push(...sentinel.issues)
+  warnings.push(...sentinel.warnings)
+  console.log(`PRODUCTION_SENTINEL: ${sentinel.status}`)
+  for (const result of sentinel.results) {
+    console.log(`  SENTINEL_${result.invariant}: ${result.ok ? "PASS" : "FAIL"}`)
+  }
 
   // working-method.json content checks
   issues.push(...await validateWorkingMethodRiskTiers())

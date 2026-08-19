@@ -29,6 +29,7 @@
                                 "test/controller/vertical-slice-adoption.test.mjs",
                                 "test/controller/security-boundary.test.mjs",
                                 "test/controller/no-silent-fallback.test.mjs",
+                                "test/controller/production-sentinel.test.mjs",
                                 "test/controller/real-worker-soak.test.mjs"
                             ],
                    "contract":  [
@@ -72,7 +73,8 @@
                                      "test/install/runtime-hardening.test.mjs",
                                      "test/install/tamper-detection.test.mjs",
                                      "test/install/agent-installation.test.mjs",
-                                     "test/install/url-installer.test.mjs"
+                                     "test/install/url-installer.test.mjs",
+                                     "test/install/fresh-install-sentinel.test.mjs"
                                  ],
                    "governance":  [
                                       "test/gates/approval-closure.test.mjs",

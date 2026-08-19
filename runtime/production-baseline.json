@@ -1,0 +1,64 @@
+{
+  "baseline_version": 1,
+  "runtime_baseline_commit": "f175a0f42012c9e961d9ea228f3513339f27b692",
+  "production_freeze_commit": "commit containing this baseline",
+  "canonical_entry": "runtime/run.mjs",
+  "plugin_entry": ".opencode/plugins/canonical-governance.mjs",
+  "contracts": [
+    "ecosystem.task.v1",
+    "ecosystem.baseline.v1",
+    "ecosystem.research.v1",
+    "ecosystem.plan.v1",
+    "ecosystem.build-input.v1",
+    "ecosystem.build-result.v1",
+    "ecosystem.verification.v1",
+    "ecosystem.review.v1",
+    "ecosystem.decision.v1",
+    "ecosystem.run-event.v1"
+  ],
+  "terminal_states": [
+    "DONE",
+    "FIX",
+    "SPLIT",
+    "BLOCKED"
+  ],
+  "terminal_next_paths": {
+    "DONE": "FINALIZE",
+    "FIX": "TARGETED_FIX",
+    "SPLIT": "DECOMPOSE_INTO_SUBTASKS",
+    "BLOCKED": "HUMAN_OR_POLICY_INTERVENTION"
+  },
+  "critical_invariants": [
+    "CANONICAL_RUNTIME_MANDATORY",
+    "NO_SILENT_LEGACY_FALLBACK",
+    "CONTROLLER_SOLE_TERMINAL_AUTHORITY",
+    "PLAN_GATE_UNBYPASSABLE",
+    "VERIFY_MANDATORY",
+    "RETRY_AUTHORITY_CANONICAL",
+    "SECURITY_HARD_BLOCK",
+    "RUN_ID_IMMUTABLE",
+    "FIRST_BAD_BOUNDARY_STABLE",
+    "NO_SECRET_LEAK",
+    "WORKER_SUCCESS_NOT_TERMINAL_EVIDENCE",
+    "TEST_RUNNER_EXHAUSTIVE"
+  ],
+  "required_artifacts": [
+    "runtime/run.mjs",
+    "runtime/contracts/",
+    "runtime/controller/",
+    "runtime/pipeline/",
+    "runtime/baseline/",
+    "runtime/adapters/",
+    "runtime/reviews/",
+    "runtime/observability/",
+    ".opencode/plugins/canonical-governance.mjs"
+  ],
+  "canonical_test_command": "npm test",
+  "legacy_execution_status": "RETIRED",
+  "legacy_non_execution_inventory": [
+    "runtime/agent/run-state.mjs",
+    "runtime/agent/start.mjs",
+    "scripts/run-completion-canary.mjs"
+  ],
+  "baseline_fingerprint": "c3256b558463fc7d63c36958df317a872a8836ca2739cddd659f0cefd9d17971"
+}

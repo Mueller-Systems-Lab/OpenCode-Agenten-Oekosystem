@@ -30,7 +30,8 @@
                                 "test/controller/security-boundary.test.mjs",
                                 "test/controller/no-silent-fallback.test.mjs",
                                 "test/controller/production-sentinel.test.mjs",
-                                "test/controller/real-worker-soak.test.mjs"
+                                "test/controller/real-worker-soak.test.mjs",
+                                "test/mcp/tool-executor.test.mjs"
                             ],
                    "contract":  [
                                     "test/contracts/bootstrap-capability-contract.test.mjs",

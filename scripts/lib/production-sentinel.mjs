@@ -46,6 +46,13 @@ export const SENTINEL_INVARIANTS = Object.freeze([
   'NO_SECRET_LEAK',
   'WORKER_SUCCESS_NOT_TERMINAL_EVIDENCE',
   'TEST_RUNNER_EXHAUSTIVE',
+  // MCP worker tool integration invariants (runtime-critical, additive)
+  'MCP_REQUIRED_CAPABILITY_FAILS_CLOSED',
+  'MCP_TOOL_SCOPE_LEAST_PRIVILEGE',
+  'MCP_TOOL_RESULT_NOT_TERMINAL_AUTHORITY',
+  'MCP_TOOL_CALL_BOUNDED',
+  'MCP_TOOL_OBSERVABILITY',
+  'MCP_NO_SECRET_LEAK',
 ])
 
 export const REQUIRED_CONTRACT_IDS = Object.freeze([
@@ -104,6 +111,10 @@ export const INSTALLER_REQUIRED_ARTIFACTS = Object.freeze([
   'reviews/analyze.mjs',
   'observability/run-events.mjs',
   'observability/events.mjs',
+  'mcp/error-classifier.mjs',
+  'mcp/tool-grant.mjs',
+  'mcp/tool-executor.mjs',
+  'mcp/server-registry.mjs',
 ])
 
 /** Legacy execution components that must never rejoin the installed path. */
@@ -868,6 +879,118 @@ export async function checkBaselineManifest({ repoRoot, baselineManifest = null 
 }
 
 // ---------------------------------------------------------------------------
+// MCP worker tool integration invariant checks (structural)
+// ---------------------------------------------------------------------------
+
+async function readRuntimeMcpSource(repoRoot, name) {
+  return readIfExists(path.join(repoRoot, 'runtime', 'mcp', name))
+}
+
+export async function checkMcpRequiredCapabilityFailsClosed({ repoRoot }) {
+  const issues = []
+  const baseline = await readIfExists(path.join(repoRoot, 'runtime', 'baseline', 'capability-preflight.mjs'))
+  if (!baseline || !baseline.includes('runMcpPreflight')) {
+    issues.push('MCP_REQUIRED_CAPABILITY_FAILS_CLOSED: capability-preflight must run MCP preflight')
+  }
+  if (baseline && !/errors\.push\(`required mcp \$\{failure\.tool\}: \$\{failure\.code\}`\)/.test(baseline)) {
+    issues.push('MCP_REQUIRED_CAPABILITY_FAILS_CLOSED: required MCP failure must fail the baseline')
+  }
+  const run = await readIfExists(path.join(repoRoot, 'runtime', 'run.mjs'))
+  if (run && !run.includes("if (!baseline.approved)")) {
+    issues.push('MCP_REQUIRED_CAPABILITY_FAILS_CLOSED: baseline failure must block the run')
+  }
+  const executor = await readRuntimeMcpSource(repoRoot, 'tool-executor.mjs')
+  if (executor && !executor.includes('assertToolAllowed')) {
+    issues.push('MCP_REQUIRED_CAPABILITY_FAILS_CLOSED: tool executor must enforce the grant before any call')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkMcpToolScopeLeastPrivilege({ repoRoot }) {
+  const issues = []
+  const grant = await readRuntimeMcpSource(repoRoot, 'tool-grant.mjs')
+  if (!grant) {
+    issues.push('MCP_TOOL_SCOPE_LEAST_PRIVILEGE: runtime/mcp/tool-grant.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!grant.includes('resolveToolGrant')) issues.push('MCP_TOOL_SCOPE_LEAST_PRIVILEGE: resolveToolGrant missing')
+  if (!grant.includes('assertToolAllowed')) issues.push('MCP_TOOL_SCOPE_LEAST_PRIVILEGE: call-time assertion missing')
+  if (!grant.includes('MCP_TOOL_SCOPE_DENIED')) issues.push('MCP_TOOL_SCOPE_LEAST_PRIVILEGE: tool scope denial code missing')
+  if (!grant.includes('MCP_SERVER_SCOPE_DENIED')) issues.push('MCP_TOOL_SCOPE_LEAST_PRIVILEGE: server scope denial code missing')
+  const run = await readIfExists(path.join(repoRoot, 'runtime', 'run.mjs'))
+  if (run && !run.includes('resolveToolGrant')) {
+    issues.push('MCP_TOOL_SCOPE_LEAST_PRIVILEGE: canonical run must resolve the tool grant')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkMcpToolResultNotTerminalAuthority({ repoRoot }) {
+  const issues = []
+  const executor = await readRuntimeMcpSource(repoRoot, 'tool-executor.mjs')
+  if (!executor) {
+    issues.push('MCP_TOOL_RESULT_NOT_TERMINAL_AUTHORITY: runtime/mcp/tool-executor.mjs missing')
+    return { ok: false, issues }
+  }
+  // The executor may never emit a terminal decision as an authoritative result.
+  if (/terminal\s*=\s*(['"]DONE['"]|['"]FIX['"]|['"]SPLIT['"]|['"]BLOCKED['"])/.test(executor)) {
+    issues.push('MCP_TOOL_RESULT_NOT_TERMINAL_AUTHORITY: executor must not assign a terminal decision')
+  }
+  if (executor.includes('export function decide')) {
+    issues.push('MCP_TOOL_RESULT_NOT_TERMINAL_AUTHORITY: executor must not implement a controller')
+  }
+  if (!executor.includes('mcp.tool-call.evidence.v1')) {
+    issues.push('MCP_TOOL_RESULT_NOT_TERMINAL_AUTHORITY: tool calls must produce evidence records')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkMcpToolCallBounded({ repoRoot }) {
+  const issues = []
+  const executor = await readRuntimeMcpSource(repoRoot, 'tool-executor.mjs')
+  if (!executor) {
+    issues.push('MCP_TOOL_CALL_BOUNDED: runtime/mcp/tool-executor.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!executor.includes('timeout_ms')) issues.push('MCP_TOOL_CALL_BOUNDED: tool calls must carry a bounded timeout')
+  if (!executor.includes('MCP_TIMEOUT')) issues.push('MCP_TOOL_CALL_BOUNDED: timeout must be classified as MCP_TIMEOUT')
+  if (!executor.includes('watchdog')) issues.push('MCP_TOOL_CALL_BOUNDED: a watchdog must bound the call')
+  if (!executor.includes('duration_ms')) issues.push('MCP_TOOL_CALL_BOUNDED: duration must be observable')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkMcpToolObservability({ repoRoot }) {
+  const issues = []
+  const executor = await readRuntimeMcpSource(repoRoot, 'tool-executor.mjs')
+  if (!executor) {
+    issues.push('MCP_TOOL_OBSERVABILITY: runtime/mcp/tool-executor.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const marker of ['mcp.tool-call.start', 'mcp.tool-call.result', 'mcp.tool-call.failure']) {
+    if (!executor.includes(marker)) issues.push(`MCP_TOOL_OBSERVABILITY: missing event marker ${marker}`)
+  }
+  if (!executor.includes('run_id')) issues.push('MCP_TOOL_OBSERVABILITY: tool calls must carry the run_id')
+  const events = await readIfExists(path.join(repoRoot, 'runtime', 'observability', 'events.mjs'))
+  if (events && !events.includes('mcp.tool-call.start')) {
+    issues.push('MCP_TOOL_OBSERVABILITY: governance events must declare MCP tool-call events')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkMcpNoSecretLeak({ repoRoot }) {
+  const issues = []
+  const executor = await readRuntimeMcpSource(repoRoot, 'tool-executor.mjs')
+  if (!executor) {
+    issues.push('MCP_NO_SECRET_LEAK: runtime/mcp/tool-executor.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!executor.includes('gateToolResult')) issues.push('MCP_NO_SECRET_LEAK: tool output must pass the secret egress gate')
+  if (!executor.includes('knownSecrets')) issues.push('MCP_NO_SECRET_LEAK: executor must accept known secrets for redaction')
+  if (!executor.includes('input_fingerprint')) issues.push('MCP_NO_SECRET_LEAK: inputs must be fingerprinted, not persisted raw')
+  if (!executor.includes('output_fingerprint')) issues.push('MCP_NO_SECRET_LEAK: outputs must be fingerprinted, not persisted raw')
+  return { ok: issues.length === 0, issues }
+}
+
+// ---------------------------------------------------------------------------
 // Baseline fingerprint — structural drift only, never file-byte drift
 // ---------------------------------------------------------------------------
 
@@ -969,6 +1092,12 @@ export async function runProductionSentinel({ repoRoot }) {
   pushResult('FIRST_BAD_BOUNDARY_STABLE', await checkFirstBadBoundaryStable({ repoRoot }))
   pushResult('NO_SECRET_LEAK', await checkNoSecretLeak({ repoRoot }))
   pushResult('WORKER_SUCCESS_NOT_TERMINAL_EVIDENCE', await checkWorkerSuccessNotTerminal({ repoRoot }))
+  pushResult('MCP_REQUIRED_CAPABILITY_FAILS_CLOSED', await checkMcpRequiredCapabilityFailsClosed({ repoRoot }))
+  pushResult('MCP_TOOL_SCOPE_LEAST_PRIVILEGE', await checkMcpToolScopeLeastPrivilege({ repoRoot }))
+  pushResult('MCP_TOOL_RESULT_NOT_TERMINAL_AUTHORITY', await checkMcpToolResultNotTerminalAuthority({ repoRoot }))
+  pushResult('MCP_TOOL_CALL_BOUNDED', await checkMcpToolCallBounded({ repoRoot }))
+  pushResult('MCP_TOOL_OBSERVABILITY', await checkMcpToolObservability({ repoRoot }))
+  pushResult('MCP_NO_SECRET_LEAK', await checkMcpNoSecretLeak({ repoRoot }))
   pushResult('CONTRACT_SENTINEL', await checkContractIds({ repoRoot }))
   pushResult('TEST_RUNNER_EXHAUSTIVE', await checkTestRunnerExhaustive({ repoRoot }))
   pushResult('INSTALLER_SENTINEL', await checkInstallerBaseline({ repoRoot }))

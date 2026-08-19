@@ -312,6 +312,11 @@ function getRuntimeFileList() {
     // observability/ — run events + governance events
     { source: "runtime/observability/events.mjs", dest: "observability/events.mjs" },
     { source: "runtime/observability/run-events.mjs", dest: "observability/run-events.mjs" },
+    // mcp/ — least-privilege worker tool integration (runtime-critical, additive)
+    { source: "runtime/mcp/error-classifier.mjs", dest: "mcp/error-classifier.mjs" },
+    { source: "runtime/mcp/tool-grant.mjs", dest: "mcp/tool-grant.mjs" },
+    { source: "runtime/mcp/tool-executor.mjs", dest: "mcp/tool-executor.mjs" },
+    { source: "runtime/mcp/server-registry.mjs", dest: "mcp/server-registry.mjs" },
     // reviews/ — deterministic review analyzers
     { source: "runtime/reviews/analyze.mjs", dest: "reviews/analyze.mjs" },
     // canonical contract-first runtime entry point

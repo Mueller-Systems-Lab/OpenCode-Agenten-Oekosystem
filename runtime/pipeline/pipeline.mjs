@@ -66,6 +66,7 @@ export async function runPipeline({
   capability_status = {},
   required_skills = [],
   previousFailures = [],
+  tool_grant = null,
 } = {}) {
   const task = taskInput.contract === 'ecosystem.task.v1'
     ? taskInput
@@ -169,7 +170,7 @@ export async function runPipeline({
       task,
     })
     const buildStart = Date.now()
-    const nativeBuild = await runNativeBuild({ buildInput, execute: buildExecutor })
+    const nativeBuild = await runNativeBuild({ buildInput, execute: buildExecutor ? (input) => buildExecutor(input, { tool_grant }) : buildExecutor })
     // A worker cannot replace the run_id of this run.
     if (nativeBuild.outcome?.run_id && nativeBuild.outcome.run_id !== runId) {
       throw new Error(`CONTRACT_INVALID:build_worker:run_id ${nativeBuild.outcome.run_id} does not match task run_id ${runId}`)

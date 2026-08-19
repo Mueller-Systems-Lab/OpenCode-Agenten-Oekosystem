@@ -1,0 +1,18 @@
+{
+  "session_id": "rw-mcp-02",
+  "run_id": "run-rw-mcp-02",
+  "scenario": "required-success",
+  "task": "Read the OCAE proof fixture page via the real MCP server and record the observed heading.",
+  "required_capability": "browser_navigate,browser_snapshot",
+  "server": "playwright",
+  "tool": "browser_navigate",
+  "worker": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash"
+  },
+  "tool_call_count": 2,
+  "tool_status": "SUCCESS",
+  "verify": "PASS",
+  "terminal_state": "DONE",
+  "legacy_fallback": false
+}

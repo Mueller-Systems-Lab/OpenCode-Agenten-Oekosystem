@@ -1,0 +1,18 @@
+{
+  "session_id": "rw-mcp-03",
+  "run_id": "run-rw-mcp-03",
+  "scenario": "optional-missing",
+  "task": "Produce a marker file; the optional GitHub repository lookup is unavailable and must not block.",
+  "required_capability": "none",
+  "server": null,
+  "tool": null,
+  "worker": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash"
+  },
+  "tool_call_count": 0,
+  "tool_status": "SKIPPED",
+  "verify": "PASS",
+  "terminal_state": "DONE",
+  "legacy_fallback": false
+}

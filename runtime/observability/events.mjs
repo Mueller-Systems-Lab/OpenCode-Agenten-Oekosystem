@@ -4,6 +4,11 @@ import path from "node:path"
 export const GOVERNANCE_EVENTS = Object.freeze([
   "agent.start", "agent.preflight.start", "agent.preflight.result", "agent.task.start",
   "agent.task.result", "agent.resume", "policy.allow", "policy.deny",
+  // MCP worker-tool integration observability (additive — no contract bump)
+  "mcp.preflight",
+  "mcp.tool-call.start",
+  "mcp.tool-call.result",
+  "mcp.tool-call.failure",
 ])
 
 export function governanceAttributes(input = {}) {
@@ -11,6 +16,9 @@ export function governanceAttributes(input = {}) {
     "project.id", "run.id", "task.id", "agent.role", "agent.execution.id",
     "run_card.sha256", "source.commit", "target.environment", "classification",
     "status", "code", "step", "tool", "reason", "mode",
+    // MCP worker-tool integration attributes (additive)
+    "server", "capability", "attempt", "duration.ms", "failure.class",
+    "input.fingerprint", "output.fingerprint", "tool.call.id", "required",
   ]
   return Object.fromEntries(Object.entries(input).filter(([key, value]) => allowed.includes(key) && value !== undefined && value !== null))
 }

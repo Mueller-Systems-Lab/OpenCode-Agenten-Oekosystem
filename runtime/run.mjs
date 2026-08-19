@@ -33,6 +33,7 @@ import { runPipeline } from './pipeline/pipeline.mjs'
 import { parsePlanText } from './adapters/native-opencode.mjs'
 import { decide } from './controller/controller.mjs'
 import { createRunEvent, appendRunEvent } from './observability/run-events.mjs'
+import { resolveToolGrant } from './mcp/tool-grant.mjs'
 import { defaultReviewAnalyzers } from './reviews/analyze.mjs'
 
 export const RUNTIME_PHASES = Object.freeze(['TASK', 'BASELINE', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'REVIEWS', 'CONTROLLER'])
@@ -134,6 +135,13 @@ export async function runTask(options = {}) {
     plan: entryPlanData,
   })
 
+  // 3b. Least-privilege worker tool grant: only the tools the task requires
+  //     (required + available optional) are granted to the worker. The grant
+  //     is derived from the same profile + inventory the preflight validated.
+  const toolGrant = baseline.approved && mcpProfile
+    ? resolveToolGrant({ profile: mcpProfile, inventory, preflight: baseline.mcp_preflight })
+    : null
+
   // 4. Fail fast: a missing required capability / MCP tool / skill blocks the
   //    run before any research, plan, or build work is performed.
   if (!baseline.approved) {
@@ -161,7 +169,7 @@ export async function runTask(options = {}) {
       run_id: runId, phase: 'CONTROLLER', job: 'deterministic-controller', status: 'FAIL',
       attempt: task.attempt, reason_code: finalDecision.reason_code, contract_out: 'ecosystem.decision.v1',
     })
-    return { phase: 'BLOCKED_ENTRY', run_id: runId, task, baseline, decision: finalDecision, events }
+    return { phase: 'BLOCKED_ENTRY', run_id: runId, task, baseline, decision: finalDecision, events, tool_grant: null }
   }
 
   // 5. The full deterministic pipeline needs workers (native plan + build
@@ -175,7 +183,7 @@ export async function runTask(options = {}) {
       run_id: runId, phase: 'BASELINE', job: 'capability-preflight', status: 'PASS',
       contract_out: baseline.contract,
     })
-    return { phase: 'ENTRY', run_id: runId, task, baseline, decision: null, events, entry: 'READY' }
+    return { phase: 'ENTRY', run_id: runId, task, baseline, decision: null, events, entry: 'READY', tool_grant: toolGrant }
   }
 
   const pipelinePlan = typeof nativePlan === 'string' ? { planText: nativePlan } : nativePlan
@@ -195,6 +203,7 @@ export async function runTask(options = {}) {
     required_skills,
     capability_status,
     previousFailures,
+    tool_grant: toolGrant,
   })
 
   } catch (error) {
@@ -222,7 +231,7 @@ export async function runTask(options = {}) {
   if (!decisionValidation.ok) {
     throw new Error(`CONTRACT_INVALID:controller-decision:${decisionValidation.issues.join('; ')}`)
   }
-  return { ...result, phase: 'PIPELINE', decision_validated: true }
+  return { ...result, phase: 'PIPELINE', decision_validated: true, tool_grant: toolGrant }
 }
 
 /**

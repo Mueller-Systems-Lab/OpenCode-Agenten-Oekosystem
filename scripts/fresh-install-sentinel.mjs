@@ -42,6 +42,10 @@ export const FRESH_INSTALL_ARTIFACTS = Object.freeze({
   adapters: '.agent-governance/runtime/adapters/native-opencode.mjs',
   reviews: '.agent-governance/runtime/reviews/analyze.mjs',
   observability: '.agent-governance/runtime/observability/run-events.mjs',
+  mcp_tool_grant: '.agent-governance/runtime/mcp/tool-grant.mjs',
+  mcp_tool_executor: '.agent-governance/runtime/mcp/tool-executor.mjs',
+  mcp_error_classifier: '.agent-governance/runtime/mcp/error-classifier.mjs',
+  mcp_server_registry: '.agent-governance/runtime/mcp/server-registry.mjs',
   plugin: '.agent-governance/hooks/opencode/canonical-governance.mjs',
 })
 

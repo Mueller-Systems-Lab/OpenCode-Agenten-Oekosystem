@@ -3,7 +3,7 @@ title: OCAE production baseline
 status: FROZEN
 runtime_baseline_commit: f175a0f42012c9e961d9ea228f3513339f27b692
 production_freeze_commit: commit containing this baseline
-baseline_fingerprint: c3256b558463fc7d63c36958df317a872a8836ca2739cddd659f0cefd9d17971
+baseline_fingerprint: 4c98e7ded927c47baea373459ae8ff38e942427fad81ce4827d5aca429231a12
 ---
 
 # OCAE production baseline
@@ -38,7 +38,7 @@ baseline_fingerprint: c3256b558463fc7d63c36958df317a872a8836ca2739cddd659f0cefd9
 | Production baseline status | `ACTIVE` |
 | Legacy execution | `RETIRED` |
 | DSGVO compliance | **Pending verification; not claimed** (`COMPLIANCE_CLAIM_DSGVO=NOT_PROVEN`) |
-| Baseline fingerprint | `c3256b558463fc7d63c36958df317a872a8836ca2739cddd659f0cefd9d17971` |
+| Baseline fingerprint | `4c98e7ded927c47baea373459ae8ff38e942427fad81ce4827d5aca429231a12` |
 
 ## Canonical architecture
 
@@ -115,6 +115,12 @@ FIRST_BAD_BOUNDARY_STABLE
 NO_SECRET_LEAK
 WORKER_SUCCESS_NOT_TERMINAL_EVIDENCE
 TEST_RUNNER_EXHAUSTIVE
+MCP_REQUIRED_CAPABILITY_FAILS_CLOSED
+MCP_TOOL_SCOPE_LEAST_PRIVILEGE
+MCP_TOOL_RESULT_NOT_TERMINAL_AUTHORITY
+MCP_TOOL_CALL_BOUNDED
+MCP_TOOL_OBSERVABILITY
+MCP_NO_SECRET_LEAK
 ```
 
 Semantics:
@@ -168,6 +174,12 @@ The sentinel guards, per invariant:
 | `FIRST_BAD_BOUNDARY_STABLE` | first bad boundary derived from collapsed phase history |
 | `NO_SECRET_LEAK` | high-confidence secret patterns absent from the runtime surface |
 | `WORKER_SUCCESS_NOT_TERMINAL_EVIDENCE` | DONE only from hard-gates-green controller path |
+| `MCP_REQUIRED_CAPABILITY_FAILS_CLOSED` | required MCP tool unavailable fails the baseline before any worker call |
+| `MCP_TOOL_SCOPE_LEAST_PRIVILEGE` | worker grant resolves only required tools; call-time tool/server/mutation scope enforced |
+| `MCP_TOOL_RESULT_NOT_TERMINAL_AUTHORITY` | tool evidence never carries DONE/FIX/SPLIT/BLOCKED; no second controller |
+| `MCP_TOOL_CALL_BOUNDED` | every tool call has a bounded timeout, is classified, and measures duration |
+| `MCP_TOOL_OBSERVABILITY` | start/result/failure events carry run_id + fingerprints |
+| `MCP_NO_SECRET_LEAK` | tool output passes the secret egress gate; inputs/outputs fingerprinted |
 | `TEST_RUNNER_EXHAUSTIVE` | `npm test` is canonical; all non-empty manifest groups execute; failures aggregate; `--json` exists |
 | `INSTALLER_SENTINEL` | installer ships every canonical artifact and no legacy execution artifact |
 | `LINUX_SYMLINK_INVARIANT` | symlink EPERM masking is win32-gated |
@@ -191,7 +203,7 @@ BASELINE_FINGERPRINT_DRIFT_NEGATIVE=pass
 ## Baseline fingerprint
 
 `runtime/production-baseline.json` records a structural fingerprint
-(`c3256b558463fc7d63c36958df317a872a8836ca2739cddd659f0cefd9d17971`) computed
+(`4c98e7ded927c47baea373459ae8ff38e942427fad81ce4827d5aca429231a12`) computed
 from stable properties only — contract IDs, terminal states + next paths,
 critical invariant IDs, installer artifact dest names, and non-empty manifest
 group names. Harmless text edits never drift the fingerprint; removing or
@@ -302,6 +314,31 @@ normal plugin path:
 
 The `GREEN_SAFE` value remains only as a legacy input alias to
 `VERIFIED_IN_SCOPE`; new completion claims use the current classifications.
+
+## MCP worker capability (integration milestone)
+
+The frozen runtime is minimally extended with a least-privilege MCP worker
+tool layer (`runtime/mcp/`). MCP remains a **capability**, never a control
+plane; the deterministic controller keeps sole terminal authority.
+
+| Property | Semantics |
+|---|---|
+| Preflight | `runtime/baseline/capability-preflight.mjs` runs `runMcpPreflight` with REQUIRED/OPTIONAL resolution; a missing required tool fails the baseline (BLOCKED, zero worker calls) |
+| Required vs optional | REQUIRED missing → fail closed; OPTIONAL missing → observable degradation, never a false block |
+| Least privilege | `runtime/mcp/tool-grant.mjs` grants exactly the required + available optional tools; all other reachable tools are recorded as denied |
+| Call-time scope | `assertToolAllowed` rejects tool scope drift (`MCP_TOOL_SCOPE_DENIED`), server scope drift (`MCP_SERVER_SCOPE_DENIED`) and mutation on read-only grants (`MCP_MUTATION_SCOPE_DENIED`) |
+| Real execution | `runtime/mcp/tool-executor.mjs` performs real stdio MCP tool calls (initialize → tools/list → tools/call) with a bounded watchdog timeout |
+| Error classification | `MCP_SERVER_UNAVAILABLE`, `MCP_TOOL_NOT_FOUND`, `MCP_PERMISSION_DENIED`, `MCP_SCHEMA_INVALID`, `MCP_TIMEOUT`, `MCP_TRANSPORT_FAILURE`, `MCP_TOOL_ERROR`, `MCP_RESULT_INVALID` |
+| Result validation | tool output is validated against a declarative expectation (never blind acceptance) |
+| Provenance | every call records server, tool, capability, timestamps, duration, input/output fingerprints |
+| Observability | `mcp.tool-call.start/result/failure` events with run correlation; no secrets, no full payloads |
+| Secret egress | tool output passes `tool-result-egress-gate`; known secrets are redacted from fingerprints |
+| Prompt injection | tool result is treated as data; terminal-token-like text is flagged, never honored as an instruction |
+| No legacy | the integration adds no legacy execution path; `NO_SILENT_LEGACY_FALLBACK` stays green |
+| Real proof | real sessions run against the locally configured MCP servers (see evidence/) |
+
+Known limitation: remote (SSE/streamable HTTP) MCP servers are inventoried as
+unavailable — stdio discovery is used; they are never auto-granted.
 
 ## Known limitations
 

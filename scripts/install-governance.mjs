@@ -317,6 +317,12 @@ function getRuntimeFileList() {
     { source: "runtime/mcp/tool-grant.mjs", dest: "mcp/tool-grant.mjs" },
     { source: "runtime/mcp/tool-executor.mjs", dest: "mcp/tool-executor.mjs" },
     { source: "runtime/mcp/server-registry.mjs", dest: "mcp/server-registry.mjs" },
+    // routing/ — deterministic model routing policy (runtime-critical, additive)
+    { source: "runtime/routing/index.mjs", dest: "routing/index.mjs" },
+    { source: "runtime/routing/model-catalog.mjs", dest: "routing/model-catalog.mjs" },
+    { source: "runtime/routing/failure-classifier.mjs", dest: "routing/failure-classifier.mjs" },
+    { source: "runtime/routing/routing-policy.mjs", dest: "routing/routing-policy.mjs" },
+    { source: "runtime/routing/routing-events.mjs", dest: "routing/routing-events.mjs" },
     // reviews/ — deterministic review analyzers
     { source: "runtime/reviews/analyze.mjs", dest: "reviews/analyze.mjs" },
     // canonical contract-first runtime entry point

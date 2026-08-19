@@ -26,9 +26,25 @@ export function decide(input = {}) {
     previous_failures = [],
     boundaries = null,
     build_status = null,
+    routing_terminal = null,
   } = input
 
   const gate = planGate || (plan ? evaluatePlanGate(plan) : { approved: false, errors: ['PLAN_MISSING'] })
+
+  // A classified routing transition (evidence from the deterministic routing
+  // policy) supplies the terminal REASON; the decision VALUE stays with the
+  // controller. External blockers (model/provider unavailable, auth failure,
+  // policy denial) are BLOCKED; budget exhaustion is SPLIT.
+  if (routing_terminal && routing_terminal.reason_code) {
+    const external = [
+      'MODEL_UNAVAILABLE', 'PROVIDER_UNAVAILABLE', 'PROVIDER_AUTH_FAILURE',
+      'PROVIDER_TRANSPORT_FAILURE', 'ROUTING_POLICY_DENIED', 'ROUTING_NO_FALLBACK',
+      'ROUTING_NO_ESCALATION_TARGET', 'AUTH_FAILURE_FAIL_CLOSED', 'ROUTING_NO_ROUTE',
+      'ROUTING_UNCLASSIFIED_FAILURE',
+    ]
+    const decision = external.includes(routing_terminal.reason_code) ? 'BLOCKED' : 'SPLIT'
+    return terminal(decision, routing_terminal.reason_code, boundaries, routing_terminal.boundary || 'ROUTING')
+  }
 
   if (!baseline.approved) {
     return terminal('BLOCKED', 'BLOCKED_MISSING_REQUIRED_CAPABILITY', boundaries, 'BASELINE')

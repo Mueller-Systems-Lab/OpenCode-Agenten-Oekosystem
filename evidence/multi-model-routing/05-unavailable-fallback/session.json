@@ -1,0 +1,73 @@
+{
+  "case_id": "unavailable-fallback",
+  "label": "Unavailable primary → controlled fallback",
+  "round": 1,
+  "run_id": "35af63cd-908a-4791-a8ce-7fa63142fa39",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "35af63cd-908a-4791-a8ce-7fa63142fa39"
+  ],
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "initial_route": {
+    "provider": "deepseek",
+    "model": "deepseek-chat",
+    "routing_reason": "PRIMARY_UNAVAILABLE_FALLBACK"
+  },
+  "final_route": {
+    "provider": "deepseek",
+    "model": "deepseek-chat",
+    "routing_reason": "PRIMARY_UNAVAILABLE_FALLBACK"
+  },
+  "calls": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "attempt": 0,
+      "exit_code": 0,
+      "changed_files": [
+        "fallback.txt"
+      ],
+      "real_mcp_call": false,
+      "duration_ms": 21876
+    }
+  ],
+  "escalation_recorded": false,
+  "escalation_events": [],
+  "retry_events": [],
+  "verify_status": "PASS",
+  "decision": "DONE",
+  "reason_code": "ALL_HARD_GATES_GREEN",
+  "first_bad_boundary": null,
+  "phase_history": [
+    "TASK=PASS",
+    "BASELINE=PASS",
+    "ROUTING=PASS",
+    "RESEARCH=PASS",
+    "PLAN=PASS",
+    "PLAN_GATE=PASS",
+    "BUILD=PASS",
+    "VERIFY=PASS",
+    "REVIEWS=PASS",
+    "CONTROLLER=PASS"
+  ],
+  "reviews": [
+    "correctness=PASS",
+    "security=PASS",
+    "quality=PASS"
+  ],
+  "mcp_evidence": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "attempt": 0,
+      "real_mcp_call": false,
+      "mcp_enabled": false
+    }
+  ],
+  "real_mcp_call_count": 0,
+  "secret_leak": false,
+  "event_count": 15,
+  "duration_ms": 0,
+  "unexpected_behavior": []
+}

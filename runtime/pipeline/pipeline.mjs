@@ -30,6 +30,15 @@ import { firstBadBoundary } from '../controller/first-bad-boundary.mjs'
 import { runResearch } from './research.mjs'
 import { defaultReviewAnalyzers } from '../reviews/analyze.mjs'
 import { createRunEvent, inputFingerprint, outputFingerprint, appendRunEvent } from '../observability/run-events.mjs'
+import {
+  classifyWorkerOutcome,
+  escalationEvent,
+  providerFallbackEvent,
+  workerStartEvent,
+  workerResultEvent,
+  workerFailureEvent,
+  enforceRouteRunId,
+} from '../routing/index.mjs'
 
 /**
  * run_id immutability guard. Every phase contract must keep the task run_id.
@@ -47,7 +56,7 @@ function collapseBoundaries(boundaries = []) {
   for (const boundary of boundaries) {
     if (boundary && boundary.name) byName.set(boundary.name, { name: boundary.name, status: boundary.status })
   }
-  const order = ['TASK', 'BASELINE', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'REVIEWS', 'CONTROLLER']
+  const order = ['TASK', 'BASELINE', 'ROUTING', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'REVIEWS', 'CONTROLLER']
   return order.filter((name) => byName.has(name)).map((name) => byName.get(name))
 }
 
@@ -67,6 +76,10 @@ export async function runPipeline({
   required_skills = [],
   previousFailures = [],
   tool_grant = null,
+  route = null,
+  routing = null,
+  routeExecutor = null,
+  onWorkerFailure = null,
 } = {}) {
   const task = taskInput.contract === 'ecosystem.task.v1'
     ? taskInput
@@ -124,6 +137,19 @@ export async function runPipeline({
     })
   }
 
+  // Routing is runtime authority: when this run is routed, the ROUTING
+  // boundary is recorded after BASELINE (requirements known) and before any
+  // worker work. The route itself was resolved by runTask via the
+  // deterministic routing policy.
+  if (route) {
+    record('ROUTING', 'PASS')
+    await emit({
+      phase: 'ROUTING', job: 'model.route.selected', status: 'PASS', attempt: task.attempt,
+      provider: route.provider, model: route.model, strategy_delta: route.routing_reason,
+      contract_out: 'routing.route.v1',
+    })
+  }
+
   const research = await runResearch({ run_id: runId, repoRoot })
   enforceRunId(runId, research, 'research')
   await emit({ phase: 'RESEARCH', job: 'research', status: 'PASS', contract_out: research.contract })
@@ -159,6 +185,13 @@ export async function runPipeline({
   let buildResult = null
   let verification = null
   const failedAttempts = [...previousFailures]
+  // Route state: the assigned provider/model stays with the run. Model
+  // escalation / provider fallback are distinct, bounded transitions that
+  // change the route but NEVER the run_id.
+  let routeState = route ? { ...route } : null
+  let escalationCount = 0
+  let fallbackCount = 0
+  const routeHistory = route ? [{ provider: route.provider, model: route.model }] : []
 
   while (true) {
     const buildInput = createBuildInput({
@@ -170,7 +203,14 @@ export async function runPipeline({
       task,
     })
     const buildStart = Date.now()
-    const nativeBuild = await runNativeBuild({ buildInput, execute: buildExecutor ? (input) => buildExecutor(input, { tool_grant }) : buildExecutor })
+    const activeExecutor = routeState && routeExecutor
+      ? routeExecutor(routeState, { attempt })
+      : buildExecutor
+    const execute = activeExecutor ? (input) => activeExecutor(input, { tool_grant }) : null
+    if (routeState) {
+      await emit({ ...workerStartEvent({ run_id: runId, route: routeState, attempt }) })
+    }
+    const nativeBuild = await runNativeBuild({ buildInput, execute })
     // A worker cannot replace the run_id of this run.
     if (nativeBuild.outcome?.run_id && nativeBuild.outcome.run_id !== runId) {
       throw new Error(`CONTRACT_INVALID:build_worker:run_id ${nativeBuild.outcome.run_id} does not match task run_id ${runId}`)
@@ -179,8 +219,14 @@ export async function runPipeline({
     enforceRunId(runId, buildResult, 'build-result')
     const rawOutcome = nativeBuild.outcome || null
     const buildOk = buildResult.status === 'SUCCESS'
+    if (routeState && rawOutcome?.failure_class) {
+      await emit({ ...workerFailureEvent({ run_id: runId, route: routeState, failure_class: rawOutcome.failure_class, reason: rawOutcome.failure_reason || null, attempt }) })
+    } else if (routeState) {
+      await emit({ ...workerResultEvent({ run_id: runId, route: routeState, status: buildOk ? 'SUCCESS' : 'FAILURE', attempt }) })
+    }
     await emit({
       phase: 'BUILD', job: 'native-build', status: buildOk ? 'PASS' : 'FAIL', attempt,
+      provider: routeState?.provider || null, model: routeState?.model || null,
       input_fingerprint: inputFingerprint({ targets: plan.plan.targets, build_scope: plan.plan.build_scope }),
       output_fingerprint: outputFingerprint({ changed_files: buildResult.changed_files, errors: buildResult.errors }),
       duration_ms: Date.now() - buildStart,
@@ -220,6 +266,9 @@ export async function runPipeline({
     })
 
     if (intermediate.decision === 'RETRY') {
+      // Strict same-route retry: the model and provider do not change; a
+      // meaningful strategy delta is required by the retry policy. This is
+      // RETRY, never escalation.
       failedAttempts.push({
         failure_signature: verification.verification.failure_signature,
         strategy_delta: verification.verification.strategy_delta || null,
@@ -227,11 +276,71 @@ export async function runPipeline({
       attempt += 1
       continue
     }
+
+    // ROUTED escalation seam: after the canonical retry policy denies a
+    // same-route retry, a classified failure may transition the ROUTE via the
+    // deterministic routing policy (model escalation / provider fallback).
+    // Both are bounded; the run_id never changes; terminal values stay with
+    // the controller.
+    if (routeState && onWorkerFailure && verification.verification.passed !== true) {
+      const failureClass = rawOutcome?.failure_class
+        || classifyWorkerOutcome({ status: buildOk ? 'SUCCESS' : 'FAILURE', error: (buildResult.errors || [])[0] })
+      const transition = await onWorkerFailure({
+        failure_class: failureClass,
+        route: routeState,
+        attempt,
+        escalation_count: escalationCount,
+        provider_fallback_count: fallbackCount,
+        route_history: routeHistory,
+        verification,
+        build_result: buildResult,
+      })
+      if (transition && transition.next_route && transition.next_route.provider && transition.next_route.model) {
+        const isFallback = transition.next_route.provider !== routeState.provider
+        if (isFallback) fallbackCount += 1
+        else escalationCount += 1
+        routeHistory.push({ provider: transition.next_route.provider, model: transition.next_route.model })
+        routeState = {
+          ...routeState,
+          provider: transition.next_route.provider,
+          model: transition.next_route.model,
+          routing_reason: transition.routing_reason || (isFallback ? 'PROVIDER_FALLBACK' : 'ESCALATION'),
+          route_index: (routeState.route_index || 0) + 1,
+        }
+        failedAttempts.push({
+          failure_signature: verification.verification.failure_signature || `ROUTE_TRANSITION:${failureClass}`,
+          strategy_delta: verification.verification.strategy_delta || transition.routing_reason || null,
+        })
+        await emit(isFallback
+          ? { ...providerFallbackEvent({ run_id: runId, from: routeState, to: transition.next_route, failure_class: failureClass, routing_reason: transition.routing_reason, attempt }) }
+          : { ...escalationEvent({ run_id: runId, from: routeState, to: transition.next_route, failure_class: failureClass, routing_reason: transition.routing_reason, attempt }) })
+        attempt += 1
+        continue
+      }
+      if (transition && transition.action === 'TERMINAL') {
+        // The routing policy supplies the classified reason; the controller
+        // supplies the terminal decision value (BLOCKED/SPLIT).
+        const routingTerminal = decide({
+          baseline, plan, planGate, verification, reviews: [], attempt,
+          max_attempts: task.max_attempts, previous_failures: failedAttempts,
+          boundaries, build_status: buildOk ? 'PASS' : 'FAIL',
+          routing_terminal: { reason_code: transition.reason_code || transition.reason || 'ROUTING_TERMINAL', boundary: 'ROUTING' },
+        })
+        return finishRun({
+          runId, task, baseline, research, plan, planGate, buildResult, verification,
+          reviews: [], attempt, max_attempts: task.max_attempts, failedAttempts, boundaries, events, eventSink, emit, record,
+          decision: routingTerminal,
+          route: routeState,
+        })
+      }
+    }
+
     if (verification.verification.passed) break
     return finishRun({
       runId, task, baseline, research, plan, planGate, buildResult, verification,
       reviews: [], attempt, max_attempts: task.max_attempts, failedAttempts, boundaries, events, eventSink, emit, record,
       decision: intermediate,
+      route: routeState,
     })
   }
 
@@ -258,13 +367,14 @@ export async function runPipeline({
   return finishRun({
     runId, task, baseline, research, plan, planGate, buildResult, verification,
     reviews, attempt, max_attempts: task.max_attempts, failedAttempts, boundaries, events, eventSink, emit, record,
-    decision,
+    decision, route: routeState,
   })
 }
 
 async function finishRun({
   runId, task, baseline, research, plan, planGate, buildResult, verification,
   reviews, attempt, max_attempts, failedAttempts, boundaries, events, eventSink, emit, record, decision,
+  route = null,
 }) {
   enforceRunId(runId, decision, 'controller-decision')
   await emit({
@@ -294,6 +404,7 @@ async function finishRun({
     research,
     plan,
     plan_gate: planGate,
+    route,
     build_result: buildResult,
     verification,
     reviews,

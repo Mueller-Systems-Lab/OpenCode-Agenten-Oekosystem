@@ -3,7 +3,7 @@ title: OCAE production baseline
 status: FROZEN
 runtime_baseline_commit: f175a0f42012c9e961d9ea228f3513339f27b692
 production_freeze_commit: commit containing this baseline
-baseline_fingerprint: 4c98e7ded927c47baea373459ae8ff38e942427fad81ce4827d5aca429231a12
+baseline_fingerprint: cbecf1c753cfd7b3a52182e9dcc264e073d638a241a5f57d99da68b7b6fc96ea
 ---
 
 # OCAE production baseline
@@ -38,7 +38,7 @@ baseline_fingerprint: 4c98e7ded927c47baea373459ae8ff38e942427fad81ce4827d5aca429
 | Production baseline status | `ACTIVE` |
 | Legacy execution | `RETIRED` |
 | DSGVO compliance | **Pending verification; not claimed** (`COMPLIANCE_CLAIM_DSGVO=NOT_PROVEN`) |
-| Baseline fingerprint | `4c98e7ded927c47baea373459ae8ff38e942427fad81ce4827d5aca429231a12` |
+| Baseline fingerprint | `cbecf1c753cfd7b3a52182e9dcc264e073d638a241a5f57d99da68b7b6fc96ea` |
 
 ## Canonical architecture
 
@@ -121,6 +121,14 @@ MCP_TOOL_RESULT_NOT_TERMINAL_AUTHORITY
 MCP_TOOL_CALL_BOUNDED
 MCP_TOOL_OBSERVABILITY
 MCP_NO_SECRET_LEAK
+MODEL_ROUTING_RUNTIME_AUTHORITY
+WORKER_CANNOT_SELF_SELECT_MODEL
+RETRY_ESCALATION_SEPARATION
+MODEL_ESCALATION_BOUNDED
+ROUTING_CAPABILITY_COMPATIBLE
+RUN_ID_STABLE_ACROSS_MODEL_ROUTE
+MCP_GRANT_STABLE_ACROSS_MODEL_ROUTE
+ROUTING_NO_SECRET_LEAK
 ```
 
 Semantics:
@@ -340,11 +348,43 @@ plane; the deterministic controller keeps sole terminal authority.
 Known limitation: remote (SSE/streamable HTTP) MCP servers are inventoried as
 unavailable — stdio discovery is used; they are never auto-granted.
 
+## Model routing (multi-model milestone)
+
+The frozen runtime is extended with a deterministic model routing layer
+(`runtime/routing/`). LLMs remain workers; the routing policy is a RUNTIME
+policy. Model selection, escalation, and provider fallback are owned by the
+deterministic runtime — never by a model or worker.
+
+| Property | Semantics |
+|---|---|
+| Routing authority | `MODEL_SELECTION_AUTHORITY=DETERMINISTIC_RUNTIME_POLICY`; the worker receives an assigned provider/model and can never `switch_model()` / `upgrade_model()` / `fallback_provider()` on its own |
+| Model catalog | `runtime/routing/model-catalog.mjs` — REAL configured models only; `availability` is observed (`reachable` after a real call, `configured` otherwise); capabilities claimed only with real evidence |
+| Selection | `selectRoute` — baseline tasks go to the configured primary; constrained tasks use capability-compatible candidates and prefer the CHEAPEST SUFFICIENT model; cost/quality/context are stable ordinal tiers (never invented prices) |
+| Capability gating | a model without a required capability (`needs_mcp`, `needs_tools`, `structured_output`, quality, context, provider constraint) is never selected; mismatch is rejected BEFORE worker invocation |
+| Worker self-selection | `worker_requested_model` is DENIED/IGNORED; only a policy-validated explicit admin override (`EXPLICIT_OVERRIDE_VALIDATED`) changes the route |
+| Retry vs escalation | strictly separated: `RETRY_SAME_MODEL` (same provider+model, meaningful strategy delta, canonical retry policy), `ESCALATE` (same run, different model, classified evidence), `PROVIDER_FALLBACK` (same run, different allowlisted provider) — never collapsed into a generic retry |
+| Bounded escalation | `max_model_escalations` + `max_provider_fallbacks` budgets; `ROUTING_BUDGET_EXHAUSTED` → terminal; no A→B→C→A loops (route history guard); retry limit is never bypassed by model hopping |
+| Failure classes | `MODEL_UNAVAILABLE`, `MODEL_CAPABILITY_INSUFFICIENT`, `MODEL_CONTEXT_LIMIT`, `MODEL_OUTPUT_INVALID`, `MODEL_QUALITY_GATE_REJECTED`, `PROVIDER_UNAVAILABLE`, `PROVIDER_RATE_LIMITED`, `PROVIDER_AUTH_FAILURE`, `PROVIDER_TRANSPORT_FAILURE`, `ROUTING_POLICY_DENIED`, `ROUTING_BUDGET_EXHAUSTED` |
+| Auth failure | `PROVIDER_AUTH_FAILURE` fails closed (`AUTH_FAILURE_FAIL_CLOSED`) — no automatic provider sweep that would hide secret/config problems |
+| Provider allowlist | `allowed_providers` / `provider_fallback_allowlist` — no silent provider discovery; a non-allowlisted provider is never called |
+| Run identity | one logical run = one `run_id`; model escalation and provider fallback keep the same `run_id` (`enforceRouteRunId`, `CONTRACT_INVALID` on replacement) |
+| MCP grants | the tool grant is runtime authority and stays stable across a model route change; a model switch can never expand the grant; a model without MCP capability is never selected for an MCP task |
+| Observability | `model.route.selected/rejected`, `model.escalation`, `provider.fallback`, `model.worker.start/result/failure` events with provider/model provenance and run_id correlation |
+| Secret handling | routing events carry only identifiers, failure classes, and fingerprints; failure reasons are redacted (`ROUTING_NO_SECRET_LEAK`) |
+| Real proof | 7 real routed sessions (evidence/multi-model-routing-consolidated/): primary success ×2 (repeatability), direct capability MCP route, real escalation (deepseek-chat → deepseek-v4-flash, same run_id), same-model retry, unavailable-primary fallback, cross-provider (openai) |
+
+Controller authority unchanged: the routing layer produces bounded transition
+decisions; the deterministic controller remains the sole producer of
+`DONE | FIX | SPLIT | BLOCKED`.
+
 ## Known limitations
 
-- MCP Worker Tool Integration is not fully proven.
-- `MULTI_MODEL_NOT_PROVEN` — multi-model operation is not proven in the
-  historical real-worker corpus.
+- MCP Worker Tool Integration is proven for stdio servers; remote
+  (SSE/streamable HTTP) MCP servers are inventoried as unavailable.
+- Multi-model routing is proven for the real reachable models of this machine
+  (deepseek ×3, openai ×1 probed); models marked `availability: configured`
+  (e.g. `deepseek-v4-pro`, `gpt-5.5`) are catalogued but not selectable until
+  a real reachability probe succeeds — they are never silently used.
 - Research list and CLI research visibility may be incomplete.
 - Legacy non-execution artifact cleanup readiness remains `PARTIAL`;
   non-execution artifacts are intentionally retained.

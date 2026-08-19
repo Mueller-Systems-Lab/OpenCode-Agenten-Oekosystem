@@ -1,0 +1,105 @@
+{
+  "case_id": "escalation",
+  "label": "Real model escalation (deepseek-chat → deepseek-v4-flash)",
+  "round": 1,
+  "run_id": "3de3fa64-be5e-4545-9f43-f809795d7724",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "3de3fa64-be5e-4545-9f43-f809795d7724"
+  ],
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "initial_route": {
+    "provider": "deepseek",
+    "model": "deepseek-chat",
+    "routing_reason": "CHEAPEST_SUFFICIENT"
+  },
+  "final_route": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "routing_reason": "MODEL_CAPABILITY_INSUFFICIENT — model escalation to deepseek/deepseek-v4-flash"
+  },
+  "calls": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "attempt": 0,
+      "exit_code": 0,
+      "changed_files": [
+        "heading.txt",
+        "proof.json"
+      ],
+      "real_mcp_call": false,
+      "duration_ms": 56114
+    },
+    {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "attempt": 1,
+      "exit_code": 0,
+      "changed_files": [
+        ".playwright-mcp/page-2026-08-19T12-30-11-898Z.yml",
+        "heading.txt",
+        "proof.json"
+      ],
+      "real_mcp_call": true,
+      "duration_ms": 38416
+    }
+  ],
+  "escalation_recorded": true,
+  "escalation_events": [
+    {
+      "failure_signature": "ESCALATION:MODEL_CAPABILITY_INSUFFICIENT",
+      "from": "deepseek/deepseek-v4-flash",
+      "to": "deepseek/deepseek-v4-flash"
+    }
+  ],
+  "retry_events": [
+    {
+      "attempt": 0,
+      "failure_signature": "NODE_EXIT:1"
+    }
+  ],
+  "verify_status": "PASS",
+  "decision": "DONE",
+  "reason_code": "ALL_HARD_GATES_GREEN",
+  "first_bad_boundary": null,
+  "phase_history": [
+    "TASK=PASS",
+    "BASELINE=PASS",
+    "ROUTING=PASS",
+    "RESEARCH=PASS",
+    "PLAN=PASS",
+    "PLAN_GATE=PASS",
+    "BUILD=PASS",
+    "VERIFY=PASS",
+    "REVIEWS=PASS",
+    "CONTROLLER=PASS"
+  ],
+  "reviews": [
+    "correctness=PASS",
+    "security=PASS",
+    "quality=PASS"
+  ],
+  "mcp_evidence": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "attempt": 0,
+      "real_mcp_call": false,
+      "mcp_enabled": false
+    },
+    {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "attempt": 1,
+      "real_mcp_call": true,
+      "mcp_enabled": true
+    }
+  ],
+  "real_mcp_call_count": 1,
+  "secret_leak": false,
+  "event_count": 20,
+  "duration_ms": 0,
+  "unexpected_behavior": []
+}

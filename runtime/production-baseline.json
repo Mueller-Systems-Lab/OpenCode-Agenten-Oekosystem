@@ -1,6 +1,6 @@
 {
   "baseline_version": 1,
-  "runtime_baseline_commit": "3136843b1f7e7d18df9969d56e70f37cdea56613",
+  "runtime_baseline_commit": "bc91b1f3acadb9e18fbe0d3c18f7f4c18519f78f",
   "production_freeze_commit": "3136843b1f7e7d18df9969d56e70f37cdea56613",
   "canonical_entry": "runtime/run.mjs",
   "plugin_entry": ".opencode/plugins/canonical-governance.mjs",
@@ -46,7 +46,15 @@
     "MCP_TOOL_RESULT_NOT_TERMINAL_AUTHORITY",
     "MCP_TOOL_CALL_BOUNDED",
     "MCP_TOOL_OBSERVABILITY",
-    "MCP_NO_SECRET_LEAK"
+    "MCP_NO_SECRET_LEAK",
+    "MODEL_ROUTING_RUNTIME_AUTHORITY",
+    "WORKER_CANNOT_SELF_SELECT_MODEL",
+    "RETRY_ESCALATION_SEPARATION",
+    "MODEL_ESCALATION_BOUNDED",
+    "ROUTING_CAPABILITY_COMPATIBLE",
+    "RUN_ID_STABLE_ACROSS_MODEL_ROUTE",
+    "MCP_GRANT_STABLE_ACROSS_MODEL_ROUTE",
+    "ROUTING_NO_SECRET_LEAK"
   ],
   "required_artifacts": [
     "runtime/run.mjs",
@@ -57,7 +65,8 @@
     "runtime/adapters/",
     "runtime/reviews/",
     "runtime/observability/",
-    ".opencode/plugins/canonical-governance.mjs"
+    ".opencode/plugins/canonical-governance.mjs",
+    "runtime/routing/"
   ],
   "canonical_test_command": "npm test",
   "legacy_execution_status": "RETIRED",
@@ -66,5 +75,5 @@
     "runtime/agent/start.mjs",
     "scripts/run-completion-canary.mjs"
   ],
-  "baseline_fingerprint": "4c98e7ded927c47baea373459ae8ff38e942427fad81ce4827d5aca429231a12"
+  "baseline_fingerprint": "cbecf1c753cfd7b3a52182e9dcc264e073d638a241a5f57d99da68b7b6fc96ea"
 }

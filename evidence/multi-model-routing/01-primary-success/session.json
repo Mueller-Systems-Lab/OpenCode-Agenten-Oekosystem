@@ -1,0 +1,73 @@
+{
+  "case_id": "primary-success",
+  "label": "Primary model success",
+  "round": 1,
+  "run_id": "18034e41-01f4-4ace-b0ed-e0dc1a477b84",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "18034e41-01f4-4ace-b0ed-e0dc1a477b84"
+  ],
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "initial_route": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "routing_reason": "PRIMARY_ROUTE"
+  },
+  "final_route": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "routing_reason": "PRIMARY_ROUTE"
+  },
+  "calls": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "attempt": 0,
+      "exit_code": 0,
+      "changed_files": [
+        "opencode.jsonc"
+      ],
+      "real_mcp_call": false,
+      "duration_ms": 26490
+    }
+  ],
+  "escalation_recorded": false,
+  "escalation_events": [],
+  "retry_events": [],
+  "verify_status": "PASS",
+  "decision": "DONE",
+  "reason_code": "ALL_HARD_GATES_GREEN",
+  "first_bad_boundary": null,
+  "phase_history": [
+    "TASK=PASS",
+    "BASELINE=PASS",
+    "ROUTING=PASS",
+    "RESEARCH=PASS",
+    "PLAN=PASS",
+    "PLAN_GATE=PASS",
+    "BUILD=PASS",
+    "VERIFY=PASS",
+    "REVIEWS=PASS",
+    "CONTROLLER=PASS"
+  ],
+  "reviews": [
+    "correctness=PASS",
+    "security=PASS",
+    "quality=PASS"
+  ],
+  "mcp_evidence": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "attempt": 0,
+      "real_mcp_call": false,
+      "mcp_enabled": false
+    }
+  ],
+  "real_mcp_call_count": 0,
+  "secret_leak": false,
+  "event_count": 15,
+  "duration_ms": 0,
+  "unexpected_behavior": []
+}

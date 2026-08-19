@@ -46,6 +46,10 @@ export const FRESH_INSTALL_ARTIFACTS = Object.freeze({
   mcp_tool_executor: '.agent-governance/runtime/mcp/tool-executor.mjs',
   mcp_error_classifier: '.agent-governance/runtime/mcp/error-classifier.mjs',
   mcp_server_registry: '.agent-governance/runtime/mcp/server-registry.mjs',
+  routing_policy: '.agent-governance/runtime/routing/routing-policy.mjs',
+  routing_catalog: '.agent-governance/runtime/routing/model-catalog.mjs',
+  routing_classifier: '.agent-governance/runtime/routing/failure-classifier.mjs',
+  routing_events: '.agent-governance/runtime/routing/routing-events.mjs',
   plugin: '.agent-governance/hooks/opencode/canonical-governance.mjs',
 })
 
@@ -81,6 +85,17 @@ export async function runFreshInstallSentinel({ repoRoot, targetRoot, keep = fal
     if (exported.length === 3) ok('entry_resolves')
     else fail('entry_resolves', `missing exports: ${['enterRun', 'enterTask', 'runTask'].filter((n) => !exported.includes(n)).join(', ')}`)
     checks.canary = await runCanary(targetRoot, runModule)
+    // 3b. Routing runtime artifacts must be importable from the installed
+    //     canonical runtime (fresh-install routing capability).
+    try {
+      const routingModule = await import(pathToFileURLFor(path.join(targetRoot, '.agent-governance', 'runtime', 'routing', 'index.mjs')))
+      const routingExports = ['selectRoute', 'decideRouteAction', 'DEFAULT_MODEL_CATALOG', 'DEFAULT_ROUTING_POLICY', 'classifyWorkerOutcome']
+      const missingExports = routingExports.filter((name) => typeof routingModule[name] === 'undefined')
+      if (missingExports.length === 0) checks.routing_resolves = { status: 'PASS' }
+      else fail('routing_resolves', `missing exports: ${missingExports.join(', ')}`)
+    } catch (error) {
+      fail('routing_resolves', error instanceof Error ? error.message : String(error))
+    }
   } catch (error) {
     fail('entry_resolves', error instanceof Error ? error.message : String(error))
     checks.canary = { status: 'FAIL', detail: 'runtime could not be imported' }

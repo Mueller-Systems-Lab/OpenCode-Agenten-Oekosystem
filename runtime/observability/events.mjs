@@ -9,6 +9,14 @@ export const GOVERNANCE_EVENTS = Object.freeze([
   "mcp.tool-call.start",
   "mcp.tool-call.result",
   "mcp.tool-call.failure",
+  // Model routing observability (additive — no contract bump)
+  "model.route.selected",
+  "model.route.rejected",
+  "model.escalation",
+  "provider.fallback",
+  "model.worker.start",
+  "model.worker.result",
+  "model.worker.failure",
 ])
 
 export function governanceAttributes(input = {}) {
@@ -19,6 +27,9 @@ export function governanceAttributes(input = {}) {
     // MCP worker-tool integration attributes (additive)
     "server", "capability", "attempt", "duration.ms", "failure.class",
     "input.fingerprint", "output.fingerprint", "tool.call.id", "required",
+    // model routing attributes (additive)
+    "provider", "model", "routing.reason", "route.index", "from.provider", "from.model",
+    "escalation.count", "fallback.count", "worker.attempt", "route.policy.revision",
   ]
   return Object.fromEntries(Object.entries(input).filter(([key, value]) => allowed.includes(key) && value !== undefined && value !== null))
 }

@@ -1,0 +1,97 @@
+{
+  "case_id": "same-model-retry",
+  "label": "Same-model retry (RETRY != ESCALATION)",
+  "round": 1,
+  "run_id": "1e2a8abd-e037-4dff-bb7e-0bfe6a2fbea0",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "1e2a8abd-e037-4dff-bb7e-0bfe6a2fbea0"
+  ],
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "initial_route": {
+    "provider": "deepseek",
+    "model": "deepseek-chat",
+    "routing_reason": "CHEAPEST_SUFFICIENT"
+  },
+  "final_route": {
+    "provider": "deepseek",
+    "model": "deepseek-chat",
+    "routing_reason": "CHEAPEST_SUFFICIENT"
+  },
+  "calls": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "attempt": 0,
+      "exit_code": 0,
+      "changed_files": [
+        "retry.txt"
+      ],
+      "real_mcp_call": false,
+      "duration_ms": 24179
+    },
+    {
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "attempt": 1,
+      "exit_code": 0,
+      "changed_files": [
+        "retry.txt",
+        "retry.txt.md5"
+      ],
+      "real_mcp_call": false,
+      "duration_ms": 29582
+    }
+  ],
+  "escalation_recorded": false,
+  "escalation_events": [],
+  "retry_events": [
+    {
+      "attempt": 0,
+      "failure_signature": "NODE_EXIT:1"
+    }
+  ],
+  "verify_status": "PASS",
+  "decision": "DONE",
+  "reason_code": "ALL_HARD_GATES_GREEN",
+  "first_bad_boundary": null,
+  "phase_history": [
+    "TASK=PASS",
+    "BASELINE=PASS",
+    "ROUTING=PASS",
+    "RESEARCH=PASS",
+    "PLAN=PASS",
+    "PLAN_GATE=PASS",
+    "BUILD=PASS",
+    "VERIFY=PASS",
+    "REVIEWS=PASS",
+    "CONTROLLER=PASS"
+  ],
+  "reviews": [
+    "correctness=PASS",
+    "security=PASS",
+    "quality=PASS"
+  ],
+  "mcp_evidence": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "attempt": 0,
+      "real_mcp_call": false,
+      "mcp_enabled": false
+    },
+    {
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "attempt": 1,
+      "real_mcp_call": false,
+      "mcp_enabled": false
+    }
+  ],
+  "real_mcp_call_count": 0,
+  "secret_leak": false,
+  "event_count": 19,
+  "duration_ms": 0,
+  "unexpected_behavior": []
+}

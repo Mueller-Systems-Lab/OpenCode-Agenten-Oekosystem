@@ -53,6 +53,15 @@ export const SENTINEL_INVARIANTS = Object.freeze([
   'MCP_TOOL_CALL_BOUNDED',
   'MCP_TOOL_OBSERVABILITY',
   'MCP_NO_SECRET_LEAK',
+  // deterministic model routing invariants (runtime-critical, additive)
+  'MODEL_ROUTING_RUNTIME_AUTHORITY',
+  'WORKER_CANNOT_SELF_SELECT_MODEL',
+  'RETRY_ESCALATION_SEPARATION',
+  'MODEL_ESCALATION_BOUNDED',
+  'ROUTING_CAPABILITY_COMPATIBLE',
+  'RUN_ID_STABLE_ACROSS_MODEL_ROUTE',
+  'MCP_GRANT_STABLE_ACROSS_MODEL_ROUTE',
+  'ROUTING_NO_SECRET_LEAK',
 ])
 
 export const REQUIRED_CONTRACT_IDS = Object.freeze([
@@ -991,6 +1000,152 @@ export async function checkMcpNoSecretLeak({ repoRoot }) {
 }
 
 // ---------------------------------------------------------------------------
+// Deterministic model routing invariant checks (structural)
+// ---------------------------------------------------------------------------
+
+async function readRoutingSource(repoRoot, name) {
+  return readIfExists(path.join(repoRoot, 'runtime', 'routing', name))
+}
+
+export async function checkModelRoutingRuntimeAuthority({ repoRoot }) {
+  const issues = []
+  const policy = await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policy) {
+    issues.push('MODEL_ROUTING_RUNTIME_AUTHORITY: runtime/routing/routing-policy.mjs missing')
+    return { ok: false, issues }
+  }
+  const catalog = await readRoutingSource(repoRoot, 'model-catalog.mjs')
+  if (!catalog) issues.push('MODEL_ROUTING_RUNTIME_AUTHORITY: runtime/routing/model-catalog.mjs missing')
+  if (!policy.includes('selectRoute')) issues.push('MODEL_ROUTING_RUNTIME_AUTHORITY: selectRoute missing')
+  if (!policy.includes('MODEL_SELECTION_AUTHORITY') || !policy.includes('DETERMINISTIC_RUNTIME_POLICY')) issues.push('MODEL_ROUTING_RUNTIME_AUTHORITY: deterministic runtime authority marker missing')
+  const run = await readIfExists(path.join(repoRoot, 'runtime', 'run.mjs'))
+  if (run && !run.includes('selectRoute')) issues.push('MODEL_ROUTING_RUNTIME_AUTHORITY: canonical run must wire the routing policy')
+  if (run && !run.includes('routeSelectedEvent')) issues.push('MODEL_ROUTING_RUNTIME_AUTHORITY: route selection must be observable')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkWorkerCannotSelfSelectModel({ repoRoot }) {
+  const issues = []
+  const policy = await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policy) {
+    issues.push('WORKER_CANNOT_SELF_SELECT_MODEL: runtime/routing/routing-policy.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!policy.includes('worker_requested_model')) issues.push('WORKER_CANNOT_SELF_SELECT_MODEL: worker model request must be inspected')
+  if (!policy.includes("worker_self_selection: 'DENIED'")) issues.push('WORKER_CANNOT_SELF_SELECT_MODEL: worker self-selection must be DENIED')
+  if (/worker_requested_model[^)]*provider\s*===\s*worker_requested_model/.test(policy) && !policy.includes('explicit_override')) {
+    issues.push('WORKER_CANNOT_SELF_SELECT_MODEL: worker request must never bypass policy selection')
+  }
+  const run = await readIfExists(path.join(repoRoot, 'runtime', 'run.mjs'))
+  if (run && !run.includes('WORKER_SELF_SELECTION_DENIED')) issues.push('WORKER_CANNOT_SELF_SELECT_MODEL: run must observe the denial')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkRetryEscalationSeparation({ repoRoot }) {
+  const issues = []
+  const pipeline = await readIfExists(path.join(repoRoot, 'runtime', 'pipeline', 'pipeline.mjs'))
+  if (!pipeline) {
+    issues.push('RETRY_ESCALATION_SEPARATION: runtime/pipeline/pipeline.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!pipeline.includes("intermediate.decision === 'RETRY'")) issues.push('RETRY_ESCALATION_SEPARATION: same-route retry path missing')
+  if (!pipeline.includes('onWorkerFailure')) issues.push('RETRY_ESCALATION_SEPARATION: escalation seam missing')
+  if (!pipeline.includes('providerFallbackEvent') || !pipeline.includes('escalationEvent')) {
+    issues.push('RETRY_ESCALATION_SEPARATION: escalation and fallback must be distinct observable events')
+  }
+  const policy = await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (policy && !policy.includes('RETRY_SAME_MODEL')) issues.push('RETRY_ESCALATION_SEPARATION: retry action must be distinct from escalation')
+  if (policy && !policy.includes('PROVIDER_FALLBACK')) issues.push('RETRY_ESCALATION_SEPARATION: provider fallback must be a distinct action')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkModelEscalationBounded({ repoRoot }) {
+  const issues = []
+  const policySource = await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policySource) {
+    issues.push('MODEL_ESCALATION_BOUNDED: runtime/routing/routing-policy.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!policySource.includes('max_model_escalations')) issues.push('MODEL_ESCALATION_BOUNDED: max_model_escalations budget missing')
+  if (!policySource.includes('max_provider_fallbacks')) issues.push('MODEL_ESCALATION_BOUNDED: max_provider_fallbacks budget missing')
+  if (!policySource.includes('ROUTING_BUDGET_EXHAUSTED')) issues.push('MODEL_ESCALATION_BOUNDED: budget exhaustion must be a terminal class')
+  const pipeline = await readIfExists(path.join(repoRoot, 'runtime', 'pipeline', 'pipeline.mjs'))
+  if (pipeline && !pipeline.includes('escalationCount')) issues.push('MODEL_ESCALATION_BOUNDED: pipeline must track the escalation budget')
+  if (pipeline && !pipeline.includes('fallbackCount')) issues.push('MODEL_ESCALATION_BOUNDED: pipeline must track the fallback budget')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkRoutingCapabilityCompatible({ repoRoot }) {
+  const issues = []
+  const policy = await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policy) {
+    issues.push('ROUTING_CAPABILITY_COMPATIBLE: runtime/routing/routing-policy.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!policy.includes('modelMeetsRequirements')) issues.push('ROUTING_CAPABILITY_COMPATIBLE: capability compatibility filter missing')
+  if (!policy.includes('needs_mcp') || !policy.includes('entry.mcp_support !== true')) {
+    issues.push('ROUTING_CAPABILITY_COMPATIBLE: MCP capability must gate model selection')
+  }
+  if (!policy.includes('ROUTING_CAPABILITY_INCOMPATIBLE')) issues.push('ROUTING_CAPABILITY_COMPATIBLE: incompatible route must be rejected')
+  const run = await readIfExists(path.join(repoRoot, 'runtime', 'run.mjs'))
+  if (run && !run.includes('model.route.rejected')) issues.push('ROUTING_CAPABILITY_COMPATIBLE: rejection must be observable before worker invocation')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkRunIdStableAcrossModelRoute({ repoRoot }) {
+  const issues = []
+  const policy = await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policy) {
+    issues.push('RUN_ID_STABLE_ACROSS_MODEL_ROUTE: runtime/routing/routing-policy.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!policy.includes('enforceRouteRunId')) issues.push('RUN_ID_STABLE_ACROSS_MODEL_ROUTE: run_id guard missing')
+  if (!policy.includes('CONTRACT_INVALID')) issues.push('RUN_ID_STABLE_ACROSS_MODEL_ROUTE: run_id replacement must be CONTRACT_INVALID')
+  const run = await readIfExists(path.join(repoRoot, 'runtime', 'run.mjs'))
+  if (run && !run.includes('enforceRouteRunId(runId')) issues.push('RUN_ID_STABLE_ACROSS_MODEL_ROUTE: canonical run must enforce route run_id')
+  const events = await readRoutingSource(repoRoot, 'routing-events.mjs')
+  if (events && !events.includes('SAME run_id')) issues.push('RUN_ID_STABLE_ACROSS_MODEL_ROUTE: routing events must document run_id stability')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkMcpGrantStableAcrossModelRoute({ repoRoot }) {
+  const issues = []
+  const policy = await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policy) {
+    issues.push('MCP_GRANT_STABLE_ACROSS_MODEL_ROUTE: runtime/routing/routing-policy.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!policy.includes('assertGrantStableAcrossRoute')) issues.push('MCP_GRANT_STABLE_ACROSS_MODEL_ROUTE: grant stability guard missing')
+  if (!policy.includes('MCP_GRANT_STABLE_ACROSS_MODEL_ROUTE')) issues.push('MCP_GRANT_STABLE_ACROSS_MODEL_ROUTE: stability code missing')
+  const grant = await readIfExists(path.join(repoRoot, 'runtime', 'mcp', 'tool-grant.mjs'))
+  if (grant && !grant.includes('assertToolAllowed')) issues.push('MCP_GRANT_STABLE_ACROSS_MODEL_ROUTE: call-time tool scope assertion must stay in force')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkRoutingNoSecretLeak({ repoRoot }) {
+  const issues = []
+  const events = await readRoutingSource(repoRoot, 'routing-events.mjs')
+  if (!events) {
+    issues.push('ROUTING_NO_SECRET_LEAK: runtime/routing/routing-events.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!events.includes('redactFailureReason')) issues.push('ROUTING_NO_SECRET_LEAK: failure reasons must be redacted')
+  const classifier = await readRoutingSource(repoRoot, 'failure-classifier.mjs')
+  if (classifier && !classifier.includes('redactFailureReason')) issues.push('ROUTING_NO_SECRET_LEAK: classifier must provide redaction')
+  for (const file of ['routing-policy.mjs', 'routing-events.mjs', 'model-catalog.mjs']) {
+    const source = await readRoutingSource(repoRoot, file)
+    if (!source) continue
+    // Only flag real secret-bearing shapes, not harmless metadata labels like
+    // auth_type: 'api_key'.
+    const stripped = source.replace(/['"][^'"]*['"]/g, `"str"`).replace(/`[^`]*`/g, '`tpl`')
+    if (/(?:Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{8,}|Authorization\s*:\s*(?:Bearer|Basic)|OAuth\s+(?:token|client_secret)|api[_-]?key\s*[:=]\s*["'][A-Za-z0-9._-]{12,}/i.test(stripped)) {
+      issues.push(`ROUTING_NO_SECRET_LEAK: ${file} must not reference credential material`)
+    }
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+// ---------------------------------------------------------------------------
 // Baseline fingerprint — structural drift only, never file-byte drift
 // ---------------------------------------------------------------------------
 
@@ -1098,6 +1253,14 @@ export async function runProductionSentinel({ repoRoot }) {
   pushResult('MCP_TOOL_CALL_BOUNDED', await checkMcpToolCallBounded({ repoRoot }))
   pushResult('MCP_TOOL_OBSERVABILITY', await checkMcpToolObservability({ repoRoot }))
   pushResult('MCP_NO_SECRET_LEAK', await checkMcpNoSecretLeak({ repoRoot }))
+  pushResult('MODEL_ROUTING_RUNTIME_AUTHORITY', await checkModelRoutingRuntimeAuthority({ repoRoot }))
+  pushResult('WORKER_CANNOT_SELF_SELECT_MODEL', await checkWorkerCannotSelfSelectModel({ repoRoot }))
+  pushResult('RETRY_ESCALATION_SEPARATION', await checkRetryEscalationSeparation({ repoRoot }))
+  pushResult('MODEL_ESCALATION_BOUNDED', await checkModelEscalationBounded({ repoRoot }))
+  pushResult('ROUTING_CAPABILITY_COMPATIBLE', await checkRoutingCapabilityCompatible({ repoRoot }))
+  pushResult('RUN_ID_STABLE_ACROSS_MODEL_ROUTE', await checkRunIdStableAcrossModelRoute({ repoRoot }))
+  pushResult('MCP_GRANT_STABLE_ACROSS_MODEL_ROUTE', await checkMcpGrantStableAcrossModelRoute({ repoRoot }))
+  pushResult('ROUTING_NO_SECRET_LEAK', await checkRoutingNoSecretLeak({ repoRoot }))
   pushResult('CONTRACT_SENTINEL', await checkContractIds({ repoRoot }))
   pushResult('TEST_RUNNER_EXHAUSTIVE', await checkTestRunnerExhaustive({ repoRoot }))
   pushResult('INSTALLER_SENTINEL', await checkInstallerBaseline({ repoRoot }))

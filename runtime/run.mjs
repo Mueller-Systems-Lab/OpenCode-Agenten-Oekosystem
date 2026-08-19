@@ -35,6 +35,14 @@ import { decide } from './controller/controller.mjs'
 import { createRunEvent, appendRunEvent } from './observability/run-events.mjs'
 import { resolveToolGrant } from './mcp/tool-grant.mjs'
 import { defaultReviewAnalyzers } from './reviews/analyze.mjs'
+import {
+  DEFAULT_MODEL_CATALOG,
+  DEFAULT_ROUTING_POLICY,
+  selectRoute,
+  enforceRouteRunId,
+  routeSelectedEvent,
+  routeRejectedEvent,
+} from './routing/index.mjs'
 
 export const RUNTIME_PHASES = Object.freeze(['TASK', 'BASELINE', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'REVIEWS', 'CONTROLLER'])
 
@@ -88,6 +96,9 @@ export async function runTask(options = {}) {
     required_skills = [],
     capability_status = {},
     previousFailures = [],
+    routing = null,
+    routeExecutor = null,
+    onWorkerFailure = null,
   } = options
 
   const sink = eventSink || defaultRunEventSink(repoRoot)
@@ -142,6 +153,48 @@ export async function runTask(options = {}) {
     ? resolveToolGrant({ profile: mcpProfile, inventory, preflight: baseline.mcp_preflight })
     : null
 
+  // 3c. Deterministic model routing (runtime policy — opt-in per run). The
+  //     routing policy selects the assigned provider/model from the canonical
+  //     catalog; a worker can never self-select, upgrade, or fall back.
+  let route = null
+  const routingPolicy = routing?.policy || DEFAULT_ROUTING_POLICY
+  const routingCatalog = routing?.catalog || DEFAULT_MODEL_CATALOG
+  if (routing?.enabled) {
+    const selection = selectRoute({
+      requirements: routing.requirements || {},
+      catalog: routingCatalog,
+      policy: routingPolicy,
+      explicit_override: routing.explicit_override || null,
+      worker_requested_model: routing.worker_requested_model || null,
+      phase: 'BUILD',
+    })
+    if (selection.ok && selection.route) {
+      route = enforceRouteRunId(runId, selection.route, 'routing-route')
+      await emit({ ...routeSelectedEvent({ run_id: runId, route, attempt: task.attempt }) })
+      if (selection.worker_self_selection === 'DENIED') {
+        await emit({
+          run_id: runId, phase: 'ROUTING', job: 'model.route.rejected', status: 'FAIL',
+          failure_signature: 'WORKER_SELF_SELECTION_DENIED', attempt: task.attempt,
+          strategy_delta: 'worker requested model ignored — MODEL_SELECTION_AUTHORITY=DETERMINISTIC_RUNTIME_POLICY',
+        })
+      }
+    } else {
+      await emit({ ...routeRejectedEvent({ run_id: runId, reason_code: selection.code, reason: selection.reason, attempt: task.attempt }) })
+      const decision = createDecision({
+        run_id: runId, decision: 'BLOCKED', reason_code: selection.code || 'ROUTING_POLICY_DENIED',
+        first_bad_boundary: 'ROUTING', phase_history: [{ name: 'TASK', status: 'PASS' }, { name: 'ROUTING', status: 'FAIL' }],
+      })
+      await emit({
+        run_id: runId, phase: 'CONTROLLER', job: 'deterministic-controller', status: 'FAIL',
+        attempt: task.attempt, reason_code: decision.reason_code, contract_out: 'ecosystem.decision.v1',
+      })
+      return {
+        phase: 'ROUTING_BLOCKED', run_id: runId, task, baseline, decision, events,
+        routing_rejection: { code: selection.code, reason: selection.reason }, route: null,
+      }
+    }
+  }
+
   // 4. Fail fast: a missing required capability / MCP tool / skill blocks the
   //    run before any research, plan, or build work is performed.
   if (!baseline.approved) {
@@ -169,21 +222,21 @@ export async function runTask(options = {}) {
       run_id: runId, phase: 'CONTROLLER', job: 'deterministic-controller', status: 'FAIL',
       attempt: task.attempt, reason_code: finalDecision.reason_code, contract_out: 'ecosystem.decision.v1',
     })
-    return { phase: 'BLOCKED_ENTRY', run_id: runId, task, baseline, decision: finalDecision, events, tool_grant: null }
+    return { phase: 'BLOCKED_ENTRY', run_id: runId, task, baseline, decision: finalDecision, events, tool_grant: null, route }
   }
 
   // 5. The full deterministic pipeline needs workers (native plan + build
   //    executor). Without them the run is entered (entry mode) and ready for
   //    worker continuation; the plugin seam uses this mode.
   const planAvailable = Boolean(nativePlan) && (typeof nativePlan === 'string' || Boolean(nativePlan.planText || nativePlan.plan))
-  const buildAvailable = typeof buildExecutor === 'function'
+  const buildAvailable = typeof buildExecutor === 'function' || (routing?.enabled && typeof routeExecutor === 'function')
   if (!planAvailable || !buildAvailable) {
     await emit({ run_id: runId, phase: 'TASK', job: 'create-task', status: 'PASS', contract_in: task.contract })
     await emit({
       run_id: runId, phase: 'BASELINE', job: 'capability-preflight', status: 'PASS',
       contract_out: baseline.contract,
     })
-    return { phase: 'ENTRY', run_id: runId, task, baseline, decision: null, events, entry: 'READY', tool_grant: toolGrant }
+    return { phase: 'ENTRY', run_id: runId, task, baseline, decision: null, events, entry: 'READY', tool_grant: toolGrant, route }
   }
 
   const pipelinePlan = typeof nativePlan === 'string' ? { planText: nativePlan } : nativePlan
@@ -204,6 +257,10 @@ export async function runTask(options = {}) {
     capability_status,
     previousFailures,
     tool_grant: toolGrant,
+    route,
+    routing: routing?.enabled ? routingPolicy : null,
+    routeExecutor,
+    onWorkerFailure,
   })
 
   } catch (error) {
@@ -221,7 +278,7 @@ export async function runTask(options = {}) {
         }),
         contract_invalid_reason: message,
       }
-      return { phase: 'ABORTED', run_id: runId, task, baseline, decision, events }
+      return { phase: 'ABORTED', run_id: runId, task, baseline, decision, events, route }
     }
     throw error
   }
@@ -231,7 +288,7 @@ export async function runTask(options = {}) {
   if (!decisionValidation.ok) {
     throw new Error(`CONTRACT_INVALID:controller-decision:${decisionValidation.issues.join('; ')}`)
   }
-  return { ...result, phase: 'PIPELINE', decision_validated: true, tool_grant: toolGrant }
+  return { ...result, phase: 'PIPELINE', decision_validated: true, tool_grant: toolGrant, route: result.route || route }
 }
 
 /**

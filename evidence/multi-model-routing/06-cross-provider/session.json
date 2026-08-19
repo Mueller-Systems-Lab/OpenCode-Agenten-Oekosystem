@@ -1,0 +1,73 @@
+{
+  "case_id": "cross-provider",
+  "label": "Cross-provider direct selection (openai)",
+  "round": 1,
+  "run_id": "2ad876e7-1136-44bf-9d47-f5565fb63f57",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "2ad876e7-1136-44bf-9d47-f5565fb63f57"
+  ],
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "initial_route": {
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "routing_reason": "DIRECT_CAPABILITY_ROUTE"
+  },
+  "final_route": {
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "routing_reason": "DIRECT_CAPABILITY_ROUTE"
+  },
+  "calls": [
+    {
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 0,
+      "exit_code": 0,
+      "changed_files": [
+        "cross.txt"
+      ],
+      "real_mcp_call": false,
+      "duration_ms": 39575
+    }
+  ],
+  "escalation_recorded": false,
+  "escalation_events": [],
+  "retry_events": [],
+  "verify_status": "PASS",
+  "decision": "DONE",
+  "reason_code": "ALL_HARD_GATES_GREEN",
+  "first_bad_boundary": null,
+  "phase_history": [
+    "TASK=PASS",
+    "BASELINE=PASS",
+    "ROUTING=PASS",
+    "RESEARCH=PASS",
+    "PLAN=PASS",
+    "PLAN_GATE=PASS",
+    "BUILD=PASS",
+    "VERIFY=PASS",
+    "REVIEWS=PASS",
+    "CONTROLLER=PASS"
+  ],
+  "reviews": [
+    "correctness=PASS",
+    "security=PASS",
+    "quality=PASS"
+  ],
+  "mcp_evidence": [
+    {
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 0,
+      "real_mcp_call": false,
+      "mcp_enabled": false
+    }
+  ],
+  "real_mcp_call_count": 0,
+  "secret_leak": false,
+  "event_count": 15,
+  "duration_ms": 0,
+  "unexpected_behavior": []
+}

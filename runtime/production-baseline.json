@@ -94,7 +94,8 @@
     {
       "milestone": "GREEN_OCAE_RUNTIME_AVAILABILITY_COST_GOVERNANCE_OPERATIONAL",
       "pre_baseline": "44323ae10a5c0c24ab8d46b3ab0009e1b1b7260b",
-      "current_production_baseline": "51bc2c71e3bd9bf9a235d8affc21a9f3eb4cda1d"
+      "integration_commit": "51bc2c71e3bd9bf9a235d8affc21a9f3eb4cda1d",
+      "note": "current production baseline HEAD is reported in the milestone run report (no circular self-reference in committed artifacts)"
     }
   ]
 }

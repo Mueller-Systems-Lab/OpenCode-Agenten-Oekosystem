@@ -239,3 +239,17 @@ ranking + DEGRADED_ROUTE_SELECTED/DENIED), `runtime/routing/routing-events.mjs`
 (invariants/artifacts/milestone/fingerprint), `scripts/install-governance.mjs`
 (artifact), `scripts/fresh-install-sentinel.mjs` (artifact + export),
 `test/test-manifest.json` (3 new unit test files).
+
+## Final canonical regression (orchestrator-verified, 2026-08-20)
+
+Facts recorded exactly as executed by the orchestrator; nothing invented.
+
+| Check | Command | Result |
+|---|---|---|
+| Canonical npm test | `npm test` | EXPECTED_TEST_FILES 82, EXECUTED_TEST_FILES 82; TESTS 1054; PASSED 1054; FAILED 0; SKIPPED 0; CANCELLED 0; TODO 0; DURATION_MS 1055724; FINAL_STATUS PASS; FAILED_GROUPS none; SKIPPED_GROUPS none; EXIT_CODE 0. Note: the log also contains a nested full-suite execution performed by `test/harness/runner-contract.test.mjs` (its subprocess printed its own summary: 1027 tests, 2 skipped, exit 0, PASS) — the top-level canonical result above is the authoritative one with 0 skip |
+| Validator | `node scripts/validate-ecosystem.mjs` | PRODUCTION_SENTINEL 53/53 PASS (all 10 new invariants listed PASS) → final line VERIFIED_IN_SCOPE |
+| Fresh Install Sentinel | `node scripts/fresh-install-sentinel.mjs` | PASS (install exit_code 0, classification VERIFIED_IN_SCOPE, canary PASS, routing_resolves PASS including SharedBudgetGovernor export, no_legacy checks PASS) |
+| Production Sentinel count | — | 43 prior + 10 new = 53 results, all PASS |
+| Baseline fingerprint | recomputed live | `48dcc666c4292bd8c1df7e80c70e6dc9f1e83ed148740b2f8c347e80d604ebdd`; recorded manifest value matches (MATCH true) |
+| Commit | — | `ccc65574c285439effb0332b05bf87321526bfd8` "feat: add shared runtime budget and degraded routing governance" (20 files, +2642/-17). No push, no PR, no tag |
+| Start HEAD / pre-baseline | — | `134903cf8f124858700922775a4adcef34dac763` |

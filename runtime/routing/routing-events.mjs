@@ -24,6 +24,12 @@ export const ROUTING_EVENT_JOBS = Object.freeze([
   'model.health.probe.result',
   'model.health.state.changed',
   'model.usage',
+  // Shared runtime budget observability (additive — shared budget governor)
+  'budget.shared.reserve',
+  'budget.shared.consume',
+  'budget.shared.release',
+  'budget.shared.expire',
+  'budget.shared.deny',
 ])
 
 export function routeSelectedEvent({ run_id, route, attempt = 0, phase = 'ROUTING', health_status = null, cost_tier = null, routing_budget_remaining = null } = {}) {

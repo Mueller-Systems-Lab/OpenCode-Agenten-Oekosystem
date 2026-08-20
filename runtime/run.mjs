@@ -47,6 +47,8 @@ import {
   resolveCandidateHealth,
   probeProviderModel,
   healthStateChangedEvent,
+  SharedBudgetGovernor,
+  SHARED_BUDGET_RESOURCES,
 } from './routing/index.mjs'
 
 export const RUNTIME_PHASES = Object.freeze(['TASK', 'BASELINE', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'REVIEWS', 'CONTROLLER'])
@@ -164,11 +166,37 @@ export async function runTask(options = {}) {
   //     Availability & cost governance (additive, all optional):
   //       routing.health.{enabled,store,probe_policy,probe_fn,opencode_bin,workdir}
   //       routing.cost_policy, routing.high_cost_routes_used
+  //     Shared runtime budget (additive, optional):
+  //       routing.shared_budget = { enabled, governor = null, resources = null,
+  //         resource = 'HIGH_COST_ROUTE', ttl_ms, retention_limit }
+  //     SHARING ACROSS CONCURRENT RUNS requires the caller to pass the SAME
+  //     governor instance; a per-run governor is per-run (single-run
+  //     semantics). Default HIGH_COST_ROUTE capacity when not specified: 2.
   let route = null
   let healthStore = null
   let healthMeta = { probed: [], cache_hits: [], probe_budget_skipped: [] }
+  let sharedBudget = null
   const routingPolicy = routing?.policy || DEFAULT_ROUTING_POLICY
   const routingCatalog = routing?.catalog || DEFAULT_MODEL_CATALOG
+  if (routing?.shared_budget?.enabled) {
+    const sb = routing.shared_budget
+    // Only HIGH_COST_ROUTE is wired this milestone. An explicitly configured
+    // resource other than HIGH_COST_ROUTE would silently create an inert
+    // budget seam (no reservation ever matches) — fail closed instead so the
+    // misconfiguration is loud, not silent.
+    if (sb.resource !== undefined && sb.resource !== SHARED_BUDGET_RESOURCES.HIGH_COST_ROUTE) {
+      throw new Error('CONFIG_INVALID:shared_budget.resource must be HIGH_COST_ROUTE (only resource wired this milestone)')
+    }
+    const governor = sb.governor || new SharedBudgetGovernor({
+      resources: sb.resources || { [SHARED_BUDGET_RESOURCES.HIGH_COST_ROUTE]: 2 },
+      ...(sb.ttl_ms !== undefined ? { ttl_ms: sb.ttl_ms } : {}),
+      ...(sb.retention_limit !== undefined ? { retention_limit: sb.retention_limit } : {}),
+    })
+    sharedBudget = {
+      governor,
+      resource: sb.resource || SHARED_BUDGET_RESOURCES.HIGH_COST_ROUTE,
+    }
+  }
   if (routing?.enabled) {
     if (routing.health?.enabled && !routing.health.store) {
       healthStore = new HealthStore()
@@ -340,6 +368,7 @@ export async function runTask(options = {}) {
     cost_policy: routing?.cost_policy || null,
     routeExecutor,
     onWorkerFailure,
+    sharedBudget,
   })
 
   } catch (error) {

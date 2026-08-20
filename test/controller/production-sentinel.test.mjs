@@ -39,6 +39,12 @@ import {
   checkHighCostEscalationPolicyGated,
   checkRoutingBudgetBounded,
   checkUsageNoSecretLeak,
+  checkSharedBudgetRuntimeAuthority,
+  checkSharedBudgetAtomicReservation,
+  checkSharedBudgetReservationTtl,
+  checkSharedBudgetWorkerCannotMutate,
+  checkDegradedRoutingPolicyDeterministic,
+  checkSharedBudgetNoSecretLeak,
 } from '../../scripts/lib/production-sentinel.mjs'
 
 async function makeFixtureRoot(t, prefix = 'ocae-sentinel-') {
@@ -51,7 +57,7 @@ describe('production sentinel — current baseline must pass (F)', () => {
   it('unmodified baseline passes all sentinel invariants', async () => {
     const result = await runProductionSentinel({ repoRoot })
     assert.equal(result.status, 'PASS', result.issues.join('\n'))
-    assert.equal(result.results.length, 43, 'expected the full invariant set (32 baseline + 11 availability/cost)')
+    assert.equal(result.results.length, 53, 'expected the full invariant set (43 prior + 10 shared-budget/degraded)')
     for (const entry of result.results) {
       assert.equal(entry.ok, true, `${entry.invariant}: ${entry.issues.join(' | ')}`)
     }
@@ -263,5 +269,76 @@ describe('production sentinel — availability & cost negative drift proofs', ()
     const result = await checkUsageNoSecretLeak({ repoRoot: root })
     assert.equal(result.ok, false)
     assert.ok(result.issues.some((issue) => issue.includes('USAGE_NO_SECRET_LEAK')), result.issues.join('\n'))
+  })
+})
+
+describe('production sentinel — shared budget & degraded negative drift proofs', () => {
+  // Same isolated-fixture pattern; budget-governor.mjs and routing-policy.mjs
+  // are read from the real repo and mutated in the temp root only.
+  async function makeRuntimeFixture(t, sourceFiles, mutate) {
+    const root = await makeFixtureRoot(t, 'ocae-sentinel-budget-')
+    for (const [name, transform] of Object.entries(sourceFiles)) {
+      const source = await fs.readFile(path.join(repoRoot, 'runtime', 'routing', name), 'utf8')
+      await fs.mkdir(path.join(root, 'runtime', 'routing'), { recursive: true })
+      await fs.writeFile(path.join(root, 'runtime', 'routing', name), transform(source), 'utf8')
+    }
+    return root
+  }
+
+  it('A: expireStale removed from the governor → SHARED_BUDGET_RESERVATION_TTL FAIL', async (t) => {
+    const root = await makeRuntimeFixture(t, {
+      'budget-governor.mjs': (source) => source.replaceAll('expireStale', 'expireOldSlots'),
+    })
+    const result = await checkSharedBudgetReservationTtl({ repoRoot: root })
+    assert.equal(result.ok, false)
+    assert.ok(result.issues.some((issue) => issue.includes('SHARED_BUDGET_RESERVATION_TTL')), result.issues.join('\n'))
+  })
+
+  it('B: healthRankOf removed from the policy → DEGRADED_ROUTING_POLICY_DETERMINISTIC FAIL', async (t) => {
+    const root = await makeRuntimeFixture(t, {
+      'routing-policy.mjs': (source) => source.replaceAll('healthRankOf', 'healthOrderRank'),
+    })
+    const result = await checkDegradedRoutingPolicyDeterministic({ repoRoot: root })
+    assert.equal(result.ok, false)
+    assert.ok(result.issues.some((issue) => issue.includes('DEGRADED_ROUTING_POLICY_DETERMINISTIC')), result.issues.join('\n'))
+  })
+
+  it('C: WORKER_CANNOT_MUTATE marker removed → SHARED_BUDGET_WORKER_CANNOT_MUTATE FAIL', async (t) => {
+    const root = await makeRuntimeFixture(t, {
+      'budget-governor.mjs': (source) => source.replace('WORKER_CANNOT_MUTATE', 'WORKER_MARKER_REMOVED'),
+    })
+    const result = await checkSharedBudgetWorkerCannotMutate({ repoRoot: root })
+    assert.equal(result.ok, false)
+    assert.ok(result.issues.some((issue) => issue.includes('SHARED_BUDGET_WORKER_CANNOT_MUTATE')), result.issues.join('\n'))
+  })
+
+  it('D: SYNCHRONOUS_RESERVE_ATOMIC marker AND structural reserve marker removed → SHARED_BUDGET_ATOMIC_RESERVATION FAIL', async (t) => {
+    const root = await makeRuntimeFixture(t, {
+      'budget-governor.mjs': (source) => source
+        .replaceAll('SYNCHRONOUS_RESERVE_ATOMIC', 'ATOMICITY_MARKER_REMOVED')
+        .replace('reservation_id: crypto.randomUUID()', 'reservation_id: uuid()'),
+    })
+    const result = await checkSharedBudgetAtomicReservation({ repoRoot: root })
+    assert.equal(result.ok, false)
+    assert.ok(result.issues.some((issue) => issue.includes('SHARED_BUDGET_ATOMIC_RESERVATION')), result.issues.join('\n'))
+    assert.ok(result.issues.some((issue) => issue.includes('crypto.randomUUID')), 'structural marker removal must be detected: ' + result.issues.join('\n'))
+  })
+
+  it('E: runtime authority wiring removed → SHARED_BUDGET_RUNTIME_AUTHORITY FAIL', async (t) => {
+    const root = await makeRuntimeFixture(t, {
+      'budget-governor.mjs': (source) => source.replace('class SharedBudgetGovernor', 'class SharedBudgetLedger'),
+    })
+    const result = await checkSharedBudgetRuntimeAuthority({ repoRoot: root })
+    assert.equal(result.ok, false)
+    assert.ok(result.issues.some((issue) => issue.includes('SHARED_BUDGET_RUNTIME_AUTHORITY')), result.issues.join('\n'))
+  })
+
+  it('F: budget event secret field marker removed → SHARED_BUDGET_NO_SECRET_LEAK FAIL', async (t) => {
+    const root = await makeRuntimeFixture(t, {
+      'budget-governor.mjs': (source) => source.replace('SHARED_BUDGET_NO_SECRET_LEAK', 'SECRET_LEAK_MARKER_REMOVED'),
+    })
+    const result = await checkSharedBudgetNoSecretLeak({ repoRoot: root })
+    assert.equal(result.ok, false)
+    assert.ok(result.issues.some((issue) => issue.includes('SHARED_BUDGET_NO_SECRET_LEAK')), result.issues.join('\n'))
   })
 })

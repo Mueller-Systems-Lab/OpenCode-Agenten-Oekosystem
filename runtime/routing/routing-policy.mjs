@@ -28,6 +28,24 @@
  *     caller seam (resolveCandidateHealth) before this policy is consulted.
  *   - the cost gate defaults DENY (fail closed): cost escalation and high-cost
  *     routes are only allowed when the policy explicitly permits them.
+ *
+ * Final ranking pipeline (deterministic, array-order-independent):
+ *   1. Capabilities (modelMeetsRequirements)
+ *   2. Authorization (provider allowlist)
+ *   3. Hard Health Eligibility (healthRoutable gate — UNKNOWN/RATE_LIMITED/
+ *      UNAVAILABLE/AUTH_FAILED never routable; DEGRADED only with
+ *      health_policy.allow_degraded=true)
+ *   4. Health Quality Ranking (HEALTHY rank 0 > DEGRADED rank 1 — a HEALTHY
+ *      candidate wins over a DEGRADED candidate when both are routable)
+ *   5. Cost Policy (cost gate incl. phase ceilings)
+ *   6. Per-Run Budget (max_high_cost_routes)
+ *   7. Shared Runtime Budget (governor reserve at invocation — GAP 3, wired
+ *      in the pipeline, NOT in this pure policy)
+ *   8. Deterministic Tie-Break (candidateScore then provider+model
+ *      localeCompare)
+ *   Health and cost are SEPARATE dimensions: a DEGRADED LOW model can never
+ *   bypass the cost gate (the cost filter runs after health eligibility and
+ *   is independent of health).
  */
 import {
   DEFAULT_MODEL_CATALOG,
@@ -40,7 +58,7 @@ import {
 } from './model-catalog.mjs'
 import { ROUTING_FAILURE_CLASS_SET } from './failure-classifier.mjs'
 
-export const ROUTING_POLICY_REVISION = '2026.08.19.2'
+export const ROUTING_POLICY_REVISION = '2026.08.20.1'
 
 export const MODEL_SELECTION_AUTHORITY = 'DETERMINISTIC_RUNTIME_POLICY'
 
@@ -132,6 +150,29 @@ function candidateScore(entry) {
   // Cheapest sufficient model wins: cost first, then quality (ordinal policy
   // metadata). Lower score = better.
   return tierRank(entry.cost_tier, COST_TIERS) * 100 + tierRank(entry.quality_tier, QUALITY_TIERS)
+}
+
+/**
+ * Health quality rank used for deterministic HEALTHY > DEGRADED ordering.
+ * Internal helper: when no health map is provided (healthStatusOf is null)
+ * every candidate ranks 0 — behavior identical to the pre-ranking policy.
+ * Unroutable states are already filtered out before this ordering runs, so
+ * this only orders HEALTHY (0) vs DEGRADED (1); anything else ranks 2.
+ */
+function healthRankOf(entry, healthStatusOf) {
+  if (!healthStatusOf) return 0
+  const status = healthStatusOf(entry.provider, entry.model)
+  if (status === 'HEALTHY') return 0
+  if (status === 'DEGRADED') return 1
+  return 2
+}
+
+/**
+ * True when the candidate's live health status is 'DEGRADED'. Without a
+ * health map (healthStatusOf null) no candidate is flagged degraded.
+ */
+function degradedCandidate(entry, healthStatusOf) {
+  return Boolean(healthStatusOf && healthStatusOf(entry.provider, entry.model) === 'DEGRADED')
 }
 
 /**
@@ -252,6 +293,7 @@ export function selectRoute({
     context_tier: entry.context_tier,
     health_status: healthStatusOf(entry.provider, entry.model),
     routing_budget_remaining: routingBudgetRemaining,
+    degraded: degradedCandidate(entry, healthProvided ? healthStatusOf : null),
     ...extra,
   })
 
@@ -303,11 +345,23 @@ export function selectRoute({
   //     candidate when the map IS provided → UNKNOWN → not routable.
   const healthFiltered = capabilityCandidates.filter(isHealthRoutable)
   const eligibleCandidates = healthFiltered.filter(isCostAllowed)
-  const cheapest = (list) => [...list].sort((a, b) => candidateScore(a) - candidateScore(b) || (a.provider + a.model).localeCompare(b.provider + b.model))
+  // Deterministic health-aware cheapest ordering: HEALTHY outranks DEGRADED
+  // (healthRankOf asc), then cost/quality score, then provider+model tie-break.
+  // When health is null all ranks are 0 → identical to the pre-change sort.
+  const cheapest = (list) => [...list].sort((a, b) => {
+    const byHealth = healthRankOf(a, healthProvided ? healthStatusOf : null) - healthRankOf(b, healthProvided ? healthStatusOf : null)
+    if (byHealth !== 0) return byHealth
+    const byScore = candidateScore(a) - candidateScore(b)
+    if (byScore !== 0) return byScore
+    return (a.provider + a.model).localeCompare(b.provider + b.model)
+  })
 
   // Controlled denial after capability filtering:
   //   - no capability-compatible candidates at all → existing code
-  //   - capability candidates existed but all failed live health → fail closed
+  //   - only DEGRADED candidates exist but allow_degraded is not enabled →
+  //     DEGRADED_ROUTE_DENIED (fail closed, distinct from no-healthy)
+  //   - capability candidates existed but all failed live health (non-
+  //     DEGRADED) → existing NO_HEALTHY_ELIGIBLE_MODEL
   //   - candidates existed but all failed the cost gate → COST_GATE_DENIED
   const gateDenial = () => {
     if (capabilityCandidates.length === 0) {
@@ -318,6 +372,10 @@ export function selectRoute({
       }
     }
     if (healthProvided && healthFiltered.length === 0) {
+      const hasDegraded = capabilityCandidates.some((entry) => healthStatusOf(entry.provider, entry.model) === 'DEGRADED')
+      if (hasDegraded) {
+        return { ok: false, code: 'DEGRADED_ROUTE_DENIED', reason: 'degraded candidates exist but allow_degraded is not enabled' }
+      }
       return { ok: false, code: 'NO_HEALTHY_ELIGIBLE_MODEL', reason: 'no healthy eligible model for the task requirements' }
     }
     return { ok: false, code: 'COST_GATE_DENIED', reason: 'no cost-permitted model for the task requirements' }
@@ -341,9 +399,13 @@ export function selectRoute({
       if (sorted.length > 0) {
         const chosen = sorted[0]
         const skippedByHealth = !isHealthRoutable(primary)
+        const chosenDegraded = degradedCandidate(chosen, healthProvided ? healthStatusOf : null)
+        const fallbackReason = skippedByHealth
+          ? (chosenDegraded ? 'DEGRADED_ROUTE_SELECTED' : 'AVAILABILITY_FALLBACK')
+          : 'COST_GATE_FALLBACK'
         return {
           ok: true,
-          route: routeFor(chosen, skippedByHealth ? 'AVAILABILITY_FALLBACK' : 'COST_GATE_FALLBACK'),
+          route: routeFor(chosen, fallbackReason),
           initial_model_skipped: skippedByHealth ? 'INITIAL_MODEL_SKIPPED_FOR_HEALTH' : 'INITIAL_MODEL_SKIPPED_FOR_COST',
           ...workerSelfSelection,
         }
@@ -376,10 +438,14 @@ export function selectRoute({
     return gateDenial()
   }
   const chosen = sorted[0]
+  const chosenDegraded = degradedCandidate(chosen, healthProvided ? healthStatusOf : null)
+  const capabilityReason = chosenDegraded
+    ? 'DEGRADED_ROUTE_SELECTED'
+    : (capabilityCandidates.length === 1 ? 'DIRECT_CAPABILITY_ROUTE' : 'CHEAPEST_SUFFICIENT')
   return {
     ok: true,
     route: {
-      ...routeFor(chosen, capabilityCandidates.length === 1 ? 'DIRECT_CAPABILITY_ROUTE' : 'CHEAPEST_SUFFICIENT'),
+      ...routeFor(chosen, capabilityReason),
       satisfies: req,
     },
     ...workerSelfSelection,
@@ -423,11 +489,15 @@ function pickEscalationRoute({ current, requirements, catalog, policy, route_his
     })
     .filter((entry) => costGateAllows({ entry, current_tier: current.cost_tier, cost_policy, high_cost_routes_used }))
     .sort((a, b) => {
-      // Prefer same provider, then quality, then cost (escalation must never
-      // downgrade capability/quality).
+      // Prefer same provider, then health quality (HEALTHY > DEGRADED), then
+      // quality, then context, then cost (escalation must never downgrade
+      // capability/quality). No health map is provided to escalation targets,
+      // so healthRankOf is 0 for all → the pre-change ordering is unchanged.
       const sameA = a.provider === current.provider ? 0 : 1
       const sameB = b.provider === current.provider ? 0 : 1
       if (sameA !== sameB) return sameA - sameB
+      const healthDelta = healthRankOf(a, null) - healthRankOf(b, null)
+      if (healthDelta !== 0) return healthDelta
       const qualityDelta = tierRank(b.quality_tier, QUALITY_TIERS) - tierRank(a.quality_tier, QUALITY_TIERS)
       if (qualityDelta !== 0) return qualityDelta
       const contextDelta = tierRank(b.context_tier, CONTEXT_TIERS) - tierRank(a.context_tier, CONTEXT_TIERS)

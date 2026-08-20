@@ -34,13 +34,19 @@ export function decide(input = {}) {
   // A classified routing transition (evidence from the deterministic routing
   // policy) supplies the terminal REASON; the decision VALUE stays with the
   // controller. External blockers (model/provider unavailable, auth failure,
-  // policy denial) are BLOCKED; budget exhaustion is SPLIT.
+  // policy denial) are BLOCKED; per-run budget exhaustion is SPLIT.
+  // Shared-budget denials (SHARED_BUDGET_EXHAUSTED / RESERVATION_DENIED) are
+  // external resource constraints → BLOCKED.
   if (routing_terminal && routing_terminal.reason_code) {
     const external = [
       'MODEL_UNAVAILABLE', 'PROVIDER_UNAVAILABLE', 'PROVIDER_AUTH_FAILURE',
       'PROVIDER_TRANSPORT_FAILURE', 'ROUTING_POLICY_DENIED', 'ROUTING_NO_FALLBACK',
       'ROUTING_NO_ESCALATION_TARGET', 'AUTH_FAILURE_FAIL_CLOSED', 'ROUTING_NO_ROUTE',
       'ROUTING_UNCLASSIFIED_FAILURE',
+      // Shared runtime budget denials are external resource constraints (like
+      // MODEL_UNAVAILABLE) → BLOCKED, not SPLIT.
+      'SHARED_BUDGET_EXHAUSTED',
+      'SHARED_BUDGET_RESERVATION_DENIED',
     ]
     const decision = external.includes(routing_terminal.reason_code) ? 'BLOCKED' : 'SPLIT'
     return terminal(decision, routing_terminal.reason_code, boundaries, routing_terminal.boundary || 'ROUTING')

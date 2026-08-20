@@ -53,6 +53,7 @@ export const FRESH_INSTALL_ARTIFACTS = Object.freeze({
   routing_health_state: '.agent-governance/runtime/routing/health-state.mjs',
   routing_health_probe: '.agent-governance/runtime/routing/health-probe.mjs',
   routing_usage: '.agent-governance/runtime/routing/usage.mjs',
+  routing_budget_governor: '.agent-governance/runtime/routing/budget-governor.mjs',
   plugin: '.agent-governance/hooks/opencode/canonical-governance.mjs',
 })
 
@@ -92,7 +93,7 @@ export async function runFreshInstallSentinel({ repoRoot, targetRoot, keep = fal
     //     canonical runtime (fresh-install routing capability).
     try {
       const routingModule = await import(pathToFileURLFor(path.join(targetRoot, '.agent-governance', 'runtime', 'routing', 'index.mjs')))
-      const routingExports = ['selectRoute', 'decideRouteAction', 'DEFAULT_MODEL_CATALOG', 'DEFAULT_ROUTING_POLICY', 'classifyWorkerOutcome']
+      const routingExports = ['selectRoute', 'decideRouteAction', 'DEFAULT_MODEL_CATALOG', 'DEFAULT_ROUTING_POLICY', 'classifyWorkerOutcome', 'SharedBudgetGovernor']
       const missingExports = routingExports.filter((name) => typeof routingModule[name] === 'undefined')
       if (missingExports.length === 0) checks.routing_resolves = { status: 'PASS' }
       else fail('routing_resolves', `missing exports: ${missingExports.join(', ')}`)

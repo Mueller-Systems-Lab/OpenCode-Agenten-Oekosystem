@@ -74,6 +74,18 @@ export const SENTINEL_INVARIANTS = Object.freeze([
   'ROUTING_BUDGET_BOUNDED',
   'USAGE_OBSERVABILITY',
   'USAGE_NO_SECRET_LEAK',
+  // shared runtime budget + degraded routing invariants (runtime-critical,
+  // additive)
+  'SHARED_BUDGET_RUNTIME_AUTHORITY',
+  'SHARED_BUDGET_ATOMIC_RESERVATION',
+  'SHARED_BUDGET_NO_OVERSUBSCRIPTION',
+  'SHARED_BUDGET_BOUNDED',
+  'SHARED_BUDGET_RESERVATION_TTL',
+  'SHARED_BUDGET_RUN_OWNERSHIP',
+  'SHARED_BUDGET_WORKER_CANNOT_MUTATE',
+  'DEGRADED_ROUTING_POLICY_DETERMINISTIC',
+  'DEGRADED_DOES_NOT_BYPASS_COST_POLICY',
+  'SHARED_BUDGET_NO_SECRET_LEAK',
 ])
 
 export const REQUIRED_CONTRACT_IDS = Object.freeze([
@@ -140,6 +152,8 @@ export const INSTALLER_REQUIRED_ARTIFACTS = Object.freeze([
   'routing/health-state.mjs',
   'routing/health-probe.mjs',
   'routing/usage.mjs',
+  // shared runtime budget governor artifact (runtime-critical, additive)
+  'routing/budget-governor.mjs',
 ])
 
 /** Legacy execution components that must never rejoin the installed path. */
@@ -1331,6 +1345,158 @@ export async function checkUsageNoSecretLeak({ repoRoot, usageSource = null, rou
 }
 
 // ---------------------------------------------------------------------------
+// Shared runtime budget + degraded routing invariant checks (structural)
+// ---------------------------------------------------------------------------
+
+async function readBudgetSource(repoRoot) {
+  return readRoutingSource(repoRoot, 'budget-governor.mjs')
+}
+
+export async function checkSharedBudgetRuntimeAuthority({ repoRoot, budgetSource = null, runSource = null, pipelineSource = null }) {
+  const issues = []
+  const budget = budgetSource ?? await readBudgetSource(repoRoot)
+  if (!budget) {
+    issues.push('SHARED_BUDGET_RUNTIME_AUTHORITY: runtime/routing/budget-governor.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const marker of ['class SharedBudgetGovernor', 'reserve', 'commit', 'release', 'expireStale']) {
+    if (!budget.includes(marker)) issues.push(`SHARED_BUDGET_RUNTIME_AUTHORITY: budget-governor.mjs must contain ${marker}`)
+  }
+  const run = runSource ?? await readIfExists(path.join(repoRoot, 'runtime', 'run.mjs'))
+  if (run && !run.includes('shared_budget')) issues.push('SHARED_BUDGET_RUNTIME_AUTHORITY: run.mjs must wire the shared_budget routing option')
+  const pipeline = pipelineSource ?? await readIfExists(path.join(repoRoot, 'runtime', 'pipeline', 'pipeline.mjs'))
+  if (pipeline && !pipeline.includes('sharedBudget')) issues.push('SHARED_BUDGET_RUNTIME_AUTHORITY: pipeline.mjs must accept the sharedBudget option')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkSharedBudgetAtomicReservation({ repoRoot, budgetSource = null }) {
+  const issues = []
+  const budget = budgetSource ?? await readBudgetSource(repoRoot)
+  if (!budget) {
+    issues.push('SHARED_BUDGET_ATOMIC_RESERVATION: runtime/routing/budget-governor.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!budget.includes('SYNCHRONOUS_RESERVE_ATOMIC')) issues.push('SHARED_BUDGET_ATOMIC_RESERVATION: synchronous atomicity marker comment missing')
+  if (!budget.includes('reserve(')) issues.push('SHARED_BUDGET_ATOMIC_RESERVATION: reserve method missing')
+  if (!budget.includes('atomic')) issues.push('SHARED_BUDGET_ATOMIC_RESERVATION: atomicity must be documented (single-tick CHECK+RESERVE)')
+  // Real structural markers of the synchronous reserve body — the comment
+  // alone must not satisfy the check: the sync TTL-expiry call and the UUID
+  // reservation creation are part of the single-tick reserve() implementation.
+  if (!budget.includes('expireStale({ now: current })')) issues.push('SHARED_BUDGET_ATOMIC_RESERVATION: reserve must run expireStale synchronously (expireStale({ now: current }))')
+  if (!budget.includes('reservation_id: crypto.randomUUID()')) issues.push('SHARED_BUDGET_ATOMIC_RESERVATION: reserve must create the reservation_id via crypto.randomUUID() in the same tick')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkSharedBudgetNoOversubscription({ repoRoot, budgetSource = null }) {
+  const issues = []
+  const budget = budgetSource ?? await readBudgetSource(repoRoot)
+  if (!budget) {
+    issues.push('SHARED_BUDGET_NO_OVERSUBSCRIPTION: runtime/routing/budget-governor.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const marker of ['available', 'remaining', 'SHARED_BUDGET_EXHAUSTED']) {
+    if (!budget.includes(marker)) issues.push(`SHARED_BUDGET_NO_OVERSUBSCRIPTION: budget-governor.mjs must contain ${marker} accounting`)
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkSharedBudgetBounded({ repoRoot, budgetSource = null }) {
+  const issues = []
+  const budget = budgetSource ?? await readBudgetSource(repoRoot)
+  if (!budget) {
+    issues.push('SHARED_BUDGET_BOUNDED: runtime/routing/budget-governor.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const marker of ['retention_limit', 'prune']) {
+    if (!budget.includes(marker)) issues.push(`SHARED_BUDGET_BOUNDED: budget-governor.mjs must contain ${marker}`)
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkSharedBudgetReservationTtl({ repoRoot, budgetSource = null }) {
+  const issues = []
+  const budget = budgetSource ?? await readBudgetSource(repoRoot)
+  if (!budget) {
+    issues.push('SHARED_BUDGET_RESERVATION_TTL: runtime/routing/budget-governor.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const marker of ['expires_at', 'ttl_ms', 'expireStale']) {
+    if (!budget.includes(marker)) issues.push(`SHARED_BUDGET_RESERVATION_TTL: budget-governor.mjs must contain ${marker}`)
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkSharedBudgetRunOwnership({ repoRoot, budgetSource = null }) {
+  const issues = []
+  const budget = budgetSource ?? await readBudgetSource(repoRoot)
+  if (!budget) {
+    issues.push('SHARED_BUDGET_RUN_OWNERSHIP: runtime/routing/budget-governor.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!budget.includes('SHARED_BUDGET_OWNERSHIP_INVALID')) issues.push('SHARED_BUDGET_RUN_OWNERSHIP: ownership-invalid reason code missing')
+  if (!budget.includes('record.run_id !== run_id')) issues.push('SHARED_BUDGET_RUN_OWNERSHIP: commit/release must enforce run_id ownership')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkSharedBudgetWorkerCannotMutate({ repoRoot, budgetSource = null }) {
+  const issues = []
+  const budget = budgetSource ?? await readBudgetSource(repoRoot)
+  if (!budget) {
+    issues.push('SHARED_BUDGET_WORKER_CANNOT_MUTATE: runtime/routing/budget-governor.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!budget.includes('WORKER_CANNOT_MUTATE')) issues.push('SHARED_BUDGET_WORKER_CANNOT_MUTATE: WORKER_CANNOT_MUTATE guard marker comment missing')
+  if (budget.includes('applyBudget(') || budget.includes('mutate(')) {
+    issues.push('SHARED_BUDGET_WORKER_CANNOT_MUTATE: budget governor must not expose a data-accepting mutation method')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkDegradedRoutingPolicyDeterministic({ repoRoot, routingPolicySource = null }) {
+  const issues = []
+  const policy = routingPolicySource ?? await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policy) {
+    issues.push('DEGRADED_ROUTING_POLICY_DETERMINISTIC: runtime/routing/routing-policy.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!policy.includes('healthRankOf')) issues.push('DEGRADED_ROUTING_POLICY_DETERMINISTIC: healthRankOf ranking helper missing')
+  if (!policy.includes('allow_degraded')) issues.push('DEGRADED_ROUTING_POLICY_DETERMINISTIC: allow_degraded policy flag missing')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkDegradedDoesNotBypassCostPolicy({ repoRoot, routingPolicySource = null }) {
+  const issues = []
+  const policy = routingPolicySource ?? await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policy) {
+    issues.push('DEGRADED_DOES_NOT_BYPASS_COST_POLICY: runtime/routing/routing-policy.mjs missing')
+    return { ok: false, issues }
+  }
+  // The cost filter chain must exist and run after health eligibility:
+  // healthFiltered (health gate) → isCostAllowed (cost gate incl. ceilings).
+  if (!policy.includes('healthFiltered')) issues.push('DEGRADED_DOES_NOT_BYPASS_COST_POLICY: health eligibility filter missing')
+  if (!policy.includes('isCostAllowed')) issues.push('DEGRADED_DOES_NOT_BYPASS_COST_POLICY: cost eligibility filter missing')
+  if (!policy.includes('costGateAllows')) issues.push('DEGRADED_DOES_NOT_BYPASS_COST_POLICY: cost gate missing')
+  if (!policy.includes('phase_cost_ceilings')) issues.push('DEGRADED_DOES_NOT_BYPASS_COST_POLICY: phase cost ceilings missing')
+  if (!policy.includes('healthRankOf')) issues.push('DEGRADED_DOES_NOT_BYPASS_COST_POLICY: health ranking must not replace the cost filter')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkSharedBudgetNoSecretLeak({ repoRoot, budgetSource = null }) {
+  const issues = []
+  const budget = budgetSource ?? await readBudgetSource(repoRoot)
+  if (!budget) {
+    issues.push('SHARED_BUDGET_NO_SECRET_LEAK: runtime/routing/budget-governor.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!budget.includes('SHARED_BUDGET_NO_SECRET_LEAK')) issues.push('SHARED_BUDGET_NO_SECRET_LEAK: header marker comment missing')
+  if (!budget.includes('NO_SECRET_LEAK')) issues.push('SHARED_BUDGET_NO_SECRET_LEAK: no-secret-leak documentation missing')
+  if (budget.includes('"prompt"') || budget.includes('"output"')) {
+    issues.push('SHARED_BUDGET_NO_SECRET_LEAK: budget events must not carry prompt/output fields')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+// ---------------------------------------------------------------------------
 // Baseline fingerprint — structural drift only, never file-byte drift
 // ---------------------------------------------------------------------------
 
@@ -1465,6 +1631,18 @@ export async function runProductionSentinel({ repoRoot }) {
   pushResult('ROUTING_BUDGET_BOUNDED', await checkRoutingBudgetBounded({ repoRoot }))
   pushResult('USAGE_OBSERVABILITY', await checkUsageObservability({ repoRoot }))
   pushResult('USAGE_NO_SECRET_LEAK', await checkUsageNoSecretLeak({ repoRoot }))
+  // Shared runtime budget + degraded routing invariants (additive, after the
+  // 43 prior invariants)
+  pushResult('SHARED_BUDGET_RUNTIME_AUTHORITY', await checkSharedBudgetRuntimeAuthority({ repoRoot }))
+  pushResult('SHARED_BUDGET_ATOMIC_RESERVATION', await checkSharedBudgetAtomicReservation({ repoRoot }))
+  pushResult('SHARED_BUDGET_NO_OVERSUBSCRIPTION', await checkSharedBudgetNoOversubscription({ repoRoot }))
+  pushResult('SHARED_BUDGET_BOUNDED', await checkSharedBudgetBounded({ repoRoot }))
+  pushResult('SHARED_BUDGET_RESERVATION_TTL', await checkSharedBudgetReservationTtl({ repoRoot }))
+  pushResult('SHARED_BUDGET_RUN_OWNERSHIP', await checkSharedBudgetRunOwnership({ repoRoot }))
+  pushResult('SHARED_BUDGET_WORKER_CANNOT_MUTATE', await checkSharedBudgetWorkerCannotMutate({ repoRoot }))
+  pushResult('DEGRADED_ROUTING_POLICY_DETERMINISTIC', await checkDegradedRoutingPolicyDeterministic({ repoRoot }))
+  pushResult('DEGRADED_DOES_NOT_BYPASS_COST_POLICY', await checkDegradedDoesNotBypassCostPolicy({ repoRoot }))
+  pushResult('SHARED_BUDGET_NO_SECRET_LEAK', await checkSharedBudgetNoSecretLeak({ repoRoot }))
 
   const issues = results.flatMap((result) => result.issues)
   const warnings = []

@@ -65,7 +65,17 @@
     "HIGH_COST_ESCALATION_POLICY_GATED",
     "ROUTING_BUDGET_BOUNDED",
     "USAGE_OBSERVABILITY",
-    "USAGE_NO_SECRET_LEAK"
+    "USAGE_NO_SECRET_LEAK",
+    "SHARED_BUDGET_RUNTIME_AUTHORITY",
+    "SHARED_BUDGET_ATOMIC_RESERVATION",
+    "SHARED_BUDGET_NO_OVERSUBSCRIPTION",
+    "SHARED_BUDGET_BOUNDED",
+    "SHARED_BUDGET_RESERVATION_TTL",
+    "SHARED_BUDGET_RUN_OWNERSHIP",
+    "SHARED_BUDGET_WORKER_CANNOT_MUTATE",
+    "DEGRADED_ROUTING_POLICY_DETERMINISTIC",
+    "DEGRADED_DOES_NOT_BYPASS_COST_POLICY",
+    "SHARED_BUDGET_NO_SECRET_LEAK"
   ],
   "required_artifacts": [
     "runtime/run.mjs",
@@ -80,7 +90,8 @@
     "runtime/routing/",
     "runtime/routing/health-state.mjs",
     "runtime/routing/health-probe.mjs",
-    "runtime/routing/usage.mjs"
+    "runtime/routing/usage.mjs",
+    "runtime/routing/budget-governor.mjs"
   ],
   "canonical_test_command": "npm test",
   "legacy_execution_status": "RETIRED",
@@ -89,13 +100,19 @@
     "runtime/agent/start.mjs",
     "scripts/run-completion-canary.mjs"
   ],
-  "baseline_fingerprint": "7f746f021e3bf0bec789621beb3ae0fffdd61ebc2afd0c59965e55b3e5e5786f",
+  "baseline_fingerprint": "48dcc666c4292bd8c1df7e80c70e6dc9f1e83ed148740b2f8c347e80d604ebdd",
   "milestone_history": [
     {
       "milestone": "GREEN_OCAE_RUNTIME_AVAILABILITY_COST_GOVERNANCE_OPERATIONAL",
       "pre_baseline": "44323ae10a5c0c24ab8d46b3ab0009e1b1b7260b",
       "integration_commit": "51bc2c71e3bd9bf9a235d8affc21a9f3eb4cda1d",
       "note": "current production baseline HEAD is reported in the milestone run report (no circular self-reference in committed artifacts)"
+    },
+    {
+      "milestone": "GREEN_OCAE_SHARED_RUNTIME_BUDGET_DEGRADED_ROUTING_OPERATIONAL",
+      "pre_baseline": "134903cf8f124858700922775a4adcef34dac763",
+      "integration_commit": null,
+      "note": "integration_commit is recorded by the orchestrator AFTER the commit lands (no fabricated hash); pre_baseline is the content-clean baseline HEAD this milestone started from"
     }
   ]
 }

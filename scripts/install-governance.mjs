@@ -327,6 +327,8 @@ function getRuntimeFileList() {
     { source: "runtime/routing/health-state.mjs", dest: "routing/health-state.mjs" },
     { source: "runtime/routing/health-probe.mjs", dest: "routing/health-probe.mjs" },
     { source: "runtime/routing/usage.mjs", dest: "routing/usage.mjs" },
+    // routing/ — shared runtime budget governor (runtime-critical, additive)
+    { source: "runtime/routing/budget-governor.mjs", dest: "routing/budget-governor.mjs" },
     // reviews/ — deterministic review analyzers
     { source: "runtime/reviews/analyze.mjs", dest: "reviews/analyze.mjs" },
     // canonical contract-first runtime entry point

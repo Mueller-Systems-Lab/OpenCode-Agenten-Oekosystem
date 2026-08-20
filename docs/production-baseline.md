@@ -505,3 +505,68 @@ never worker or tool claims.
   (not a raw provider API), there is no live price scraping (ordinal tiers
   only), and probe execution is sequential (the parallel bound is documented,
   not yet exploited).
+
+## Shared runtime budget and DEGRADED routing governance (runtime-critical, additive)
+
+The frozen runtime is extended with a shared in-process budget ledger
+(`runtime/routing/budget-governor.mjs`) and DEGRADED-aware ranking in the
+routing policy (`runtime/routing/routing-policy.mjs`). The shared budget is a
+resource policy, never a control plane: the governor returns only
+ALLOW/RESERVE/COMMIT/RELEASE/DENY/EXPIRE results, and terminal decisions
+(DONE | FIX | SPLIT | BLOCKED) stay with the deterministic controller.
+
+- **Shared Budget Scope**: `SINGLE_RUNTIME_PROCESS` only. Multiple concurrent
+  runs in one runtime process share one in-process ledger when they pass the
+  SAME `SharedBudgetGovernor` instance; a per-run governor is per-run. Explicit
+  limitation: NOT multi-process, NOT crash-safe distributed accounting — stale
+  reservations are recovered by TTL expiry within the surviving process.
+- **Reservation lifecycle**: `REQUEST → RESERVE → (COMMIT | RELEASE)` and
+  `stale → TTL → EXPIRE`. One reservation per worker invocation — retry and
+  escalation transitions reserve anew, never implicitly reuse a previous
+  reservation. `commit()` runs AFTER the worker result (the worker was invoked;
+  spent capacity is not restored); `release()` runs only before invocation and
+  restores capacity exactly once (idempotent — never twice).
+- **Atomicity**: `reserve()` is a synchronous single-tick CHECK+RESERVE
+  (expireStale + capacity check + reservation creation; no `await` between
+  check and mutate → atomic in-process). Proven under concurrent Promise
+  scheduling: 2-of-3 (capacity 2, 3 concurrent → exactly 2 RESERVED,
+  1 EXHAUSTED, repeated 3×), 10-of-100 (capacity 10, 100 concurrent → 10
+  reserved, 90 denied), and 100×100 stress (10,000 decisions) with 0
+  oversubscription, 0 capacity drift, 0 deadlock.
+- **Budget resources**: `HIGH_COST_ROUTE` is the only resource wired this
+  milestone (HIGH-cost routes). Other resources are not wired; a
+  non-`HIGH_COST_ROUTE` config fails closed with `CONFIG_INVALID` (deterministic
+  throw at runtime entry).
+- **DEGRADED ranking**: deterministic 8-step pipeline — Capabilities →
+  Authorization → Health Eligibility → Health Quality Ranking → Cost Policy →
+  Per-Run Budget → Shared Runtime Budget → Deterministic Tie-Break. HEALTHY
+  beats DEGRADED when both are routable; DEGRADED never bypasses capability or
+  cost gates. `allow_degraded` defaults false → `DEGRADED_ROUTE_DENIED`
+  (fail closed, distinct from no-healthy).
+- **Shared/per-run interaction**: a HIGH route must pass BOTH the per-run cost
+  gate (`max_high_cost_routes`) AND the shared budget reservation before
+  invocation. An escalated HIGH route re-resolves its real catalog tier so the
+  shared gate applies to the new route too.
+- **New invariants**: `SHARED_BUDGET_RUNTIME_AUTHORITY`,
+  `SHARED_BUDGET_ATOMIC_RESERVATION`, `SHARED_BUDGET_NO_OVERSUBSCRIPTION`,
+  `SHARED_BUDGET_BOUNDED`, `SHARED_BUDGET_RESERVATION_TTL`,
+  `SHARED_BUDGET_RUN_OWNERSHIP`, `SHARED_BUDGET_WORKER_CANNOT_MUTATE`,
+  `DEGRADED_ROUTING_POLICY_DETERMINISTIC`, `DEGRADED_DOES_NOT_BYPASS_COST_POLICY`,
+  `SHARED_BUDGET_NO_SECRET_LEAK` (sentinel now evaluates 53 invariants:
+  43 prior + 10 new).
+- **Known limitations**: no money accounting (ordinal tier capacity only), no
+  job-queue/fairness claims, no multi-process shared budget;
+  `budget.shared.release`/`budget.shared.expire` jobs are declared at the
+  governor level and RESERVED in the pipeline this milestone (the pipeline
+  emits `budget.shared.reserve`/`consume`/`deny`; abandoned reservations
+  recover via TTL → `expireStale` on the next reserve); event metadata is
+  metadata-only — budget events carry only run_id, reservation_id, resource,
+  amount, remaining, status, provider/model, route_index — no prompts, no
+  output, no tokens, no secrets.
+
+> **Fingerprint note:** the live baseline fingerprint is recorded in
+> `runtime/production-baseline.json`
+> (`48dcc666c4292bd8c1df7e80c70e6dc9f1e83ed148740b2f8c347e80d604ebdd`); the
+> pre-baseline for this milestone is
+> `134903cf8f124858700922775a4adcef34dac763`. Baseline identity (front-matter
+> fingerprint and identity table) is owned by the orchestrator.

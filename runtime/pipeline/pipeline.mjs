@@ -16,6 +16,21 @@
  *   - VERIFY is mandatory between BUILD and REVIEWS (build cannot bypass verify)
  *   - run_id is immutable: any worker-supplied run_id that differs from the
  *     task run_id aborts the run with CONTRACT_INVALID
+ *
+ * Shared runtime budget semantics (optional, additive):
+ *   - reservation BEFORE worker invocation: a HIGH-cost route (per the shared
+ *     budget resource mapping) reserves capacity from the shared in-process
+ *     governor; a denied reservation BLOCKS the invocation (productive calls
+ *     = 0) and follows the canonical controller terminal path.
+ *   - commit AFTER worker result: every invoked worker commits its reservation
+ *     (the resource was consumed); retries/escalations reserve anew per
+ *     invocation — one reservation per invocation, never implicit reuse.
+ *   - denial → controller canonical path: the pipeline NEVER returns a
+ *     terminal on its own; it passes routing_terminal evidence to the
+ *     deterministic controller, which remains the sole terminal authority.
+ *   - scope: SINGLE_RUNTIME_PROCESS. Stale reservations (worker abort,
+ *     process error) are recovered by TTL expiry within the surviving process;
+ *     this is NOT crash-safe distributed accounting.
  */
 import { create as createTask } from '../contracts/task.mjs'
 import { createBuildInput } from '../contracts/build.mjs'
@@ -44,6 +59,7 @@ import {
   costGateAllows,
   getCatalogEntry,
   DEFAULT_MODEL_CATALOG,
+  budgetSharedEvent,
 } from '../routing/index.mjs'
 
 /**
@@ -87,6 +103,7 @@ export async function runPipeline({
   cost_policy = null,
   routeExecutor = null,
   onWorkerFailure = null,
+  sharedBudget = null,
 } = {}) {
   const task = taskInput.contract === 'ecosystem.task.v1'
     ? taskInput
@@ -100,7 +117,24 @@ export async function runPipeline({
     events.push(event)
     if (eventSink) await appendRunEvent(eventSink, event)
   }
+  // Budget events keep their budget metadata (reservation_id, resource,
+  // amount, remaining, budget_status) which createRunEvent would strip, so
+  // they are appended as built (still a valid ecosystem.run-event.v1 shape).
+  const emitBudget = async (input) => {
+    const event = budgetSharedEvent({ run_id: runId, ...input })
+    events.push(event)
+    if (eventSink) await appendRunEvent(eventSink, event)
+    return event
+  }
   const record = (name, status) => boundaries.push({ name, status })
+
+  // Shared runtime budget: only HIGH-cost routes consume HIGH_COST_ROUTE
+  // capacity (other resource mappings are not wired this milestone).
+  const needsSharedReservation = (routeState) => Boolean(
+    sharedBudget && sharedBudget.governor
+    && routeState && routeState.cost_tier === 'HIGH'
+    && sharedBudget.resource === 'HIGH_COST_ROUTE',
+  )
 
   await emit({ phase: 'TASK', job: 'create-task', status: 'PASS', contract_in: task.contract })
   record('TASK', 'PASS')
@@ -214,6 +248,84 @@ export async function runPipeline({
       research,
       task,
     })
+    // SHARED BUDGET: reserve BEFORE worker invocation. A denied reservation
+    // blocks the invocation (productive calls = 0) and follows the canonical
+    // controller terminal path (routing_terminal evidence, never a pipeline
+    // terminal). Each invocation reserves anew — retries and escalation
+    // transitions do NOT implicitly reuse a previous reservation.
+    let budgetReservation = null
+    if (needsSharedReservation(routeState)) {
+      const reserved = sharedBudget.governor.reserve({
+        run_id: runId,
+        resource: sharedBudget.resource,
+        amount: 1,
+        provider: routeState.provider,
+        model: routeState.model,
+        route_index: routeState.route_index || 0,
+        attempt,
+      })
+      if (reserved.ok) {
+        budgetReservation = reserved.reservation
+        await emitBudget({
+          job: 'budget.shared.reserve',
+          reservation: reserved.reservation,
+          resource: sharedBudget.resource,
+          amount: 1,
+          remaining: reserved.remaining,
+          status: 'RESERVED',
+          provider: routeState.provider,
+          model: routeState.model,
+          route_index: routeState.route_index || 0,
+          attempt,
+          phase: 'BUILD',
+        })
+      } else {
+        // Reservation denied (capacity exhausted) → NO worker invocation.
+        await emitBudget({
+          job: 'budget.shared.deny',
+          resource: sharedBudget.resource,
+          amount: 1,
+          remaining: reserved.remaining,
+          code: reserved.code,
+          provider: routeState.provider,
+          model: routeState.model,
+          route_index: routeState.route_index || 0,
+          attempt,
+          phase: 'BUILD',
+        })
+        buildResult = null
+        verification = createVerification({
+          run_id: runId,
+          verification: {
+            passed: false,
+            failure_signature: 'SHARED_BUDGET_EXHAUSTED',
+            strategy_delta: 'shared budget reservation denied before worker invocation',
+            checks: [{ command: 'shared-budget-reserve', passed: false, error: reserved.reason || reserved.code }],
+          },
+        })
+        await emit({
+          phase: 'VERIFY', job: 'verify', status: 'FAIL', attempt,
+          failure_signature: verification.verification.failure_signature,
+          strategy_delta: verification.verification.strategy_delta,
+          contract_in: null, contract_out: verification.contract,
+        })
+        record('BUILD', 'FAIL')
+        record('VERIFY', 'FAIL')
+        const routingTerminal = decide({
+          baseline, plan, planGate, verification, reviews: [], attempt,
+          max_attempts: task.max_attempts, previous_failures: failedAttempts,
+          boundaries, build_status: 'FAIL',
+          routing_terminal: { reason_code: reserved.code, boundary: 'ROUTING' },
+        })
+        return finishRun({
+          runId, task, baseline, research, plan, planGate, buildResult, verification,
+          reviews: [], attempt, max_attempts: task.max_attempts, failedAttempts, boundaries, events, eventSink, emit, record,
+          decision: routingTerminal,
+          route: routeState,
+          usage_records: usageRecords,
+        })
+      }
+    }
     const buildStart = Date.now()
     const activeExecutor = routeState && routeExecutor
       ? routeExecutor(routeState, { attempt })
@@ -257,6 +369,49 @@ export async function runPipeline({
           attempt,
         }),
       })
+    }
+    // SHARED BUDGET: commit AFTER the worker result (the worker was invoked →
+    // the resource was consumed). Commits for BOTH success and failure
+    // outcomes. An idempotent commit (double consume — impossible in the
+    // normal flow) emits PASS with strategy_delta 'IDEMPOTENT'. A fail-closed
+    // commit (unknown/ownership — impossible in the normal flow) emits a deny
+    // event but never alters the decision path.
+    if (budgetReservation) {
+      const committed = sharedBudget.governor.commit({
+        reservation_id: budgetReservation.reservation_id,
+        run_id: runId,
+      })
+      if (committed.ok) {
+        const snapshot = sharedBudget.governor.snapshot()
+        const remaining = snapshot.resources[sharedBudget.resource]?.remaining ?? null
+        await emitBudget({
+          job: 'budget.shared.consume',
+          reservation: budgetReservation,
+          resource: sharedBudget.resource,
+          amount: budgetReservation.amount,
+          remaining,
+          status: 'CONSUMED',
+          strategy_delta: committed.idempotent ? 'IDEMPOTENT' : null,
+          provider: routeState.provider,
+          model: routeState.model,
+          route_index: routeState.route_index || 0,
+          attempt,
+          phase: 'BUILD',
+        })
+      } else {
+        await emitBudget({
+          job: 'budget.shared.deny',
+          resource: sharedBudget.resource,
+          amount: budgetReservation.amount,
+          remaining: null,
+          code: committed.code,
+          provider: routeState.provider,
+          model: routeState.model,
+          route_index: routeState.route_index || 0,
+          attempt,
+          phase: 'BUILD',
+        })
+      }
     }
     await emit({
       phase: 'BUILD', job: 'native-build', status: buildOk ? 'PASS' : 'FAIL', attempt,
@@ -332,15 +487,24 @@ export async function runPipeline({
         high_cost_routes_used: highCostRoutesUsed,
       })
       if (transition && transition.next_route && transition.next_route.provider && transition.next_route.model) {
+        // Resolve the transition target's REAL catalog entry once. The rebuilt
+        // routeState must carry the target's tier metadata (cost_tier /
+        // quality_tier / context_tier) so BOTH the per-run high-cost counter
+        // (highCostRoutesUsed) AND the shared-budget reservation gate
+        // (needsSharedReservation → cost_tier === 'HIGH') apply to the new
+        // route — inheriting the previous route's tiers would let an escalated
+        // HIGH-cost route bypass the shared budget. Fall back to the current
+        // routeState values when the entry is missing from the catalog
+        // (backward compat for custom seams).
+        const nextEntry = getCatalogEntry(DEFAULT_MODEL_CATALOG, transition.next_route.provider, transition.next_route.model)
+        const nextCostTier = nextEntry ? nextEntry.cost_tier : (routeState.cost_tier || null)
         // Defensive cost gate (fail closed): when a cost_policy is active, a
         // transition target denied by the gate must not be applied. The
         // canonical decideRouteAction already gates targets; this is a
         // belt-and-suspenders check for custom seams. No-op without
         // cost_policy (backward compat).
         if (cost_policy) {
-          const nextEntry = getCatalogEntry(DEFAULT_MODEL_CATALOG, transition.next_route.provider, transition.next_route.model)
-          const nextCostTier = nextEntry ? nextEntry.cost_tier : (routeState.cost_tier || null)
-          if (!costGateAllows({ entry: { cost_tier: nextCostTier }, current_tier: routeState.cost_tier || null, cost_policy, high_cost_routes_used })) {
+          if (!costGateAllows({ entry: { cost_tier: nextCostTier }, current_tier: routeState.cost_tier || null, cost_policy, high_cost_routes_used: highCostRoutesUsed })) {
             const routingTerminal = decide({
               baseline, plan, planGate, verification, reviews: [], attempt,
               max_attempts: task.max_attempts, previous_failures: failedAttempts,
@@ -364,6 +528,13 @@ export async function runPipeline({
           ...routeState,
           provider: transition.next_route.provider,
           model: transition.next_route.model,
+          // REAL tier metadata of the transition target (resolved above), so
+          // per-run high-cost accounting and the shared-budget reservation
+          // gate apply to the new route. Fallback: current values.
+          cost_tier: nextEntry ? nextEntry.cost_tier : (routeState.cost_tier ?? null),
+          quality_tier: nextEntry ? nextEntry.quality_tier : (routeState.quality_tier ?? null),
+          context_tier: nextEntry ? nextEntry.context_tier : (routeState.context_tier ?? null),
+          health_status: nextEntry?.health_status ?? routeState.health_status ?? null,
           routing_reason: transition.routing_reason || (isFallback ? 'PROVIDER_FALLBACK' : 'ESCALATION'),
           route_index: (routeState.route_index || 0) + 1,
         }

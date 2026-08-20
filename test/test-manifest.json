@@ -44,7 +44,10 @@
             "test/routing/observability.test.mjs",
             "test/routing/security.test.mjs",
             "test/routing/usage.test.mjs",
-            "test/routing/runtime-integration.test.mjs"
+            "test/routing/runtime-integration.test.mjs",
+            "test/routing/degraded-ranking.test.mjs",
+            "test/routing/shared-budget.test.mjs",
+            "test/routing/shared-budget-integration.test.mjs"
         ],
         "contract": [
             "test/contracts/bootstrap-capability-contract.test.mjs",

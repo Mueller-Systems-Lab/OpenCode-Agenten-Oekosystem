@@ -1,0 +1,133 @@
+{
+  "case_id": "mcp-health-route",
+  "label": "MCP-enabled healthy route (real context7 MCP call)",
+  "round": 1,
+  "run_id": "9820c039-9882-49fe-8ec5-637f6e45576a",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "9820c039-9882-49fe-8ec5-637f6e45576a"
+  ],
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "initial_route": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "routing_reason": "DIRECT_CAPABILITY_ROUTE",
+    "health_status": "HEALTHY",
+    "cost_tier": "LOW"
+  },
+  "final_route": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "routing_reason": "DIRECT_CAPABILITY_ROUTE",
+    "health_status": "HEALTHY",
+    "cost_tier": "LOW"
+  },
+  "calls": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "attempt": 0,
+      "exit_code": 0,
+      "changed_files": [
+        "proof.json"
+      ],
+      "usage_status": "AVAILABLE",
+      "input_tokens": 58,
+      "output_tokens": 3,
+      "total_tokens": 29117,
+      "provider_reported_cost": 0.0000903168,
+      "real_mcp_call": true,
+      "duration_ms": 69783
+    }
+  ],
+  "health": {
+    "store_entries": [
+      {
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "status": "HEALTHY",
+        "source": "PROBE",
+        "failure_class": null
+      }
+    ],
+    "probe_count_in_run": 1,
+    "probe_count_total": 1,
+    "probed": [
+      {
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "status": "HEALTHY",
+        "ok": true,
+        "health_status": "HEALTHY"
+      }
+    ],
+    "cache_hits": [],
+    "probe_budget_skipped": [],
+    "seeded": [],
+    "probe_events": [
+      {
+        "job": "model.health.probe.result",
+        "status": "PASS",
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "health_status": "HEALTHY",
+        "failure_signature": "PROBE:OK",
+        "latency_ms": 38466
+      }
+    ],
+    "state_changed_events": [
+      {
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "delta": "UNKNOWN->HEALTHY"
+      }
+    ]
+  },
+  "usage": {
+    "usage_status": "AVAILABLE",
+    "total_input_tokens": 58,
+    "total_output_tokens": 3,
+    "total_cached_tokens": 29056,
+    "total_reasoning_tokens": 0,
+    "total_tokens": 29117,
+    "provider_reported_cost_total": 0.0000903168,
+    "invocation_count": 1,
+    "by_provider": {
+      "deepseek": {
+        "total_input_tokens": 58,
+        "total_output_tokens": 3,
+        "total_tokens": 29117,
+        "invocation_count": 1
+      }
+    },
+    "by_model": {
+      "deepseek-v4-flash": {
+        "total_input_tokens": 58,
+        "total_output_tokens": 3,
+        "total_tokens": 29117,
+        "invocation_count": 1
+      }
+    }
+  },
+  "usage_records_count": 1,
+  "verify_status": "PASS",
+  "decision": "DONE",
+  "reason_code": "ALL_HARD_GATES_GREEN",
+  "first_bad_boundary": null,
+  "phase_history": [
+    "TASK=PASS",
+    "BASELINE=PASS",
+    "ROUTING=PASS",
+    "RESEARCH=PASS",
+    "PLAN=PASS",
+    "PLAN_GATE=PASS",
+    "BUILD=PASS",
+    "VERIFY=PASS",
+    "REVIEWS=PASS",
+    "CONTROLLER=PASS"
+  ],
+  "secret_leak": false,
+  "event_count": 19,
+  "unexpected_behavior": []
+}

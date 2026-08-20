@@ -323,6 +323,10 @@ function getRuntimeFileList() {
     { source: "runtime/routing/failure-classifier.mjs", dest: "routing/failure-classifier.mjs" },
     { source: "runtime/routing/routing-policy.mjs", dest: "routing/routing-policy.mjs" },
     { source: "runtime/routing/routing-events.mjs", dest: "routing/routing-events.mjs" },
+    // routing/ — availability & cost governance (runtime-critical, additive)
+    { source: "runtime/routing/health-state.mjs", dest: "routing/health-state.mjs" },
+    { source: "runtime/routing/health-probe.mjs", dest: "routing/health-probe.mjs" },
+    { source: "runtime/routing/usage.mjs", dest: "routing/usage.mjs" },
     // reviews/ — deterministic review analyzers
     { source: "runtime/reviews/analyze.mjs", dest: "reviews/analyze.mjs" },
     // canonical contract-first runtime entry point

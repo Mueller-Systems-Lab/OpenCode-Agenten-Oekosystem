@@ -42,6 +42,11 @@ import {
   enforceRouteRunId,
   routeSelectedEvent,
   routeRejectedEvent,
+  HealthStore,
+  routeCandidates,
+  resolveCandidateHealth,
+  probeProviderModel,
+  healthStateChangedEvent,
 } from './routing/index.mjs'
 
 export const RUNTIME_PHASES = Object.freeze(['TASK', 'BASELINE', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'REVIEWS', 'CONTROLLER'])
@@ -156,10 +161,72 @@ export async function runTask(options = {}) {
   // 3c. Deterministic model routing (runtime policy — opt-in per run). The
   //     routing policy selects the assigned provider/model from the canonical
   //     catalog; a worker can never self-select, upgrade, or fall back.
+  //     Availability & cost governance (additive, all optional):
+  //       routing.health.{enabled,store,probe_policy,probe_fn,opencode_bin,workdir}
+  //       routing.cost_policy, routing.high_cost_routes_used
   let route = null
+  let healthStore = null
+  let healthMeta = { probed: [], cache_hits: [], probe_budget_skipped: [] }
   const routingPolicy = routing?.policy || DEFAULT_ROUTING_POLICY
   const routingCatalog = routing?.catalog || DEFAULT_MODEL_CATALOG
   if (routing?.enabled) {
+    if (routing.health?.enabled && !routing.health.store) {
+      healthStore = new HealthStore()
+    } else if (routing.health?.enabled && routing.health.store) {
+      healthStore = routing.health.store
+    }
+    const candidates = routeCandidates({
+      requirements: routing.requirements || {},
+      catalog: routingCatalog,
+      policy: routingPolicy,
+    })
+    let health_map = null
+    if (routing.health?.enabled && healthStore) {
+      const before = new Map(healthStore.entries().map((e) => [`${e.provider}/${e.model}`, e]))
+      const healthResult = await resolveCandidateHealth({
+        candidates,
+        store: healthStore,
+        probe_policy: routing.health.probe_policy || null,
+        probe_fn: routing.health.probe_fn
+          || (({ provider, model }) => probeProviderModel({
+            provider,
+            model,
+            workdir: routing.health.workdir || repoRoot || process.cwd(),
+            opencode_bin: routing.health.opencode_bin || null,
+          })),
+        emit: async (input) => emit(input),
+        run_id: runId,
+        phase: 'ROUTING',
+        attempt: task.attempt,
+      })
+      health_map = healthResult.health_map
+      healthMeta = {
+        probed: healthResult.probed,
+        cache_hits: healthResult.cache_hits,
+        probe_budget_skipped: healthResult.probe_budget_skipped,
+      }
+      // Emit a state-changed event for every health entry that changed during
+      // this probe pass (diff the store before/after).
+      const after = new Map(healthStore.entries().map((e) => [`${e.provider}/${e.model}`, e]))
+      for (const [key, entry] of after) {
+        const prev = before.get(key)
+        if (!prev || prev.status !== entry.status) {
+          await emit({
+            ...healthStateChangedEvent({
+              run_id: runId,
+              provider: entry.provider,
+              model: entry.model,
+              from: prev ? prev.status : 'UNKNOWN',
+              to: entry.status,
+              failure_class: entry.failure_class || null,
+              source: entry.source || 'PROBE',
+              attempt: task.attempt,
+              phase: 'ROUTING',
+            }),
+          })
+        }
+      }
+    }
     const selection = selectRoute({
       requirements: routing.requirements || {},
       catalog: routingCatalog,
@@ -167,10 +234,20 @@ export async function runTask(options = {}) {
       explicit_override: routing.explicit_override || null,
       worker_requested_model: routing.worker_requested_model || null,
       phase: 'BUILD',
+      health: health_map,
+      cost_policy: routing.cost_policy || null,
+      high_cost_routes_used: routing.high_cost_routes_used || 0,
     })
     if (selection.ok && selection.route) {
       route = enforceRouteRunId(runId, selection.route, 'routing-route')
       await emit({ ...routeSelectedEvent({ run_id: runId, route, attempt: task.attempt }) })
+      if (selection.initial_model_skipped === 'INITIAL_MODEL_SKIPPED_FOR_HEALTH') {
+        await emit({
+          run_id: runId, phase: 'ROUTING', job: 'model.route.rejected', status: 'FAIL',
+          failure_signature: 'INITIAL_MODEL_SKIPPED_FOR_HEALTH', attempt: task.attempt,
+          strategy_delta: 'primary model skipped for live health — availability fallback',
+        })
+      }
       if (selection.worker_self_selection === 'DENIED') {
         await emit({
           run_id: runId, phase: 'ROUTING', job: 'model.route.rejected', status: 'FAIL',
@@ -191,6 +268,7 @@ export async function runTask(options = {}) {
       return {
         phase: 'ROUTING_BLOCKED', run_id: runId, task, baseline, decision, events,
         routing_rejection: { code: selection.code, reason: selection.reason }, route: null,
+        health: { store: healthStore, ...healthMeta }, usage: [],
       }
     }
   }
@@ -259,6 +337,7 @@ export async function runTask(options = {}) {
     tool_grant: toolGrant,
     route,
     routing: routing?.enabled ? routingPolicy : null,
+    cost_policy: routing?.cost_policy || null,
     routeExecutor,
     onWorkerFailure,
   })
@@ -288,7 +367,15 @@ export async function runTask(options = {}) {
   if (!decisionValidation.ok) {
     throw new Error(`CONTRACT_INVALID:controller-decision:${decisionValidation.issues.join('; ')}`)
   }
-  return { ...result, phase: 'PIPELINE', decision_validated: true, tool_grant: toolGrant, route: result.route || route }
+  return {
+    ...result,
+    phase: 'PIPELINE',
+    decision_validated: true,
+    tool_grant: toolGrant,
+    route: result.route || route,
+    health: { store: healthStore, ...healthMeta },
+    usage: result.usage || [],
+  }
 }
 
 /**

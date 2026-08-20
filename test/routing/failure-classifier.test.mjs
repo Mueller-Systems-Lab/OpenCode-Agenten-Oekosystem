@@ -21,7 +21,10 @@ describe('routing failure classification', () => {
     ]) {
       assert.ok(ROUTING_FAILURE_CLASSES.includes(cls), cls)
     }
-    assert.ok(ROUTING_FAILURE_CLASSES.length <= 11, 'bounded taxonomy')
+    assert.ok(
+      ROUTING_FAILURE_CLASSES.length <= 13,
+      'bounded taxonomy: 11 original classes + 2 policy-level availability/cost classes (NO_HEALTHY_ELIGIBLE_MODEL, COST_GATE_DENIED)',
+    )
   })
 
   it('classifies auth, rate-limit, context, model, provider failures', () => {

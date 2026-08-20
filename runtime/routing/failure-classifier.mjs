@@ -9,6 +9,11 @@
  *
  * Only classes that drive a real routing decision exist. No theoretical
  * taxonomy without runtime use.
+ *
+ * Availability & cost codes: NO_HEALTHY_ELIGIBLE_MODEL and COST_GATE_DENIED
+ * are routing-policy-level denial codes (live-health / cost-gate denials).
+ * They live in the set so isRoutingFailureClass recognizes them as routing
+ * evidence for terminal routing decisions.
  */
 export const ROUTING_FAILURE_CLASSES = Object.freeze([
   // Model-level
@@ -25,6 +30,9 @@ export const ROUTING_FAILURE_CLASSES = Object.freeze([
   // Routing-policy-level
   'ROUTING_POLICY_DENIED',
   'ROUTING_BUDGET_EXHAUSTED',
+  // Availability & cost governance (routing-policy-level denial codes)
+  'NO_HEALTHY_ELIGIBLE_MODEL',
+  'COST_GATE_DENIED',
 ])
 
 export const ROUTING_FAILURE_CLASS_SET = new Set(ROUTING_FAILURE_CLASSES)

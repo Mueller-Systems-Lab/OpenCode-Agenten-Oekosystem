@@ -54,7 +54,18 @@
     "ROUTING_CAPABILITY_COMPATIBLE",
     "RUN_ID_STABLE_ACROSS_MODEL_ROUTE",
     "MCP_GRANT_STABLE_ACROSS_MODEL_ROUTE",
-    "ROUTING_NO_SECRET_LEAK"
+    "ROUTING_NO_SECRET_LEAK",
+    "LIVE_AVAILABILITY_RUNTIME_AUTHORITY",
+    "HEALTH_STATE_TTL_BOUNDED",
+    "UNKNOWN_MODEL_PROBED_BEFORE_ROUTE",
+    "UNHEALTHY_MODEL_NOT_ROUTED",
+    "NO_HEALTHY_MODEL_FAILS_CLOSED",
+    "HEALTH_PROBE_BOUNDED",
+    "COST_POLICY_RUNTIME_AUTHORITY",
+    "HIGH_COST_ESCALATION_POLICY_GATED",
+    "ROUTING_BUDGET_BOUNDED",
+    "USAGE_OBSERVABILITY",
+    "USAGE_NO_SECRET_LEAK"
   ],
   "required_artifacts": [
     "runtime/run.mjs",
@@ -66,7 +77,10 @@
     "runtime/reviews/",
     "runtime/observability/",
     ".opencode/plugins/canonical-governance.mjs",
-    "runtime/routing/"
+    "runtime/routing/",
+    "runtime/routing/health-state.mjs",
+    "runtime/routing/health-probe.mjs",
+    "runtime/routing/usage.mjs"
   ],
   "canonical_test_command": "npm test",
   "legacy_execution_status": "RETIRED",
@@ -75,5 +89,5 @@
     "runtime/agent/start.mjs",
     "scripts/run-completion-canary.mjs"
   ],
-  "baseline_fingerprint": "cbecf1c753cfd7b3a52182e9dcc264e073d638a241a5f57d99da68b7b6fc96ea"
+  "baseline_fingerprint": "7f746f021e3bf0bec789621beb3ae0fffdd61ebc2afd0c59965e55b3e5e5786f"
 }

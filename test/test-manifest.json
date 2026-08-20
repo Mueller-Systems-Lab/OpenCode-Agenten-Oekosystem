@@ -32,12 +32,18 @@
             "test/controller/production-sentinel.test.mjs",
             "test/controller/real-worker-soak.test.mjs",
             "test/mcp/tool-executor.test.mjs",
+            "test/routing/availability-routing.test.mjs",
+            "test/routing/cost-governance.test.mjs",
+            "test/routing/health-probe.test.mjs",
+            "test/routing/health-security.test.mjs",
+            "test/routing/health-state.test.mjs",
             "test/routing/model-catalog.test.mjs",
             "test/routing/routing-policy.test.mjs",
             "test/routing/retry-escalation-separation.test.mjs",
             "test/routing/failure-classifier.test.mjs",
             "test/routing/observability.test.mjs",
             "test/routing/security.test.mjs",
+            "test/routing/usage.test.mjs",
             "test/routing/runtime-integration.test.mjs"
         ],
         "contract": [

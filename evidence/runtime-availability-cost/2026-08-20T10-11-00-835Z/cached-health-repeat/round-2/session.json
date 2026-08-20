@@ -1,0 +1,184 @@
+{
+  "case_id": "cached-health-repeat",
+  "label": "Cached valid health → no probe storm, repeatable decision (2 runs)",
+  "round": 2,
+  "run_id": "dbe06b7d-cf46-46c7-8a62-a82d2be3ceb6",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "dbe06b7d-cf46-46c7-8a62-a82d2be3ceb6"
+  ],
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "initial_route": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "routing_reason": "PRIMARY_ROUTE",
+    "health_status": "HEALTHY",
+    "cost_tier": "LOW"
+  },
+  "final_route": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "routing_reason": "PRIMARY_ROUTE",
+    "health_status": "HEALTHY",
+    "cost_tier": "LOW"
+  },
+  "calls": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "attempt": 0,
+      "exit_code": 0,
+      "changed_files": [
+        "cached.txt"
+      ],
+      "usage_status": "AVAILABLE",
+      "input_tokens": 118,
+      "output_tokens": 3,
+      "total_tokens": 27001,
+      "provider_reported_cost": 0.000092624,
+      "real_mcp_call": false,
+      "duration_ms": 47049
+    }
+  ],
+  "health": {
+    "store_entries": [
+      {
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "status": "HEALTHY",
+        "source": "PROBE",
+        "failure_class": null
+      },
+      {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "status": "HEALTHY",
+        "source": "PROBE",
+        "failure_class": null
+      },
+      {
+        "provider": "openai",
+        "model": "gpt-5.4-mini",
+        "status": "HEALTHY",
+        "source": "PROBE",
+        "failure_class": null
+      }
+    ],
+    "probe_count_in_run": 2,
+    "probe_count_total": 2,
+    "probed": [
+      {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "status": "HEALTHY",
+        "ok": true,
+        "health_status": "HEALTHY"
+      },
+      {
+        "provider": "openai",
+        "model": "gpt-5.4-mini",
+        "status": "HEALTHY",
+        "ok": true,
+        "health_status": "HEALTHY"
+      }
+    ],
+    "cache_hits": [
+      {
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "status": "HEALTHY",
+        "from": "cache"
+      }
+    ],
+    "probe_budget_skipped": [],
+    "seeded": [
+      {
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "status": "HEALTHY",
+        "source": "PROBE",
+        "latency_ms": 19087,
+        "usage_present": true
+      }
+    ],
+    "probe_events": [
+      {
+        "job": "model.health.probe.result",
+        "status": "PASS",
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "health_status": "HEALTHY",
+        "failure_signature": "PROBE:OK",
+        "latency_ms": 32949
+      },
+      {
+        "job": "model.health.probe.result",
+        "status": "PASS",
+        "provider": "openai",
+        "model": "gpt-5.4-mini",
+        "health_status": "HEALTHY",
+        "failure_signature": "PROBE:OK",
+        "latency_ms": 19460
+      }
+    ],
+    "state_changed_events": [
+      {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "delta": "UNKNOWN->HEALTHY"
+      },
+      {
+        "provider": "openai",
+        "model": "gpt-5.4-mini",
+        "delta": "UNKNOWN->HEALTHY"
+      }
+    ]
+  },
+  "usage": {
+    "usage_status": "AVAILABLE",
+    "total_input_tokens": 118,
+    "total_output_tokens": 3,
+    "total_cached_tokens": 26880,
+    "total_reasoning_tokens": 0,
+    "total_tokens": 27001,
+    "provider_reported_cost_total": 0.000092624,
+    "invocation_count": 1,
+    "by_provider": {
+      "deepseek": {
+        "total_input_tokens": 118,
+        "total_output_tokens": 3,
+        "total_tokens": 27001,
+        "invocation_count": 1
+      }
+    },
+    "by_model": {
+      "deepseek-v4-flash": {
+        "total_input_tokens": 118,
+        "total_output_tokens": 3,
+        "total_tokens": 27001,
+        "invocation_count": 1
+      }
+    }
+  },
+  "usage_records_count": 1,
+  "verify_status": "PASS",
+  "decision": "DONE",
+  "reason_code": "ALL_HARD_GATES_GREEN",
+  "first_bad_boundary": null,
+  "phase_history": [
+    "TASK=PASS",
+    "BASELINE=PASS",
+    "ROUTING=PASS",
+    "RESEARCH=PASS",
+    "PLAN=PASS",
+    "PLAN_GATE=PASS",
+    "BUILD=PASS",
+    "VERIFY=PASS",
+    "REVIEWS=PASS",
+    "CONTROLLER=PASS"
+  ],
+  "secret_leak": false,
+  "event_count": 22,
+  "unexpected_behavior": []
+}

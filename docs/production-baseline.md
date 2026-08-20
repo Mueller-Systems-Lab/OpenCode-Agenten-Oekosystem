@@ -3,7 +3,7 @@ title: OCAE production baseline
 status: FROZEN
 runtime_baseline_commit: f175a0f42012c9e961d9ea228f3513339f27b692
 production_freeze_commit: commit containing this baseline
-baseline_fingerprint: cbecf1c753cfd7b3a52182e9dcc264e073d638a241a5f57d99da68b7b6fc96ea
+baseline_fingerprint: 7f746f021e3bf0bec789621beb3ae0fffdd61ebc2afd0c59965e55b3e5e5786f
 ---
 
 # OCAE production baseline
@@ -38,7 +38,7 @@ baseline_fingerprint: cbecf1c753cfd7b3a52182e9dcc264e073d638a241a5f57d99da68b7b6
 | Production baseline status | `ACTIVE` |
 | Legacy execution | `RETIRED` |
 | DSGVO compliance | **Pending verification; not claimed** (`COMPLIANCE_CLAIM_DSGVO=NOT_PROVEN`) |
-| Baseline fingerprint | `cbecf1c753cfd7b3a52182e9dcc264e073d638a241a5f57d99da68b7b6fc96ea` |
+| Baseline fingerprint | `7f746f021e3bf0bec789621beb3ae0fffdd61ebc2afd0c59965e55b3e5e5786f` |
 
 ## Canonical architecture
 
@@ -211,7 +211,7 @@ BASELINE_FINGERPRINT_DRIFT_NEGATIVE=pass
 ## Baseline fingerprint
 
 `runtime/production-baseline.json` records a structural fingerprint
-(`4c98e7ded927c47baea373459ae8ff38e942427fad81ce4827d5aca429231a12`) computed
+(`7f746f021e3bf0bec789621beb3ae0fffdd61ebc2afd0c59965e55b3e5e5786f`) computed
 from stable properties only — contract IDs, terminal states + next paths,
 critical invariant IDs, installer artifact dest names, and non-empty manifest
 group names. Harmless text edits never drift the fingerprint; removing or
@@ -450,3 +450,58 @@ mutation, restore only from that backup, validate the restored managed state and
 source-lock, then inspect the resulting evidence. If integrity, provenance, or
 post-rollback validation cannot be established, fail closed rather than
 continuing execution.
+
+## Availability & cost governance (runtime-critical, additive)
+
+The frozen runtime is extended with live-health and cost-governance modules
+(`runtime/routing/health-state.mjs`, `runtime/routing/health-probe.mjs`,
+`runtime/routing/usage.mjs`) plus additive gates in the routing policy. LLMs
+remain workers; availability and cost are RUNTIME evidence and RUNTIME policy —
+never worker or tool claims.
+
+- **Health state machine**: `UNKNOWN | HEALTHY | DEGRADED | RATE_LIMITED |
+  UNAVAILABLE | AUTH_FAILED`; written ONLY by `HealthStore.applyProbeResult` /
+  `applyRuntimeEvidence` (runtime evidence). Worker output and tool results are
+  DATA, never health authority — there is no worker write path (`O`/`P`
+  negative proofs).
+- **Probe semantics**: lazy and demand-based (probe only UNKNOWN candidates),
+  bounded (`max_probe_attempts`, `probe_timeout_ms`,
+  `max_candidates_probed_per_route`, `max_parallel_probes`), reuses the existing
+  opencode client (`opencode run -m <provider>/<model> --dir <dir> --format json
+  --auto "<minimal prompt>"`) — no second provider abstraction; cached
+  HEALTHY/DEGRADED states are cache hits (no probe storm); budget-skipped
+  candidates stay UNKNOWN, never UNAVAILABLE (§21).
+- **TTL**: bounded 10–7200 s (`HEALTH_TTL_BOUNDS`, `clampTtl`); defaults per
+  state (HEALTHY 300, DEGRADED 120, RATE_LIMITED 60, UNAVAILABLE 30,
+  AUTH_FAILED 900); expired health resolves to UNKNOWN — stale HEALTHY is never
+  routed (Pflicht-Negativtest A).
+- **Availability-aware routing**: capability → allowlist → health → cost →
+  budget → rank. UNKNOWN is never routable; a missing health entry when a health
+  map is provided fails closed (`NO_HEALTHY_ELIGIBLE_MODEL`); unhealthy primary
+  → `AVAILABILITY_FALLBACK` (`INITIAL_MODEL_SKIPPED_FOR_HEALTH`); capability
+  beats health.
+- **Cost tiers**: ordinal `LOW < MEDIUM < HIGH` policy metadata (not prices,
+  no invented prices); cheapest sufficient model wins; worker can never
+  self-escalate (`worker_self_selection: DENIED`).
+- **Usage accounting**: opencode `step_finish` tokens parsed into normalized
+  records; missing usage is `UNAVAILABLE`, NEVER zeroed (a fabricated 0-token
+  record would be a false cost assertion); records carry no prompts/outputs
+  (`USAGE_NO_SECRET_LEAK`).
+- **High-cost escalation gate**: `allow_cost_escalation` (any tier increase) and
+  `allow_high_cost_escalation` (into HIGH) default DENY (fail closed);
+  `max_high_cost_routes` bounds concurrent HIGH routes; denied escalation is
+  terminal `COST_GATE_DENIED`.
+- **Routing budget**: `max_high_cost_routes` + existing `max_model_escalations`
+  / `max_provider_fallbacks` / `max_attempts_per_route`; exhaustion is terminal
+  `ROUTING_BUDGET_EXHAUSTED`; no A→B→C→A loops.
+- **New invariants**: `LIVE_AVAILABILITY_RUNTIME_AUTHORITY`,
+  `HEALTH_STATE_TTL_BOUNDED`, `UNKNOWN_MODEL_PROBED_BEFORE_ROUTE`,
+  `UNHEALTHY_MODEL_NOT_ROUTED`, `NO_HEALTHY_MODEL_FAILS_CLOSED`,
+  `HEALTH_PROBE_BOUNDED`, `COST_POLICY_RUNTIME_AUTHORITY`,
+  `HIGH_COST_ESCALATION_POLICY_GATED`, `ROUTING_BUDGET_BOUNDED`,
+  `USAGE_OBSERVABILITY`, `USAGE_NO_SECRET_LEAK` (sentinel now evaluates 43
+  invariants: 32 baseline + 11 availability/cost).
+- **Known limitations**: a probe covers the model path via the opencode client
+  (not a raw provider API), there is no live price scraping (ordinal tiers
+  only), and probe execution is sequential (the parallel bound is documented,
+  not yet exploited).

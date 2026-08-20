@@ -1,0 +1,167 @@
+{
+  "case_id": "healthy-primary",
+  "label": "Healthy primary (live probe UNKNOWN→HEALTHY)",
+  "round": 1,
+  "run_id": "6f315c19-5de8-415f-8c2e-3b0bbb36a6c8",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "6f315c19-5de8-415f-8c2e-3b0bbb36a6c8"
+  ],
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "initial_route": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "routing_reason": "PRIMARY_ROUTE",
+    "health_status": "HEALTHY",
+    "cost_tier": "LOW"
+  },
+  "final_route": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "routing_reason": "PRIMARY_ROUTE",
+    "health_status": "HEALTHY",
+    "cost_tier": "LOW"
+  },
+  "calls": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "attempt": 0,
+      "exit_code": 0,
+      "changed_files": [
+        "primary.txt"
+      ],
+      "usage_status": "AVAILABLE",
+      "input_tokens": 120,
+      "output_tokens": 3,
+      "total_tokens": 27003,
+      "provider_reported_cost": 0.000092904,
+      "real_mcp_call": false,
+      "duration_ms": 45612
+    }
+  ],
+  "health": {
+    "store_entries": [
+      {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "status": "HEALTHY",
+        "source": "PROBE",
+        "failure_class": null
+      },
+      {
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "status": "HEALTHY",
+        "source": "PROBE",
+        "failure_class": null
+      }
+    ],
+    "probe_count_in_run": 2,
+    "probe_count_total": 2,
+    "probed": [
+      {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "status": "HEALTHY",
+        "ok": true,
+        "health_status": "HEALTHY"
+      },
+      {
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "status": "HEALTHY",
+        "ok": true,
+        "health_status": "HEALTHY"
+      }
+    ],
+    "cache_hits": [],
+    "probe_budget_skipped": [
+      {
+        "provider": "openai",
+        "model": "gpt-5.4-mini",
+        "reason": "probe budget exhausted"
+      }
+    ],
+    "seeded": [],
+    "probe_events": [
+      {
+        "job": "model.health.probe.result",
+        "status": "PASS",
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "health_status": "HEALTHY",
+        "failure_signature": "PROBE:OK",
+        "latency_ms": 25502
+      },
+      {
+        "job": "model.health.probe.result",
+        "status": "PASS",
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "health_status": "HEALTHY",
+        "failure_signature": "PROBE:OK",
+        "latency_ms": 23503
+      }
+    ],
+    "state_changed_events": [
+      {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "delta": "UNKNOWN->HEALTHY"
+      },
+      {
+        "provider": "deepseek",
+        "model": "deepseek-v4-flash",
+        "delta": "UNKNOWN->HEALTHY"
+      }
+    ]
+  },
+  "usage": {
+    "usage_status": "AVAILABLE",
+    "total_input_tokens": 120,
+    "total_output_tokens": 3,
+    "total_cached_tokens": 26880,
+    "total_reasoning_tokens": 0,
+    "total_tokens": 27003,
+    "provider_reported_cost_total": 0.000092904,
+    "invocation_count": 1,
+    "by_provider": {
+      "deepseek": {
+        "total_input_tokens": 120,
+        "total_output_tokens": 3,
+        "total_tokens": 27003,
+        "invocation_count": 1
+      }
+    },
+    "by_model": {
+      "deepseek-v4-flash": {
+        "total_input_tokens": 120,
+        "total_output_tokens": 3,
+        "total_tokens": 27003,
+        "invocation_count": 1
+      }
+    }
+  },
+  "usage_records_count": 1,
+  "verify_status": "PASS",
+  "decision": "DONE",
+  "reason_code": "ALL_HARD_GATES_GREEN",
+  "first_bad_boundary": null,
+  "phase_history": [
+    "TASK=PASS",
+    "BASELINE=PASS",
+    "ROUTING=PASS",
+    "RESEARCH=PASS",
+    "PLAN=PASS",
+    "PLAN_GATE=PASS",
+    "BUILD=PASS",
+    "VERIFY=PASS",
+    "REVIEWS=PASS",
+    "CONTROLLER=PASS"
+  ],
+  "secret_leak": false,
+  "event_count": 22,
+  "unexpected_behavior": []
+}

@@ -1,0 +1,133 @@
+{
+  "case_id": "multi-provider-openai",
+  "label": "Multi-provider healthy route (openai real probe + real worker)",
+  "round": 1,
+  "run_id": "e7f7e12a-1bc8-4756-846b-7f1a41b7681d",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "e7f7e12a-1bc8-4756-846b-7f1a41b7681d"
+  ],
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "initial_route": {
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "routing_reason": "DIRECT_CAPABILITY_ROUTE",
+    "health_status": "HEALTHY",
+    "cost_tier": "MEDIUM"
+  },
+  "final_route": {
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "routing_reason": "DIRECT_CAPABILITY_ROUTE",
+    "health_status": "HEALTHY",
+    "cost_tier": "MEDIUM"
+  },
+  "calls": [
+    {
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 0,
+      "exit_code": 0,
+      "changed_files": [
+        "cross.txt"
+      ],
+      "usage_status": "AVAILABLE",
+      "input_tokens": 179,
+      "output_tokens": 5,
+      "total_tokens": 18104,
+      "provider_reported_cost": 0,
+      "real_mcp_call": false,
+      "duration_ms": 41954
+    }
+  ],
+  "health": {
+    "store_entries": [
+      {
+        "provider": "openai",
+        "model": "gpt-5.4-mini",
+        "status": "HEALTHY",
+        "source": "PROBE",
+        "failure_class": null
+      }
+    ],
+    "probe_count_in_run": 1,
+    "probe_count_total": 1,
+    "probed": [
+      {
+        "provider": "openai",
+        "model": "gpt-5.4-mini",
+        "status": "HEALTHY",
+        "ok": true,
+        "health_status": "HEALTHY"
+      }
+    ],
+    "cache_hits": [],
+    "probe_budget_skipped": [],
+    "seeded": [],
+    "probe_events": [
+      {
+        "job": "model.health.probe.result",
+        "status": "PASS",
+        "provider": "openai",
+        "model": "gpt-5.4-mini",
+        "health_status": "HEALTHY",
+        "failure_signature": "PROBE:OK",
+        "latency_ms": 25610
+      }
+    ],
+    "state_changed_events": [
+      {
+        "provider": "openai",
+        "model": "gpt-5.4-mini",
+        "delta": "UNKNOWN->HEALTHY"
+      }
+    ]
+  },
+  "usage": {
+    "usage_status": "AVAILABLE",
+    "total_input_tokens": 179,
+    "total_output_tokens": 5,
+    "total_cached_tokens": 17920,
+    "total_reasoning_tokens": 0,
+    "total_tokens": 18104,
+    "provider_reported_cost_total": 0,
+    "invocation_count": 1,
+    "by_provider": {
+      "openai": {
+        "total_input_tokens": 179,
+        "total_output_tokens": 5,
+        "total_tokens": 18104,
+        "invocation_count": 1
+      }
+    },
+    "by_model": {
+      "gpt-5.4-mini": {
+        "total_input_tokens": 179,
+        "total_output_tokens": 5,
+        "total_tokens": 18104,
+        "invocation_count": 1
+      }
+    }
+  },
+  "usage_records_count": 1,
+  "verify_status": "PASS",
+  "decision": "DONE",
+  "reason_code": "ALL_HARD_GATES_GREEN",
+  "first_bad_boundary": null,
+  "phase_history": [
+    "TASK=PASS",
+    "BASELINE=PASS",
+    "ROUTING=PASS",
+    "RESEARCH=PASS",
+    "PLAN=PASS",
+    "PLAN_GATE=PASS",
+    "BUILD=PASS",
+    "VERIFY=PASS",
+    "REVIEWS=PASS",
+    "CONTROLLER=PASS"
+  ],
+  "secret_leak": false,
+  "event_count": 19,
+  "unexpected_behavior": []
+}

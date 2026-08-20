@@ -36,6 +36,9 @@ export {
   enforceRouteRunId,
   assertGrantStableAcrossRoute,
   modelMeetsRequirements,
+  routeCandidates,
+  healthRoutable,
+  costGateAllows,
 } from './routing-policy.mjs'
 export {
   ROUTING_EVENT_JOBS,
@@ -46,4 +49,37 @@ export {
   workerStartEvent,
   workerResultEvent,
   workerFailureEvent,
+  healthProbeStartEvent,
+  healthProbeResultEvent,
+  healthStateChangedEvent,
+  usageEvent,
 } from './routing-events.mjs'
+export {
+  HEALTH_STATES,
+  HEALTH_TTL_BOUNDS,
+  DEFAULT_HEALTH_TTL_SECONDS,
+  HEALTH_SOURCES,
+  clampTtl,
+  healthExpiry,
+  isHealthStateValid,
+  createHealthEntry,
+  HealthStore,
+  healthStatusRank,
+} from './health-state.mjs'
+export {
+  PROBE_POLICY_DEFAULTS,
+  PROBE_PROMPT_DEFAULT,
+  probeClassificationFromError,
+  statusFromProbeFailure,
+  parseRetryAfter,
+  probeProviderModel,
+  resolveCandidateHealth,
+} from './health-probe.mjs'
+export {
+  USAGE_KEYS,
+  normalizeUsageNumber,
+  parseUsage,
+  isUsagePresent,
+  aggregateUsage,
+  usageRedacted,
+} from './usage.mjs'

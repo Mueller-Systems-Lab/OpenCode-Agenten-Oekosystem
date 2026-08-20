@@ -17,6 +17,11 @@ export const GOVERNANCE_EVENTS = Object.freeze([
   "model.worker.start",
   "model.worker.result",
   "model.worker.failure",
+  // Availability & cost governance observability (additive — no contract bump)
+  "model.health.probe.start",
+  "model.health.probe.result",
+  "model.health.state.changed",
+  "model.usage",
 ])
 
 export function governanceAttributes(input = {}) {
@@ -30,6 +35,9 @@ export function governanceAttributes(input = {}) {
     // model routing attributes (additive)
     "provider", "model", "routing.reason", "route.index", "from.provider", "from.model",
     "escalation.count", "fallback.count", "worker.attempt", "route.policy.revision",
+    // availability & cost governance attributes (additive)
+    "health.status", "usage.status", "usage.input.tokens", "usage.output.tokens",
+    "cost.tier", "routing.budget.remaining",
   ]
   return Object.fromEntries(Object.entries(input).filter(([key, value]) => allowed.includes(key) && value !== undefined && value !== null))
 }

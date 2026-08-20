@@ -62,6 +62,18 @@ export const SENTINEL_INVARIANTS = Object.freeze([
   'RUN_ID_STABLE_ACROSS_MODEL_ROUTE',
   'MCP_GRANT_STABLE_ACROSS_MODEL_ROUTE',
   'ROUTING_NO_SECRET_LEAK',
+  // availability & cost governance invariants (runtime-critical, additive)
+  'LIVE_AVAILABILITY_RUNTIME_AUTHORITY',
+  'HEALTH_STATE_TTL_BOUNDED',
+  'UNKNOWN_MODEL_PROBED_BEFORE_ROUTE',
+  'UNHEALTHY_MODEL_NOT_ROUTED',
+  'NO_HEALTHY_MODEL_FAILS_CLOSED',
+  'HEALTH_PROBE_BOUNDED',
+  'COST_POLICY_RUNTIME_AUTHORITY',
+  'HIGH_COST_ESCALATION_POLICY_GATED',
+  'ROUTING_BUDGET_BOUNDED',
+  'USAGE_OBSERVABILITY',
+  'USAGE_NO_SECRET_LEAK',
 ])
 
 export const REQUIRED_CONTRACT_IDS = Object.freeze([
@@ -124,6 +136,10 @@ export const INSTALLER_REQUIRED_ARTIFACTS = Object.freeze([
   'mcp/tool-grant.mjs',
   'mcp/tool-executor.mjs',
   'mcp/server-registry.mjs',
+  // availability & cost governance runtime artifacts (runtime-critical, additive)
+  'routing/health-state.mjs',
+  'routing/health-probe.mjs',
+  'routing/usage.mjs',
 ])
 
 /** Legacy execution components that must never rejoin the installed path. */
@@ -1146,6 +1162,175 @@ export async function checkRoutingNoSecretLeak({ repoRoot }) {
 }
 
 // ---------------------------------------------------------------------------
+// Availability & cost governance invariant checks (structural)
+// ---------------------------------------------------------------------------
+
+export async function checkLiveAvailabilityRuntimeAuthority({ repoRoot, healthStateSource = null, runSource = null }) {
+  const issues = []
+  const healthState = healthStateSource ?? await readRoutingSource(repoRoot, 'health-state.mjs')
+  if (!healthState) {
+    issues.push('LIVE_AVAILABILITY_RUNTIME_AUTHORITY: runtime/routing/health-state.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const marker of ['HealthStore', 'applyProbeResult', 'RUNTIME_EVIDENCE']) {
+    if (!healthState.includes(marker)) issues.push(`LIVE_AVAILABILITY_RUNTIME_AUTHORITY: health-state.mjs must contain ${marker}`)
+  }
+  if (healthState.includes('applyWorkerStatus')) {
+    issues.push('LIVE_AVAILABILITY_RUNTIME_AUTHORITY: health-state.mjs must not expose a raw worker write path (applyWorkerStatus)')
+  }
+  const run = runSource ?? await readIfExists(path.join(repoRoot, 'runtime', 'run.mjs'))
+  if (run && !run.includes('resolveCandidateHealth')) {
+    issues.push('LIVE_AVAILABILITY_RUNTIME_AUTHORITY: canonical run must wire the probe pass (resolveCandidateHealth)')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkHealthStateTtlBounded({ repoRoot, healthStateSource = null }) {
+  const issues = []
+  const source = healthStateSource ?? await readRoutingSource(repoRoot, 'health-state.mjs')
+  if (!source) {
+    issues.push('HEALTH_STATE_TTL_BOUNDED: runtime/routing/health-state.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const marker of ['HEALTH_TTL_BOUNDS', 'clampTtl', 'expires_at', 'TTL_EXPIRED']) {
+    if (!source.includes(marker)) issues.push(`HEALTH_STATE_TTL_BOUNDED: health-state.mjs must contain ${marker}`)
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkUnknownModelProbedBeforeRoute({ repoRoot, runSource = null }) {
+  const issues = []
+  const run = runSource ?? await readIfExists(path.join(repoRoot, 'runtime', 'run.mjs'))
+  if (!run) {
+    issues.push('UNKNOWN_MODEL_PROBED_BEFORE_ROUTE: runtime/run.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!run.includes('resolveCandidateHealth')) issues.push('UNKNOWN_MODEL_PROBED_BEFORE_ROUTE: canonical run must run the probe pass')
+  const probeIdx = run.indexOf('resolveCandidateHealth')
+  const selectIdx = run.indexOf('selectRoute({')
+  if (probeIdx === -1 || selectIdx === -1 || probeIdx >= selectIdx) {
+    issues.push('UNKNOWN_MODEL_PROBED_BEFORE_ROUTE: probe pass must be ordered before route selection')
+  }
+  if (!run.includes('probeProviderModel') && !run.includes('probe_fn')) {
+    issues.push('UNKNOWN_MODEL_PROBED_BEFORE_ROUTE: a real probe path (probeProviderModel / probe_fn) must be wired')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkUnhealthyModelNotRouted({ repoRoot, routingPolicySource = null }) {
+  const issues = []
+  const policy = routingPolicySource ?? await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policy) {
+    issues.push('UNHEALTHY_MODEL_NOT_ROUTED: runtime/routing/routing-policy.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!policy.includes('healthRoutable')) issues.push('UNHEALTHY_MODEL_NOT_ROUTED: healthRoutable gate missing')
+  if (!policy.includes('NO_HEALTHY_ELIGIBLE_MODEL')) issues.push('UNHEALTHY_MODEL_NOT_ROUTED: fail-closed denial code missing')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkNoHealthyModelFailsClosed({ repoRoot, routingPolicySource = null }) {
+  const issues = []
+  const policy = routingPolicySource ?? await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policy) {
+    issues.push('NO_HEALTHY_MODEL_FAILS_CLOSED: runtime/routing/routing-policy.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!policy.includes('NO_HEALTHY_ELIGIBLE_MODEL')) issues.push('NO_HEALTHY_MODEL_FAILS_CLOSED: fail-closed code missing')
+  if (!policy.includes('no healthy eligible model')) issues.push('NO_HEALTHY_MODEL_FAILS_CLOSED: fail-closed reason missing')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkHealthProbeBounded({ repoRoot, healthProbeSource = null }) {
+  const issues = []
+  const source = healthProbeSource ?? await readRoutingSource(repoRoot, 'health-probe.mjs')
+  if (!source) {
+    issues.push('HEALTH_PROBE_BOUNDED: runtime/routing/health-probe.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const marker of ['max_probe_attempts', 'probe_timeout_ms', 'max_candidates_probed_per_route']) {
+    if (!source.includes(marker)) issues.push(`HEALTH_PROBE_BOUNDED: health-probe.mjs must contain ${marker}`)
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkCostPolicyRuntimeAuthority({ repoRoot, routingPolicySource = null }) {
+  const issues = []
+  const policy = routingPolicySource ?? await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policy) {
+    issues.push('COST_POLICY_RUNTIME_AUTHORITY: runtime/routing/routing-policy.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const marker of ['cost_policy', 'allow_cost_escalation']) {
+    if (!policy.includes(marker)) issues.push(`COST_POLICY_RUNTIME_AUTHORITY: routing-policy.mjs must contain ${marker}`)
+  }
+  if (!policy.includes("worker_self_selection: 'DENIED'")) {
+    issues.push('COST_POLICY_RUNTIME_AUTHORITY: worker self-selection must be DENIED')
+  }
+  if (!policy.includes('MODEL_SELECTION_AUTHORITY')) issues.push('COST_POLICY_RUNTIME_AUTHORITY: runtime selection authority marker missing')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkHighCostEscalationPolicyGated({ repoRoot, routingPolicySource = null }) {
+  const issues = []
+  const policy = routingPolicySource ?? await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policy) {
+    issues.push('HIGH_COST_ESCALATION_POLICY_GATED: runtime/routing/routing-policy.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const marker of ['allow_high_cost_escalation', 'COST_GATE_DENIED', 'costGateAllows']) {
+    if (!policy.includes(marker)) issues.push(`HIGH_COST_ESCALATION_POLICY_GATED: routing-policy.mjs must contain ${marker}`)
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkRoutingBudgetBounded({ repoRoot, routingPolicySource = null }) {
+  const issues = []
+  const policy = routingPolicySource ?? await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policy) {
+    issues.push('ROUTING_BUDGET_BOUNDED: runtime/routing/routing-policy.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const marker of ['max_high_cost_routes', 'max_model_escalations', 'ROUTING_BUDGET_EXHAUSTED']) {
+    if (!policy.includes(marker)) issues.push(`ROUTING_BUDGET_BOUNDED: routing-policy.mjs must contain ${marker}`)
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkUsageObservability({ repoRoot, usageSource = null, routingEventsSource = null }) {
+  const issues = []
+  const usage = usageSource ?? await readRoutingSource(repoRoot, 'usage.mjs')
+  if (!usage) {
+    issues.push('USAGE_OBSERVABILITY: runtime/routing/usage.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const marker of ['parseUsage', 'aggregateUsage', 'UNAVAILABLE']) {
+    if (!usage.includes(marker)) issues.push(`USAGE_OBSERVABILITY: usage.mjs must contain ${marker}`)
+  }
+  const events = routingEventsSource ?? await readRoutingSource(repoRoot, 'routing-events.mjs')
+  if (events) {
+    if (!events.includes("'model.usage'")) issues.push("USAGE_OBSERVABILITY: routing-events.mjs must declare the 'model.usage' job")
+    if (!events.includes('usageEvent')) issues.push('USAGE_OBSERVABILITY: routing-events.mjs must export usageEvent')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkUsageNoSecretLeak({ repoRoot, usageSource = null, routingEventsSource = null }) {
+  const issues = []
+  const usage = usageSource ?? await readRoutingSource(repoRoot, 'usage.mjs')
+  if (!usage) {
+    issues.push('USAGE_NO_SECRET_LEAK: runtime/routing/usage.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!usage.includes('usageRedacted')) issues.push('USAGE_NO_SECRET_LEAK: usageRedacted must exist')
+  if (!usage.includes('no prompts')) issues.push('USAGE_NO_SECRET_LEAK: usage.mjs must document that records carry no prompts/outputs')
+  if (usage.includes('output: raw') || usage.includes('prompt: raw')) {
+    issues.push('USAGE_NO_SECRET_LEAK: usage records must not emit raw prompt/output fields')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+// ---------------------------------------------------------------------------
 // Baseline fingerprint — structural drift only, never file-byte drift
 // ---------------------------------------------------------------------------
 
@@ -1268,6 +1453,18 @@ export async function runProductionSentinel({ repoRoot }) {
   pushResult('VALIDATOR_TIMEOUT_INVARIANT', await checkValidatorTimeoutInvariant({ repoRoot }))
   pushResult('BASELINE_MANIFEST', await checkBaselineManifest({ repoRoot }))
   pushResult('BASELINE_FINGERPRINT', await checkBaselineFingerprint({ repoRoot }))
+  // Availability & cost governance invariants (additive, after the 32 baseline)
+  pushResult('LIVE_AVAILABILITY_RUNTIME_AUTHORITY', await checkLiveAvailabilityRuntimeAuthority({ repoRoot }))
+  pushResult('HEALTH_STATE_TTL_BOUNDED', await checkHealthStateTtlBounded({ repoRoot }))
+  pushResult('UNKNOWN_MODEL_PROBED_BEFORE_ROUTE', await checkUnknownModelProbedBeforeRoute({ repoRoot }))
+  pushResult('UNHEALTHY_MODEL_NOT_ROUTED', await checkUnhealthyModelNotRouted({ repoRoot }))
+  pushResult('NO_HEALTHY_MODEL_FAILS_CLOSED', await checkNoHealthyModelFailsClosed({ repoRoot }))
+  pushResult('HEALTH_PROBE_BOUNDED', await checkHealthProbeBounded({ repoRoot }))
+  pushResult('COST_POLICY_RUNTIME_AUTHORITY', await checkCostPolicyRuntimeAuthority({ repoRoot }))
+  pushResult('HIGH_COST_ESCALATION_POLICY_GATED', await checkHighCostEscalationPolicyGated({ repoRoot }))
+  pushResult('ROUTING_BUDGET_BOUNDED', await checkRoutingBudgetBounded({ repoRoot }))
+  pushResult('USAGE_OBSERVABILITY', await checkUsageObservability({ repoRoot }))
+  pushResult('USAGE_NO_SECRET_LEAK', await checkUsageNoSecretLeak({ repoRoot }))
 
   const issues = results.flatMap((result) => result.issues)
   const warnings = []

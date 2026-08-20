@@ -38,6 +38,12 @@ import {
   workerResultEvent,
   workerFailureEvent,
   enforceRouteRunId,
+  parseUsage,
+  aggregateUsage,
+  usageEvent,
+  costGateAllows,
+  getCatalogEntry,
+  DEFAULT_MODEL_CATALOG,
 } from '../routing/index.mjs'
 
 /**
@@ -78,6 +84,7 @@ export async function runPipeline({
   tool_grant = null,
   route = null,
   routing = null,
+  cost_policy = null,
   routeExecutor = null,
   onWorkerFailure = null,
 } = {}) {
@@ -192,6 +199,11 @@ export async function runPipeline({
   let escalationCount = 0
   let fallbackCount = 0
   const routeHistory = route ? [{ provider: route.provider, model: route.model }] : []
+  // Availability & cost governance (additive): usage observability and the
+  // high-cost route budget for the routed build loop.
+  const usageRecords = []
+  const usedHighCostRoutes = new Set()
+  let highCostRoutesUsed = 0
 
   while (true) {
     const buildInput = createBuildInput({
@@ -223,6 +235,28 @@ export async function runPipeline({
       await emit({ ...workerFailureEvent({ run_id: runId, route: routeState, failure_class: rawOutcome.failure_class, reason: rawOutcome.failure_reason || null, attempt }) })
     } else if (routeState) {
       await emit({ ...workerResultEvent({ run_id: runId, route: routeState, status: buildOk ? 'SUCCESS' : 'FAILURE', attempt }) })
+    }
+    if (routeState) {
+      // Cost governance: track distinct high-cost routes used (bounded by
+      // cost_policy.max_high_cost_routes via decideRouteAction).
+      if (routeState.cost_tier === 'HIGH') usedHighCostRoutes.add(`${routeState.provider}/${routeState.model}`)
+      highCostRoutesUsed = usedHighCostRoutes.size
+      // Usage observability: parse worker usage; missing usage is recorded as
+      // UNAVAILABLE, never zeroed (§38).
+      const parsed = parseUsage(rawOutcome?.usage, {
+        run_id: runId, phase: 'BUILD', attempt,
+        route_index: routeState.route_index || 0,
+        provider: routeState.provider, model: routeState.model,
+      })
+      if (parsed.ok) usageRecords.push(parsed.usage)
+      await emit({
+        ...usageEvent({
+          run_id: runId,
+          usage: parsed.ok ? parsed.usage : { usage_status: 'UNAVAILABLE', run_id: runId, attempt, provider: routeState.provider, model: routeState.model },
+          phase: 'BUILD',
+          attempt,
+        }),
+      })
     }
     await emit({
       phase: 'BUILD', job: 'native-build', status: buildOk ? 'PASS' : 'FAIL', attempt,
@@ -294,8 +328,34 @@ export async function runPipeline({
         route_history: routeHistory,
         verification,
         build_result: buildResult,
+        cost_policy,
+        high_cost_routes_used: highCostRoutesUsed,
       })
       if (transition && transition.next_route && transition.next_route.provider && transition.next_route.model) {
+        // Defensive cost gate (fail closed): when a cost_policy is active, a
+        // transition target denied by the gate must not be applied. The
+        // canonical decideRouteAction already gates targets; this is a
+        // belt-and-suspenders check for custom seams. No-op without
+        // cost_policy (backward compat).
+        if (cost_policy) {
+          const nextEntry = getCatalogEntry(DEFAULT_MODEL_CATALOG, transition.next_route.provider, transition.next_route.model)
+          const nextCostTier = nextEntry ? nextEntry.cost_tier : (routeState.cost_tier || null)
+          if (!costGateAllows({ entry: { cost_tier: nextCostTier }, current_tier: routeState.cost_tier || null, cost_policy, high_cost_routes_used })) {
+            const routingTerminal = decide({
+              baseline, plan, planGate, verification, reviews: [], attempt,
+              max_attempts: task.max_attempts, previous_failures: failedAttempts,
+              boundaries, build_status: buildOk ? 'PASS' : 'FAIL',
+              routing_terminal: { reason_code: 'COST_GATE_DENIED', boundary: 'ROUTING' },
+            })
+            return finishRun({
+              runId, task, baseline, research, plan, planGate, buildResult, verification,
+              reviews: [], attempt, max_attempts: task.max_attempts, failedAttempts, boundaries, events, eventSink, emit, record,
+              decision: routingTerminal,
+              route: routeState,
+              usage_records: usageRecords,
+            })
+          }
+        }
         const isFallback = transition.next_route.provider !== routeState.provider
         if (isFallback) fallbackCount += 1
         else escalationCount += 1
@@ -312,8 +372,8 @@ export async function runPipeline({
           strategy_delta: verification.verification.strategy_delta || transition.routing_reason || null,
         })
         await emit(isFallback
-          ? { ...providerFallbackEvent({ run_id: runId, from: routeState, to: transition.next_route, failure_class: failureClass, routing_reason: transition.routing_reason, attempt }) }
-          : { ...escalationEvent({ run_id: runId, from: routeState, to: transition.next_route, failure_class: failureClass, routing_reason: transition.routing_reason, attempt }) })
+          ? { ...providerFallbackEvent({ run_id: runId, from: routeState, to: transition.next_route, failure_class: failureClass, routing_reason: transition.routing_reason, attempt, transition_reason: transition.transition_reason || null }) }
+          : { ...escalationEvent({ run_id: runId, from: routeState, to: transition.next_route, failure_class: failureClass, routing_reason: transition.routing_reason, attempt, transition_reason: transition.transition_reason || null }) })
         attempt += 1
         continue
       }
@@ -331,6 +391,7 @@ export async function runPipeline({
           reviews: [], attempt, max_attempts: task.max_attempts, failedAttempts, boundaries, events, eventSink, emit, record,
           decision: routingTerminal,
           route: routeState,
+          usage_records: usageRecords,
         })
       }
     }
@@ -341,6 +402,7 @@ export async function runPipeline({
       reviews: [], attempt, max_attempts: task.max_attempts, failedAttempts, boundaries, events, eventSink, emit, record,
       decision: intermediate,
       route: routeState,
+      usage_records: usageRecords,
     })
   }
 
@@ -368,6 +430,7 @@ export async function runPipeline({
     runId, task, baseline, research, plan, planGate, buildResult, verification,
     reviews, attempt, max_attempts: task.max_attempts, failedAttempts, boundaries, events, eventSink, emit, record,
     decision, route: routeState,
+    usage_records: usageRecords,
   })
 }
 
@@ -375,6 +438,7 @@ async function finishRun({
   runId, task, baseline, research, plan, planGate, buildResult, verification,
   reviews, attempt, max_attempts, failedAttempts, boundaries, events, eventSink, emit, record, decision,
   route = null,
+  usage_records = [],
 }) {
   enforceRunId(runId, decision, 'controller-decision')
   await emit({
@@ -411,5 +475,9 @@ async function finishRun({
     decision: finalDecision,
     events,
     boundaries,
+    // Availability & cost governance (additive): usage evidence for cost
+    // governance — never a completion authority.
+    usage: aggregateUsage(usage_records),
+    usage_records: usage_records,
   }
 }

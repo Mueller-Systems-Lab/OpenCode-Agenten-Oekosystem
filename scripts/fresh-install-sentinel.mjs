@@ -50,6 +50,9 @@ export const FRESH_INSTALL_ARTIFACTS = Object.freeze({
   routing_catalog: '.agent-governance/runtime/routing/model-catalog.mjs',
   routing_classifier: '.agent-governance/runtime/routing/failure-classifier.mjs',
   routing_events: '.agent-governance/runtime/routing/routing-events.mjs',
+  routing_health_state: '.agent-governance/runtime/routing/health-state.mjs',
+  routing_health_probe: '.agent-governance/runtime/routing/health-probe.mjs',
+  routing_usage: '.agent-governance/runtime/routing/usage.mjs',
   plugin: '.agent-governance/hooks/opencode/canonical-governance.mjs',
 })
 

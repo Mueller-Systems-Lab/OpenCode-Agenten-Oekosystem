@@ -33,6 +33,12 @@ import {
   checkBaselineFingerprint,
   checkBaselineManifest,
   computeBaselineFingerprint,
+  checkHealthStateTtlBounded,
+  checkUnhealthyModelNotRouted,
+  checkHealthProbeBounded,
+  checkHighCostEscalationPolicyGated,
+  checkRoutingBudgetBounded,
+  checkUsageNoSecretLeak,
 } from '../../scripts/lib/production-sentinel.mjs'
 
 async function makeFixtureRoot(t, prefix = 'ocae-sentinel-') {
@@ -45,7 +51,7 @@ describe('production sentinel — current baseline must pass (F)', () => {
   it('unmodified baseline passes all sentinel invariants', async () => {
     const result = await runProductionSentinel({ repoRoot })
     assert.equal(result.status, 'PASS', result.issues.join('\n'))
-    assert.equal(result.results.length, 32, 'expected the full invariant set to be evaluated (18 original + 6 MCP + 8 model routing)')
+    assert.equal(result.results.length, 43, 'expected the full invariant set (32 baseline + 11 availability/cost)')
     for (const entry of result.results) {
       assert.equal(entry.ok, true, `${entry.invariant}: ${entry.issues.join(' | ')}`)
     }
@@ -188,5 +194,74 @@ export const CanonicalGovernancePlugin = async () => ({ 'chat.message': async ()
     const result = await checkBaselineFingerprint({ repoRoot, baselineManifest: { baseline_fingerprint: 'deadbeef' } })
     assert.equal(result.ok, false)
     assert.ok(result.issues.some((issue) => issue.includes('BASELINE_FINGERPRINT')), result.issues.join('\n'))
+  })
+})
+
+describe('production sentinel — availability & cost negative drift proofs', () => {
+  // NOTE: mutations must remove the marker string entirely (checks are
+  // includes()-based; an X-suffixed target like `usageRedactedX` still
+  // contains the original substring). Multi-occurrence markers use replaceAll.
+  async function makeRuntimeFixture(t, sourceFiles, mutate) {
+    const root = await makeFixtureRoot(t, 'ocae-sentinel-availcost-')
+    for (const [name, transform] of Object.entries(sourceFiles)) {
+      const source = await fs.readFile(path.join(repoRoot, 'runtime', 'routing', name), 'utf8')
+      await fs.mkdir(path.join(root, 'runtime', 'routing'), { recursive: true })
+      await fs.writeFile(path.join(root, 'runtime', 'routing', name), transform(source), 'utf8')
+    }
+    return root
+  }
+
+  it('A: health TTL removed → SENTINEL FAIL', async (t) => {
+    const root = await makeRuntimeFixture(t, {
+      'health-state.mjs': (source) => source.replaceAll('clampTtl', 'clmpTtlX'),
+    })
+    const result = await checkHealthStateTtlBounded({ repoRoot: root })
+    assert.equal(result.ok, false)
+    assert.ok(result.issues.some((issue) => issue.includes('HEALTH_STATE_TTL_BOUNDED')), result.issues.join('\n'))
+  })
+
+  it('B: unhealthy candidate allowed → SENTINEL FAIL', async (t) => {
+    const root = await makeRuntimeFixture(t, {
+      'routing-policy.mjs': (source) => source.replaceAll('healthRoutable', 'healthGateRemoved'),
+    })
+    const result = await checkUnhealthyModelNotRouted({ repoRoot: root })
+    assert.equal(result.ok, false)
+    assert.ok(result.issues.some((issue) => issue.includes('UNHEALTHY_MODEL_NOT_ROUTED')), result.issues.join('\n'))
+  })
+
+  it('C: probe bound removed → SENTINEL FAIL', async (t) => {
+    const root = await makeRuntimeFixture(t, {
+      'health-probe.mjs': (source) => source.replaceAll('max_probe_attempts', 'maxProbeAttemptsBudget'),
+    })
+    const result = await checkHealthProbeBounded({ repoRoot: root })
+    assert.equal(result.ok, false)
+    assert.ok(result.issues.some((issue) => issue.includes('HEALTH_PROBE_BOUNDED')), result.issues.join('\n'))
+  })
+
+  it('D: high-cost gate removed → SENTINEL FAIL', async (t) => {
+    const root = await makeRuntimeFixture(t, {
+      'routing-policy.mjs': (source) => source.replaceAll('allow_high_cost_escalation', 'allowHighCostEscalation'),
+    })
+    const result = await checkHighCostEscalationPolicyGated({ repoRoot: root })
+    assert.equal(result.ok, false)
+    assert.ok(result.issues.some((issue) => issue.includes('HIGH_COST_ESCALATION_POLICY_GATED')), result.issues.join('\n'))
+  })
+
+  it('E: routing budget removed → SENTINEL FAIL', async (t) => {
+    const root = await makeRuntimeFixture(t, {
+      'routing-policy.mjs': (source) => source.replaceAll('max_high_cost_routes', 'maxHighCostRoutes'),
+    })
+    const result = await checkRoutingBudgetBounded({ repoRoot: root })
+    assert.equal(result.ok, false)
+    assert.ok(result.issues.some((issue) => issue.includes('ROUTING_BUDGET_BOUNDED')), result.issues.join('\n'))
+  })
+
+  it('F: usage secret-redaction removed → SENTINEL FAIL', async (t) => {
+    const root = await makeRuntimeFixture(t, {
+      'usage.mjs': (source) => source.replace('usageRedacted', 'removedRedactionFn'),
+    })
+    const result = await checkUsageNoSecretLeak({ repoRoot: root })
+    assert.equal(result.ok, false)
+    assert.ok(result.issues.some((issue) => issue.includes('USAGE_NO_SECRET_LEAK')), result.issues.join('\n'))
   })
 })

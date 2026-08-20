@@ -1,6 +1,6 @@
 {
   "baseline_version": 1,
-  "runtime_baseline_commit": "bc91b1f3acadb9e18fbe0d3c18f7f4c18519f78f",
+  "runtime_baseline_commit": "44323ae10a5c0c24ab8d46b3ab0009e1b1b7260b",
   "production_freeze_commit": "3136843b1f7e7d18df9969d56e70f37cdea56613",
   "canonical_entry": "runtime/run.mjs",
   "plugin_entry": ".opencode/plugins/canonical-governance.mjs",
@@ -89,5 +89,12 @@
     "runtime/agent/start.mjs",
     "scripts/run-completion-canary.mjs"
   ],
-  "baseline_fingerprint": "7f746f021e3bf0bec789621beb3ae0fffdd61ebc2afd0c59965e55b3e5e5786f"
+  "baseline_fingerprint": "7f746f021e3bf0bec789621beb3ae0fffdd61ebc2afd0c59965e55b3e5e5786f",
+  "milestone_history": [
+    {
+      "milestone": "GREEN_OCAE_RUNTIME_AVAILABILITY_COST_GOVERNANCE_OPERATIONAL",
+      "pre_baseline": "44323ae10a5c0c24ab8d46b3ab0009e1b1b7260b",
+      "current_production_baseline": "51bc2c71e3bd9bf9a235d8affc21a9f3eb4cda1d"
+    }
+  ]
 }

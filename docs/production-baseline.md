@@ -1,7 +1,7 @@
 ---
 title: OCAE production baseline
 status: FROZEN
-runtime_baseline_commit: f175a0f42012c9e961d9ea228f3513339f27b692
+runtime_baseline_commit: 44323ae10a5c0c24ab8d46b3ab0009e1b1b7260b
 production_freeze_commit: commit containing this baseline
 baseline_fingerprint: 7f746f021e3bf0bec789621beb3ae0fffdd61ebc2afd0c59965e55b3e5e5786f
 ---
@@ -31,7 +31,7 @@ baseline_fingerprint: 7f746f021e3bf0bec789621beb3ae0fffdd61ebc2afd0c59965e55b3e5
 
 | Field | Value |
 |---|---|
-| Runtime baseline commit | `f175a0f42012c9e961d9ea228f3513339f27b692` |
+| Runtime baseline commit | `44323ae10a5c0c24ab8d46b3ab0009e1b1b7260b` |
 | Production freeze commit | **the commit containing this baseline** (hash recorded in the freeze report) |
 | Freeze state | `GREEN_OCAE_PRODUCTION_BASELINE_FROZEN` |
 | Runtime freeze status | `FROZEN` |

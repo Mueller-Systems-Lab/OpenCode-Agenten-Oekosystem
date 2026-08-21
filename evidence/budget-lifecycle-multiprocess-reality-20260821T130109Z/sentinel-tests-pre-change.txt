@@ -1,0 +1,188 @@
+TAP version 13
+# Subtest: production sentinel — current baseline must pass (F)
+    # Subtest: unmodified baseline passes all sentinel invariants
+    ok 1 - unmodified baseline passes all sentinel invariants
+      ---
+      duration_ms: 476.107143
+      type: 'test'
+      ...
+    # Subtest: baseline manifest matches canonical structure and records the fingerprint
+    ok 2 - baseline manifest matches canonical structure and records the fingerprint
+      ---
+      duration_ms: 8.400706
+      type: 'test'
+      ...
+    # Subtest: structural fingerprint is stable and matches the recorded baseline
+    ok 3 - structural fingerprint is stable and matches the recorded baseline
+      ---
+      duration_ms: 44.68592
+      type: 'test'
+      ...
+    1..3
+ok 1 - production sentinel — current baseline must pass (F)
+  ---
+  duration_ms: 532.418435
+  type: 'suite'
+  ...
+# Subtest: production sentinel — negative drift proofs
+    # Subtest: A: canonical runtime missing → SENTINEL FAIL
+    ok 1 - A: canonical runtime missing → SENTINEL FAIL
+      ---
+      duration_ms: 9.522223
+      type: 'test'
+      ...
+    # Subtest: B: required contract removed → SENTINEL FAIL
+    ok 2 - B: required contract removed → SENTINEL FAIL
+      ---
+      duration_ms: 28.506342
+      type: 'test'
+      ...
+    # Subtest: C: legacy fallback reintroduced in the normal entry → SENTINEL FAIL
+    ok 3 - C: legacy fallback reintroduced in the normal entry → SENTINEL FAIL
+      ---
+      duration_ms: 3.214767
+      type: 'test'
+      ...
+    # Subtest: C2: legacy startAgent call inside a catch block → SENTINEL FAIL
+    ok 4 - C2: legacy startAgent call inside a catch block → SENTINEL FAIL
+      ---
+      duration_ms: 8.380551
+      type: 'test'
+      ...
+    # Subtest: C3: legacy module import anywhere in the plugin entry → SENTINEL FAIL
+    ok 5 - C3: legacy module import anywhere in the plugin entry → SENTINEL FAIL
+      ---
+      duration_ms: 5.49046
+      type: 'test'
+      ...
+    # Subtest: D: installer drift — canonical artifact absent from install set → SENTINEL FAIL
+    ok 6 - D: installer drift — canonical artifact absent from install set → SENTINEL FAIL
+      ---
+      duration_ms: 9.733755
+      type: 'test'
+      ...
+    # Subtest: D2: installer drift — legacy execution artifact in install set → SENTINEL FAIL
+    ok 7 - D2: installer drift — legacy execution artifact in install set → SENTINEL FAIL
+      ---
+      duration_ms: 15.353848
+      type: 'test'
+      ...
+    # Subtest: E: manifest drift — required group missing → SENTINEL FAIL
+    ok 8 - E: manifest drift — required group missing → SENTINEL FAIL
+      ---
+      duration_ms: 3.120323
+      type: 'test'
+      ...
+    # Subtest: E2: manifest drift — invalid entry shape → SENTINEL FAIL
+    ok 9 - E2: manifest drift — invalid entry shape → SENTINEL FAIL
+      ---
+      duration_ms: 5.859641
+      type: 'test'
+      ...
+    # Subtest: fingerprint drift → SENTINEL FAIL
+    ok 10 - fingerprint drift → SENTINEL FAIL
+      ---
+      duration_ms: 15.010681
+      type: 'test'
+      ...
+    1..10
+ok 2 - production sentinel — negative drift proofs
+  ---
+  duration_ms: 106.778898
+  type: 'suite'
+  ...
+# Subtest: production sentinel — availability & cost negative drift proofs
+    # Subtest: A: health TTL removed → SENTINEL FAIL
+    ok 1 - A: health TTL removed → SENTINEL FAIL
+      ---
+      duration_ms: 13.791239
+      type: 'test'
+      ...
+    # Subtest: B: unhealthy candidate allowed → SENTINEL FAIL
+    ok 2 - B: unhealthy candidate allowed → SENTINEL FAIL
+      ---
+      duration_ms: 6.29535
+      type: 'test'
+      ...
+    # Subtest: C: probe bound removed → SENTINEL FAIL
+    ok 3 - C: probe bound removed → SENTINEL FAIL
+      ---
+      duration_ms: 8.307646
+      type: 'test'
+      ...
+    # Subtest: D: high-cost gate removed → SENTINEL FAIL
+    ok 4 - D: high-cost gate removed → SENTINEL FAIL
+      ---
+      duration_ms: 14.319069
+      type: 'test'
+      ...
+    # Subtest: E: routing budget removed → SENTINEL FAIL
+    ok 5 - E: routing budget removed → SENTINEL FAIL
+      ---
+      duration_ms: 6.583161
+      type: 'test'
+      ...
+    # Subtest: F: usage secret-redaction removed → SENTINEL FAIL
+    ok 6 - F: usage secret-redaction removed → SENTINEL FAIL
+      ---
+      duration_ms: 7.186526
+      type: 'test'
+      ...
+    1..6
+ok 3 - production sentinel — availability & cost negative drift proofs
+  ---
+  duration_ms: 57.5817
+  type: 'suite'
+  ...
+# Subtest: production sentinel — shared budget & degraded negative drift proofs
+    # Subtest: A: expireStale removed from the governor → SHARED_BUDGET_RESERVATION_TTL FAIL
+    ok 1 - A: expireStale removed from the governor → SHARED_BUDGET_RESERVATION_TTL FAIL
+      ---
+      duration_ms: 11.795104
+      type: 'test'
+      ...
+    # Subtest: B: healthRankOf removed from the policy → DEGRADED_ROUTING_POLICY_DETERMINISTIC FAIL
+    ok 2 - B: healthRankOf removed from the policy → DEGRADED_ROUTING_POLICY_DETERMINISTIC FAIL
+      ---
+      duration_ms: 7.672629
+      type: 'test'
+      ...
+    # Subtest: C: WORKER_CANNOT_MUTATE marker removed → SHARED_BUDGET_WORKER_CANNOT_MUTATE FAIL
+    ok 3 - C: WORKER_CANNOT_MUTATE marker removed → SHARED_BUDGET_WORKER_CANNOT_MUTATE FAIL
+      ---
+      duration_ms: 6.565473
+      type: 'test'
+      ...
+    # Subtest: D: SYNCHRONOUS_RESERVE_ATOMIC marker AND structural reserve marker removed → SHARED_BUDGET_ATOMIC_RESERVATION FAIL
+    ok 4 - D: SYNCHRONOUS_RESERVE_ATOMIC marker AND structural reserve marker removed → SHARED_BUDGET_ATOMIC_RESERVATION FAIL
+      ---
+      duration_ms: 8.815955
+      type: 'test'
+      ...
+    # Subtest: E: runtime authority wiring removed → SHARED_BUDGET_RUNTIME_AUTHORITY FAIL
+    ok 5 - E: runtime authority wiring removed → SHARED_BUDGET_RUNTIME_AUTHORITY FAIL
+      ---
+      duration_ms: 8.346658
+      type: 'test'
+      ...
+    # Subtest: F: budget event secret field marker removed → SHARED_BUDGET_NO_SECRET_LEAK FAIL
+    ok 6 - F: budget event secret field marker removed → SHARED_BUDGET_NO_SECRET_LEAK FAIL
+      ---
+      duration_ms: 7.227
+      type: 'test'
+      ...
+    1..6
+ok 4 - production sentinel — shared budget & degraded negative drift proofs
+  ---
+  duration_ms: 51.679402
+  type: 'suite'
+  ...
+1..4
+# tests 25
+# suites 4
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1019.661384

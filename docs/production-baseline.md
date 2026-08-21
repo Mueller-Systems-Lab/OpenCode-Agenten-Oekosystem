@@ -552,21 +552,36 @@ ALLOW/RESERVE/COMMIT/RELEASE/DENY/EXPIRE results, and terminal decisions
   `SHARED_BUDGET_BOUNDED`, `SHARED_BUDGET_RESERVATION_TTL`,
   `SHARED_BUDGET_RUN_OWNERSHIP`, `SHARED_BUDGET_WORKER_CANNOT_MUTATE`,
   `DEGRADED_ROUTING_POLICY_DETERMINISTIC`, `DEGRADED_DOES_NOT_BYPASS_COST_POLICY`,
-  `SHARED_BUDGET_NO_SECRET_LEAK` (sentinel now evaluates 53 invariants:
-  43 prior + 10 new).
+  `SHARED_BUDGET_NO_SECRET_LEAK`, `BUDGET_CANCELLATION_RELEASE`,
+  `BUDGET_NO_ORPHAN_RESERVATIONS` (sentinel now evaluates 55 invariants:
+  43 prior + 10 shared-budget/degraded + 2 budget lifecycle).
 - **Known limitations**: no money accounting (ordinal tier capacity only), no
-  job-queue/fairness claims, no multi-process shared budget;
-  `budget.shared.release`/`budget.shared.expire` jobs are declared at the
-  governor level and RESERVED in the pipeline this milestone (the pipeline
-  emits `budget.shared.reserve`/`consume`/`deny`; abandoned reservations
-  recover via TTL → `expireStale` on the next reserve); event metadata is
-  metadata-only — budget events carry only run_id, reservation_id, resource,
-  amount, remaining, status, provider/model, route_index — no prompts, no
-  output, no tokens, no secrets.
+  job-queue/fairness claims, no multi-process shared budget; the pipeline now
+  has a structural lifecycle closure (controlled cancellation before
+  invocation → `budget.shared.release` (RELEASED, capacity restored), worker
+  invoked → `budget.shared.consume` (CONSUMED), abandoned reservations recover
+  via TTL → `expireStale` on the next reserve — no permanent RESERVED); event
+  metadata is metadata-only — budget events carry only run_id, reservation_id,
+  resource, amount, remaining, status, provider/model, route_index — no
+  prompts, no output, no tokens, no secrets.
+
+### Multi-process budget reality (§40)
+
+- **`SINGLE_PROCESS_BUDGET`**: one runtime process, in-memory governor;
+  concurrent runs in one process share when the same governor instance is
+  passed; guarantees: atomic synchronous reserve, no oversubscription, TTL
+  expiry recovery, cancellation→release closure (verified 2026-08-21, run
+  OCAE-RUN-CARD-BUDGET-LIFECYCLE-MULTIPROCESS-REALITY).
+- **`MULTI_PROCESS_BUDGET`**: NOT_PROVEN for production topology (plugin path
+  runs inside one OpenCode session process; CLI invocations are independent
+  budget domains); DISTRIBUTED_LEDGER_IMPLEMENTED=NO; the in-memory governor
+  cannot coordinate across OS processes (adversarial probe: 2 processes ×
+  capacity 2 → global reserved 4 > 2 in a unified domain) — no durable ledger
+  built because production does not require cross-process budget coordination.
 
 > **Fingerprint note:** the live baseline fingerprint is recorded in
 > `runtime/production-baseline.json`
-> (`48dcc666c4292bd8c1df7e80c70e6dc9f1e83ed148740b2f8c347e80d604ebdd`); the
+> (`9f13a10b5b20aedcf13e3a245edbe4f47849bfdc00bf257a08b95af46c9f303b`); the
 > pre-baseline for this milestone is
 > `134903cf8f124858700922775a4adcef34dac763`. Baseline identity (front-matter
 > fingerprint and identity table) is owned by the orchestrator.

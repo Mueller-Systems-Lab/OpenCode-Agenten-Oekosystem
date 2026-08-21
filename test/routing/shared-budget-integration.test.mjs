@@ -13,6 +13,7 @@ import os from 'node:os'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import { runTask } from '../../runtime/run.mjs'
+import { validate } from '../../runtime/contracts/run-event.mjs'
 import {
   SharedBudgetGovernor,
   SHARED_BUDGET_RESOURCES,
@@ -398,5 +399,179 @@ describe('degraded routing — canonical runtime integration', () => {  function
     assert.equal(calls.length, 0, 'NO worker invocation on a denied degraded route')
     assert.equal(countEvents(result.events, 'model.worker.start'), 0)
     assert.ok(result.events.some((e) => e.job === 'model.route.rejected'))
+  })
+})
+
+describe('shared budget — structural lifecycle closure (Phase A stop-gate)', () => {
+  // A routeExecutor that THROWS during executor creation simulates an
+  // exception escaping the reserve → invoke → commit window BEFORE any
+  // productive worker invocation (pre-spawn abort). The structural closure
+  // must deterministically RELEASE the reservation (capacity restored) before
+  // runTask rethrows the original error (non-CONTRACT_INVALID errors rethrow).
+  const preSpawnThrowingExecutor = () => {
+    throw new Error('PRE_SPAWN_ABORT')
+  }
+  const routingWithGovernor = (governor) => ({
+    enabled: true,
+    explicit_override: HIGH_OVERRIDE,
+    catalog: HIGH_CATALOG,
+    cost_policy: COST_POLICY,
+    shared_budget: { enabled: true, governor },
+  })
+
+  it('LIFECYCLE 1: reserve → pre-spawn abort (routeExecutor throw) → RELEASED, capacity restored, no orphan RESERVED', async (t) => {
+    const root = await fixtureRoot(t)
+    const governor = new SharedBudgetGovernor({ resources: { [SHARED_BUDGET_RESOURCES.HIGH_COST_ROUTE]: 1 } })
+    // runTask rethrows the original non-CONTRACT_INVALID error.
+    await assert.rejects(
+      runTask({
+        taskInput: { task: 'pre-spawn abort high-cost run', repository: root },
+        repoRoot: root,
+        nativePlan: { planText: PLAN },
+        verifyChecks: [],
+        routeExecutor: preSpawnThrowingExecutor,
+        routing: routingWithGovernor(governor),
+      }),
+      /PRE_SPAWN_ABORT/,
+      'the original executor-creation error must propagate out of runTask',
+    )
+    const snapshot = governor.snapshot()
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.released, 1, 'reservation deterministically RELEASED')
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.reserved, 0, 'NO orphan RESERVED record survives the abort')
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.remaining, 1, 'released capacity restored to the full capacity')
+  })
+
+  it('LIFECYCLE 2: exception → budget.shared.release observable (valid run-event v1) + governor release proof', async (t) => {
+    const root = await fixtureRoot(t)
+    const governor = new SharedBudgetGovernor({ resources: { [SHARED_BUDGET_RESOURCES.HIGH_COST_ROUTE]: 1 } })
+    const sinkPath = path.join(root, 'events.jsonl')
+    await assert.rejects(
+      runTask({
+        taskInput: { task: 'observable pre-spawn abort', repository: root },
+        repoRoot: root,
+        nativePlan: { planText: PLAN },
+        verifyChecks: [],
+        routeExecutor: preSpawnThrowingExecutor,
+        eventSink: sinkPath,
+        routing: routingWithGovernor(governor),
+      }),
+      /PRE_SPAWN_ABORT/,
+    )
+    const sinkEvents = (await fs.readFile(sinkPath, 'utf8')).split('\n').filter(Boolean).map((line) => JSON.parse(line))
+    const release = sinkEvents.find((e) => e.job === 'budget.shared.release')
+    assert.ok(release, 'a budget.shared.release event must be emitted after the pre-spawn abort')
+    assert.equal(countEvents(sinkEvents, 'budget.shared.release'), 1)
+    assert.equal(release.budget_status, RESERVATION_STATUS.RELEASED, 'release event carries the RELEASED reservation status')
+    assert.ok(release.reservation_id, 'release event carries the reservation_id')
+    assert.equal(release.resource, SHARED_BUDGET_RESOURCES.HIGH_COST_ROUTE)
+    assert.equal(release.strategy_delta, 'SHARED_BUDGET_ABORT_CLOSURE_RELEASED')
+    const validation = validate(release)
+    assert.equal(validation.ok, true, `release event must be a valid ecosystem.run-event.v1: ${validation.issues.join('; ')}`)
+    const snapshot = governor.snapshot()
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.released, 1)
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.reserved, 0)
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.remaining, 1)
+  })
+
+  it('LIFECYCLE 3: worker returns FAILURE result → CONSUMED (consume boundary holds, no leak)', async (t) => {
+    const root = await fixtureRoot(t)
+    const governor = new SharedBudgetGovernor({ resources: { [SHARED_BUDGET_RESOURCES.HIGH_COST_ROUTE]: 1 } })
+    const calls = []
+    const failingResultExecutor = (route, { attempt }) => async () => {
+      calls.push({ provider: route.provider, model: route.model, attempt, cost_tier: route.cost_tier })
+      return { status: 'FAILURE', changed_files: [], errors: ['boom'] }
+    }
+    const result = await runTask({
+      taskInput: { task: 'worker failure high-cost run', repository: root },
+      repoRoot: root,
+      nativePlan: { planText: PLAN },
+      verifyChecks: [],
+      routeExecutor: failingResultExecutor,
+      routing: routingWithGovernor(governor),
+    })
+    assert.equal(result.phase, 'PIPELINE', 'the run completes through the controller (terminal decision)')
+    // A RETURNED worker object is always wrapped as SUCCESS by the
+    // native-build adapter (documented runNativeBuild behavior — the
+    // escalation test drives the real FAILURE path with a THROWN error), so
+    // the controller terminates DONE and the FAILURE signal flows as data in
+    // build_result.errors. The budget lifecycle is the invariant under test:
+    // the worker WAS productively invoked → the reservation is CONSUMED
+    // regardless of the returned outcome (consume boundary).
+    assert.ok(
+      ['DONE', 'SPLIT', 'BLOCKED', 'FIX'].includes(result.decision.decision),
+      `terminal decision expected, got ${result.decision.decision}`,
+    )
+    assert.equal(calls.length, 1, 'worker was productively invoked exactly once')
+    assert.deepEqual(result.build_result.errors, ['boom'], 'FAILURE signal flows as build data')
+    assert.equal(countEvents(result.events, 'budget.shared.consume'), 1)
+    const snapshot = governor.snapshot()
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.consumed, 1, 'productive invocation consumed the slot')
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.reserved, 0, 'worker failure must NOT leave an orphan RESERVED record')
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.remaining, 0, 'consumed slot holds its capacity')
+  })
+
+  it('LIFECYCLE 4: released capacity immediately reusable at pipeline level (same governor, capacity 1)', async (t) => {
+    const root = await fixtureRoot(t)
+    const governor = new SharedBudgetGovernor({ resources: { [SHARED_BUDGET_RESOURCES.HIGH_COST_ROUTE]: 1 } })
+    // First run aborts pre-spawn → the structural closure RELEASES the slot.
+    await assert.rejects(
+      runTask({
+        taskInput: { task: 'first run pre-spawn abort', repository: root },
+        repoRoot: root,
+        nativePlan: { planText: PLAN },
+        verifyChecks: [],
+        routeExecutor: preSpawnThrowingExecutor,
+        routing: routingWithGovernor(governor),
+      }),
+      /PRE_SPAWN_ABORT/,
+    )
+    let snapshot = governor.snapshot()
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.released, 1)
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.remaining, 1, 'capacity restored after the aborted run')
+    // Second run against the SAME governor must reserve, invoke and commit
+    // the released capacity → DONE.
+    const calls = []
+    const result = await runTask({
+      taskInput: { task: 'second run reuses released capacity', repository: root },
+      repoRoot: root,
+      nativePlan: { planText: PLAN },
+      verifyChecks: [],
+      routeExecutor: routeExecutorFor(calls),
+      routing: routingWithGovernor(governor),
+    })
+    assert.equal(result.decision.decision, 'DONE')
+    assert.equal(calls.length, 1)
+    snapshot = governor.snapshot()
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.consumed, 1, 'second run consumed the reused slot')
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.released, 1, 'release record preserved')
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.reserved, 0)
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.remaining, 0)
+  })
+
+  it('LIFECYCLE 5: run_id forgery → CONTRACT_INVALID abort → CONSUMED, no orphan RESERVED (GAP-2 no-orphan)', async (t) => {
+    const root = await fixtureRoot(t)
+    const governor = new SharedBudgetGovernor({ resources: { [SHARED_BUDGET_RESOURCES.HIGH_COST_ROUTE]: 1 } })
+    const forgedRunIdExecutor = (route, { attempt }) => async () => {
+      // The worker forges a run_id different from the run's immutable id → the
+      // pipeline aborts deterministically with CONTRACT_INVALID AFTER the
+      // worker was productively invoked.
+      return { changed_files: [], errors: [], run_id: 'forged-run-id' }
+    }
+    const result = await runTask({
+      taskInput: { task: 'forged run_id high-cost run', repository: root },
+      repoRoot: root,
+      nativePlan: { planText: PLAN },
+      verifyChecks: [],
+      routeExecutor: forgedRunIdExecutor,
+      routing: routingWithGovernor(governor),
+    })
+    assert.equal(result.phase, 'ABORTED')
+    assert.equal(result.decision.decision, 'BLOCKED')
+    assert.equal(result.decision.reason_code, 'CONTRACT_INVALID')
+    const snapshot = governor.snapshot()
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.reserved, 0, 'abort must NOT leave capacity leaked as RESERVED')
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.consumed, 1, 'the productive invocation consumed the slot')
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.released, 0, 'no release after a productive invocation')
+    assert.equal(snapshot.resources.HIGH_COST_ROUTE.remaining, 0, 'consumed slot holds its capacity')
   })
 })

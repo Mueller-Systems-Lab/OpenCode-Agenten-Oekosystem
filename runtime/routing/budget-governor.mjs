@@ -47,14 +47,18 @@
  * expiry within the surviving process; this is NOT crash-safe distributed
  * accounting. No money accounting, no queues.
  *
- * EVENT JOBS NOTE: 'budget.shared.release' and 'budget.shared.expire' are
- * declared for the governor-LEVEL lifecycle API — release() and expireStale()
- * are exercised at governor level (tests, controlled cancellation before
- * invocation) and are RESERVED in the pipeline this milestone. The canonical
- * pipeline has no controlled-cancellation path yet: cancellation before
- * invocation releases at governor level, and abandoned reservations recover
- * via TTL → expireStale on the next reserve(). The pipeline emits
- * budget.shared.reserve / budget.shared.consume / budget.shared.deny only.
+ * EVENT JOBS NOTE: the pipeline has a structural lifecycle closure around
+ * reserve → invoke → commit: a reservation is taken before invocation; a
+ * pre-invocation abort/exception → 'budget.shared.release' (RELEASED,
+ * capacity restored — the worker was never invoked); a productive worker
+ * invocation → 'budget.shared.consume' (CONSUMED — spent capacity is not
+ * restored); abandoned reservations recover via TTL → expireStale() on the
+ * next reserve() (EXPIRED, capacity restored — no permanent RESERVED).
+ * 'budget.shared.expire' stays a governor-level lifecycle job; the pipeline
+ * emits budget.shared.reserve / budget.shared.consume / budget.shared.deny /
+ * budget.shared.release. Event metadata stays metadata-only (NO_SECRET_LEAK):
+ * run_id, reservation_id, resource, amount, remaining, status — no prompts,
+ * no outputs, no secrets.
  */
 import crypto from 'node:crypto'
 import { createRunEvent } from '../observability/run-events.mjs'

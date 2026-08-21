@@ -86,6 +86,10 @@ export const SENTINEL_INVARIANTS = Object.freeze([
   'DEGRADED_ROUTING_POLICY_DETERMINISTIC',
   'DEGRADED_DOES_NOT_BYPASS_COST_POLICY',
   'SHARED_BUDGET_NO_SECRET_LEAK',
+  // shared budget lifecycle closure invariants (runtime-critical, additive —
+  // the pipeline's reserve→invoke→commit/release structural lifecycle)
+  'BUDGET_CANCELLATION_RELEASE',
+  'BUDGET_NO_ORPHAN_RESERVATIONS',
 ])
 
 export const REQUIRED_CONTRACT_IDS = Object.freeze([
@@ -1497,6 +1501,48 @@ export async function checkSharedBudgetNoSecretLeak({ repoRoot, budgetSource = n
 }
 
 // ---------------------------------------------------------------------------
+// Shared budget lifecycle closure invariant checks (structural, Phase A)
+// ---------------------------------------------------------------------------
+
+async function readPipelineSource(repoRoot) {
+  return readIfExists(path.join(repoRoot, 'runtime', 'pipeline', 'pipeline.mjs'))
+}
+
+export async function checkBudgetCancellationRelease({ repoRoot, pipelineSource = null }) {
+  const issues = []
+  const pipeline = pipelineSource ?? await readPipelineSource(repoRoot)
+  if (!pipeline) {
+    issues.push('BUDGET_CANCELLATION_RELEASE: runtime/pipeline/pipeline.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const marker of ['workerInvoked', 'SHARED_BUDGET_ABORT_CLOSURE_RELEASED', 'governor.release']) {
+    if (!pipeline.includes(marker)) issues.push(`BUDGET_CANCELLATION_RELEASE: pipeline.mjs must contain ${marker}`)
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkBudgetNoOrphanReservations({ repoRoot, pipelineSource = null, budgetSource = null }) {
+  const issues = []
+  const pipeline = pipelineSource ?? await readPipelineSource(repoRoot)
+  if (!pipeline) {
+    issues.push('BUDGET_NO_ORPHAN_RESERVATIONS: runtime/pipeline/pipeline.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const marker of ['budget.shared.consume', 'budget.shared.deny']) {
+    if (!pipeline.includes(marker)) issues.push(`BUDGET_NO_ORPHAN_RESERVATIONS: pipeline.mjs must contain ${marker}`)
+  }
+  const budget = budgetSource ?? await readBudgetSource(repoRoot)
+  if (!budget) {
+    issues.push('BUDGET_NO_ORPHAN_RESERVATIONS: runtime/routing/budget-governor.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!budget.includes('expireStale')) {
+    issues.push('BUDGET_NO_ORPHAN_RESERVATIONS: budget-governor.mjs must contain expireStale (TTL recovery of abandoned reservations → no permanent RESERVED)')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+// ---------------------------------------------------------------------------
 // Baseline fingerprint — structural drift only, never file-byte drift
 // ---------------------------------------------------------------------------
 
@@ -1643,6 +1689,11 @@ export async function runProductionSentinel({ repoRoot }) {
   pushResult('DEGRADED_ROUTING_POLICY_DETERMINISTIC', await checkDegradedRoutingPolicyDeterministic({ repoRoot }))
   pushResult('DEGRADED_DOES_NOT_BYPASS_COST_POLICY', await checkDegradedDoesNotBypassCostPolicy({ repoRoot }))
   pushResult('SHARED_BUDGET_NO_SECRET_LEAK', await checkSharedBudgetNoSecretLeak({ repoRoot }))
+  // Shared budget lifecycle closure invariants (Phase A: controlled
+  // cancellation → release, no orphan reservations) — after the 53 prior
+  // invariants.
+  pushResult('BUDGET_CANCELLATION_RELEASE', await checkBudgetCancellationRelease({ repoRoot }))
+  pushResult('BUDGET_NO_ORPHAN_RESERVATIONS', await checkBudgetNoOrphanReservations({ repoRoot }))
 
   const issues = results.flatMap((result) => result.issues)
   const warnings = []

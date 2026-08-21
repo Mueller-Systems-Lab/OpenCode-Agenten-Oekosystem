@@ -1,0 +1,95 @@
+{
+  "status": "PASS",
+  "checks": {
+    "installer": {
+      "status": "PASS"
+    },
+    "artifact_run.mjs": {
+      "status": "PASS"
+    },
+    "artifact_contracts": {
+      "status": "PASS"
+    },
+    "artifact_controller": {
+      "status": "PASS"
+    },
+    "artifact_pipeline": {
+      "status": "PASS"
+    },
+    "artifact_baseline": {
+      "status": "PASS"
+    },
+    "artifact_adapters": {
+      "status": "PASS"
+    },
+    "artifact_reviews": {
+      "status": "PASS"
+    },
+    "artifact_observability": {
+      "status": "PASS"
+    },
+    "artifact_mcp_tool_grant": {
+      "status": "PASS"
+    },
+    "artifact_mcp_tool_executor": {
+      "status": "PASS"
+    },
+    "artifact_mcp_error_classifier": {
+      "status": "PASS"
+    },
+    "artifact_mcp_server_registry": {
+      "status": "PASS"
+    },
+    "artifact_routing_policy": {
+      "status": "PASS"
+    },
+    "artifact_routing_catalog": {
+      "status": "PASS"
+    },
+    "artifact_routing_classifier": {
+      "status": "PASS"
+    },
+    "artifact_routing_events": {
+      "status": "PASS"
+    },
+    "artifact_routing_health_state": {
+      "status": "PASS"
+    },
+    "artifact_routing_health_probe": {
+      "status": "PASS"
+    },
+    "artifact_routing_usage": {
+      "status": "PASS"
+    },
+    "artifact_routing_budget_governor": {
+      "status": "PASS"
+    },
+    "artifact_plugin": {
+      "status": "PASS"
+    },
+    "entry_resolves": {
+      "status": "PASS"
+    },
+    "canary": {
+      "status": "PASS",
+      "detail": "runTask executed; CONTRACT_INVALID abort verified"
+    },
+    "routing_resolves": {
+      "status": "PASS"
+    },
+    "no_legacy_runtime_files": {
+      "status": "PASS"
+    },
+    "no_legacy_entry": {
+      "status": "PASS"
+    },
+    "no_legacy_manifest": {
+      "status": "PASS"
+    }
+  },
+  "install": {
+    "exit_code": 0,
+    "stdout_tail": "{\"version\":\"1.0.0\",\"timestamp\":\"2026-08-21T14:47:53.282Z\",\"target_root\":\"/tmp/ocae-fresh-install-mE1b7u\",\"source_commit\":\"4e3fce7dca9adc16de69b9251434461f32fcbb79\",\"classification\":\"VERIFIED_IN_SCOPE\",\"governance_bootstrap_ready\":true,\"manual_bootstrap_required\":false,\"hook_activation_order\":\"VALID\",\"bootstrap_self_test\":\"PASS\",\"enforcement_level\":\"ADVISORY_ONLY\",\"detected_runtimes\":[{\"name\":\"opencode\",\"confidence\":0},{\"name\":\"hermes\",\"confidence\":0},{\"name\":\"odysseus\",\"confidence\":0}],\"installed_runtimes\":[],\"backup_root\":\"/tmp/ocae-fresh-install-mE1b7u/.opencode/backups/governance-2026-08-21T14-47-52-537Z\",\"rollback_command\":\"node scripts/install-governance.mjs --target \\\"/tmp/ocae-fresh-install-mE1b7u\\\" --rollback \\\"/tmp/ocae-fresh-install-mE1b7u/.opencode/backups/governance-2026-08-21T14-47-52-537Z\\\"\",\"source_lock\":{\"schema_version\":\"1.0.0\",\"source_repository\":\"https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem\",\"source_commit\":\"4e3fce7dca9adc16de69b9251434461f32fcbb79\",\"installed_at\":\"2026-08-21T14:47:53.171Z\",\"enforcement_version\":\"1.0.0\",\"files\":[{\"path\":\"gates/evaluate-all.mjs\",\"sha256\":\"sha256:96484eda94cfda6e2e15e4bf1f47af709f32d6d5855f5a57dcc492f7a2a8b72e\",\"size\":20014},{\"path\":\"gates/kernel.mjs\",\"sha256\":\"sha256:caab286a9e3c30abbd27a73e164570f243d1b58eac1264194efa1acb4468ea27\",\"size\":21650},{\"path\":\"gates/policy.mjs\",\"sha256\":\"sha256:4de1720f533f1987ce67ccddea3e249e4a5ac209429e26a4ff0cce9a6be03d7b\",\"size\":8748},{\"path\":\"gates/decision.mjs\",\"sha256\":\"sha256:657271650ceb1e6d988678e8c0b6d2bf2dedf4bce5b0cd957b5eed64457a3efc\",\"size\":9350},{\"path\":\"gates/approval.mjs\",\"sha256\":\"sha256:276218d89b28e8847d3bbaeb278dedf310d139f6f907308b62cf0535927877fa\",\"size\":24770},{\"path\":\"gates/evidence.mjs\",\"sha256\":\"sha256:ef795329f1f5071282cc25d0f16f0c688ac6646f994d6401e4f74fdc230918c9\",\"size\":13054},{\"path\":\"gates/classifications.mjs\",\"sha256\":\"sha256:0e04a13dc4291aa5c00c181ee59cdc1219d7dc81a9c8c16988926dade3c183ab\",\"size\":7205},{\"path\":\"gates/errors.mjs\",\"sha256\":\"sha256:748a8c3fde10b547eb31129e085cc5647e3781bced616c094ebf9d2020b0c7f7\",\"size\":9968},{\"path\":\"gates/context-fingerprint.mjs\",\"sha256\":\"sha256:71186c6e4656983aff4dc8e374cd6e3a92bf0027c1944f2c28adffc9e5a7247c\",\"size\":5631},{\"path\":\"runtimes/contract.mjs\",\"sha256\":\"sha256:e22748f5b446c81d7986ef8acd4bd3379dcaaefbc3fbe990c4df3c0d1ee7bdae\",\"size\":4125},{\"path\":\"runtimes/generic.mjs\",\"sha256\":\"sha256:ebebdad31ad630e6e4eb3f62a2126920aad0a3cc268a83273e7cea7eb71fe26c\",\"size\":5078},{\"path\":\"runtimes/opencode.mjs\",\"sha256\":\"sha256:bbb8844f96761b8b600e05f765c8478a9ade9d43ab586294f9537c22cce15d82\",\"size\":12392},{\"path\":\"runtimes/hermes.mjs\",\"sha256\":\"sha256:e4e15361f2be77eb15fa3c07f11463fe681c3f8da2d498cb41c4bac5e0c8cbd1\",\"size\":13680},{\"path\":\"runtimes/odysseus.mjs\",\"sha256\":\"sha256:924b5909b2e8d5ef71e3264ebc57c85cba1b236511f50269ea3ac9ec62e6f5b0\",\"size\":19994},{\"path\":\"security/redaction.mjs\",\"sha256\":\"sha256:f27991bc71d19469b360c5ab0f1b8a07aa03fb242985e623da22bfadc8ea0823\",\"size\":5609},{\"path\":\"approval/approval-engine.mjs\",\"sha256\":\"sha256:f7098b5bd6da3c044e4803485f8351aaf2773885b0d1ec23a103bdca98fc836f\",\"size\":13134},{\"path\":\"approval/approval-receipt.mjs\",\"sha256\":\"sha256:630eaf4c18634cebf756cf98dc16510fe08ee1f6626a064b6889c3bbe4b9dadb\",\"size\":6089},{\"path\":\"approval/change-lease.mjs\",\"sha256\":\"sha256:4ab954d8167839096974d6f0b24e5d1269a8be0bf28b7734bdcc8cfa74aa6a11\",\"size\":3656},{\"path\":\"approval/approval-bundler.mjs\",\"sha256\":\"sha256:e0083d49de667eafe8b1c07f2e50abadd01798b84d53800e39fe85331146237e\",\"size\":1130},{\"path\":\"approval/approval-audit.mjs\",\"sha256\":\"sha256:2e11a8267912c2eeba26d65b7439927a2376f9074cbc7048144df8f46f87a00d\",\"size\":1129},{\"path\":\"approval/capability-registry.mjs\",\"sha256\":\"sha256:900a7d223b370a0bc8ed929dd9d1142299afe25660de6b22e4e03047e8229968\",\"size\":859},{\"path\":\"gates/command-effect-classifier.mjs\",\"sha256\":\"sha256:df2ae45589417683d832442382ee09f8e6f947c326bcce1ca9eb3c4cf7b00287\",\"size\":19527},{\"path\":\"gates/evaluate-action.mjs\",\"sha256\":\"sha256:8f3"
+  },
+  "target_root": "/tmp/ocae-fresh-install-mE1b7u"
+}

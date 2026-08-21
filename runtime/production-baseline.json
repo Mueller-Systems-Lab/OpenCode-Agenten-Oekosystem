@@ -75,7 +75,9 @@
     "SHARED_BUDGET_WORKER_CANNOT_MUTATE",
     "DEGRADED_ROUTING_POLICY_DETERMINISTIC",
     "DEGRADED_DOES_NOT_BYPASS_COST_POLICY",
-    "SHARED_BUDGET_NO_SECRET_LEAK"
+    "SHARED_BUDGET_NO_SECRET_LEAK",
+    "BUDGET_CANCELLATION_RELEASE",
+    "BUDGET_NO_ORPHAN_RESERVATIONS"
   ],
   "required_artifacts": [
     "runtime/run.mjs",
@@ -100,7 +102,7 @@
     "runtime/agent/start.mjs",
     "scripts/run-completion-canary.mjs"
   ],
-  "baseline_fingerprint": "48dcc666c4292bd8c1df7e80c70e6dc9f1e83ed148740b2f8c347e80d604ebdd",
+  "baseline_fingerprint": "9f13a10b5b20aedcf13e3a245edbe4f47849bfdc00bf257a08b95af46c9f303b",
   "milestone_history": [
     {
       "milestone": "GREEN_OCAE_RUNTIME_AVAILABILITY_COST_GOVERNANCE_OPERATIONAL",

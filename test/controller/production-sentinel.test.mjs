@@ -13,6 +13,8 @@
  *   D. installer drift                    → SENTINEL FAIL
  *   E. manifest/runner drift              → SENTINEL FAIL
  *   fingerprint drift                     → SENTINEL FAIL
+ *   G. cancellation-release marker removed → BUDGET_CANCELLATION_RELEASE FAIL
+ *   H. consume marker removed → BUDGET_NO_ORPHAN_RESERVATIONS FAIL
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
@@ -45,6 +47,8 @@ import {
   checkSharedBudgetWorkerCannotMutate,
   checkDegradedRoutingPolicyDeterministic,
   checkSharedBudgetNoSecretLeak,
+  checkBudgetCancellationRelease,
+  checkBudgetNoOrphanReservations,
 } from '../../scripts/lib/production-sentinel.mjs'
 
 async function makeFixtureRoot(t, prefix = 'ocae-sentinel-') {
@@ -57,7 +61,7 @@ describe('production sentinel — current baseline must pass (F)', () => {
   it('unmodified baseline passes all sentinel invariants', async () => {
     const result = await runProductionSentinel({ repoRoot })
     assert.equal(result.status, 'PASS', result.issues.join('\n'))
-    assert.equal(result.results.length, 53, 'expected the full invariant set (43 prior + 10 shared-budget/degraded)')
+    assert.equal(result.results.length, 55, 'expected the full invariant set (43 prior + 10 shared-budget/degraded + 2 budget lifecycle)')
     for (const entry of result.results) {
       assert.equal(entry.ok, true, `${entry.invariant}: ${entry.issues.join(' | ')}`)
     }
@@ -340,5 +344,37 @@ describe('production sentinel — shared budget & degraded negative drift proofs
     const result = await checkSharedBudgetNoSecretLeak({ repoRoot: root })
     assert.equal(result.ok, false)
     assert.ok(result.issues.some((issue) => issue.includes('SHARED_BUDGET_NO_SECRET_LEAK')), result.issues.join('\n'))
+  })
+
+  // Pipeline lifecycle fixture: reads the REAL runtime/pipeline/pipeline.mjs
+  // from repoRoot and writes a mutated copy to the temp root (mkdir recursive),
+  // mirroring the routing fixture pattern but for the pipeline file. The REAL
+  // runtime/routing/budget-governor.mjs is copied unmutated as well so the
+  // BUDGET_NO_ORPHAN_RESERVATIONS failure is attributable to the pipeline
+  // mutation, not to the fail-closed missing-file path.
+  async function makePipelineFixture(t, transform) {
+    const root = await makeFixtureRoot(t, 'ocae-sentinel-budget-pipeline-')
+    const source = await fs.readFile(path.join(repoRoot, 'runtime', 'pipeline', 'pipeline.mjs'), 'utf8')
+    await fs.mkdir(path.join(root, 'runtime', 'pipeline'), { recursive: true })
+    await fs.writeFile(path.join(root, 'runtime', 'pipeline', 'pipeline.mjs'), transform(source), 'utf8')
+    // Mirror makeRuntimeFixture: copy the REAL governor from the repo.
+    const budget = await fs.readFile(path.join(repoRoot, 'runtime', 'routing', 'budget-governor.mjs'), 'utf8')
+    await fs.mkdir(path.join(root, 'runtime', 'routing'), { recursive: true })
+    await fs.writeFile(path.join(root, 'runtime', 'routing', 'budget-governor.mjs'), budget, 'utf8')
+    return root
+  }
+
+  it('G: abort-closure release marker removed from the pipeline → BUDGET_CANCELLATION_RELEASE FAIL', async (t) => {
+    const root = await makePipelineFixture(t, (source) => source.replaceAll('SHARED_BUDGET_ABORT_CLOSURE_RELEASED', 'ABORT_CLOSURE_MARKER_REMOVED'))
+    const result = await checkBudgetCancellationRelease({ repoRoot: root })
+    assert.equal(result.ok, false)
+    assert.ok(result.issues.some((issue) => issue.includes('BUDGET_CANCELLATION_RELEASE')), result.issues.join('\n'))
+  })
+
+  it('H: pipeline consume marker removed → BUDGET_NO_ORPHAN_RESERVATIONS FAIL', async (t) => {
+    const root = await makePipelineFixture(t, (source) => source.replaceAll('budget.shared.consume', 'budget.shared.spent'))
+    const result = await checkBudgetNoOrphanReservations({ repoRoot: root })
+    assert.equal(result.ok, false)
+    assert.ok(result.issues.some((issue) => issue.includes('BUDGET_NO_ORPHAN_RESERVATIONS')), result.issues.join('\n'))
   })
 })

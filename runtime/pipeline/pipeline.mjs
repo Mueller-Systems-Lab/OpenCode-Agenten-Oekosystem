@@ -326,92 +326,145 @@ export async function runPipeline({
         })
       }
     }
-    const buildStart = Date.now()
-    const activeExecutor = routeState && routeExecutor
-      ? routeExecutor(routeState, { attempt })
-      : buildExecutor
-    const execute = activeExecutor ? (input) => activeExecutor(input, { tool_grant }) : null
-    if (routeState) {
-      await emit({ ...workerStartEvent({ run_id: runId, route: routeState, attempt }) })
-    }
-    const nativeBuild = await runNativeBuild({ buildInput, execute })
-    // A worker cannot replace the run_id of this run.
-    if (nativeBuild.outcome?.run_id && nativeBuild.outcome.run_id !== runId) {
-      throw new Error(`CONTRACT_INVALID:build_worker:run_id ${nativeBuild.outcome.run_id} does not match task run_id ${runId}`)
-    }
-    buildResult = nativeBuild.build_result
-    enforceRunId(runId, buildResult, 'build-result')
-    const rawOutcome = nativeBuild.outcome || null
-    const buildOk = buildResult.status === 'SUCCESS'
-    if (routeState && rawOutcome?.failure_class) {
-      await emit({ ...workerFailureEvent({ run_id: runId, route: routeState, failure_class: rawOutcome.failure_class, reason: rawOutcome.failure_reason || null, attempt }) })
-    } else if (routeState) {
-      await emit({ ...workerResultEvent({ run_id: runId, route: routeState, status: buildOk ? 'SUCCESS' : 'FAILURE', attempt }) })
-    }
-    if (routeState) {
-      // Cost governance: track distinct high-cost routes used (bounded by
-      // cost_policy.max_high_cost_routes via decideRouteAction).
-      if (routeState.cost_tier === 'HIGH') usedHighCostRoutes.add(`${routeState.provider}/${routeState.model}`)
-      highCostRoutesUsed = usedHighCostRoutes.size
-      // Usage observability: parse worker usage; missing usage is recorded as
-      // UNAVAILABLE, never zeroed (§38).
-      const parsed = parseUsage(rawOutcome?.usage, {
-        run_id: runId, phase: 'BUILD', attempt,
-        route_index: routeState.route_index || 0,
-        provider: routeState.provider, model: routeState.model,
-      })
-      if (parsed.ok) usageRecords.push(parsed.usage)
-      await emit({
-        ...usageEvent({
-          run_id: runId,
-          usage: parsed.ok ? parsed.usage : { usage_status: 'UNAVAILABLE', run_id: runId, attempt, provider: routeState.provider, model: routeState.model },
-          phase: 'BUILD',
-          attempt,
-        }),
-      })
-    }
-    // SHARED BUDGET: commit AFTER the worker result (the worker was invoked →
-    // the resource was consumed). Commits for BOTH success and failure
-    // outcomes. An idempotent commit (double consume — impossible in the
-    // normal flow) emits PASS with strategy_delta 'IDEMPOTENT'. A fail-closed
-    // commit (unknown/ownership — impossible in the normal flow) emits a deny
-    // event but never alters the decision path.
-    if (budgetReservation) {
-      const committed = sharedBudget.governor.commit({
-        reservation_id: budgetReservation.reservation_id,
-        run_id: runId,
-      })
-      if (committed.ok) {
-        const snapshot = sharedBudget.governor.snapshot()
-        const remaining = snapshot.resources[sharedBudget.resource]?.remaining ?? null
-        await emitBudget({
-          job: 'budget.shared.consume',
-          reservation: budgetReservation,
-          resource: sharedBudget.resource,
-          amount: budgetReservation.amount,
-          remaining,
-          status: 'CONSUMED',
-          strategy_delta: committed.idempotent ? 'IDEMPOTENT' : null,
-          provider: routeState.provider,
-          model: routeState.model,
+    // SHARED BUDGET lifecycle closure: the reserve → invoke → commit window is
+    // structurally wrapped so ANY exception escaping it deterministically
+    // closes the reservation BEFORE the error propagates. Productive worker
+    // invocation (workerStart emitted, runNativeBuild invoked) → the
+    // reservation is CONSUMED regardless of outcome; an abort/exception BEFORE
+    // productive invocation → RELEASED (capacity restored). Structural
+    // error-path closure only — no new control plane, no decision-path change.
+    let workerInvoked = false
+    // buildStart / rawOutcome / buildOk are declared at loop scope so the
+    // normal path after the lifecycle-closure try/catch keeps reading them.
+    let buildStart = 0
+    let buildOk = false
+    let rawOutcome = null
+    try {
+      buildStart = Date.now()
+      const activeExecutor = routeState && routeExecutor
+        ? routeExecutor(routeState, { attempt })
+        : buildExecutor
+      const execute = activeExecutor ? (input) => activeExecutor(input, { tool_grant }) : null
+      if (routeState) {
+        await emit({ ...workerStartEvent({ run_id: runId, route: routeState, attempt }) })
+      }
+      workerInvoked = true
+      const nativeBuild = await runNativeBuild({ buildInput, execute })
+      // A worker cannot replace the run_id of this run.
+      if (nativeBuild.outcome?.run_id && nativeBuild.outcome.run_id !== runId) {
+        throw new Error(`CONTRACT_INVALID:build_worker:run_id ${nativeBuild.outcome.run_id} does not match task run_id ${runId}`)
+      }
+      buildResult = nativeBuild.build_result
+      enforceRunId(runId, buildResult, 'build-result')
+      rawOutcome = nativeBuild.outcome || null
+      buildOk = buildResult.status === 'SUCCESS'
+      if (routeState && rawOutcome?.failure_class) {
+        await emit({ ...workerFailureEvent({ run_id: runId, route: routeState, failure_class: rawOutcome.failure_class, reason: rawOutcome.failure_reason || null, attempt }) })
+      } else if (routeState) {
+        await emit({ ...workerResultEvent({ run_id: runId, route: routeState, status: buildOk ? 'SUCCESS' : 'FAILURE', attempt }) })
+      }
+      if (routeState) {
+        // Cost governance: track distinct high-cost routes used (bounded by
+        // cost_policy.max_high_cost_routes via decideRouteAction).
+        if (routeState.cost_tier === 'HIGH') usedHighCostRoutes.add(`${routeState.provider}/${routeState.model}`)
+        highCostRoutesUsed = usedHighCostRoutes.size
+        // Usage observability: parse worker usage; missing usage is recorded as
+        // UNAVAILABLE, never zeroed (§38).
+        const parsed = parseUsage(rawOutcome?.usage, {
+          run_id: runId, phase: 'BUILD', attempt,
           route_index: routeState.route_index || 0,
-          attempt,
-          phase: 'BUILD',
+          provider: routeState.provider, model: routeState.model,
         })
-      } else {
-        await emitBudget({
-          job: 'budget.shared.deny',
-          resource: sharedBudget.resource,
-          amount: budgetReservation.amount,
-          remaining: null,
-          code: committed.code,
-          provider: routeState.provider,
-          model: routeState.model,
-          route_index: routeState.route_index || 0,
-          attempt,
-          phase: 'BUILD',
+        if (parsed.ok) usageRecords.push(parsed.usage)
+        await emit({
+          ...usageEvent({
+            run_id: runId,
+            usage: parsed.ok ? parsed.usage : { usage_status: 'UNAVAILABLE', run_id: runId, attempt, provider: routeState.provider, model: routeState.model },
+            phase: 'BUILD',
+            attempt,
+          }),
         })
       }
+      // SHARED BUDGET: commit AFTER the worker result (the worker was invoked →
+      // the resource was consumed). Commits for BOTH success and failure
+      // outcomes. An idempotent commit (double consume — impossible in the
+      // normal flow) emits PASS with strategy_delta 'IDEMPOTENT'. A fail-closed
+      // commit (unknown/ownership — impossible in the normal flow) emits a deny
+      // event but never alters the decision path.
+      if (budgetReservation) {
+        const committed = sharedBudget.governor.commit({
+          reservation_id: budgetReservation.reservation_id,
+          run_id: runId,
+        })
+        if (committed.ok) {
+          const snapshot = sharedBudget.governor.snapshot()
+          const remaining = snapshot.resources[sharedBudget.resource]?.remaining ?? null
+          await emitBudget({
+            job: 'budget.shared.consume',
+            reservation: budgetReservation,
+            resource: sharedBudget.resource,
+            amount: budgetReservation.amount,
+            remaining,
+            status: 'CONSUMED',
+            strategy_delta: committed.idempotent ? 'IDEMPOTENT' : null,
+            provider: routeState.provider,
+            model: routeState.model,
+            route_index: routeState.route_index || 0,
+            attempt,
+            phase: 'BUILD',
+          })
+        } else {
+          await emitBudget({
+            job: 'budget.shared.deny',
+            resource: sharedBudget.resource,
+            amount: budgetReservation.amount,
+            remaining: null,
+            code: committed.code,
+            provider: routeState.provider,
+            model: routeState.model,
+            route_index: routeState.route_index || 0,
+            attempt,
+            phase: 'BUILD',
+          })
+        }
+      }
+    } catch (error) {
+      // Structural error-path closure: the reservation must reach exactly one
+      // terminal state (CONSUMED | RELEASED) before the error propagates. The
+      // governor commit/release is the hard guarantee (defensive — returns
+      // ok:false, never throws); observability is best-effort and must never
+      // mask the original error. The rethrow preserves the existing runTask
+      // CONTRACT_INVALID → ABORTED handling and the default rethrow for any
+      // other error — the decision path is NOT mutated.
+      if (budgetReservation) {
+        const closed = workerInvoked
+          ? sharedBudget.governor.commit({ reservation_id: budgetReservation.reservation_id, run_id: runId })
+          : sharedBudget.governor.release({ reservation_id: budgetReservation.reservation_id, run_id: runId })
+        if (closed.ok) {
+          try {
+            const snapshot = sharedBudget.governor.snapshot()
+            const remaining = snapshot.resources[sharedBudget.resource]?.remaining ?? null
+            await emitBudget({
+              job: workerInvoked ? 'budget.shared.consume' : 'budget.shared.release',
+              reservation: budgetReservation,
+              resource: sharedBudget.resource,
+              amount: budgetReservation.amount,
+              remaining,
+              status: workerInvoked ? 'CONSUMED' : 'RELEASED',
+              strategy_delta: workerInvoked ? 'SHARED_BUDGET_ABORT_CLOSURE_CONSUMED' : 'SHARED_BUDGET_ABORT_CLOSURE_RELEASED',
+              provider: routeState?.provider ?? null,
+              model: routeState?.model ?? null,
+              route_index: routeState?.route_index || 0,
+              attempt,
+              phase: 'BUILD',
+            })
+          } catch (budgetEventError) {
+            // Best-effort observability: the governor closure already
+            // succeeded; an event failure must not mask the original error.
+          }
+        }
+      }
+      throw error
     }
     await emit({
       phase: 'BUILD', job: 'native-build', status: buildOk ? 'PASS' : 'FAIL', attempt,

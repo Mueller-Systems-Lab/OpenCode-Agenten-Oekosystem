@@ -1,0 +1,22 @@
+{
+  "pid": 3133404,
+  "governor_instance": "per-process (own SharedBudgetGovernor, no cross-process sharing)",
+  "governor_capacity": 2,
+  "run_ids": [
+    "162efe72-fded-4400-b9cb-1eaa513bd0bf",
+    "436c79f7-4f36-4b8d-8fdb-7537fdc446a5"
+  ],
+  "decisions": [
+    "DONE",
+    "DONE"
+  ],
+  "worker_calls": 2,
+  "snapshot": {
+    "capacity": 2,
+    "remaining": 0,
+    "reserved": 0,
+    "consumed": 2,
+    "released": 0,
+    "expired": 0
+  }
+}

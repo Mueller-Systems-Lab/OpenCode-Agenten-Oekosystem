@@ -90,6 +90,18 @@ export const SENTINEL_INVARIANTS = Object.freeze([
   // the pipeline's reserve→invoke→commit/release structural lifecycle)
   'BUDGET_CANCELLATION_RELEASE',
   'BUDGET_NO_ORPHAN_RESERVATIONS',
+  // Playwright Visual QA invariants (runtime-critical, additive — visual QA is
+  // subordinate evidence service; controller remains sole terminal authority)
+  'VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL',
+  'VISUAL_QA_NO_OCR_SUBSTITUTION',
+  'VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY',
+  'VISUAL_QA_VERIFY_REMAINS_MANDATORY',
+  'VISUAL_QA_MCP_LEAST_PRIVILEGE',
+  'VISUAL_QA_COST_POLICY_ENFORCED',
+  'VISUAL_QA_SHARED_BUDGET_ENFORCED',
+  'VISUAL_QA_PROMPT_INJECTION_UNTRUSTED',
+  'VISUAL_QA_NO_SECRET_LEAK',
+  'VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE',
 ])
 
 export const REQUIRED_CONTRACT_IDS = Object.freeze([
@@ -158,6 +170,12 @@ export const INSTALLER_REQUIRED_ARTIFACTS = Object.freeze([
   'routing/usage.mjs',
   // shared runtime budget governor artifact (runtime-critical, additive)
   'routing/budget-governor.mjs',
+  // Playwright Visual QA artifacts (runtime-critical, additive)
+  'visual/browser-evidence.mjs',
+  'visual/vision-reviewer.mjs',
+  'visual/visual-finding.mjs',
+  'visual/visual-gate.mjs',
+  'visual/visual-qa.mjs',
 ])
 
 /** Legacy execution components that must never rejoin the installed path. */
@@ -1543,6 +1561,284 @@ export async function checkBudgetNoOrphanReservations({ repoRoot, pipelineSource
 }
 
 // ---------------------------------------------------------------------------
+// Playwright Visual QA invariant checks (structural, additive — visual QA is
+// subordinate evidence service; controller remains sole terminal authority)
+// ---------------------------------------------------------------------------
+
+async function readVisualSource(repoRoot, name) {
+  return readIfExists(path.join(repoRoot, 'runtime', 'visual', name))
+}
+
+export async function checkVisualQaRequiresVisionModel({ repoRoot }) {
+  const issues = []
+  const catalog = await readRoutingSource(repoRoot, 'model-catalog.mjs')
+  if (!catalog) {
+    issues.push('VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL: runtime/routing/model-catalog.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!catalog.includes('vision_support')) issues.push('VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL: model-catalog.mjs must declare vision_support capability')
+  if (!catalog.includes('vision_support: true') && !catalog.includes('vision_support:true')) issues.push('VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL: model-catalog.mjs must have at least one vision_support:true entry (real vision probe)')
+  const policy = await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policy) issues.push('VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL: runtime/routing/routing-policy.mjs missing')
+  else {
+    if (!policy.includes('needs_vision')) issues.push('VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL: routing-policy must gate on needs_vision')
+    if (!policy.includes('vision_support')) issues.push('VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL: routing-policy must check vision_support capability')
+    if (!policy.includes('ROUTING_CAPABILITY_INCOMPATIBLE')) issues.push('VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL: incompatible vision route must be rejected')
+  }
+  const visualQa = await readVisualSource(repoRoot, 'visual-qa.mjs')
+  if (!visualQa) issues.push('VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL: runtime/visual/visual-qa.mjs missing')
+  else {
+    if (!visualQa.includes('needs_vision')) issues.push('VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL: visual-qa.mjs must request needs_vision:true route')
+    if (!visualQa.includes('selectRoute')) issues.push('VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL: visual-qa.mjs must route via selectRoute')
+    if (!visualQa.includes('VISUAL_MODEL_REQUIRED_CAPABILITY_UNAVAILABLE')) issues.push('VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL: visual-qa must handle no-vision-model denial')
+  }
+  const gate = await readVisualSource(repoRoot, 'visual-gate.mjs')
+  if (!gate) issues.push('VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL: runtime/visual/visual-gate.mjs missing')
+  // RUN_BOUNDARIES must include VISUAL_QA as structural proof visual phase is ordered
+  const fbb = await readIfExists(path.join(repoRoot, 'runtime', 'controller', 'first-bad-boundary.mjs'))
+  if (!fbb || !fbb.includes('VISUAL_QA')) issues.push('VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL: RUN_BOUNDARIES must include VISUAL_QA')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualQaNoOcrSubstitution({ repoRoot }) {
+  const issues = []
+  const files = ['visual-qa.mjs', 'vision-reviewer.mjs', 'browser-evidence.mjs', 'visual-gate.mjs', 'visual-finding.mjs']
+  for (const file of files) {
+    const source = await readVisualSource(repoRoot, file)
+    if (!source) {
+      issues.push(`VISUAL_QA_NO_OCR_SUBSTITUTION: runtime/visual/${file} missing`)
+      continue
+    }
+    if (/\bocr\b/i.test(source) && !/NO_OCR/.test(source)) {
+      issues.push(`VISUAL_QA_NO_OCR_SUBSTITUTION: runtime/visual/${file} must not use OCR substitution for vision`)
+    }
+  }
+  const catalog = await readRoutingSource(repoRoot, 'model-catalog.mjs')
+  if (catalog && !catalog.includes('vision_support: true')) {
+    issues.push('VISUAL_QA_NO_OCR_SUBSTITUTION: catalog must mark genuine vision capability, not OCR text extraction')
+  }
+  const visualQa = await readVisualSource(repoRoot, 'visual-qa.mjs')
+  if (visualQa && visualQa.toLowerCase().includes('ocr')) {
+    issues.push('VISUAL_QA_NO_OCR_SUBSTITUTION: visual-qa must not reference OCR')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualReviewNotTerminalAuthority({ repoRoot }) {
+  const issues = []
+  const gate = await readVisualSource(repoRoot, 'visual-gate.mjs')
+  if (!gate) issues.push('VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY: runtime/visual/visual-gate.mjs missing')
+  else {
+    if (gate.includes('export function decide')) issues.push('VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY: visual-gate must not implement controller decide')
+    if (/decision\s*:\s*['"]DONE['"]/.test(gate)) issues.push('VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY: visual-gate must not assign terminal DONE')
+  }
+  const reviewer = await readVisualSource(repoRoot, 'vision-reviewer.mjs')
+  if (!reviewer) issues.push('VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY: runtime/visual/vision-reviewer.mjs missing')
+  else {
+    if (reviewer.includes('export function decide')) issues.push('VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY: vision-reviewer must not implement decide')
+    if (/terminal\s*=\s*['"]DONE['"]/.test(reviewer)) issues.push('VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY: vision-reviewer must not assign terminal')
+  }
+  const visualQa = await readVisualSource(repoRoot, 'visual-qa.mjs')
+  if (!visualQa) issues.push('VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY: runtime/visual/visual-qa.mjs missing')
+  else {
+    if (!visualQa.includes('createReview')) issues.push('VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY: visual-qa must produce a review contract (never a terminal decision)')
+    if (!visualQa.includes("review_type: 'visual'")) issues.push('VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY: visual review must be typed visual (not terminal)')
+  }
+  const pipeline = await readPipelineSource(repoRoot)
+  if (pipeline && !pipeline.includes('reviews.push(vqaResult.review)')) {
+    issues.push('VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY: pipeline must push visual review into reviews array for controller aggregation')
+  }
+  const controller = await readIfExists(path.join(repoRoot, 'runtime', 'controller', 'controller.mjs'))
+  if (controller && !controller.includes('decide(')) issues.push('VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY: controller must remain sole terminal authority')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualQaVerifyRemainsMandatory({ repoRoot }) {
+  const issues = []
+  const pipeline = await readPipelineSource(repoRoot)
+  if (!pipeline) issues.push('VISUAL_QA_VERIFY_REMAINS_MANDATORY: runtime/pipeline/pipeline.mjs missing')
+  else {
+    // Visual QA must be gated behind successful verify (VERIFY before VISUAL_QA)
+    if (!pipeline.includes('visualQa && visualQa.required')) issues.push('VISUAL_QA_VERIFY_REMAINS_MANDATORY: pipeline must gate visual QA on required flag')
+    const verifyIdx = pipeline.indexOf("record('VERIFY'")
+    const visualIdx = pipeline.indexOf("record('VISUAL_QA'")
+    if (verifyIdx === -1 || visualIdx === -1 || verifyIdx >= visualIdx) {
+      issues.push('VISUAL_QA_VERIFY_REMAINS_MANDATORY: VERIFY boundary must be ordered before VISUAL_QA')
+    }
+    if (!pipeline.includes('order = [') || !pipeline.includes('VERIFY') || !pipeline.includes('VISUAL_QA')) {
+      issues.push('VISUAL_QA_VERIFY_REMAINS_MANDATORY: pipeline order must include VERIFY → VISUAL_QA')
+    }
+  }
+  const fbb = await readIfExists(path.join(repoRoot, 'runtime', 'controller', 'first-bad-boundary.mjs'))
+  if (!fbb || !fbb.includes("'VISUAL_QA'") || !fbb.includes("'VERIFY'")) {
+    issues.push('VISUAL_QA_VERIFY_REMAINS_MANDATORY: RUN_BOUNDARIES must include both VERIFY and VISUAL_QA in order')
+  } else {
+    const order = fbb.match(/RUN_BOUNDARIES\s*=\s*Object\.freeze\(\[([^\]]+)\]\)/)
+    if (order) {
+      const list = [...order[1].matchAll(/'([^']+)'/g)].map((m) => m[1])
+      const vIdx = list.indexOf('VERIFY')
+      const qIdx = list.indexOf('VISUAL_QA')
+      if (vIdx === -1 || qIdx === -1 || vIdx >= qIdx) {
+        issues.push('VISUAL_QA_VERIFY_REMAINS_MANDATORY: RUN_BOUNDARIES order must be VERIFY before VISUAL_QA')
+      }
+    }
+  }
+  const controller = await readIfExists(path.join(repoRoot, 'runtime', 'controller', 'verify.mjs'))
+  if (!controller) issues.push('VISUAL_QA_VERIFY_REMAINS_MANDATORY: runtime/controller/verify.mjs missing (verify must remain mandatory)')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualQaMcpLeastPrivilege({ repoRoot }) {
+  const issues = []
+  const evidence = await readVisualSource(repoRoot, 'browser-evidence.mjs')
+  if (!evidence) issues.push('VISUAL_QA_MCP_LEAST_PRIVILEGE: runtime/visual/browser-evidence.mjs missing')
+  else {
+    if (!evidence.includes('mcpSessionCall')) issues.push('VISUAL_QA_MCP_LEAST_PRIVILEGE: browser-evidence must use mcpSessionCall (grant-enforced)')
+    if (!evidence.includes('createMcpSession')) issues.push('VISUAL_QA_MCP_LEAST_PRIVILEGE: browser-evidence must create MCP session with server grant')
+    if (!evidence.includes('grant')) issues.push('VISUAL_QA_MCP_LEAST_PRIVILEGE: browser-evidence must accept grant param')
+    if (!evidence.includes('server')) issues.push('VISUAL_QA_MCP_LEAST_PRIVILEGE: browser-evidence must be server-scoped')
+  }
+  const visualQa = await readVisualSource(repoRoot, 'visual-qa.mjs')
+  if (!visualQa) issues.push('VISUAL_QA_MCP_LEAST_PRIVILEGE: runtime/visual/visual-qa.mjs missing')
+  else {
+    if (!visualQa.includes('grant')) issues.push('VISUAL_QA_MCP_LEAST_PRIVILEGE: visual-qa must thread grant to browser capture')
+    if (!visualQa.includes('mcp')) issues.push('VISUAL_QA_MCP_LEAST_PRIVILEGE: visual-qa must configure MCP for browser evidence')
+  }
+  const grant = await readIfExists(path.join(repoRoot, 'runtime', 'mcp', 'tool-grant.mjs'))
+  if (!grant || !grant.includes('assertToolAllowed')) issues.push('VISUAL_QA_MCP_LEAST_PRIVILEGE: tool grant must enforce call-time scope')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualQaCostPolicyEnforced({ repoRoot }) {
+  const issues = []
+  const visualQa = await readVisualSource(repoRoot, 'visual-qa.mjs')
+  if (!visualQa) issues.push('VISUAL_QA_COST_POLICY_ENFORCED: runtime/visual/visual-qa.mjs missing')
+  else {
+    if (!visualQa.includes('cost_policy')) issues.push('VISUAL_QA_COST_POLICY_ENFORCED: visual-qa must accept cost_policy')
+    if (!visualQa.includes('costGateAllows') && !visualQa.includes('COST_GATE_DENIED')) issues.push('VISUAL_QA_COST_POLICY_ENFORCED: visual-qa must enforce cost gate (costGateAllows / COST_GATE_DENIED)')
+    if (!visualQa.includes('selectRoute')) issues.push('VISUAL_QA_COST_POLICY_ENFORCED: visual-qa must route vision model via selectRoute (cost-gated)')
+  }
+  const policy = await readRoutingSource(repoRoot, 'routing-policy.mjs')
+  if (!policy) issues.push('VISUAL_QA_COST_POLICY_ENFORCED: runtime/routing/routing-policy.mjs missing')
+  else {
+    if (!policy.includes('costGateAllows')) issues.push('VISUAL_QA_COST_POLICY_ENFORCED: routing-policy must expose costGateAllows')
+    if (!policy.includes('COST_GATE_DENIED')) issues.push('VISUAL_QA_COST_POLICY_ENFORCED: routing-policy must implement COST_GATE_DENIED')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualQaSharedBudgetEnforced({ repoRoot }) {
+  const issues = []
+  const visualQa = await readVisualSource(repoRoot, 'visual-qa.mjs')
+  if (!visualQa) issues.push('VISUAL_QA_SHARED_BUDGET_ENFORCED: runtime/visual/visual-qa.mjs missing')
+  else {
+    if (!visualQa.includes('sharedBudget')) issues.push('VISUAL_QA_SHARED_BUDGET_ENFORCED: visual-qa must accept sharedBudget')
+    if (!visualQa.includes('governor.reserve')) issues.push('VISUAL_QA_SHARED_BUDGET_ENFORCED: visual-qa must reserve from shared budget governor')
+    if (!visualQa.includes('governor.commit')) issues.push('VISUAL_QA_SHARED_BUDGET_ENFORCED: visual-qa must commit shared budget after review')
+    if (!visualQa.includes('budget.shared.reserve') || !visualQa.includes('budget.shared.consume')) issues.push('VISUAL_QA_SHARED_BUDGET_ENFORCED: visual-qa must emit budget.shared events')
+  }
+  const pipeline = await readPipelineSource(repoRoot)
+  if (pipeline && !pipeline.includes('sharedBudget')) issues.push('VISUAL_QA_SHARED_BUDGET_ENFORCED: pipeline must thread sharedBudget to visual QA')
+  const governor = await readBudgetSource(repoRoot)
+  if (!governor) issues.push('VISUAL_QA_SHARED_BUDGET_ENFORCED: runtime/routing/budget-governor.mjs missing')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualQaPromptInjectionUntrusted({ repoRoot }) {
+  const issues = []
+  const reviewer = await readVisualSource(repoRoot, 'vision-reviewer.mjs')
+  if (!reviewer) issues.push('VISUAL_QA_PROMPT_INJECTION_UNTRUSTED: runtime/visual/vision-reviewer.mjs missing')
+  else {
+    if (!reviewer.includes('UNTRUSTED')) issues.push('VISUAL_QA_PROMPT_INJECTION_UNTRUSTED: vision-reviewer must treat screenshot text as UNTRUSTED data')
+    if (!reviewer.includes('SYSTEM_FRAMING') && !reviewer.includes('You are a visual QA reviewer')) issues.push('VISUAL_QA_PROMPT_INJECTION_UNTRUSTED: vision-reviewer must have system framing protecting against prompt injection')
+    if (!reviewer.includes('IGNORE PREVIOUS INSTRUCTIONS') && !reviewer.includes('ignore instruction')) issues.push('VISUAL_QA_PROMPT_INJECTION_UNTRUSTED: vision-reviewer framing must instruct to ignore injected instructions')
+  }
+  const visualQa = await readVisualSource(repoRoot, 'visual-qa.mjs')
+  if (visualQa && visualQa.includes('prompt injection') && !reviewer?.includes('UNTRUSTED')) {
+    issues.push('VISUAL_QA_PROMPT_INJECTION_UNTRUSTED: prompt injection must be treated as untrusted data')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualQaNoSecretLeak({ repoRoot }) {
+  const issues = []
+  const reviewer = await readVisualSource(repoRoot, 'vision-reviewer.mjs')
+  if (!reviewer) issues.push('VISUAL_QA_NO_SECRET_LEAK: runtime/visual/vision-reviewer.mjs missing')
+  else {
+    if (reviewer.includes('api_key') || reviewer.includes('api-key') || /Bearer\s+[A-Za-z0-9._~+/=-]{8,}/i.test(reviewer.replace(/['"][^'"]*['"]/g, '"str"'))) {
+      issues.push('VISUAL_QA_NO_SECRET_LEAK: vision-reviewer must not leak credential material')
+    }
+    if (!reviewer.includes('image_fingerprint') && !reviewer.includes('fingerprint')) {
+      issues.push('VISUAL_QA_NO_SECRET_LEAK: vision-reviewer evidence must use fingerprints, not raw bytes')
+    }
+  }
+  const evidence = await readVisualSource(repoRoot, 'browser-evidence.mjs')
+  if (!evidence) issues.push('VISUAL_QA_NO_SECRET_LEAK: runtime/visual/browser-evidence.mjs missing')
+  else {
+    if (!evidence.includes('image_fingerprint')) issues.push('VISUAL_QA_NO_SECRET_LEAK: browser-evidence must fingerprint screenshots')
+    // Fingerprints, not raw screenshots, must be the observable artifact
+    if (evidence.includes('output: raw') || evidence.includes('prompt: raw')) {
+      issues.push('VISUAL_QA_NO_SECRET_LEAK: visual evidence must not expose raw prompt/output')
+    }
+  }
+  const visualQa = await readVisualSource(repoRoot, 'visual-qa.mjs')
+  if (visualQa && !visualQa.includes('image_fingerprint')) {
+    issues.push('VISUAL_QA_NO_SECRET_LEAK: visual-qa must propagate image_fingerprint (no raw image in events)')
+  }
+  // Also scan for classic secret patterns in visual subtree
+  const visualDir = path.join(repoRoot, 'runtime', 'visual')
+  if (await pathExists(visualDir)) {
+    const entries = await fs.readdir(visualDir)
+    for (const file of entries) {
+      if (!file.endsWith('.mjs')) continue
+      const source = await readIfExists(path.join(visualDir, file))
+      if (source) {
+        for (const pattern of SECRET_PATTERNS) {
+          if (pattern.re.test(source)) {
+            issues.push(`VISUAL_QA_NO_SECRET_LEAK: high-confidence ${pattern.name} pattern in runtime/visual/${file}`)
+          }
+        }
+      }
+    }
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualQaBlockingFindingPreventsFalseDone({ repoRoot }) {
+  const issues = []
+  const gate = await readVisualSource(repoRoot, 'visual-gate.mjs')
+  if (!gate) issues.push('VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE: runtime/visual/visual-gate.mjs missing')
+  else {
+    if (!gate.includes('blocking === true')) issues.push('VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE: visual-gate must gate on blocking===true')
+    if (!gate.includes("severityRank") || !gate.includes("severityRank('HIGH')")) issues.push('VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE: visual-gate blocking must require severity>=HIGH')
+    if (!gate.includes('FINDINGS_BLOCKING')) issues.push('VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE: visual-gate must emit FINDINGS_BLOCKING outcome')
+    if (!gate.includes('BLOCKING_VISUAL_FINDING')) issues.push('VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE: visual-gate FINDINGS_BLOCKING reason must be BLOCKING_VISUAL_FINDING')
+  }
+  const visualQa = await readVisualSource(repoRoot, 'visual-qa.mjs')
+  if (!visualQa) issues.push('VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE: runtime/visual/visual-qa.mjs missing')
+  else {
+    if (!visualQa.includes('FINDINGS_BLOCKING') && !visualQa.includes('isBlocking')) issues.push('VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE: visual-qa must map FINDINGS_BLOCKING to blocking visual review')
+    if (!visualQa.includes('blocking: isBlocking') && !visualQa.includes('blocking:')) issues.push('VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE: visual-qa review must set blocking flag for gate outcome')
+  }
+  const pipeline = await readPipelineSource(repoRoot)
+  if (pipeline && !pipeline.includes('reviews.push(vqaResult.review)')) {
+    issues.push('VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE: pipeline must ensure visual blocking finding reaches controller')
+  }
+  const controller = await readIfExists(path.join(repoRoot, 'runtime', 'controller', 'controller.mjs'))
+  const reviewDecision = await readIfExists(path.join(repoRoot, 'runtime', 'controller', 'review-decision.mjs'))
+  const hasHardBlock = (controller && controller.includes('securityHardBlock')) || (reviewDecision && reviewDecision.includes('securityHardBlock'))
+  const hasAggregation = controller && controller.includes('evaluateReviews')
+  if (!hasHardBlock || !hasAggregation) {
+    issues.push('VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE: controller/review-decision must have securityHardBlock so blocking visual finding triggers BLOCKED')
+  }
+  // Verify pipeline strips false DONE when visual gate failed: record VISUAL_QA must be FAIL when gate not passed
+  if (pipeline && !pipeline.includes("record('VISUAL_QA'")) {
+    issues.push('VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE: pipeline must record VISUAL_QA boundary (so firstBadBoundary prevents false DONE)')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+// ---------------------------------------------------------------------------
 // Baseline fingerprint — structural drift only, never file-byte drift
 // ---------------------------------------------------------------------------
 
@@ -1694,6 +1990,17 @@ export async function runProductionSentinel({ repoRoot }) {
   // invariants.
   pushResult('BUDGET_CANCELLATION_RELEASE', await checkBudgetCancellationRelease({ repoRoot }))
   pushResult('BUDGET_NO_ORPHAN_RESERVATIONS', await checkBudgetNoOrphanReservations({ repoRoot }))
+  // Playwright Visual QA invariants (additive, after the 55 prior invariants)
+  pushResult('VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL', await checkVisualQaRequiresVisionModel({ repoRoot }))
+  pushResult('VISUAL_QA_NO_OCR_SUBSTITUTION', await checkVisualQaNoOcrSubstitution({ repoRoot }))
+  pushResult('VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY', await checkVisualReviewNotTerminalAuthority({ repoRoot }))
+  pushResult('VISUAL_QA_VERIFY_REMAINS_MANDATORY', await checkVisualQaVerifyRemainsMandatory({ repoRoot }))
+  pushResult('VISUAL_QA_MCP_LEAST_PRIVILEGE', await checkVisualQaMcpLeastPrivilege({ repoRoot }))
+  pushResult('VISUAL_QA_COST_POLICY_ENFORCED', await checkVisualQaCostPolicyEnforced({ repoRoot }))
+  pushResult('VISUAL_QA_SHARED_BUDGET_ENFORCED', await checkVisualQaSharedBudgetEnforced({ repoRoot }))
+  pushResult('VISUAL_QA_PROMPT_INJECTION_UNTRUSTED', await checkVisualQaPromptInjectionUntrusted({ repoRoot }))
+  pushResult('VISUAL_QA_NO_SECRET_LEAK', await checkVisualQaNoSecretLeak({ repoRoot }))
+  pushResult('VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE', await checkVisualQaBlockingFindingPreventsFalseDone({ repoRoot }))
 
   const issues = results.flatMap((result) => result.issues)
   const warnings = []

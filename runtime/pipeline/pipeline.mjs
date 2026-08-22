@@ -61,6 +61,7 @@ import {
   DEFAULT_MODEL_CATALOG,
   budgetSharedEvent,
 } from '../routing/index.mjs'
+import { runVisualQa } from '../visual/visual-qa.mjs'
 
 /**
  * run_id immutability guard. Every phase contract must keep the task run_id.
@@ -78,7 +79,7 @@ function collapseBoundaries(boundaries = []) {
   for (const boundary of boundaries) {
     if (boundary && boundary.name) byName.set(boundary.name, { name: boundary.name, status: boundary.status })
   }
-  const order = ['TASK', 'BASELINE', 'ROUTING', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'REVIEWS', 'CONTROLLER']
+  const order = ['TASK', 'BASELINE', 'ROUTING', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'VISUAL_QA', 'REVIEWS', 'CONTROLLER']
   return order.filter((name) => byName.has(name)).map((name) => byName.get(name))
 }
 
@@ -104,6 +105,7 @@ export async function runPipeline({
   routeExecutor = null,
   onWorkerFailure = null,
   sharedBudget = null,
+  visualQa = null,
 } = {}) {
   const task = taskInput.contract === 'ecosystem.task.v1'
     ? taskInput
@@ -630,9 +632,44 @@ export async function runPipeline({
     })
   }
 
-  // Verify passed → run independent reviews, then let the controller decide.
+  // Verify passed → run visual QA (if required) then independent reviews, then controller.
   const reviews = []
-  let reviewsAllPass = true
+  // Visual QA section: only runs when verification passed (mandatory §41)
+  if (visualQa && visualQa.required) {
+    await emit({ phase: 'VISUAL_QA', job: 'visual.qa.start', status: 'PASS', attempt, pages: visualQa.pages ? visualQa.pages.length : 0 })
+    // Record VISUAL_QA boundary initially as PASS; will be updated after result
+    // runVisualQa handles its own emits and budget lifecycle; we pass through grant/server/mcp config
+    const vqaResult = await runVisualQa({
+      run_id: runId,
+      pages: visualQa.pages || [],
+      evidence_dir: visualQa.evidence_dir || (repoRoot ? `${repoRoot}/.agent-governance/evidence/visual/${runId}` : null),
+      mcp: visualQa.mcp || null,
+      grant: tool_grant,
+      reviewer: visualQa.reviewer || null,
+      requirements: { needs_vision: true },
+      cost_policy: visualQa.cost_policy || cost_policy || null,
+      sharedBudget: visualQa.sharedBudget || sharedBudget,
+      healthStore: visualQa.healthStore || null,
+      opencode_bin: visualQa.opencode_bin || null,
+      browserExecutor: visualQa.browserExecutor || null,
+      reviewFn: visualQa.reviewFn || null,
+      emit: async (ev) => {
+        events.push(ev)
+        if (eventSink) await appendRunEvent(eventSink, ev)
+      },
+    })
+    // Push all visual-qa events already collected via emit wrapper above (vqaResult.events are already appended via emit wrapper, but ensure we also push if not)
+    // The vqaResult.events were emitted via the wrapper, so no double push needed
+    const visualPassed = vqaResult.status === 'PASS'
+    record('VISUAL_QA', visualPassed ? 'PASS' : 'FAIL')
+    await emit({ phase: 'VISUAL_QA', job: 'visual.qa.boundary', status: visualPassed ? 'PASS' : 'FAIL', attempt, outcome: vqaResult.status, reason_code: vqaResult.reason_code })
+    // Push visual review into reviews array before analyzer loop — this maps FINDINGS_BLOCKING → blocking=true → controller BLOCKED (false-DONE-proof)
+    if (vqaResult.review) {
+      enforceRunId(runId, vqaResult.review, 'review:visual')
+      reviews.push(vqaResult.review)
+    }
+    // Propagate vqaResult evidence into pipeline events already done via emit; keep for boundary history
+  }
   for (const [type, analyzer] of reviewAnalyzers) {
     const review = analyzer({ run_id: runId, buildResult, verification, repoRoot, changedFiles: buildResult?.changed_files })
     enforceRunId(runId, review, `review:${type}`)
@@ -641,9 +678,9 @@ export async function runPipeline({
       phase: 'REVIEWS', job: `${type}-review`, status: review.review.status === 'PASS' ? 'PASS' : 'FAIL', attempt,
       contract_out: review.contract,
     })
-    if (review.review.status !== 'PASS') reviewsAllPass = false
   }
-  record('REVIEWS', reviewsAllPass ? 'PASS' : 'FAIL')
+  const reviewsPassForBoundary = reviews.every((r) => r.review.status === 'PASS')
+  record('REVIEWS', reviewsPassForBoundary ? 'PASS' : 'FAIL')
 
   const decision = decide({
     baseline, plan, planGate, verification, reviews, attempt,

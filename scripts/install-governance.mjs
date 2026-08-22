@@ -237,6 +237,12 @@ function validateSourceRepository(repoRoot) {
     "ecosystem.manifest.json",
     ".opencode/agents",
     ".opencode/skills",
+    "runtime/security/tool-result-egress-gate.mjs",
+    "runtime/visual/browser-evidence.mjs",
+    "runtime/visual/vision-reviewer.mjs",
+    "runtime/visual/visual-finding.mjs",
+    "runtime/visual/visual-gate.mjs",
+    "runtime/visual/visual-qa.mjs",
   ]
   const missing = []
   for (const rel of required) {
@@ -329,6 +335,14 @@ function getRuntimeFileList() {
     { source: "runtime/routing/usage.mjs", dest: "routing/usage.mjs" },
     // routing/ — shared runtime budget governor (runtime-critical, additive)
     { source: "runtime/routing/budget-governor.mjs", dest: "routing/budget-governor.mjs" },
+    // visual/ — Playwright Visual QA (runtime-critical, additive — subordinate evidence service)
+    { source: "runtime/visual/browser-evidence.mjs", dest: "visual/browser-evidence.mjs" },
+    { source: "runtime/visual/vision-reviewer.mjs", dest: "visual/vision-reviewer.mjs" },
+    { source: "runtime/visual/visual-finding.mjs", dest: "visual/visual-finding.mjs" },
+    { source: "runtime/visual/visual-gate.mjs", dest: "visual/visual-gate.mjs" },
+    { source: "runtime/visual/visual-qa.mjs", dest: "visual/visual-qa.mjs" },
+    // security/ — tool result egress gate (runtime-critical for MCP tool-executor)
+    { source: "runtime/security/tool-result-egress-gate.mjs", dest: "security/tool-result-egress-gate.mjs" },
     // reviews/ — deterministic review analyzers
     { source: "runtime/reviews/analyze.mjs", dest: "reviews/analyze.mjs" },
     // canonical contract-first runtime entry point

@@ -6,7 +6,7 @@
  * ordinal, never a probability. The deterministic controller aggregates these.
  */
 export const CONTRACT_ID = 'ecosystem.review.v1'
-export const REVIEW_TYPES = Object.freeze(['correctness', 'security', 'quality'])
+export const REVIEW_TYPES = Object.freeze(['correctness', 'security', 'quality', 'visual'])
 export const SEVERITIES = Object.freeze(['INFO', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'])
 export const RECOMMENDATIONS = Object.freeze(['PASS', 'SPLIT', 'FIX', 'BLOCK'])
 

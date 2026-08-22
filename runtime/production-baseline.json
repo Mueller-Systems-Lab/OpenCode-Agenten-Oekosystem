@@ -77,7 +77,17 @@
     "DEGRADED_DOES_NOT_BYPASS_COST_POLICY",
     "SHARED_BUDGET_NO_SECRET_LEAK",
     "BUDGET_CANCELLATION_RELEASE",
-    "BUDGET_NO_ORPHAN_RESERVATIONS"
+    "BUDGET_NO_ORPHAN_RESERVATIONS",
+    "VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL",
+    "VISUAL_QA_NO_OCR_SUBSTITUTION",
+    "VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY",
+    "VISUAL_QA_VERIFY_REMAINS_MANDATORY",
+    "VISUAL_QA_MCP_LEAST_PRIVILEGE",
+    "VISUAL_QA_COST_POLICY_ENFORCED",
+    "VISUAL_QA_SHARED_BUDGET_ENFORCED",
+    "VISUAL_QA_PROMPT_INJECTION_UNTRUSTED",
+    "VISUAL_QA_NO_SECRET_LEAK",
+    "VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE"
   ],
   "required_artifacts": [
     "runtime/run.mjs",
@@ -93,7 +103,12 @@
     "runtime/routing/health-state.mjs",
     "runtime/routing/health-probe.mjs",
     "runtime/routing/usage.mjs",
-    "runtime/routing/budget-governor.mjs"
+    "runtime/routing/budget-governor.mjs",
+    "runtime/visual/browser-evidence.mjs",
+    "runtime/visual/vision-reviewer.mjs",
+    "runtime/visual/visual-finding.mjs",
+    "runtime/visual/visual-gate.mjs",
+    "runtime/visual/visual-qa.mjs"
   ],
   "canonical_test_command": "npm test",
   "legacy_execution_status": "RETIRED",
@@ -102,7 +117,7 @@
     "runtime/agent/start.mjs",
     "scripts/run-completion-canary.mjs"
   ],
-  "baseline_fingerprint": "9f13a10b5b20aedcf13e3a245edbe4f47849bfdc00bf257a08b95af46c9f303b",
+  "baseline_fingerprint": "eae7c27d29c30fb2044988c08b49aa965095e68986a4c7156211499432b00470",
   "milestone_history": [
     {
       "milestone": "GREEN_OCAE_RUNTIME_AVAILABILITY_COST_GOVERNANCE_OPERATIONAL",
@@ -113,6 +128,12 @@
     {
       "milestone": "GREEN_OCAE_SHARED_RUNTIME_BUDGET_DEGRADED_ROUTING_OPERATIONAL",
       "pre_baseline": "134903cf8f124858700922775a4adcef34dac763",
+      "integration_commit": null,
+      "note": "integration_commit is recorded by the orchestrator AFTER the commit lands (no fabricated hash); pre_baseline is the content-clean baseline HEAD this milestone started from"
+    },
+    {
+      "milestone": "GREEN_OCAE_PLAYWRIGHT_VISUAL_QA_OPERATIONAL",
+      "pre_baseline": "3c4bd8e271ef1e4633840175b054df1fdb562602",
       "integration_commit": null,
       "note": "integration_commit is recorded by the orchestrator AFTER the commit lands (no fabricated hash); pre_baseline is the content-clean baseline HEAD this milestone started from"
     }

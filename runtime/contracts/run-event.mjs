@@ -7,7 +7,7 @@
  * Fingerprints are hashes, never raw content.
  */
 export const CONTRACT_ID = 'ecosystem.run-event.v1'
-export const RUN_PHASES = Object.freeze(['TASK', 'BASELINE', 'ROUTING', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'REVIEWS', 'CONTROLLER'])
+export const RUN_PHASES = Object.freeze(['TASK', 'BASELINE', 'ROUTING', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'VISUAL_QA', 'REVIEWS', 'CONTROLLER'])
 
 export function create({
   run_id,

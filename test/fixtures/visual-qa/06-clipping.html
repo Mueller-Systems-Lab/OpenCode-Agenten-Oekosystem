@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>06 clipping defect</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;background:#f7fafc;padding:24px}
+h1{font-size:18px;margin-bottom:16px}.card{width:280px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:0;overflow:hidden;margin:0 auto}
+.card img{display:block;width:100%;height:120px;background:#cbd5e0}
+.body{padding:12px;height:80px;overflow:hidden}
+.body h3{font-size:14px;white-space:nowrap}.body p{font-size:13px;color:#4a5568;margin-top:4px;line-height:1.3}
+.note{text-align:center;margin-top:12px;font-size:12px;color:#e53e3e;font-weight:600}
+</style></head><body data-fixture="06-clipping">
+<h1>Clipping Defect — Case C</h1>
+<div class="card"><div style="height:120px;background:#bee3f8;display:flex;align-items:center;justify-content:center;color:#2c5282">Image area</div>
+<div class="body"><h3>Wonderful Mountain Retreat Experience</h3><p>This descriptive text is clipped mid-word at the container edge because overflow:hidden cuts off the remaining content without any affordance. The user cannot read the full sentence.</p></div>
+</div>
+<p class="note">BUG: card body overflow:hidden clips text mid-word. Expected CLIPPING / VISUAL_OVERFLOW.</p>
+</body></html>

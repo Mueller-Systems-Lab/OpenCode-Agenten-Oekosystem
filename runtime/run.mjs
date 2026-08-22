@@ -51,7 +51,50 @@ import {
   SHARED_BUDGET_RESOURCES,
 } from './routing/index.mjs'
 
-export const RUNTIME_PHASES = Object.freeze(['TASK', 'BASELINE', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'REVIEWS', 'CONTROLLER'])
+export const RUNTIME_PHASES = Object.freeze(['TASK', 'BASELINE', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'VISUAL_QA', 'REVIEWS', 'CONTROLLER'])
+
+// --- Process-wide default shared budget governor (lazy singleton) ----------
+// When routing.shared_budget.enabled is true and NO explicit governor is
+// passed, runs share ONE process-wide SharedBudgetGovernor instance instead of
+// each creating a private per-run governor (Scope=SINGLE_RUNTIME_PROCESS).
+// An explicitly passed governor ALWAYS wins (backward compat). The singleton
+// is created from the FIRST configuration encountered; a later run requesting
+// a DIFFERENT effective configuration (resources map, ttl_ms, retention_limit)
+// fails closed with CONFIG_INVALID:shared_budget.singleton_config_conflict —
+// loud, never silent.
+let defaultSharedBudgetGovernorInstance = null
+let defaultSharedBudgetGovernorFingerprint = null
+
+/** Current process-wide default shared budget governor instance, or null. */
+export function defaultSharedBudgetGovernor() {
+  return defaultSharedBudgetGovernorInstance
+}
+
+/** Test-only seam: clear the process-wide default governor singleton. */
+export function resetDefaultSharedBudgetGovernorForTests() {
+  defaultSharedBudgetGovernorInstance = null
+  defaultSharedBudgetGovernorFingerprint = null
+}
+
+/**
+ * Effective-configuration fingerprint for the default-governor singleton.
+ * A throwaway governor applies the exact same normalization as a real one
+ * (capacity fail-closed to 0, TTL clamping into [min,max], retention fallback),
+ * so semantically identical configurations never conflict while any real
+ * difference fails closed. Resource keys are sorted for deterministic order.
+ */
+function sharedBudgetConfigFingerprint({ resources, ttl_ms, retention_limit }) {
+  const candidate = new SharedBudgetGovernor({
+    resources,
+    ...(ttl_ms !== undefined ? { ttl_ms } : {}),
+    ...(retention_limit !== undefined ? { retention_limit } : {}),
+  })
+  return JSON.stringify({
+    resources: Object.fromEntries(Object.entries(candidate.capacity).sort(([a], [b]) => (a < b ? -1 : 1))),
+    ttl_ms: candidate.ttl_ms,
+    retention_limit: candidate.retention_limit,
+  })
+}
 
 export function defaultRunEventSink(repoRoot) {
   if (!repoRoot || typeof repoRoot !== 'string') return null
@@ -106,6 +149,7 @@ export async function runTask(options = {}) {
     routing = null,
     routeExecutor = null,
     onWorkerFailure = null,
+    visualQa = null,
   } = options
 
   const sink = eventSink || defaultRunEventSink(repoRoot)
@@ -169,9 +213,16 @@ export async function runTask(options = {}) {
   //     Shared runtime budget (additive, optional):
   //       routing.shared_budget = { enabled, governor = null, resources = null,
   //         resource = 'HIGH_COST_ROUTE', ttl_ms, retention_limit }
-  //     SHARING ACROSS CONCURRENT RUNS requires the caller to pass the SAME
-  //     governor instance; a per-run governor is per-run (single-run
-  //     semantics). Default HIGH_COST_ROUTE capacity when not specified: 2.
+  //     SHARING ACROSS CONCURRENT RUNS: without an explicit governor, runs
+  //     share ONE process-wide default SharedBudgetGovernor (lazy singleton,
+  //     Scope=SINGLE_RUNTIME_PROCESS) — concurrent normal-entry runs share
+  //     budget capacity. An explicitly passed governor ALWAYS wins (backward
+  //     compat: per-run or caller-shared injection is unchanged). The default
+  //     singleton is created from the FIRST configuration encountered; a later
+  //     run requesting a DIFFERENT singleton configuration (resources map,
+  //     ttl_ms, retention_limit) fails closed with
+  //     CONFIG_INVALID:shared_budget.singleton_config_conflict.
+  //     Default HIGH_COST_ROUTE capacity when not specified: 2.
   let route = null
   let healthStore = null
   let healthMeta = { probed: [], cache_hits: [], probe_budget_skipped: [] }
@@ -187,11 +238,30 @@ export async function runTask(options = {}) {
     if (sb.resource !== undefined && sb.resource !== SHARED_BUDGET_RESOURCES.HIGH_COST_ROUTE) {
       throw new Error('CONFIG_INVALID:shared_budget.resource must be HIGH_COST_ROUTE (only resource wired this milestone)')
     }
-    const governor = sb.governor || new SharedBudgetGovernor({
-      resources: sb.resources || { [SHARED_BUDGET_RESOURCES.HIGH_COST_ROUTE]: 2 },
-      ...(sb.ttl_ms !== undefined ? { ttl_ms: sb.ttl_ms } : {}),
-      ...(sb.retention_limit !== undefined ? { retention_limit: sb.retention_limit } : {}),
-    })
+    let governor
+    if (sb.governor) {
+      // Explicit injection ALWAYS wins (backward compat — the caller controls
+      // sharing scope by passing the same or different instances).
+      governor = sb.governor
+    } else {
+      // No explicit governor → reuse ONE process-wide default governor so
+      // concurrent normal-entry runs share budget capacity. Created lazily
+      // from the FIRST configuration encountered; a conflicting later
+      // configuration fails closed. The check+create sequence is synchronous
+      // (no await between check and mutate) → atomic in a single process.
+      const requestedConfig = {
+        resources: sb.resources || { [SHARED_BUDGET_RESOURCES.HIGH_COST_ROUTE]: 2 },
+        ...(sb.ttl_ms !== undefined ? { ttl_ms: sb.ttl_ms } : {}),
+        ...(sb.retention_limit !== undefined ? { retention_limit: sb.retention_limit } : {}),
+      }
+      if (!defaultSharedBudgetGovernorInstance) {
+        defaultSharedBudgetGovernorFingerprint = sharedBudgetConfigFingerprint(requestedConfig)
+        defaultSharedBudgetGovernorInstance = new SharedBudgetGovernor(requestedConfig)
+      } else if (sharedBudgetConfigFingerprint(requestedConfig) !== defaultSharedBudgetGovernorFingerprint) {
+        throw new Error('CONFIG_INVALID:shared_budget.singleton_config_conflict')
+      }
+      governor = defaultSharedBudgetGovernorInstance
+    }
     sharedBudget = {
       governor,
       resource: sb.resource || SHARED_BUDGET_RESOURCES.HIGH_COST_ROUTE,
@@ -369,6 +439,7 @@ export async function runTask(options = {}) {
     routeExecutor,
     onWorkerFailure,
     sharedBudget,
+    visualQa,
   })
 
   } catch (error) {

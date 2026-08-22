@@ -98,7 +98,8 @@ describe('shared budget governor — lifecycle', () => {
   })
 
   it('wrong run_id commit / release → SHARED_BUDGET_OWNERSHIP_INVALID, no budget change', () => {
-    const governor = freshGovernor({ capacity: 2 })
+    const clock = makeClock(1_000_000)
+    const governor = freshGovernor({ capacity: 2, clock: clock.now })
     const reserved = governor.reserve({ ...RUN })
     const before = governor.snapshot()
     const commit = governor.commit({ reservation_id: reserved.reservation.reservation_id, run_id: 'run-b' })

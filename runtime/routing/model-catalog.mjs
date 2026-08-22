@@ -9,8 +9,9 @@
  *       'reachable'  = a real model call succeeded in this environment
  *       'configured' = listed by the provider but not yet probed (NOT
  *                      selectable by the routing policy until probed)
- *   - capabilities (tool_support / mcp_support / structured_output) are only
- *     claimed where real evidence exists. No invented prices or abilities.
+ *   - capabilities (tool_support / mcp_support / vision_support /
+ *     structured_output) are only claimed where real evidence exists. No
+ *     invented prices or abilities.
  *   - cost_tier / quality_tier / context_tier are STABLE ORDINAL POLICY
  *     metadata (LOW < MEDIUM < HIGH), not live prices and not benchmark
  *     claims. The routing policy uses them for "cheapest sufficient model".
@@ -18,7 +19,7 @@
  * The catalog is data, not authority. The deterministic routing policy
  * (routing-policy.mjs) owns model selection; a model can never select itself.
  */
-export const CATALOG_VERSION = '1.0.0'
+export const CATALOG_VERSION = '1.1.0'
 
 export const COST_TIERS = Object.freeze(['LOW', 'MEDIUM', 'HIGH'])
 export const QUALITY_TIERS = Object.freeze(['LOW', 'MEDIUM', 'HIGH'])
@@ -49,6 +50,7 @@ export const DEFAULT_MODEL_CATALOG = Object.freeze([
     availability: 'reachable',
     tool_support: true,
     mcp_support: true,   // real MCP worker proof (playwright grant) — previous milestone
+    vision_support: false, // no real vision probe in this environment
     structured_output: 'STRICT', // real probe: exact JSON file written
     cost_tier: 'LOW',
     quality_tier: 'MEDIUM',
@@ -63,6 +65,7 @@ export const DEFAULT_MODEL_CATALOG = Object.freeze([
     availability: 'reachable',
     tool_support: true,  // real probe: agentic file write
     mcp_support: false,  // no real MCP proof — runtime grants no MCP for this model
+    vision_support: false, // no real vision probe in this environment
     structured_output: 'STRICT', // real probe: exact JSON file written
     cost_tier: 'LOW',
     quality_tier: 'LOW',
@@ -77,6 +80,7 @@ export const DEFAULT_MODEL_CATALOG = Object.freeze([
     availability: 'configured', // listed, not probed in this milestone
     tool_support: true,
     mcp_support: false,
+    vision_support: false, // no real vision probe in this environment
     structured_output: 'STANDARD',
     cost_tier: 'MEDIUM',
     quality_tier: 'HIGH',
@@ -91,6 +95,7 @@ export const DEFAULT_MODEL_CATALOG = Object.freeze([
     availability: 'configured', // listed, not probed in this milestone
     tool_support: true,
     mcp_support: false,
+    vision_support: false, // no real vision probe in this environment
     structured_output: 'STANDARD',
     cost_tier: 'HIGH',
     quality_tier: 'HIGH',
@@ -106,6 +111,7 @@ export const DEFAULT_MODEL_CATALOG = Object.freeze([
     availability: 'reachable',
     tool_support: true,  // real probe: agentic file write
     mcp_support: false,  // no real MCP proof in this environment
+    vision_support: true, // real probe: opencode run --file <png> correctly answered image-content questions ("red" for a red square; "YES" for overlapping rectangles)
     structured_output: 'STRICT', // real probe: exact JSON file written
     cost_tier: 'MEDIUM',
     quality_tier: 'MEDIUM',
@@ -120,6 +126,7 @@ export const DEFAULT_MODEL_CATALOG = Object.freeze([
     availability: 'configured',
     tool_support: true,
     mcp_support: false,
+    vision_support: false, // no real vision probe in this environment
     structured_output: 'STRICT',
     cost_tier: 'MEDIUM',
     quality_tier: 'MEDIUM',
@@ -134,6 +141,7 @@ export const DEFAULT_MODEL_CATALOG = Object.freeze([
     availability: 'configured',
     tool_support: true,
     mcp_support: false,
+    vision_support: false, // no real vision probe in this environment
     structured_output: 'STANDARD',
     cost_tier: 'MEDIUM',
     quality_tier: 'MEDIUM',
@@ -148,6 +156,7 @@ export const DEFAULT_MODEL_CATALOG = Object.freeze([
     availability: 'configured',
     tool_support: true,
     mcp_support: false,
+    vision_support: false, // no real vision probe in this environment
     structured_output: 'STRICT',
     cost_tier: 'HIGH',
     quality_tier: 'HIGH',
@@ -162,6 +171,7 @@ export const DEFAULT_MODEL_CATALOG = Object.freeze([
     availability: 'configured',
     tool_support: true,
     mcp_support: false,
+    vision_support: false, // no real vision probe in this environment
     structured_output: 'STRICT',
     cost_tier: 'HIGH',
     quality_tier: 'HIGH',
@@ -176,6 +186,7 @@ export const DEFAULT_MODEL_CATALOG = Object.freeze([
     availability: 'configured',
     tool_support: true,
     mcp_support: false,
+    vision_support: false, // no real vision probe in this environment
     structured_output: 'STRICT',
     cost_tier: 'HIGH',
     quality_tier: 'HIGH',
@@ -190,6 +201,7 @@ export const DEFAULT_MODEL_CATALOG = Object.freeze([
     availability: 'configured',
     tool_support: true,
     mcp_support: false,
+    vision_support: false, // no real vision probe in this environment
     structured_output: 'STRICT',
     cost_tier: 'HIGH',
     quality_tier: 'HIGH',

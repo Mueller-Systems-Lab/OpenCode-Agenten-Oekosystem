@@ -1,0 +1,19 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>02 clean mobile</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;color:#222;background:#f7fafc;line-height:1.4}
+header{background:#234e52;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}
+header h1{font-size:18px}nav a{color:#c6f6d5;margin-left:12px;text-decoration:none;font-size:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:20px;max-width:900px;margin:0 auto}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px}
+.card h3{font-size:14px;margin-bottom:6px}.card p{font-size:13px;color:#555}
+footer{background:#edf2f7;text-align:center;padding:12px;font-size:12px;color:#666}
+@media(max-width:600px){.grid{grid-template-columns:1fr}header{flex-direction:column;align-items:flex-start;gap:8px}}
+</style></head><body data-fixture="02-clean-mobile">
+<header><h1>Acme Mobile</h1><nav><a href="#">Home</a><a href="#">Docs</a><a href="#">Profile</a></nav></header>
+<div class="grid">
+<div class="card"><h3>Card One</h3><p>Clean responsive content. No overflow on any viewport.</p></div>
+<div class="card"><h3>Card Two</h3><p>Stacks to single column below 600px via media query.</p></div>
+<div class="card"><h3>Card Three</h3><p>All text fully visible, no clipping or overlap.</p></div>
+<div class="card"><h3>Card Four</h3><p>Footer stays below content, no overlap.</p></div>
+</div>
+<footer>© 2026 Acme — Responsive PASS fixture.</footer>
+</body></html>

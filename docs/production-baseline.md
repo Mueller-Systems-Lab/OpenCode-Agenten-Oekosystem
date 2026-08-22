@@ -579,9 +579,71 @@ ALLOW/RESERVE/COMMIT/RELEASE/DENY/EXPIRE results, and terminal decisions
   capacity 2 → global reserved 4 > 2 in a unified domain) — no durable ledger
   built because production does not require cross-process budget coordination.
 
+## Playwright Visual QA (runtime-critical, additive)
+
+Visual QA is a **subordinate evidence service** — it runs after `VERIFY` and before `REVIEWS`, pushes a `visual` review into the controller aggregation, but never decides `DONE` itself. Controller remains sole terminal authority.
+
+### Drift result
+
+- Production sentinel: `PASS` (65 invariants: 55 prior + 10 visual). Baseline fingerprint `db0a0bda0b3312d15577786baca40eec441f7fd629fa0229cee19f4a5501298f` matches `runtime/production-baseline.json`.
+- Baseline drift from `134903cf8f124858700922775a4adcef34dac763` → `3c4bd8e271ef1e4633840175b054df1fdb562602` is **intentional**: 10 new invariants, 5 visual artifacts, installer/fresh-install visual wiring, pipeline `VISUAL_QA` boundary.
+
+### Visual QA architecture
+
+```text
+VERIFIED build → pipeline VISUAL_QA → runVisualQa
+  ├─ policy: selectRoute({needs_vision:true}) → vision_support:true only (MCP analogy: no OCR substitution)
+  ├─ budget: sharedBudget reserve before capture/review, commit after (mirrors pipeline reserve→invoke→commit)
+  ├─ cost gate: costGateAllows (HIGH vision route respects allow_high_cost_escalation / max_high_cost_routes)
+  ├─ browser-evidence: MCP playwright (browser_navigate → resize → snapshot → screenshot)
+  │     least-privilege: mcpSessionCall with grant+server, --isolated profile, --allow-unrestricted-file-access for file://
+  │     evidence: image_fingerprint (sha256), sidecar .meta.json (run_id/page/viewport/timestamp)
+  ├─ vision-reviewer: opencode run(prompt, --file screenshot) → gpt-5.4-mini (vision_support:true)
+  │     prompt: SYSTEM_FRAMING treats screenshot text as UNTRUSTED, extracts JSON array from opencode envelope
+  │     workdir mkdir recursive, --isolated pre-work
+  └─ visual-gate: deterministic pure eval → PASS | FINDINGS_BLOCKING (blocking&&severity>=HIGH) | FINDINGS_NON_BLOCKING | UNVERIFIED
+         confidence never influences severity/outcome (§43)
+         UNVERIFIED (BROWSER_MCP_UNAVAILABLE / VISION_MODEL_UNAVAILABLE) → never PASS
+
+Pipeline seam: VERIFY passed → VISUAL_QA (record boundary PASS/FAIL) → reviews.push(visualReview) → controller decide
+  visual review mapping: FINDINGS_BLOCKING → review.blocking=true → controller securityHardBlock → BLOCKED (false-DONE-proof)
+  UNVERIFIED → UNVERIFIED_VISUAL_BOUNDARY finding, gate UNVERIFIED, pipeline records VISUAL_QA FAIL so firstBadBoundary prevents false DONE
+```
+
+| Component | File | Authority |
+|---|---|---|
+| Finding contract | `runtime/visual/visual-finding.mjs` | 13 categories, SEVERITIES ordinal, confidence [0,1] not gating |
+| Browser evidence | `runtime/visual/browser-evidence.mjs` | MCP least-privilege, array mcpCommand + --isolated, --allow-unrestricted-file-access |
+| Vision reviewer | `runtime/visual/vision-reviewer.mjs` | arg order prompt positional + --file=, opencode envelope extraction, UNTRUSTED framing |
+| Gate | `runtime/visual/visual-gate.mjs` | pure blockingHigh, severityRank |
+| Orchestration | `runtime/visual/visual-qa.mjs` | file:// url normalization, shared budget lifecycle, vision routing |
+| Runner harness | `scripts/visual/run-visual-qa-session.mjs` | real browser+vision, no seams, fixtures under test/fixtures/visual-qa |
+
+### New invariants (10)
+
+`VISUAL_QA_REQUIRES_VISION_CAPABLE_MODEL` — catalog vision_support:true + policy needs_vision gate + visual-qa selectRoute(needs_vision:true) + RUN_BOUNDARIES VISUAL_QA inclusion
+`VISUAL_QA_NO_OCR_SUBSTITUTION` — no ocr string in visual subtree
+`VISUAL_REVIEW_NOT_TERMINAL_AUTHORITY` — visual-gate/reviewer never decide, visual-qa produces review not terminal, pipeline pushes to controller
+`VISUAL_QA_VERIFY_REMAINS_MANDATORY` — pipeline VERIFY before VISUAL_QA, RUN_BOUNDARIES ordered, verify mandatory
+`VISUAL_QA_MCP_LEAST_PRIVILEGE` — browser-evidence mcpSessionCall with grant+server
+`VISUAL_QA_COST_POLICY_ENFORCED` — costGateAllows / COST_GATE_DENIED gating of HIGH vision routes
+`VISUAL_QA_SHARED_BUDGET_ENFORCED` — sharedBudget reserve/commit mirroring pipeline lifecycle
+`VISUAL_QA_PROMPT_INJECTION_UNTRUSTED` — SYSTEM_FRAMING UNTRUSTED, injected screenshot text never honored
+`VISUAL_QA_NO_SECRET_LEAK` — fingerprints not raw bytes, no credential patterns in visual subtree
+`VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE` — blocking&&HIGH → FINDINGS_BLOCKING → blocking=true → controller BLOCKED, VISUAL_QA boundary FAIL prevents false DONE
+
+Sentinel now evaluates **65 invariants** (55 prior + 10 visual).
+
+### Limitations
+
+- Real vision proof is `openai/gpt-5.4-mini` (vision_support:true, reachable via real probe: red-square and overlap tests); other catalog entries remain vision_support:false (not selectable for needs_vision).
+- Browser evidence requires MCP playwright server installed (`npx @playwright/mcp`); --isolated per session, unrestricted file access for file:// fixtures. Fallback when MCP unavailable is UNVERIFIED (not PASS).
+- Vision prompts are bounded by `timeout_ms` (90s default) and token-budget via shared budget; no live price scraping (ordinal tiers).
+- Screenshots are evidence dir `.agent-governance/evidence/visual/<run_id>/` (mode 0700) with sidecar metadata; raw image bytes never enter run events.
+
 > **Fingerprint note:** the live baseline fingerprint is recorded in
 > `runtime/production-baseline.json`
-> (`9f13a10b5b20aedcf13e3a245edbe4f47849bfdc00bf257a08b95af46c9f303b`); the
+> (`db0a0bda0b3312d15577786baca40eec441f7fd629fa0229cee19f4a5501298f`); the
 > pre-baseline for this milestone is
-> `134903cf8f124858700922775a4adcef34dac763`. Baseline identity (front-matter
+> `3c4bd8e271ef1e4633840175b054df1fdb562602`. Baseline identity (front-matter
 > fingerprint and identity table) is owned by the orchestrator.

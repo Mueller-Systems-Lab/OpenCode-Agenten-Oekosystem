@@ -61,7 +61,7 @@ describe('production sentinel — current baseline must pass (F)', () => {
   it('unmodified baseline passes all sentinel invariants', async () => {
     const result = await runProductionSentinel({ repoRoot })
     assert.equal(result.status, 'PASS', result.issues.join('\n'))
-    assert.equal(result.results.length, 55, 'expected the full invariant set (43 prior + 10 shared-budget/degraded + 2 budget lifecycle)')
+    assert.equal(result.results.length, 65, 'expected the full invariant set (43 prior + 10 shared-budget/degraded + 2 budget lifecycle + 10 visual QA)')
     for (const entry of result.results) {
       assert.equal(entry.ok, true, `${entry.invariant}: ${entry.issues.join(' | ')}`)
     }

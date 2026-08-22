@@ -105,6 +105,7 @@ function normalizeRequirements(input = {}) {
   return {
     needs_tools: Boolean(input.needs_tools ?? input.needsTools ?? false),
     needs_mcp: Boolean(input.needs_mcp ?? input.needsMcp ?? false),
+    needs_vision: Boolean(input.needs_vision ?? input.needsVision ?? false),
     needs_structured_output: input.needs_structured_output ?? input.needsStructuredOutput ?? null, // 'STANDARD' | 'STRICT' | null
     context_requirement: input.context_requirement ?? input.contextRequirement ?? null, // CONTEXT_TIER
     quality_requirement: input.quality_requirement ?? input.qualityRequirement ?? null, // QUALITY_TIER
@@ -139,6 +140,7 @@ export function modelMeetsRequirements(entry, requirements = {}) {
   if (req.allowed_providers && !req.allowed_providers.includes(entry.provider)) return false
   if (req.needs_tools && entry.tool_support !== true) return false
   if (req.needs_mcp && entry.mcp_support !== true) return false
+  if (req.needs_vision && entry.vision_support !== true) return false
   if (req.needs_structured_output && structuredOutputRank(entry.structured_output) < structuredOutputRank(req.needs_structured_output)) return false
   if (req.quality_requirement && tierRank(entry.quality_tier, QUALITY_TIERS) < tierRank(req.quality_requirement, QUALITY_TIERS)) return false
   if (req.context_requirement && tierRank(entry.context_tier, CONTEXT_TIERS) < tierRank(req.context_requirement, CONTEXT_TIERS)) return false

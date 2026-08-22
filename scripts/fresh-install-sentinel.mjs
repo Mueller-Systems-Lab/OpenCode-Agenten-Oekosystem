@@ -54,6 +54,11 @@ export const FRESH_INSTALL_ARTIFACTS = Object.freeze({
   routing_health_probe: '.agent-governance/runtime/routing/health-probe.mjs',
   routing_usage: '.agent-governance/runtime/routing/usage.mjs',
   routing_budget_governor: '.agent-governance/runtime/routing/budget-governor.mjs',
+  visual_browser_evidence: '.agent-governance/runtime/visual/browser-evidence.mjs',
+  visual_vision_reviewer: '.agent-governance/runtime/visual/vision-reviewer.mjs',
+  visual_finding: '.agent-governance/runtime/visual/visual-finding.mjs',
+  visual_gate: '.agent-governance/runtime/visual/visual-gate.mjs',
+  visual_qa: '.agent-governance/runtime/visual/visual-qa.mjs',
   plugin: '.agent-governance/hooks/opencode/canonical-governance.mjs',
 })
 

@@ -166,7 +166,7 @@ export function callMcpTool({
 
 function toolOperationHintFor(tool) {
   const name = String(tool || '').toLowerCase()
-  if (name.startsWith('read') || name.startsWith('list') || name.startsWith('get') || name.startsWith('search') || name.startsWith('browser_snapshot') || name.startsWith('browser_network') || name.startsWith('browser_console') || name.startsWith('browser_find') || name.startsWith('browser_wait') || name.startsWith('browser_take_screenshot')) return 'READ_ONLY'
+  if (name.startsWith('read') || name.startsWith('list') || name.startsWith('get') || name.startsWith('search') || name.startsWith('browser_snapshot') || name.startsWith('browser_network') || name.startsWith('browser_console') || name.startsWith('browser_find') || name.startsWith('browser_wait') || name.startsWith('browser_take_screenshot') || name.startsWith('browser_navigate') || name.startsWith('browser_resize')) return 'READ_ONLY' // browser_navigate/resize are harness viewport determinism, read-only
   if (name.startsWith('write') || name.startsWith('create') || name.startsWith('update') || name.startsWith('delete') || name.startsWith('browser_click') || name.startsWith('browser_type') || name.startsWith('browser_run_code') || name.startsWith('browser_file_upload') || name.startsWith('browser_press')) return 'MUTATING'
   return 'READ_ONLY' // fail-safe default: read-only unless clearly mutating
 }

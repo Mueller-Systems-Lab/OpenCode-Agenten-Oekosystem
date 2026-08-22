@@ -6,7 +6,7 @@
  * TASK → BASELINE → RESEARCH → PLAN → PLAN_GATE → BUILD → VERIFY → REVIEWS
  * → CONTROLLER. The first FAIL wins. Returns null when all boundaries pass.
  */
-export const RUN_BOUNDARIES = Object.freeze(['TASK', 'BASELINE', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'REVIEWS', 'CONTROLLER'])
+export const RUN_BOUNDARIES = Object.freeze(['TASK', 'BASELINE', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'VISUAL_QA', 'REVIEWS', 'CONTROLLER'])
 
 export function firstBadBoundary(boundaries = []) {
   if (!Array.isArray(boundaries)) return null

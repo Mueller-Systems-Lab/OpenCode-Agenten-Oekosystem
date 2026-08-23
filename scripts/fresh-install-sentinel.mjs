@@ -59,6 +59,9 @@ export const FRESH_INSTALL_ARTIFACTS = Object.freeze({
   visual_finding: '.agent-governance/runtime/visual/visual-finding.mjs',
   visual_gate: '.agent-governance/runtime/visual/visual-gate.mjs',
   visual_qa: '.agent-governance/runtime/visual/visual-qa.mjs',
+  visual_viewport_policy: '.agent-governance/runtime/visual/viewport-policy.mjs',
+  visual_severity_calibration: '.agent-governance/runtime/visual/severity-calibration.mjs',
+  visual_correlation: '.agent-governance/runtime/visual/cross-viewport-correlation.mjs',
   plugin: '.agent-governance/hooks/opencode/canonical-governance.mjs',
 })
 

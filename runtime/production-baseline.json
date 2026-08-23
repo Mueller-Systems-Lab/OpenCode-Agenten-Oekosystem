@@ -87,7 +87,17 @@
     "VISUAL_QA_SHARED_BUDGET_ENFORCED",
     "VISUAL_QA_PROMPT_INJECTION_UNTRUSTED",
     "VISUAL_QA_NO_SECRET_LEAK",
-    "VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE"
+    "VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE",
+    "VISUAL_VIEWPORT_MATRIX_BOUNDED",
+    "VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY",
+    "VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC",
+    "VISUAL_SEVERITY_RUNTIME_AUTHORITY",
+    "VISUAL_MODEL_SEVERITY_NOT_FINAL",
+    "VISUAL_CALIBRATED_SEVERITY_GATE",
+    "RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE",
+    "VISUAL_MATRIX_COST_POLICY_ENFORCED",
+    "VISUAL_MATRIX_SHARED_BUDGET_ENFORCED",
+    "VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK"
   ],
   "required_artifacts": [
     "runtime/run.mjs",
@@ -108,7 +118,10 @@
     "runtime/visual/vision-reviewer.mjs",
     "runtime/visual/visual-finding.mjs",
     "runtime/visual/visual-gate.mjs",
-    "runtime/visual/visual-qa.mjs"
+    "runtime/visual/visual-qa.mjs",
+    "runtime/visual/viewport-policy.mjs",
+    "runtime/visual/severity-calibration.mjs",
+    "runtime/visual/cross-viewport-correlation.mjs"
   ],
   "canonical_test_command": "npm test",
   "legacy_execution_status": "RETIRED",
@@ -117,7 +130,7 @@
     "runtime/agent/start.mjs",
     "scripts/run-completion-canary.mjs"
   ],
-  "baseline_fingerprint": "eae7c27d29c30fb2044988c08b49aa965095e68986a4c7156211499432b00470",
+  "baseline_fingerprint": "05656a7d2375627b78c7ced056c9f389f34e092919bad23251f9651c70bc1f3c",
   "milestone_history": [
     {
       "milestone": "GREEN_OCAE_RUNTIME_AVAILABILITY_COST_GOVERNANCE_OPERATIONAL",

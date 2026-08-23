@@ -10,10 +10,9 @@ import path from 'node:path'
 import crypto from 'node:crypto'
 import { createMcpSession, mcpSessionCall } from '../mcp/tool-executor.mjs'
 
-export const VIEWPORTS = Object.freeze({
-  desktop: Object.freeze({ width: 1280, height: 800 }),
-  mobile: Object.freeze({ width: 390, height: 844 }),
-})
+import { CANONICAL_VIEWPORTS } from './viewport-policy.mjs'
+
+export const VIEWPORTS = CANONICAL_VIEWPORTS
 
 function isValidUrl(url) {
   if (typeof url !== 'string' || url.trim().length === 0) return false

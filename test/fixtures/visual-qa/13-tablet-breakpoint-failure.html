@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>13 tablet breakpoint failure</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;background:#f7fafc;line-height:1.4}
+header{background:#1a202c;color:#fff;padding:14px 20px;font-size:16px}
+.layout{display:flex;gap:16px;padding:20px;max-width:900px;margin:0 auto}
+.col{flex:1;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px}
+.col h3{font-size:14px;margin-bottom:6px}.col p{font-size:13px;color:#555}
+.stage{display:flex;gap:12px;padding:20px;max-width:900px;margin:0 auto}
+.panel{flex:1;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px}
+@media(min-width:700px) and (max-width:900px){
+  .stage{position:relative;display:block;height:220px}
+  .panel{position:absolute;width:320px;height:140px}
+  .panel-a{left:20px;top:20px;background:#3182ce;color:#fff}
+  .panel-b{left:120px;top:60px;background:#ed8936;color:#fff;opacity:0.95}
+}
+.note{text-align:center;margin-top:10px;font-size:12px;color:#718096}.note b{color:#c53030}
+</style></head><body data-fixture="13-tablet-breakpoint-failure">
+<header>Tablet Breakpoint Failure — Case D (13)</header>
+<div class="stage">
+<div class="panel panel-a"><strong>Panel A</strong><p style="font-size:13px;margin-top:6px">Desktop/mobile: flex side-by-side clean.</p></div>
+<div class="panel panel-b"><strong>Panel B</strong><p style="font-size:13px;margin-top:6px">At 768 (700-900 range) panels become absolute and overlap — truncating content.</p><button style="margin-top:8px;padding:6px 10px;border:0;border-radius:4px;background:#fff;color:#ed8936;font-weight:600">Action</button></div>
+</div>
+<p class="note">Expected: mobile PASS / <b>tablet (768) FAIL</b> / desktop PASS — @media 700-900 overlap: RESPONSIVE_BREAKPOINT_FAILURE / LAYOUT_OVERLAP.</p>
+</body></html>

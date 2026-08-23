@@ -243,6 +243,9 @@ function validateSourceRepository(repoRoot) {
     "runtime/visual/visual-finding.mjs",
     "runtime/visual/visual-gate.mjs",
     "runtime/visual/visual-qa.mjs",
+    "runtime/visual/viewport-policy.mjs",
+    "runtime/visual/severity-calibration.mjs",
+    "runtime/visual/cross-viewport-correlation.mjs",
   ]
   const missing = []
   for (const rel of required) {
@@ -341,6 +344,9 @@ function getRuntimeFileList() {
     { source: "runtime/visual/visual-finding.mjs", dest: "visual/visual-finding.mjs" },
     { source: "runtime/visual/visual-gate.mjs", dest: "visual/visual-gate.mjs" },
     { source: "runtime/visual/visual-qa.mjs", dest: "visual/visual-qa.mjs" },
+    { source: "runtime/visual/viewport-policy.mjs", dest: "visual/viewport-policy.mjs" },
+    { source: "runtime/visual/severity-calibration.mjs", dest: "visual/severity-calibration.mjs" },
+    { source: "runtime/visual/cross-viewport-correlation.mjs", dest: "visual/cross-viewport-correlation.mjs" },
     // security/ — tool result egress gate (runtime-critical for MCP tool-executor)
     { source: "runtime/security/tool-result-egress-gate.mjs", dest: "security/tool-result-egress-gate.mjs" },
     // reviews/ — deterministic review analyzers

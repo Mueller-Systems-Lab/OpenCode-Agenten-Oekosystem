@@ -47,7 +47,10 @@
             "test/routing/runtime-integration.test.mjs",
             "test/routing/degraded-ranking.test.mjs",
             "test/routing/shared-budget.test.mjs",
-            "test/routing/shared-budget-integration.test.mjs"
+            "test/routing/shared-budget-integration.test.mjs",
+            "test/visual/visual-core.test.mjs",
+            "test/visual/visual-qa-integration.test.mjs",
+            "test/visual/visual-responsive.test.mjs"
         ],
         "contract": [
             "test/contracts/bootstrap-capability-contract.test.mjs",

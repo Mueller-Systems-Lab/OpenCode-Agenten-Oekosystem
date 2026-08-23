@@ -2,13 +2,15 @@
 /**
  * Deterministic Visual Gate — pure evaluation over visual findings.
  *
- * CONFIDENCE IS NEVER A SEVERITY INPUT (§43): confidence never influences
- * severity or the gate decision. Two findings identical except for confidence
- * produce identical outcomes and identical highest_severity.
+ * Vision model DETECTS and DESCRIBES. Runtime NORMALIZES and SCORES.
+ * calibrated_severity (deterministic) is authoritative for gate decisions;
+ * model severity is NOT final. Confidence never lowers severity (§38);
+ * confidence influences UNVERIFIED/review-required state, not severity (§38-39).
  *
  * Severity is ordinal (severityRank); the gate fails closed:
  *   - an unverified visual boundary is never a PASS (UNVERIFIED_VISUAL_BOUNDARY)
- *   - any blocking finding at rank >= HIGH blocks the gate
+ *   - low-confidence high-impact findings → UNVERIFIED (VISUAL_FINDING_REVIEW_REQUIRED)
+ *   - any blocking finding at rank >= HIGH blocks the gate (effectiveSeverity)
  *   - non-blocking findings still fail the gate (visible, not blocking-severe)
  */
 import { severityRank } from '../controller/severity.mjs'
@@ -20,10 +22,18 @@ export const VISUAL_GATE_OUTCOMES = Object.freeze([
   'UNVERIFIED',
 ])
 
+function effectiveSeverity(finding) {
+  if (finding && typeof finding.calibrated_severity === 'string' && finding.calibrated_severity.trim().length > 0) {
+    return finding.calibrated_severity
+  }
+  return finding?.severity
+}
+
 function highestSeverityOf(findings) {
   let best = 'INFO'
   for (const finding of findings) {
-    if (severityRank(finding.severity) > severityRank(best)) best = finding.severity
+    const sev = effectiveSeverity(finding)
+    if (severityRank(sev) > severityRank(best)) best = sev
   }
   return best
 }
@@ -39,9 +49,19 @@ export function evaluateVisualGate({ findings = [], unverified_reason = null } =
     }
   }
   const list = Array.isArray(findings) ? findings : []
-  // blockingHigh: explicitly blocking AND at least HIGH severity. Confidence
-  // is deliberately NOT consulted here (§43).
-  const blockingHigh = list.filter((finding) => finding && finding.blocking === true && severityRank(finding.severity) >= severityRank('HIGH'))
+  // Low-confidence review-required handling: confidence influences UNVERIFIED, not severity (§38-39)
+  const needsReview = list.some((finding) => finding && finding.review_required === true && severityRank(effectiveSeverity(finding)) >= severityRank('HIGH'))
+  if (needsReview) {
+    return {
+      outcome: 'UNVERIFIED',
+      gate_passed: false,
+      blocking_findings: [],
+      highest_severity: highestSeverityOf(list),
+      reason_code: 'VISUAL_FINDING_REVIEW_REQUIRED',
+    }
+  }
+  // blockingHigh: explicitly blocking AND at least HIGH effectiveSeverity.
+  const blockingHigh = list.filter((finding) => finding && finding.blocking === true && severityRank(effectiveSeverity(finding)) >= severityRank('HIGH'))
   if (blockingHigh.length > 0) {
     return {
       outcome: 'FINDINGS_BLOCKING',

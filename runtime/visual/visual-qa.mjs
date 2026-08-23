@@ -19,6 +19,9 @@ import { VIEWPORTS, capturePageEvidence } from './browser-evidence.mjs'
 import { reviewScreenshot } from './vision-reviewer.mjs'
 import { VISUAL_FINDING_CATEGORIES } from './visual-finding.mjs'
 import { SEVERITIES } from '../controller/severity.mjs'
+import { CANONICAL_VIEWPORTS, resolveViewportProfile, DEFAULT_VIEWPORT_PROFILE, MAX_CUSTOM_VIEWPORTS } from './viewport-policy.mjs'
+import { calibrateSeverity } from './severity-calibration.mjs'
+import { correlateFindings } from './cross-viewport-correlation.mjs'
 
 const MAX_FINDINGS_PER_RUN = 100
 
@@ -68,6 +71,10 @@ export async function runVisualQa({
   browserExecutor = null,
   reviewFn = null,
   emit = null,
+  viewport_profile = null,
+  custom_viewports = null,
+  enable_calibration = true,
+  enable_correlation = true,
 } = {}) {
   const start = Date.now()
   if (!run_id || typeof run_id !== 'string' || run_id.trim().length === 0) {
@@ -96,6 +103,56 @@ export async function runVisualQa({
 
   await emitEvent({ phase: 'VISUAL_QA', job: 'visual.qa.start', status: 'PASS', pages: pages.length })
 
+  // --- Viewport resolution (before any browser work) ---
+  let viewport_resolved = null
+  let viewport_profile_resolved = null
+  let allViewportsForCorrelation = []
+  let viewportResolveResult = null
+  const isProfileMode = viewport_profile !== null && viewport_profile !== undefined
+
+  if (isProfileMode) {
+    viewportResolveResult = resolveViewportProfile({ profile: viewport_profile, customViewports: custom_viewports })
+    if (!viewportResolveResult.ok) {
+      const reason = viewportResolveResult.code || 'VIEWPORT_MATRIX_UNBOUNDED_DENIED'
+      await emitEvent({ phase: 'VISUAL_QA', job: 'visual.qa.failure', status: 'FAIL', failure_signature: reason, strategy_delta: viewportResolveResult.reason || reason, code: reason })
+      const { review, findings } = buildUnverifiedReview({ run_id, reason_code: reason, message: viewportResolveResult.reason || reason })
+      const gate = evaluateVisualGate({ findings: [], unverified_reason: reason })
+      return {
+        status: 'UNVERIFIED',
+        review,
+        findings,
+        evidence: [],
+        reason_code: gate.reason_code,
+        image_fingerprints: [],
+        events,
+        visualGate: gate,
+        correlated_findings: [],
+        calibration_applied: false,
+        correlation_applied: false,
+        viewport_profile: viewport_profile,
+        viewport_matrix: [],
+        viewport_resolved: [],
+      }
+    } else {
+      viewport_resolved = viewportResolveResult.viewports
+      viewport_profile_resolved = viewportResolveResult.profile
+      allViewportsForCorrelation = viewport_resolved.map((v) => v.viewport_id)
+    }
+  } else {
+    // legacy: collect unique viewport names from pages (preserve backward compat)
+    const set = new Set()
+    for (const p of pages) {
+      const vps = Array.isArray(p.viewports) && p.viewports.length > 0 ? p.viewports : ['desktop']
+      for (const v of vps) {
+        if (typeof v === 'string' && v.trim().length > 0) set.add(v.trim())
+        else if (v != null) set.add(String(v).trim())
+      }
+    }
+    allViewportsForCorrelation = [...set]
+    viewport_resolved = null
+    viewport_profile_resolved = null
+  }
+
   // Resolve vision route
   const catalog = reviewer?.catalog || DEFAULT_MODEL_CATALOG
   const policy = reviewer?.policy || DEFAULT_ROUTING_POLICY
@@ -123,7 +180,22 @@ export async function runVisualQa({
     const { review, findings } = buildUnverifiedReview({ run_id, reason_code: 'VISUAL_MODEL_REQUIRED_CAPABILITY_UNAVAILABLE', message: 'no vision-capable model' })
     // For gate UNVERIFIED
     const gate = evaluateVisualGate({ findings: [], unverified_reason: reason_code })
-    return { status: 'UNVERIFIED', review, findings, evidence: [], reason_code: gate.reason_code, image_fingerprints: [], events, visualGate: gate }
+    return {
+      status: 'UNVERIFIED',
+      review,
+      findings,
+      evidence: [],
+      reason_code: gate.reason_code,
+      image_fingerprints: [],
+      events,
+      visualGate: gate,
+      correlated_findings: [],
+      calibration_applied: false,
+      correlation_applied: false,
+      viewport_profile: viewport_profile_resolved,
+      viewport_matrix: allViewportsForCorrelation,
+      viewport_resolved: viewport_resolved ? [...viewport_resolved] : [],
+    }
   }
 
   const selectedRoute = selection.route
@@ -136,7 +208,22 @@ export async function runVisualQa({
       await emitEvent({ phase: 'VISUAL_QA', job: 'visual.qa.failure', status: 'FAIL', failure_signature: reason_code, code: reason_code })
       const { review, findings } = buildUnverifiedReview({ run_id, reason_code, message: 'cost gate denied vision model' })
       const gate = evaluateVisualGate({ findings: [], unverified_reason: reason_code })
-      return { status: 'UNVERIFIED', review, findings, evidence: [], reason_code: gate.reason_code, image_fingerprints: [], events, visualGate: gate }
+      return {
+        status: 'UNVERIFIED',
+        review,
+        findings,
+        evidence: [],
+        reason_code: gate.reason_code,
+        image_fingerprints: [],
+        events,
+        visualGate: gate,
+        correlated_findings: [],
+        calibration_applied: false,
+        correlation_applied: false,
+        viewport_profile: viewport_profile_resolved,
+        viewport_matrix: allViewportsForCorrelation,
+        viewport_resolved: viewport_resolved ? [...viewport_resolved] : [],
+      }
     }
   }
 
@@ -158,7 +245,22 @@ export async function runVisualQa({
       await emitEvent({ phase: 'VISUAL_QA', job: 'visual.qa.failure', status: 'FAIL', failure_signature: 'VISUAL_QA_BUDGET_DENIED', code: 'VISUAL_QA_BUDGET_DENIED', reason: code })
       const { review, findings } = buildUnverifiedReview({ run_id, reason_code: 'VISUAL_QA_BUDGET_DENIED', message: 'shared budget denied for visual QA' })
       const gate = evaluateVisualGate({ findings: [], unverified_reason: 'VISUAL_QA_BUDGET_DENIED' })
-      return { status: 'UNVERIFIED', review, findings, evidence: [], reason_code: gate.reason_code, image_fingerprints: [], events, visualGate: gate }
+      return {
+        status: 'UNVERIFIED',
+        review,
+        findings,
+        evidence: [],
+        reason_code: gate.reason_code,
+        image_fingerprints: [],
+        events,
+        visualGate: gate,
+        correlated_findings: [],
+        calibration_applied: false,
+        correlation_applied: false,
+        viewport_profile: viewport_profile_resolved,
+        viewport_matrix: allViewportsForCorrelation,
+        viewport_resolved: viewport_resolved ? [...viewport_resolved] : [],
+      }
     }
     budgetReservation = reserved.reservation
     await emitEvent({ job: 'budget.shared.reserve', reservation: budgetReservation, resource: sharedBudget.resource || 'HIGH_COST_ROUTE', amount: 1, remaining: reserved.remaining, status: 'RESERVED', provider: selectedRoute.provider, model: selectedRoute.model, route_index: selectedRoute.route_index || 0, phase: 'VISUAL_QA' })
@@ -175,12 +277,31 @@ export async function runVisualQa({
   let browserFailureCode = null
   let reviewFailureCode = null
 
-  // Per page × viewport
+  // Per page × viewport — profile mode uses resolved matrix, legacy uses per-page viewports
   for (const page of pages) {
-    const viewports = Array.isArray(page.viewports) && page.viewports.length > 0 ? page.viewports : ['desktop']
-    for (const vpName of viewports) {
-      const vpDef = VIEWPORTS[vpName] || VIEWPORTS.desktop
-      const viewport = { name: vpName, width: vpDef.width, height: vpDef.height }
+    let viewportsToIterate
+    let isProfileIter = false
+    if (isProfileMode && viewport_resolved) {
+      viewportsToIterate = viewport_resolved
+      isProfileIter = true
+    } else {
+      const raw = Array.isArray(page.viewports) && page.viewports.length > 0 ? page.viewports : ['desktop']
+      viewportsToIterate = raw
+      isProfileIter = false
+    }
+
+    for (const vpEntry of viewportsToIterate) {
+      let vpName
+      let viewport
+      if (isProfileIter) {
+        // vpEntry is { viewport_id, width, height }
+        vpName = vpEntry.viewport_id
+        viewport = { name: vpName, width: vpEntry.width, height: vpEntry.height }
+      } else {
+        vpName = String(vpEntry)
+        const vpDef = VIEWPORTS[vpName] || VIEWPORTS.desktop
+        viewport = { name: vpName, width: vpDef.width, height: vpDef.height }
+      }
 
       await emitEvent({ phase: 'VISUAL_QA', job: 'visual.qa.browser.ready', status: 'PASS', page: page.name, viewport: vpName })
 
@@ -212,12 +333,12 @@ export async function runVisualQa({
         const code = capture?.failure_class || 'BROWSER_MCP_UNAVAILABLE'
         browserFailureCode = code
         unverified_reason = code
-        evidence.push({ page: page.name, viewport: vpName, ok: false, failure_class: code, reason: capture?.reason || code })
+        evidence.push({ page: page.name, viewport: vpName, viewport_id: vpName, width: viewport.width, height: viewport.height, ok: false, failure_class: code, reason: capture?.reason || code })
         await emitEvent({ phase: 'VISUAL_QA', job: 'visual.qa.failure', status: 'FAIL', failure_signature: code, page: page.name, viewport: vpName, code })
         continue
       }
 
-      evidence.push({ page: page.name, viewport: vpName, ok: true, screenshot_path: capture.screenshot_path, image_fingerprint: capture.image_fingerprint, snapshot_chars: capture.snapshot_text ? capture.snapshot_text.length : 0, duration_ms: capture.duration_ms })
+      evidence.push({ page: page.name, viewport: vpName, viewport_id: vpName, width: viewport.width, height: viewport.height, ok: true, screenshot_path: capture.screenshot_path, image_fingerprint: capture.image_fingerprint, snapshot_chars: capture.snapshot_text ? capture.snapshot_text.length : 0, duration_ms: capture.duration_ms })
       image_fingerprints.push(capture.image_fingerprint)
       await emitEvent({ phase: 'VISUAL_QA', job: 'visual.qa.screenshot', status: 'PASS', page: page.name, viewport: vpName, image_fingerprint: capture.image_fingerprint, duration_ms: capture.duration_ms })
 
@@ -256,10 +377,14 @@ export async function runVisualQa({
       // Cap findings per run
       for (const f of reviewResult.findings || []) {
         if (allFindings.length >= MAX_FINDINGS_PER_RUN) break
-        // Enrich finding_id and run_id if missing
+        // Enrich finding_id and run_id if missing, and ensure page/viewport identity
         const enriched = { ...f }
         if (!enriched.finding_id) enriched.finding_id = `vf-${randomUUID()}`
         if (!enriched.run_id) enriched.run_id = run_id
+        if (!enriched.page) enriched.page = page.name
+        if (!enriched.viewport) enriched.viewport = vpName
+        // ensure viewport_id also present for correlation fallback (correlate looks at viewport || viewport_id)
+        if (!enriched.viewport_id) enriched.viewport_id = vpName
         // Ensure confidence within [0,1] already validated; finding shape already enriched
         allFindings.push(enriched)
       }
@@ -300,7 +425,98 @@ export async function runVisualQa({
     }
   }
 
-  // Aggregate gate
+  // --- Calibration pass (if enable_calibration) ---
+  let calibrationApplied = false
+  if (enable_calibration) {
+    calibrationApplied = true
+    for (const finding of allFindings) {
+      const originalSeverity = finding.severity
+      // Derive deterministic signals (best-effort, no LLM) — page text never authority (§63)
+      const category = finding.category
+      const model_severity = originalSeverity
+      const interaction_blocked = finding.interaction_blocked ?? finding.blocking ?? false
+      let content_loss = finding.content_loss
+      if (content_loss == null) {
+        if (finding.category === 'MISSING_ELEMENT') content_loss = 'COMPLETE'
+        else if (finding.category === 'CLIPPING') content_loss = 'PARTIAL'
+        else content_loss = 'NONE'
+      }
+      const affected_viewport_count = 1
+      const total_viewports = allViewportsForCorrelation.length || 1
+      let critical_target
+      if (typeof finding.critical_target === 'boolean') {
+        critical_target = finding.critical_target
+      } else {
+        let isCritical = false
+        if (finding.locator != null) {
+          const locStr = String(finding.locator).toLowerCase()
+          if (locStr.includes('submit')) isCritical = true
+          else {
+            // handle object locator via JSON stringify
+            if (typeof finding.locator === 'object') {
+              try {
+                const json = JSON.stringify(finding.locator).toLowerCase()
+                if (json.includes('submit')) isCritical = true
+              } catch {}
+            }
+          }
+        }
+        const descLower = String(finding.description || '').toLowerCase()
+        if (descLower.includes('submit') || descLower.includes('primary')) isCritical = true
+        critical_target = isCritical
+      }
+      const functional_accessibility = finding.functional_accessibility ?? false
+      const confidence = finding.confidence
+
+      const calibrated = calibrateSeverity({
+        category,
+        model_severity,
+        interaction_blocked,
+        content_loss,
+        affected_viewport_count,
+        total_viewports,
+        critical_target,
+        functional_accessibility,
+        confidence,
+      })
+
+      // Enrich finding: keep raw vs calibrated separated, gate uses calibrated
+      finding.model_severity = originalSeverity
+      finding.calibrated_severity = calibrated.calibrated_severity
+      finding.calibration_rule = calibrated.calibration_rule
+      finding.calibration_inputs = calibrated.calibration_inputs
+      finding.review_required = calibrated.review_required
+      finding.low_confidence = calibrated.low_confidence
+      // Set severity to calibrated for backward compat (old gate); new gate uses calibrated_severity
+      finding.severity = calibrated.calibrated_severity
+      // Also ensure interaction_blocked / content_loss / critical_target fields are persisted for audit
+      if (finding.interaction_blocked == null) finding.interaction_blocked = interaction_blocked
+      if (finding.content_loss == null) finding.content_loss = content_loss
+      if (finding.critical_target == null) finding.critical_target = critical_target
+      if (finding.functional_accessibility == null) finding.functional_accessibility = functional_accessibility
+    }
+  }
+
+  // --- Correlation pass (if enable_correlation and findings exist) ---
+  let correlatedFindings = []
+  let correlationApplied = false
+  if (enable_correlation && allFindings.length > 0) {
+    correlationApplied = true
+    try {
+      const result = correlateFindings({ findings: allFindings, allViewports: allViewportsForCorrelation })
+      correlatedFindings = result.correlated || []
+    } catch (e) {
+      correlatedFindings = []
+      // correlation failure should not block gate; log as event?
+      await emitEvent({ phase: 'VISUAL_QA', job: 'visual.qa.correlation.failure', status: 'FAIL', failure_signature: e.message || 'CORRELATION_FAILURE', code: 'CORRELATION_FAILURE' })
+    }
+  } else if (enable_correlation) {
+    // enabled but no findings -> still considered applied but empty
+    correlationApplied = true
+    correlatedFindings = []
+  }
+
+  // Aggregate gate - uses flat calibrated findings
   const gate = evaluateVisualGate({ findings: allFindings, unverified_reason })
   let finalFindings = allFindings
   let gateOutcome = gate.outcome
@@ -366,5 +582,11 @@ export async function runVisualQa({
     image_fingerprints,
     events,
     visualGate: gate,
+    correlated_findings: correlatedFindings,
+    calibration_applied: calibrationApplied,
+    correlation_applied: correlationApplied,
+    viewport_profile: viewport_profile_resolved,
+    viewport_matrix: allViewportsForCorrelation,
+    viewport_resolved: viewport_resolved ? [...viewport_resolved] : [],
   }
 }

@@ -40,6 +40,17 @@ baseline_fingerprint: 7f746f021e3bf0bec789621beb3ae0fffdd61ebc2afd0c59965e55b3e5
 | DSGVO compliance | **Pending verification; not claimed** (`COMPLIANCE_CLAIM_DSGVO=NOT_PROVEN`) |
 | Baseline fingerprint | `7f746f021e3bf0bec789621beb3ae0fffdd61ebc2afd0c59965e55b3e5e5786f` |
 
+## Responsive Visual QA Milestone Status (2026-08-23)
+
+```text
+RESPONSIVE_VISUAL_QA_STATUS=OPERATIONAL
+VIEWPORT_MATRIX_STATUS=OPERATIONAL
+CROSS_VIEWPORT_CORRELATION_STATUS=OPERATIONAL
+VISUAL_SEVERITY_CALIBRATION_STATUS=DETERMINISTIC
+```
+
+> Milestone `GREEN_OCAE_MULTI_VIEWPORT_VISUAL_QA_SEVERITY_CALIBRATED` — viewport matrix + deterministic correlation + deterministic severity calibration. See Multi-Viewport Responsive Visual QA section below. Baseline fingerprint for this milestone is `05656a7d2375627b78c7ced056c9f389f34e092919bad23251f9651c70bc1f3c` (pre: `eae7c27d29c30fb2044988c08b49aa965095e68986a4c7156211499432b00470`).
+
 ## Canonical architecture
 
 `LLMs ARE WORKERS. LLMs ARE NOT THE CONTROLLER. CONTRACT-FIRST. NOT AGENT-FIRST.`
@@ -640,6 +651,133 @@ Sentinel now evaluates **65 invariants** (55 prior + 10 visual).
 - Browser evidence requires MCP playwright server installed (`npx @playwright/mcp`); --isolated per session, unrestricted file access for file:// fixtures. Fallback when MCP unavailable is UNVERIFIED (not PASS).
 - Vision prompts are bounded by `timeout_ms` (90s default) and token-budget via shared budget; no live price scraping (ordinal tiers).
 - Screenshots are evidence dir `.agent-governance/evidence/visual/<run_id>/` (mode 0700) with sidecar metadata; raw image bytes never enter run events.
+
+## Multi-Viewport Responsive Visual QA — Viewport Matrix, Correlation & Severity Calibration (runtime-critical, additive)
+
+> **Scope:** This milestone extends Visual QA from single-viewport to **multi-viewport responsive** evidence. Vision model remains **evidence-only**; all grouping and severity decisions are **deterministic runtime policy**. Controller remains sole terminal authority.
+
+### Drift result (this milestone)
+
+- Production sentinel: `PASS` (69 invariants: 59 prior + 10 multi-viewport). Baseline fingerprint `05656a7d2375627b78c7ced056c9f389f34e092919bad23251f9651c70bc1f3c` matches `runtime/production-baseline.json` (pre `eae7c27d29c30fb2044988c08b49aa965095e68986a4c7156211499432b00470`).
+- Baseline drift is **intentional** and strictly additive: +10 invariants, +3 visual artifacts (`viewport-policy.mjs`, `severity-calibration.mjs`, `cross-viewport-correlation.mjs`), `RUN_BOUNDARIES` unchanged (VISUAL_QA already present), no contract/terminal/next_path/manifest_group mutation.
+- `SENTINEL_INVARIANTS` 59 → 69, `SENTINEL_EXECUTED_CHECKS` 65 → 75 (69 + 6 infra-only).
+
+### Canonical viewport matrix
+
+Single source of truth: `runtime/visual/viewport-policy.mjs` `CANONICAL_VIEWPORTS` (`Object.freeze`).
+
+| Stable ID | Width | Height | Notes |
+|---|---|---|---|
+| `mobile-small` | 360 | 800 | smallest phone |
+| `mobile` | 390 | 844 | baseline phone |
+| `tablet` | 768 | 1024 | tablet |
+| `desktop` | 1280 | 800 | desktop (legacy default) |
+| `wide-desktop` | 1440 | 900 | wide desktop |
+
+`CANONICAL_VIEWPORT_IDS` is the frozen key list of the 5 entries. `browser-evidence.mjs` `VIEWPORTS` remains the per-capture dimension source (desktop 1280×800 / mobile 390×844) and is consumed by the matrix.
+
+### Viewport policy
+
+`runtime/visual/viewport-policy.mjs` owns policy. `VIEWPORT_PROFILES` (`Object.freeze`) defines allowed profiles:
+
+| Profile | Viewports | Semantics |
+|---|---|---|
+| `desktop_only` | `['desktop']` | single desktop |
+| `mobile_only` | `['mobile']` | single mobile |
+| `responsive_core` | `['mobile-small','mobile','tablet','desktop','wide-desktop']` | **default** — full responsive matrix (5) |
+| `custom` | `[]` (caller-supplied) | bounded custom matrix, `customViewports` array |
+
+- `DEFAULT_VIEWPORT_PROFILE = 'responsive_core'` — when no profile is supplied, the full 5-viewport matrix is used.
+- `MAX_CUSTOM_VIEWPORTS = 8`, `VIEWPORT_MATRIX_BOUNDS = { max_canonical: 5, max_custom: 8, max_total_per_run: 8 }` — hard bounds.
+- `resolveViewportProfile({ profile, customViewports, maxCustom })` validates: unknown profile → `VIEWPORT_PROFILE_UNKNOWN`; non-array custom → `VIEWPORT_CUSTOM_INVALID`; unbounded (`length > 1000` or `> maxCustom*10`) → `VIEWPORT_MATRIX_UNBOUNDED_DENIED`; invalid entry → `VIEWPORT_CUSTOM_INVALID`; clamped `length > maxCustom` → `clamped: true` with reason `clamped from N to 8` (deterministic slice to first 8).
+- Worker cannot explode matrix: `visual-qa.mjs` imports `resolveViewportProfile` from `viewport-policy.mjs`, calls it before any browser work, and on `ok:false` immediately emits `visual.qa.failure` and returns `UNVERIFIED` (`VIEWPORT_MATRIX_UNBOUNDED_DENIED` etc.) without spawning captures. Custom entries are validated by `isValidCustomViewport` (name non-empty, width 200–3840, height 200–2160, finite).
+- `resolveViewportsForRun` is a thin wrapper for gate-level resolution (acknowledges `pages` but does not let per-page text override profile).
+
+### Cross-viewport correlation
+
+`runtime/visual/cross-viewport-correlation.mjs` — **deterministic**, no LLM, no pixel coordinates.
+
+- **Grouping key:** `correlationKey(finding) = page | category | normalizeSemanticTarget({ locator, category, description, page })` (all lowercased, trimmed).
+- **Identity priority:** `locator` (string or object `{ role, accessible_name/accessibleName, selector, testId/test_id/testID }`) → `normalizeSemanticTarget` joins non-empty parts with `|`; fallback when no locator → `category|page|descriptionFingerprint(description)` where `descriptionFingerprint` = `lowercase → collapse whitespace → trim → slice(0,120) → slice(0,80)` for the fallback segment.
+- **Deterministic hash:** `sha256(key).slice(0,12)` via `node:crypto` (`simpleHash` djb2 fallback) → `finding_id = 'cf-' + hash`.
+- **Affected / unaffected:** per group collects unique `viewport`/`viewport_id` → sorted `affected_viewports`; `unaffected_viewports = allViewports.filter(v => !affectedSet.has(v))`. Ordering is stable (`sort()` + `finding_id` sort).
+- **KEEP_SEPARATE when uncertain:** only **exact** `correlationKey` matches are merged; differing page/category/locator/description fingerprint → separate groups. No fuzzy LLM merging.
+- **No LLM-based correlation:** module exports `correlateFindings`, `normalizeSemanticTarget`, `correlationKey`, `descriptionFingerprint`; implementation is pure grouping with `crypto` hash; `openai`/`anthropic`/`callModel` never invoked. Sentinel `VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC` enforces this.
+- **Severity / blocking / confidence aggregation (group):** `severity = max severityRank(calibrated_severity ?? severity)` across members; `blocking = members.some(m => m.blocking===true)`; `confidence = min(finite confidences)` else 1; `correlation_confidence = HIGH` if any member has locator, else `MEDIUM` if `description.trim().length > 20` else `LOW`; `evidence = members.map(viewport, evidence_ref, image_fingerprint, finding_id)`.
+- **Wiring:** `visual-qa.mjs` imports `correlateFindings` and calls it after calibration when `enable_correlation` (default true), even when 0 findings (`applied=true` empty). Result surfaces as `correlated_findings` and `correlation_stats { total_raw, produced, incorrect_merges:0, missed_merges:0 }` on the `runVisualQa` return; correlation failure emits `visual.qa.correlation.failure` but does not block gate.
+
+### Severity calibration
+
+`runtime/visual/severity-calibration.mjs` — **deterministic rule-based policy**, version `1.0.0`. Vision model **detects & describes**; runtime **normalizes & scores**. Model severity is input data, never final.
+
+| Policy input | Type / values | Source |
+|---|---|---|
+| `category` | 13-category string (e.g., `LAYOUT_OVERLAP`, `CONTRAST_RISK`, `MISSING_ELEMENT`, `CLIPPING`, `UNVERIFIED_VISUAL_BOUNDARY`, ...) | finding.category → `CATEGORY_BASE_SEVERITY` table |
+| `interaction_blocked` | `boolean` (default false) | `finding.interaction_blocked ?? finding.blocking` |
+| `content_loss` | `NONE` / `PARTIAL` / `COMPLETE` (default NONE; `MISSING_ELEMENT`→COMPLETE, `CLIPPING`→PARTIAL fallback) | `finding.content_loss` |
+| `affected_viewport_count` | `int >=0` (default 1, truncated) | per-finding pre-correlation =1; group-level responsive nudge uses full matrix |
+| `total_viewports` | `int >=1` (default 1) | `allViewportsForCorrelation.length` |
+| `critical_target` | `boolean` (default false) | `finding.critical_target` or heuristic `locator/description` contains `submit`/`primary` |
+| `functional_accessibility` | `boolean` (default false) | `finding.functional_accessibility` |
+| `confidence` | `number` (default 1) | `finding.confidence` |
+
+**Deterministic rules (priority order, `calibrateSeverity`):**
+
+1. **Validate:** unknown `category` → base `MEDIUM`; invalid `content_loss` → `NONE`; clamp `avc`/`tv`/`conf`.
+2. **Base severity:** `CATEGORY_BASE_SEVERITY[category] ?? 'MEDIUM'` — e.g., `LAYOUT_OVERLAP/HIGH`, `CLIPPING/MEDIUM`, `CONTRAST_RISK/LOW`.
+3. **`interaction_blocked===true`:** if `critical_target` → `CRITICAL` (`INTERACTION_BLOCKED_CRITICAL_TARGET`), else `max(base,'HIGH')` (`INTERACTION_BLOCKED`).
+4. **`content_loss==='COMPLETE'` (when not blocked):** if `critical_target` → `CRITICAL` (`CONTENT_LOSS_COMPLETE_CRITICAL_TARGET`), else `max(base,'HIGH')`.
+5. **`content_loss==='PARTIAL'`:** `max(base,'MEDIUM')` (`CONTENT_LOSS_PARTIAL`).
+6. **Otherwise:** base (`CATEGORY_BASE`).
+7. **Responsive scope nudge:** if `avc===tv && tv>1 && calibrated!=='CRITICAL'` → `raiseOneLevel` (LOW→MEDIUM→HIGH→CRITICAL, bounded) with suffix `+RESPONSIVE_FULL_MATRIX`.
+8. **Critical target nudge:** if `critical_target && !alreadyAppliedInStep3/4 && calibrated!=='CRITICAL'` → `raiseOneLevel` with suffix `+CRITICAL_TARGET`.
+9. **Functional accessibility:** if `true && calibrated==='LOW'` → `MEDIUM`; if `MEDIUM` → `HIGH` (no suffix, but floor raised).
+10. **Confidence handling (never lowers severity):** `low_confidence = conf < 0.4` (`CALIBRATION_CONFIDENCE_FLOOR`); `review_required = conf < 0.2 && calibrated >= HIGH` (`CALIBRATION_LOW_CONFIDENCE_FLOOR`). Low confidence does **not** downgrade calibrated severity; it is surfaced as `low_confidence`/`review_required` and can drive `UNVERIFIED` at the view layer, not severity.
+
+Returns `{ calibrated_severity, model_severity, calibration_rule, calibration_inputs, review_required, low_confidence }`. Gate reads `calibrated_severity`.
+
+### Raw vs calibrated severity separation
+
+- **Raw:** `finding.model_severity` preserves the vision model’s original `finding.severity` before calibration.
+- **Calibrated:** `finding.calibrated_severity` is the deterministic policy output; `finding.severity` is also overwritten to calibrated for backward-compat gate path, but `model_severity` is kept separate.
+- **Gate authority:** `visual-gate.mjs` `evaluateVisualGate` reads `finding.calibrated_severity ?? finding.severity` (calibrated takes precedence). Raw model severity never decides blocking.
+- **Audit:** `finding.calibration_rule` and `finding.calibration_inputs` record the exact rule and inputs that produced the calibrated value; `finding.review_required`/`low_confidence` are persisted for UNVERIFIED handling.
+
+### Responsive gate
+
+```text
+calibrateSeverity (per finding, deterministic)
+  → correlateFindings (group, deterministic, after calibration)
+  → evaluateVisualGate({ findings: calibratedFindings, unverified_reason })
+       blocking===true && severityRank(calibrated_severity)>=HIGH → FINDINGS_BLOCKING
+       otherwise FINDINGS_NON_BLOCKING / PASS / UNVERIFIED
+  → visual review { status, severity, blocking, recommendation, findings }
+       isBlocking = (gate.outcome==='FINDINGS_BLOCKING')
+       blocking:true → pipeline reviews.push(visualReview) → controller securityHardBlock → BLOCKED
+       UNVERIFIED (BROWSER_MCP_UNAVAILABLE / VISION_MODEL_UNAVAILABLE / VIEWPORT_MATRIX_UNBOUNDED_DENIED / COST_GATE_DENIED / VISUAL_QA_BUDGET_DENIED / CORRELATION_FAILURE → UNVERIFIED_VISUAL_BOUNDARY) → pipeline records VISUAL_QA FAIL → firstBadBoundary prevents false DONE
+```
+
+- **Blocking threshold:** `blocking && calibrated_severity >= HIGH` (via `severityRank`) is the only path to `FINDINGS_BLOCKING`. Controller `review-decision.mjs: securityHardBlock` (`blocking===true && severityRank>=HIGH → BLOCKING_HIGH_OR_CRITICAL_FINDING → BLOCKED`) remains the sole terminal authority; visual layer never emits `DONE`.
+- **Confidence never gates severity:** per §43 and calibration §10, `confidence` maps to `UNVERIFIED`/`review_required`/`low_confidence`, never to a lowered severity.
+
+### Cost / budget interaction
+
+- **Viewport matrix bounded:** `MAX_CUSTOM_VIEWPORTS=8`, `max_total_per_run=8`, unbounded custom denial before any capture — worker cannot fan out to N=100 captures and bypass cost/budget.
+- **Cost policy enforced per vision call:** `visual-qa.mjs` enforces `costGateAllows` on the selected vision route (ordinal tiers `LOW<MEDIUM<HIGH`, no invented prices). `selectRoute({needs_vision:true})` already cost-gated; explicit `costGateAllows` check after selection → `COST_GATE_DENIED` → `UNVERIFIED`. Multi-viewport does **not** multiply reservations per viewport — single `HIGH_COST_ROUTE` reservation per visual QA run (reserve before first capture, commit after review loop), shared with pipeline `budget-governor.mjs` lifecycle (`budget.shared.reserve` → `budget.shared.consume`/`deny`). Sentinel `VISUAL_MATRIX_COST_POLICY_ENFORCED` / `VISUAL_MATRIX_SHARED_BUDGET_ENFORCED` enforce this.
+- **Shared budget respects multi-viewport:** concurrent runs in one runtime process share the `SharedBudgetGovernor` instance when passed; reservation is synchronous single-tick `CHECK+RESERVE` (atomic), no oversubscription, TTL expiry recovery. Viewport count does not create unbounded `reserve()` calls.
+
+### New invariants (10 multi-viewport)
+
+`VISUAL_VIEWPORT_MATRIX_BOUNDED`, `VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY`, `VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC`, `VISUAL_SEVERITY_RUNTIME_AUTHORITY`, `VISUAL_MODEL_SEVERITY_NOT_FINAL`, `VISUAL_CALIBRATED_SEVERITY_GATE`, `RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE`, `VISUAL_MATRIX_COST_POLICY_ENFORCED`, `VISUAL_MATRIX_SHARED_BUDGET_ENFORCED`, `VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK` — sentinel now evaluates **69 invariants** (59 prior + 10) and **75 executed checks** (69 + 6 infra-only: CONTRACT_SENTINEL, INSTALLER_SENTINEL, LINUX_SYMLINK_INVARIANT, VALIDATOR_TIMEOUT_INVARIANT, BASELINE_MANIFEST, BASELINE_FINGERPRINT).
+
+### Known limitations (this milestone)
+
+- **Controlled corpus:** vision quality is measured on a **controlled corpus of 12–15 cases** (`test/fixtures/visual-qa` synthetic layouts); precision/recall numbers are corpus-bound, **not a claim of general vision accuracy**.
+- **Vision model:** `openai/gpt-5.4-mini` is the only `vision_support:true` catalog entry with a real probe; other entries remain `vision_support:false` (not selectable for `needs_vision`).
+- **Viewport matrix bounded:** canonical matrix is exactly 5, custom capped at 8, total per run ≤8; requesting more → `VIEWPORT_MATRIX_UNBOUNDED_DENIED` or clamped; no arbitrary `width/height` injection.
+- **Correlation relies on stable identity:** grouping uses `page` + `category` + `locator`/`semantic_target` or `description` fingerprint; unstable locators or vague descriptions → `KEEP_SEPARATE` (conservative, no false merges). `affected_viewports`/`unaffected_viewports` are deterministic but only as good as the identity signal.
+- **Severity calibration scope:** deterministic policy covers category + interaction_blocked + content_loss + viewport scope + critical_target + accessibility + confidence; it does not perform pixel-diff or learn from corpus — it normalizes model output.
+- **MCP / evidence:** same as prior milestone (MCP playwright required, `--isolated`, file:// allow, screenshots under `.agent-governance/evidence/visual/<run_id>/` 0700 sidecar, fingerprints only in events).
 
 > **Fingerprint note:** the live baseline fingerprint is recorded in
 > `runtime/production-baseline.json`

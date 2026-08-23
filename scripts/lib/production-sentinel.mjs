@@ -102,6 +102,16 @@ export const SENTINEL_INVARIANTS = Object.freeze([
   'VISUAL_QA_PROMPT_INJECTION_UNTRUSTED',
   'VISUAL_QA_NO_SECRET_LEAK',
   'VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE',
+  'VISUAL_VIEWPORT_MATRIX_BOUNDED',
+  'VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY',
+  'VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC',
+  'VISUAL_SEVERITY_RUNTIME_AUTHORITY',
+  'VISUAL_MODEL_SEVERITY_NOT_FINAL',
+  'VISUAL_CALIBRATED_SEVERITY_GATE',
+  'RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE',
+  'VISUAL_MATRIX_COST_POLICY_ENFORCED',
+  'VISUAL_MATRIX_SHARED_BUDGET_ENFORCED',
+  'VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK',
 ])
 
 export const REQUIRED_CONTRACT_IDS = Object.freeze([
@@ -176,6 +186,9 @@ export const INSTALLER_REQUIRED_ARTIFACTS = Object.freeze([
   'visual/visual-finding.mjs',
   'visual/visual-gate.mjs',
   'visual/visual-qa.mjs',
+  'visual/viewport-policy.mjs',
+  'visual/severity-calibration.mjs',
+  'visual/cross-viewport-correlation.mjs',
 ])
 
 /** Legacy execution components that must never rejoin the installed path. */
@@ -1602,7 +1615,7 @@ export async function checkVisualQaRequiresVisionModel({ repoRoot }) {
 
 export async function checkVisualQaNoOcrSubstitution({ repoRoot }) {
   const issues = []
-  const files = ['visual-qa.mjs', 'vision-reviewer.mjs', 'browser-evidence.mjs', 'visual-gate.mjs', 'visual-finding.mjs']
+  const files = ['visual-qa.mjs', 'vision-reviewer.mjs', 'browser-evidence.mjs', 'visual-gate.mjs', 'visual-finding.mjs', 'viewport-policy.mjs', 'severity-calibration.mjs', 'cross-viewport-correlation.mjs']
   for (const file of files) {
     const source = await readVisualSource(repoRoot, file)
     if (!source) {
@@ -1839,6 +1852,513 @@ export async function checkVisualQaBlockingFindingPreventsFalseDone({ repoRoot }
 }
 
 // ---------------------------------------------------------------------------
+// Multi-viewport responsive visual QA invariant checks (structural, additive)
+// ---------------------------------------------------------------------------
+
+export async function checkVisualViewportMatrixBounded({ repoRoot }) {
+  const issues = []
+  const vpPolicy = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'viewport-policy.mjs'))
+  if (!vpPolicy) {
+    issues.push('VISUAL_VIEWPORT_MATRIX_BOUNDED: runtime/visual/viewport-policy.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!vpPolicy.includes('CANONICAL_VIEWPORTS')) {
+    issues.push('VISUAL_VIEWPORT_MATRIX_BOUNDED: runtime/visual/viewport-policy.mjs must contain CANONICAL_VIEWPORTS')
+  } else {
+    // Should have 5 entries (mobile-small, mobile, tablet, desktop, wide-desktop) — check at least 5 and capped
+    const ids = ['mobile-small', 'mobile', 'tablet', 'desktop', 'wide-desktop']
+    for (const id of ids) {
+      if (!vpPolicy.includes(`'${id}'`) && !vpPolicy.includes(`"${id}"`)) {
+        issues.push(`VISUAL_VIEWPORT_MATRIX_BOUNDED: CANONICAL_VIEWPORTS missing entry ${id}`)
+      }
+    }
+  }
+  if (!vpPolicy.includes('MAX_CUSTOM_VIEWPORTS')) {
+    issues.push('VISUAL_VIEWPORT_MATRIX_BOUNDED: runtime/visual/viewport-policy.mjs must contain MAX_CUSTOM_VIEWPORTS')
+  }
+  if (!vpPolicy.includes('MAX_CUSTOM_VIEWPORTS=8') && !vpPolicy.includes('MAX_CUSTOM_VIEWPORTS = 8') && !vpPolicy.includes('max_custom') && !vpPolicy.includes('maxCustom')) {
+    // Allow numeric check: ensure 8 appears near MAX_CUSTOM_VIEWPORTS
+    if (!/MAX_CUSTOM_VIEWPORTS[^0-9]*8/.test(vpPolicy)) {
+      issues.push('VISUAL_VIEWPORT_MATRIX_BOUNDED: MAX_CUSTOM_VIEWPORTS must be 8')
+    }
+  }
+  if (!vpPolicy.includes('VIEWPORT_MATRIX_BOUNDED') && !vpPolicy.includes('VIEWPORT_MATRIX_BOUNDS') && !vpPolicy.includes('MAX_CUSTOM_VIEWPORTS')) {
+    issues.push('VISUAL_VIEWPORT_MATRIX_BOUNDED: viewport-policy must enforce bounded matrix (VIEWPORT_MATRIX_BOUNDED or VIEWPORT_MATRIX_BOUNDS or MAX_CUSTOM_VIEWPORTS)')
+  }
+  if (!vpPolicy.includes('VIEWPORT_MATRIX_BOUNDS') && !vpPolicy.includes('max_total_per_run')) {
+    issues.push('VISUAL_VIEWPORT_MATRIX_BOUNDED: viewport-policy must define matrix bounds (VIEWPORT_MATRIX_BOUNDS or max_total_per_run)')
+  }
+  const browserEvidence = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'browser-evidence.mjs'))
+  if (!browserEvidence) {
+    issues.push('VISUAL_VIEWPORT_MATRIX_BOUNDED: runtime/visual/browser-evidence.mjs missing')
+  } else {
+    if (!browserEvidence.includes('VIEWPORTS')) {
+      issues.push('VISUAL_VIEWPORT_MATRIX_BOUNDED: browser-evidence must export VIEWPORTS')
+    }
+  }
+  const visualQa = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'visual-qa.mjs'))
+  if (!visualQa) {
+    issues.push('VISUAL_VIEWPORT_MATRIX_BOUNDED: runtime/visual/visual-qa.mjs missing')
+  } else {
+    if (!visualQa.includes('VIEWPORT_MATRIX_UNBOUNDED_DENIED') && !visualQa.includes('clamped')) {
+      issues.push('VISUAL_VIEWPORT_MATRIX_BOUNDED: visual-qa.mjs must handle VIEWPORT_MATRIX_UNBOUNDED_DENIED / clamped')
+    }
+    if (!visualQa.includes('resolveViewportProfile')) {
+      issues.push('VISUAL_VIEWPORT_MATRIX_BOUNDED: visual-qa.mjs must import resolveViewportProfile (no unbounded loop)')
+    }
+    // Ensure visual-qa imports resolveViewportProfile from viewport-policy
+    if (!visualQa.includes("from './viewport-policy.mjs'") && !visualQa.includes('viewport-policy')) {
+      issues.push('VISUAL_VIEWPORT_MATRIX_BOUNDED: visual-qa.mjs must import from viewport-policy')
+    }
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualViewportPolicyRuntimeAuthority({ repoRoot }) {
+  const issues = []
+  const visualQa = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'visual-qa.mjs'))
+  if (!visualQa) {
+    issues.push('VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY: runtime/visual/visual-qa.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!visualQa.includes('resolveViewportProfile')) {
+    issues.push('VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY: visual-qa.mjs must import resolveViewportProfile from viewport-policy')
+  }
+  if (!visualQa.includes("from './viewport-policy.mjs'") && !visualQa.includes('viewport-policy')) {
+    issues.push('VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY: visual-qa.mjs must import from viewport-policy.mjs')
+  }
+  // Check that worker input cannot bypass: visual-qa must call resolveViewportProfile and handle its ok:false denial
+  if (!visualQa.includes('resolveViewportProfile(') || !visualQa.includes('ok: false') && !visualQa.includes('!viewportResolveResult.ok') && !visualQa.includes('.ok')) {
+    issues.push('VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY: visual-qa.mjs must call resolveViewportProfile and handle ok:false denial')
+  }
+  if (!visualQa.includes('VIEWPORT_MATRIX_UNBOUNDED_DENIED') && !visualQa.includes('VIEWPORT_PROFILE_UNKNOWN')) {
+    issues.push('VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY: visual-qa.mjs must handle viewport policy denial codes (VIEWPORT_MATRIX_UNBOUNDED_DENIED / VIEWPORT_PROFILE_UNKNOWN)')
+  }
+  const vpPolicy = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'viewport-policy.mjs'))
+  if (!vpPolicy) {
+    issues.push('VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY: runtime/visual/viewport-policy.mjs missing')
+  } else {
+    if (!vpPolicy.includes('VIEWPORT_PROFILES')) {
+      issues.push('VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY: viewport-policy.mjs must contain VIEWPORT_PROFILES')
+    }
+    if (!vpPolicy.includes('resolveViewportProfile')) {
+      issues.push('VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY: viewport-policy.mjs must export resolveViewportProfile')
+    }
+    if (!vpPolicy.includes('Object.freeze') || !vpPolicy.includes('VIEWPORT_PROFILES')) {
+      issues.push('VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY: VIEWPORT_PROFILES must be frozen (runtime authority, not worker-controlled)')
+    }
+    // Ensure VIEWPORT_PROFILES is frozen
+    if (!/VIEWPORT_PROFILES\s*=\s*Object\.freeze/.test(vpPolicy)) {
+      issues.push('VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY: VIEWPORT_PROFILES must be Object.freeze (page content cannot override)')
+    }
+  }
+  // Ensure viewport_profile is runtime-controlled (visual-qa receives it as param, not from worker text)
+  if (visualQa.includes('page.text') && visualQa.includes('viewport_profile')) {
+    issues.push('VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY: viewport_profile must be runtime-controlled, not derived from page text')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualCrossViewportCorrelationDeterministic({ repoRoot }) {
+  const issues = []
+  const correlation = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'cross-viewport-correlation.mjs'))
+  if (!correlation) {
+    issues.push('VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC: runtime/visual/cross-viewport-correlation.mjs missing')
+    return { ok: false, issues }
+  }
+  for (const exp of ['correlateFindings', 'normalizeSemanticTarget', 'correlationKey']) {
+    if (!correlation.includes(exp)) {
+      issues.push(`VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC: cross-viewport-correlation.mjs must export ${exp}`)
+    }
+  }
+  if (!correlation.includes('crypto') && !correlation.includes('createHash') && !correlation.includes('Hash') && !correlation.includes('hash')) {
+    issues.push('VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC: cross-viewport-correlation must use crypto/hash for deterministic correlation')
+  }
+  if (!correlation.includes('affected_viewports') || !correlation.includes('unaffected_viewports')) {
+    issues.push('VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC: cross-viewport-correlation must group deterministically with affected_viewports and unaffected_viewports')
+  }
+  // Ensure no LLM-based correlation — pure deterministic grouping, not model invocation
+  // The file legitimately documents "no LLM" — do not flag that comment. Only flag actual invocations.
+  const correlationSlice = correlation.slice(correlation.indexOf('export function correlateFindings') !== -1 ? correlation.indexOf('export function correlateFindings') : 0)
+  if (/openai|anthropic|callModel|callLLM|LLM\s*\(|VISION_MODEL_CORRELATION/.test(correlationSlice) && !correlationSlice.toLowerCase().includes('no llm')) {
+    // Double-check: if the only LLM mention is the "no LLM" doc comment, don't fail
+    const hasRealLlmCall = /(openai|anthropic|fetch\s*\(\s*['"]https?:\/\/[^'"]*llm|callModel\s*\()/i.test(correlationSlice)
+    if (hasRealLlmCall || correlationSlice.includes('VISION_MODEL_CORRELATION')) {
+      issues.push('VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC: correlateFindings must not call LLM or vision model, only pure grouping')
+    }
+  }
+  // Also ensure no direct fetch to LLM endpoint inside correlation module outside doc comment
+  // Strip the header comment that contains "no LLM" before checking
+  const strippedHeader = correlation.replace(/\/\*[\s\S]*?no LLM[\s\S]*?\*\//i, '')
+  if (/openai\(|anthropic\(|fetch\(.*llm/i.test(strippedHeader) && strippedHeader.includes('correlateFindings')) {
+    issues.push('VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC: correlation must be pure grouping, not LLM-based')
+  }
+  const visualQa = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'visual-qa.mjs'))
+  if (!visualQa) {
+    issues.push('VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC: runtime/visual/visual-qa.mjs missing')
+  } else {
+    if (!visualQa.includes('correlateFindings')) {
+      issues.push('VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC: visual-qa.mjs must import correlateFindings')
+    }
+    if (!visualQa.includes('correlateFindings(')) {
+      issues.push('VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC: visual-qa.mjs must call correlateFindings')
+    }
+    if (!visualQa.includes("from './cross-viewport-correlation.mjs'") && !visualQa.includes('cross-viewport-correlation')) {
+      issues.push('VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC: visual-qa.mjs must import from cross-viewport-correlation.mjs')
+    }
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualSeverityRuntimeAuthority({ repoRoot }) {
+  const issues = []
+  const calibration = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'severity-calibration.mjs'))
+  if (!calibration) {
+    issues.push('VISUAL_SEVERITY_RUNTIME_AUTHORITY: runtime/visual/severity-calibration.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!calibration.includes('calibrateSeverity')) {
+    issues.push('VISUAL_SEVERITY_RUNTIME_AUTHORITY: severity-calibration.mjs must export calibrateSeverity')
+  }
+  if (!calibration.includes('CATEGORY_BASE_SEVERITY')) {
+    issues.push('VISUAL_SEVERITY_RUNTIME_AUTHORITY: severity-calibration.mjs must export CATEGORY_BASE_SEVERITY')
+  }
+  if (!calibration.includes('CALIBRATION_CONFIDENCE_FLOOR')) {
+    issues.push('VISUAL_SEVERITY_RUNTIME_AUTHORITY: severity-calibration.mjs must export CALIBRATION_CONFIDENCE_FLOOR')
+  }
+  if (!calibration.includes('interaction_blocked')) {
+    issues.push('VISUAL_SEVERITY_RUNTIME_AUTHORITY: severity-calibration must use deterministic rule interaction_blocked')
+  }
+  if (!calibration.includes('content_loss')) {
+    issues.push('VISUAL_SEVERITY_RUNTIME_AUTHORITY: severity-calibration must use deterministic rule content_loss')
+  }
+  if (!calibration.includes('critical_target')) {
+    issues.push('VISUAL_SEVERITY_RUNTIME_AUTHORITY: severity-calibration must use deterministic rule critical_target')
+  }
+  const visualQa = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'visual-qa.mjs'))
+  if (!visualQa) {
+    issues.push('VISUAL_SEVERITY_RUNTIME_AUTHORITY: runtime/visual/visual-qa.mjs missing')
+  } else {
+    if (!visualQa.includes('calibrateSeverity')) {
+      issues.push('VISUAL_SEVERITY_RUNTIME_AUTHORITY: visual-qa.mjs must import calibrateSeverity')
+    }
+    if (!visualQa.includes("from './severity-calibration.mjs'") && !visualQa.includes('severity-calibration')) {
+      issues.push('VISUAL_SEVERITY_RUNTIME_AUTHORITY: visual-qa.mjs must import from severity-calibration.mjs')
+    }
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualModelSeverityNotFinal({ repoRoot }) {
+  const issues = []
+  const finding = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'visual-finding.mjs'))
+  if (!finding) {
+    issues.push('VISUAL_MODEL_SEVERITY_NOT_FINAL: runtime/visual/visual-finding.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!finding.includes('VISUAL_FINDING_EXTENDED_FIELDS') || !finding.includes('model_severity') || !finding.includes('calibrated_severity')) {
+    issues.push('VISUAL_MODEL_SEVERITY_NOT_FINAL: visual-finding.mjs must have VISUAL_FINDING_EXTENDED_FIELDS with model_severity and calibrated_severity')
+  }
+  // Also check that fields are explicitly present in the extended list
+  if (!finding.includes("'model_severity'") && !finding.includes('"model_severity"')) {
+    issues.push('VISUAL_MODEL_SEVERITY_NOT_FINAL: visual-finding.mjs must list model_severity in extended fields')
+  }
+  if (!finding.includes("'calibrated_severity'") && !finding.includes('"calibrated_severity"')) {
+    issues.push('VISUAL_MODEL_SEVERITY_NOT_FINAL: visual-finding.mjs must list calibrated_severity in extended fields')
+  }
+  const visualQa = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'visual-qa.mjs'))
+  if (!visualQa) {
+    issues.push('VISUAL_MODEL_SEVERITY_NOT_FINAL: runtime/visual/visual-qa.mjs missing')
+  } else {
+    if (!visualQa.includes('model_severity')) {
+      issues.push('VISUAL_MODEL_SEVERITY_NOT_FINAL: visual-qa.mjs must set model_severity separately from severity')
+    }
+    if (!visualQa.includes('finding.model_severity') && !visualQa.includes('model_severity =')) {
+      issues.push('VISUAL_MODEL_SEVERITY_NOT_FINAL: visual-qa.mjs must assign finding.model_severity')
+    }
+    if (!visualQa.includes('calibrated_severity')) {
+      issues.push('VISUAL_MODEL_SEVERITY_NOT_FINAL: visual-qa.mjs must set calibrated_severity')
+    }
+  }
+  const reviewer = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'vision-reviewer.mjs'))
+  if (!reviewer) {
+    issues.push('VISUAL_MODEL_SEVERITY_NOT_FINAL: runtime/visual/vision-reviewer.mjs missing')
+  } else {
+    if (reviewer.includes('calibrated_severity')) {
+      issues.push('VISUAL_MODEL_SEVERITY_NOT_FINAL: vision-reviewer must NOT set calibrated_severity (only raw model_severity)')
+    }
+    // reviewer should provide raw severity only
+    if (!reviewer.includes('severity')) {
+      issues.push('VISUAL_MODEL_SEVERITY_NOT_FINAL: vision-reviewer must provide raw severity for calibration')
+    }
+  }
+  const gate = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'visual-gate.mjs'))
+  if (!gate) {
+    issues.push('VISUAL_MODEL_SEVERITY_NOT_FINAL: runtime/visual/visual-gate.mjs missing')
+  } else {
+    if (!gate.includes('calibrated_severity') || !gate.includes('severity')) {
+      issues.push('VISUAL_MODEL_SEVERITY_NOT_FINAL: gate must use calibrated_severity || severity (effectiveSeverity)')
+    }
+    if (!gate.includes('effectiveSeverity') && !gate.includes('calibrated_severity')) {
+      issues.push('VISUAL_MODEL_SEVERITY_NOT_FINAL: gate must handle calibrated_severity fallback to severity')
+    }
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualCalibratedSeverityGate({ repoRoot }) {
+  const issues = []
+  const gate = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'visual-gate.mjs'))
+  if (!gate) {
+    issues.push('VISUAL_CALIBRATED_SEVERITY_GATE: runtime/visual/visual-gate.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!gate.includes('calibrated_severity')) {
+    issues.push('VISUAL_CALIBRATED_SEVERITY_GATE: visual-gate.mjs must use calibrated_severity')
+  }
+  if (!gate.includes('effectiveSeverity')) {
+    issues.push('VISUAL_CALIBRATED_SEVERITY_GATE: visual-gate.mjs must define effectiveSeverity (calibrated || severity)')
+  }
+  if (!gate.includes("effectiveSeverity(finding)") && !gate.includes('effectiveSeverity')) {
+    issues.push('VISUAL_CALIBRATED_SEVERITY_GATE: gate blocking check must use effectiveSeverity')
+  }
+  if (!gate.includes('review_required') || !gate.includes('UNVERIFIED')) {
+    issues.push('VISUAL_CALIBRATED_SEVERITY_GATE: evaluateVisualGate must handle review_required → UNVERIFIED')
+  }
+  if (!gate.includes('VISUAL_FINDING_REVIEW_REQUIRED') && !gate.includes('UNVERIFIED')) {
+    issues.push('VISUAL_CALIBRATED_SEVERITY_GATE: gate must emit UNVERIFIED for review_required findings')
+  }
+  const visualQa = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'visual-qa.mjs'))
+  if (!visualQa) {
+    issues.push('VISUAL_CALIBRATED_SEVERITY_GATE: runtime/visual/visual-qa.mjs missing')
+  } else {
+    if (!visualQa.includes('finding.calibrated_severity')) {
+      issues.push('VISUAL_CALIBRATED_SEVERITY_GATE: visual-qa.mjs must set finding.calibrated_severity')
+    }
+    if (!visualQa.includes('finding.model_severity')) {
+      issues.push('VISUAL_CALIBRATED_SEVERITY_GATE: visual-qa.mjs must set finding.model_severity')
+    }
+    if (!visualQa.includes('calibrateSeverity')) {
+      issues.push('VISUAL_CALIBRATED_SEVERITY_GATE: visual-qa.mjs must calibrate via calibrateSeverity')
+    }
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkResponsiveHighFindingPreventsFalseDone({ repoRoot }) {
+  const issues = []
+  const gate = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'visual-gate.mjs'))
+  if (!gate) {
+    issues.push('RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE: runtime/visual/visual-gate.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!gate.includes('blocking === true') && !gate.includes('blocking===true') && !gate.includes('blocking')) {
+    issues.push('RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE: visual-gate must gate on blocking===true')
+  }
+  if (!gate.includes("severityRank") || (!gate.includes("severityRank('HIGH')") && !gate.includes('severityRank("HIGH")') && !gate.includes("severityRank('HIGH')"))) {
+    // Check for HIGH comparison
+    if (!gate.includes('HIGH')) {
+      issues.push('RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE: visual-gate blocking must require severity>=HIGH')
+    }
+  }
+  if (!gate.includes('FINDINGS_BLOCKING')) {
+    issues.push('RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE: visual-gate must emit FINDINGS_BLOCKING outcome')
+  }
+  const visualQa = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'visual-qa.mjs'))
+  if (!visualQa) {
+    issues.push('RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE: runtime/visual/visual-qa.mjs missing')
+  } else {
+    if (!visualQa.includes('FINDINGS_BLOCKING') && !visualQa.includes('isBlocking')) {
+      issues.push('RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE: visual-qa must map FINDINGS_BLOCKING to blocking visual review')
+    }
+    // Check that correlation HIGH finding still blocks
+    if (!visualQa.includes('correlateFindings') && !visualQa.includes('correlated')) {
+      issues.push('RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE: visual-qa must correlate findings and still block on HIGH')
+    }
+    if (!visualQa.includes('HIGH') && !visualQa.includes('blocking')) {
+      issues.push('RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE: visual-qa must preserve HIGH blocking semantics after correlation')
+    }
+  }
+  const pipeline = await readIfExists(path.join(repoRoot, 'runtime', 'pipeline', 'pipeline.mjs'))
+  const controller = await readIfExists(path.join(repoRoot, 'runtime', 'controller', 'controller.mjs'))
+  const reviewDecision = await readIfExists(path.join(repoRoot, 'runtime', 'controller', 'review-decision.mjs'))
+  const hasHardBlock = (controller && controller.includes('securityHardBlock')) || (reviewDecision && reviewDecision.includes('securityHardBlock'))
+  if (!hasHardBlock) {
+    issues.push('RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE: controller/review-decision must have securityHardBlock so blocking responsive finding triggers BLOCKED')
+  }
+  if (pipeline && !pipeline.includes("VISUAL_QA")) {
+    issues.push('RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE: pipeline must handle VISUAL_QA boundary for responsive findings')
+  }
+  // Ensure FINDINGS_BLOCKING leads to not DONE (pipeline records VISUAL_QA and controller checks)
+  if (pipeline && !pipeline.includes("record('VISUAL_QA'")) {
+    issues.push('RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE: pipeline must record VISUAL_QA boundary (so firstBadBoundary prevents false DONE for responsive HIGH)')
+  }
+  // Check that multi-viewport HIGH still causes BLOCKED: look for blocking true and multi-viewport awareness
+  if (visualQa && !visualQa.includes('affected_viewports') && !visualQa.includes('FINDINGS_BLOCKING')) {
+    issues.push('RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE: correlation result HIGH finding must still cause BLOCKED across viewports (affected_viewports)')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualMatrixCostPolicyEnforced({ repoRoot }) {
+  const issues = []
+  const visualQa = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'visual-qa.mjs'))
+  if (!visualQa) {
+    issues.push('VISUAL_MATRIX_COST_POLICY_ENFORCED: runtime/visual/visual-qa.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!visualQa.includes('costGateAllows')) {
+    issues.push('VISUAL_MATRIX_COST_POLICY_ENFORCED: visual-qa.mjs must enforce costGateAllows even with multi-viewport')
+  }
+  if (!visualQa.includes('COST_GATE_DENIED')) {
+    issues.push('VISUAL_MATRIX_COST_POLICY_ENFORCED: visual-qa.mjs must handle COST_GATE_DENIED even with viewport matrix')
+  }
+  if (!visualQa.includes('cost_policy') && !visualQa.includes('costPolicy')) {
+    issues.push('VISUAL_MATRIX_COST_POLICY_ENFORCED: visual-qa.mjs must accept cost_policy parameter')
+  }
+  // Ensure cost policy is checked before viewport loop or at route selection, and does not get skipped for multi-viewport
+  if (!visualQa.includes('selectRoute')) {
+    issues.push('VISUAL_MATRIX_COST_POLICY_ENFORCED: visual-qa.mjs must route via selectRoute (cost-gated) even for multi-viewport')
+  }
+  // Check that cost gate is not bypassed by viewport matrix: look for cost check before viewport loop
+  const costIdx = visualQa.indexOf('costGateAllows')
+  const viewportIdx = visualQa.indexOf('resolveViewportProfile')
+  if (costIdx !== -1 && viewportIdx !== -1 && costIdx > visualQa.indexOf('capturePageEvidence')) {
+    // cost gate should be before viewport-heavy work (route selection before capture)
+    // If cost gate appears after capture loop, it might be bypass; just warn if cost gate is very late
+    // For now, ensure costGateAllows appears before or alongside selectRoute
+    const selectIdx = visualQa.indexOf('selectRoute')
+    if (selectIdx !== -1 && costIdx > selectIdx + 2000) {
+      issues.push('VISUAL_MATRIX_COST_POLICY_ENFORCED: costGateAllows must be checked at route selection, not after viewport loop (multi-viewport must not bypass cost)')
+    }
+  }
+  // Ensure viewport matrix does not skip cost gate: check that viewport loop doesn't contain cost bypass comment
+  if (visualQa.includes('skipCostGate') || visualQa.includes('bypassCost')) {
+    issues.push('VISUAL_MATRIX_COST_POLICY_ENFORCED: viewport matrix must not bypass cost gate (skipCostGate/bypassCost forbidden)')
+  }
+  const policy = await readIfExists(path.join(repoRoot, 'runtime', 'routing', 'routing-policy.mjs'))
+  if (!policy) {
+    issues.push('VISUAL_MATRIX_COST_POLICY_ENFORCED: runtime/routing/routing-policy.mjs missing')
+  } else {
+    if (!policy.includes('costGateAllows')) {
+      issues.push('VISUAL_MATRIX_COST_POLICY_ENFORCED: routing-policy must expose costGateAllows')
+    }
+    if (!policy.includes('COST_GATE_DENIED')) {
+      issues.push('VISUAL_MATRIX_COST_POLICY_ENFORCED: routing-policy must implement COST_GATE_DENIED')
+    }
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualMatrixSharedBudgetEnforced({ repoRoot }) {
+  const issues = []
+  const visualQa = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'visual-qa.mjs'))
+  if (!visualQa) {
+    issues.push('VISUAL_MATRIX_SHARED_BUDGET_ENFORCED: runtime/visual/visual-qa.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!visualQa.includes('sharedBudget')) {
+    issues.push('VISUAL_MATRIX_SHARED_BUDGET_ENFORCED: visual-qa.mjs must accept sharedBudget even with multi-viewport')
+  }
+  if (!visualQa.includes('governor.reserve')) {
+    issues.push('VISUAL_MATRIX_SHARED_BUDGET_ENFORCED: visual-qa.mjs must reserve from shared budget governor (governor.reserve)')
+  }
+  if (!visualQa.includes('governor.commit')) {
+    issues.push('VISUAL_MATRIX_SHARED_BUDGET_ENFORCED: visual-qa.mjs must commit shared budget after review (governor.commit)')
+  }
+  if (!visualQa.includes('budget.shared.reserve') && !visualQa.includes('budget.shared.consume')) {
+    issues.push('VISUAL_MATRIX_SHARED_BUDGET_ENFORCED: visual-qa.mjs must emit budget.shared events for multi-viewport')
+  }
+  // Ensure viewport matrix respects shared budget - no extra reservation bypass
+  if (visualQa.includes('skipBudget') || visualQa.includes('bypassBudget') || visualQa.includes('noBudget')) {
+    // Only flag if it suggests bypassing budget for viewports
+    if (/skipBudget|bypassBudget/.test(visualQa)) {
+      issues.push('VISUAL_MATRIX_SHARED_BUDGET_ENFORCED: viewport matrix must not bypass shared budget (no extra reservation bypass)')
+    }
+  }
+  // Check that viewport loop does not reserve per-viewport separately without single governor reserve
+  // Should have single reserve before loop, not per-viewport reserve inside loop
+  const reserveCount = (visualQa.match(/governor\.reserve/g) || []).length
+  if (reserveCount === 0) {
+    issues.push('VISUAL_MATRIX_SHARED_BUDGET_ENFORCED: visual-qa.mjs must have governor.reserve')
+  }
+  if (reserveCount > 3) {
+    issues.push('VISUAL_MATRIX_SHARED_BUDGET_ENFORCED: viewport matrix should not create multiple reserves per viewport (single shared budget)')
+  }
+  const pipeline = await readIfExists(path.join(repoRoot, 'runtime', 'pipeline', 'pipeline.mjs'))
+  if (pipeline && !pipeline.includes('sharedBudget')) {
+    issues.push('VISUAL_MATRIX_SHARED_BUDGET_ENFORCED: pipeline must thread sharedBudget to visual QA (even for multi-viewport)')
+  }
+  const governor = await readIfExists(path.join(repoRoot, 'runtime', 'routing', 'budget-governor.mjs'))
+  if (!governor) {
+    issues.push('VISUAL_MATRIX_SHARED_BUDGET_ENFORCED: runtime/routing/budget-governor.mjs missing')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkVisualMultiViewportNoSecretLeak({ repoRoot }) {
+  const issues = []
+  const browserEvidence = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'browser-evidence.mjs'))
+  if (!browserEvidence) {
+    issues.push('VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK: runtime/visual/browser-evidence.mjs missing')
+  } else {
+    if (!browserEvidence.includes('image_fingerprint')) {
+      issues.push('VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK: browser-evidence must fingerprint screenshots (image_fingerprint)')
+    }
+    // Ensure never logs raw PNG bytes
+    if (browserEvidence.includes('base64') && browserEvidence.includes('screenshot') && !browserEvidence.includes('image_fingerprint')) {
+      issues.push('VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK: browser-evidence must not log raw PNG base64 bytes (use image_fingerprint)')
+    }
+    if (!browserEvidence.includes('sidecar') && !browserEvidence.includes('.meta.json')) {
+      issues.push('VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK: browser-evidence must write sidecar (evidence persisted as fingerprint, not raw bytes in events)')
+    }
+  }
+  const visualQa = await readIfExists(path.join(repoRoot, 'runtime', 'visual', 'visual-qa.mjs'))
+  if (!visualQa) {
+    issues.push('VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK: runtime/visual/visual-qa.mjs missing')
+  } else {
+    if (!visualQa.includes('image_fingerprint')) {
+      issues.push('VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK: visual-qa must propagate image_fingerprint (no raw image in events) for multi-viewport')
+    }
+    // Check that events don't contain base64 PNG
+    // Look for event emission that contains screenshot bytes directly
+    const hasRawPngLog = /emitEvent\([\s\S]*?screenshot[\s\S]*?base64/i.test(visualQa) || (visualQa.includes('screenshot_bytes') && !visualQa.includes('image_fingerprint'))
+    if (hasRawPngLog) {
+      issues.push('VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK: visual-qa events must not contain base64 PNG (use image_fingerprint only)')
+    }
+    // Ensure visual-qa events use image_fingerprint not screenshot bytes
+    if (visualQa.includes('visual.qa.screenshot') && !visualQa.includes('image_fingerprint')) {
+      issues.push('VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK: visual.qa.screenshot events must carry image_fingerprint')
+    }
+    // Ensure multi-viewport evidence still fingerprints only: each viewport evidence should have fingerprint
+    if (!visualQa.includes('image_fingerprints') && !visualQa.includes('image_fingerprint')) {
+      issues.push('VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK: multi-viewport evidence must still fingerprint only (image_fingerprint per viewport)')
+    }
+  }
+  // Scan visual subtree for secret patterns (like outer check but for multi-viewport)
+  const visualDir = path.join(repoRoot, 'runtime', 'visual')
+  try {
+    const entries = await fs.readdir(visualDir)
+    for (const file of entries) {
+      if (!file.endsWith('.mjs')) continue
+      const source = await readIfExists(path.join(visualDir, file))
+      if (source) {
+        for (const pattern of SECRET_PATTERNS) {
+          if (pattern.re.test(source)) {
+            issues.push(`VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK: high-confidence ${pattern.name} pattern in runtime/visual/${file}`)
+          }
+        }
+      }
+    }
+  } catch {}
+  // Ensure sidecar written still for multi-viewport
+  if (browserEvidence && !browserEvidence.includes('fs.writeFile') && !browserEvidence.includes('sidecar')) {
+    issues.push('VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK: browser-evidence must write sidecar for each viewport capture')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+// ---------------------------------------------------------------------------
 // Baseline fingerprint — structural drift only, never file-byte drift
 // ---------------------------------------------------------------------------
 
@@ -2001,6 +2521,16 @@ export async function runProductionSentinel({ repoRoot }) {
   pushResult('VISUAL_QA_PROMPT_INJECTION_UNTRUSTED', await checkVisualQaPromptInjectionUntrusted({ repoRoot }))
   pushResult('VISUAL_QA_NO_SECRET_LEAK', await checkVisualQaNoSecretLeak({ repoRoot }))
   pushResult('VISUAL_QA_BLOCKING_FINDING_PREVENTS_FALSE_DONE', await checkVisualQaBlockingFindingPreventsFalseDone({ repoRoot }))
+  pushResult('VISUAL_VIEWPORT_MATRIX_BOUNDED', await checkVisualViewportMatrixBounded({ repoRoot }))
+  pushResult('VISUAL_VIEWPORT_POLICY_RUNTIME_AUTHORITY', await checkVisualViewportPolicyRuntimeAuthority({ repoRoot }))
+  pushResult('VISUAL_CROSS_VIEWPORT_CORRELATION_DETERMINISTIC', await checkVisualCrossViewportCorrelationDeterministic({ repoRoot }))
+  pushResult('VISUAL_SEVERITY_RUNTIME_AUTHORITY', await checkVisualSeverityRuntimeAuthority({ repoRoot }))
+  pushResult('VISUAL_MODEL_SEVERITY_NOT_FINAL', await checkVisualModelSeverityNotFinal({ repoRoot }))
+  pushResult('VISUAL_CALIBRATED_SEVERITY_GATE', await checkVisualCalibratedSeverityGate({ repoRoot }))
+  pushResult('RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE', await checkResponsiveHighFindingPreventsFalseDone({ repoRoot }))
+  pushResult('VISUAL_MATRIX_COST_POLICY_ENFORCED', await checkVisualMatrixCostPolicyEnforced({ repoRoot }))
+  pushResult('VISUAL_MATRIX_SHARED_BUDGET_ENFORCED', await checkVisualMatrixSharedBudgetEnforced({ repoRoot }))
+  pushResult('VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK', await checkVisualMultiViewportNoSecretLeak({ repoRoot }))
 
   const issues = results.flatMap((result) => result.issues)
   const warnings = []

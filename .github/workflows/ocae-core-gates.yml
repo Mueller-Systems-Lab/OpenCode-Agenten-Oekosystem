@@ -1,0 +1,91 @@
+name: OCAE Core Gates
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ocae-core-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ocae-required:
+    name: ocae-required
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install required secure sandbox
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes bubblewrap
+          bwrap --version
+      - name: Classify secure sandbox availability
+        id: sandbox
+        run: |
+          if bwrap --die-with-parent --new-session \
+            --unshare-user --unshare-pid --ro-bind /usr /usr \
+            --proc /proc --dev /dev -- /usr/bin/true; then
+            echo "applicable=true" >> "$GITHUB_OUTPUT"
+            echo "CHECK_RESULT: APPLICABLE"
+            reason="Bubblewrap and required namespaces are available"
+            echo "REASON: $reason"
+          else
+            echo "applicable=false" >> "$GITHUB_OUTPUT"
+            echo "CHECK_RESULT: NOT_APPLICABLE"
+            reason="GitHub runner denies the required namespace operation"
+            echo "REASON: $reason"
+            fallback="TOOL_GAP_SECURE_SANDBOX; no unsandboxed execution"
+            echo "FALLBACK_CONTRACT: $fallback"
+          fi
+      # Gate 1/3 CORE_TESTS: canonical test suite (all manifest groups, deterministic, offline)
+      - name: Core tests - unit and security
+        run: node scripts/run-tests.mjs --group unit --reporter spec
+      - name: Core tests - capability and workflow contracts
+        run: node scripts/run-tests.mjs --group contract --reporter spec
+      - name: Core tests - security integration (sandbox)
+        if: steps.sandbox.outputs.applicable == 'true'
+        run: node scripts/run-tests.mjs --group integration --reporter spec
+      - name: Core tests - portable integration contracts (fail-closed)
+        if: steps.sandbox.outputs.applicable != 'true'
+        run: >-
+          node scripts/run-tests.mjs
+          --group integration_portable --reporter spec
+      - name: Core tests - bootstrap
+        run: node scripts/run-tests.mjs --group bootstrap --reporter spec
+      - name: Core tests - governance
+        run: node scripts/run-tests.mjs --group governance --reporter spec
+      - name: Core tests - end-to-end
+        run: node scripts/run-tests.mjs --group e2e --reporter spec
+      # Gate 2/3 ARCHITECTURE_SENTINEL: ecosystem validation incl. production sentinel
+      - name: Ecosystem validation with secure sandbox
+        if: steps.sandbox.outputs.applicable == 'true'
+        env:
+          OCAE_CANONICAL_TEST_RUNNER: "1"
+        run: node scripts/validate-ecosystem.mjs
+      - name: Ecosystem validation with fail-closed sandbox contract
+        if: steps.sandbox.outputs.applicable != 'true'
+        env:
+          OCAE_SECURE_SANDBOX_NOT_APPLICABLE: "1"
+          OCAE_CANONICAL_TEST_RUNNER: "1"
+        run: node scripts/validate-ecosystem.mjs
+      # Gate 3/3 SECURITY_GATES + governance drift
+      - name: Governance drift
+        run: node scripts/check-governance-drift.mjs

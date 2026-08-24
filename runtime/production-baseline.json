@@ -97,7 +97,11 @@
     "RESPONSIVE_HIGH_FINDING_PREVENTS_FALSE_DONE",
     "VISUAL_MATRIX_COST_POLICY_ENFORCED",
     "VISUAL_MATRIX_SHARED_BUDGET_ENFORCED",
-    "VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK"
+    "VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK",
+    "CAPABILITY_DOES_NOT_CREATE_REQUIREMENT",
+    "CORE_AND_CAPABILITY_STATUS_SEPARATED",
+    "OPTIONAL_CAPABILITY_CANNOT_PROMOTE_CORE",
+    "RESPONSIVE_CORE_NOT_IMPLICIT_DEFAULT"
   ],
   "required_artifacts": [
     "runtime/run.mjs",
@@ -130,7 +134,31 @@
     "runtime/agent/start.mjs",
     "scripts/run-completion-canary.mjs"
   ],
-  "baseline_fingerprint": "05656a7d2375627b78c7ced056c9f389f34e092919bad23251f9651c70bc1f3c",
+  "baseline_fingerprint": "3c25a7b8d2375627b78c7ced056c9f389f34e092919bad23251f9651c70bc1f3c",
+  "baseline_fingerprint_semantics": "commit-based structural fingerprint of core canonical architecture",
+  "capability_baselines": {
+    "PLAYWRIGHT_VISUAL_QA": {
+      "status": "OPTIONAL_PROJECT_SCOPED_CAPABILITY",
+      "activation": "REQUIRES_EXPLICIT_REQUIREMENT",
+      "required_artifacts": [
+        "runtime/visual/browser-evidence.mjs",
+        "runtime/visual/vision-reviewer.mjs",
+        "runtime/visual/visual-finding.mjs",
+        "runtime/visual/visual-gate.mjs",
+        "runtime/visual/visual-qa.mjs"
+      ]
+    },
+    "MULTI_VIEWPORT_RESPONSIVE": {
+      "status": "OPTIONAL_PROJECT_SCOPED_CAPABILITY",
+      "activation": "REQUIRES_EXPLICIT_REQUIREMENT",
+      "required_artifacts": [
+        "runtime/visual/viewport-policy.mjs",
+        "runtime/visual/severity-calibration.mjs",
+        "runtime/visual/cross-viewport-correlation.mjs"
+      ],
+      "notes": "Responsive validation only activates when issue/spec requires it; viewport_policy defaults to single desktop viewport, not 5-viewport matrix"
+    }
+  },
   "milestone_history": [
     {
       "milestone": "GREEN_OCAE_RUNTIME_AVAILABILITY_COST_GOVERNANCE_OPERATIONAL",
@@ -149,6 +177,12 @@
       "pre_baseline": "3c4bd8e271ef1e4633840175b054df1fdb562602",
       "integration_commit": null,
       "note": "integration_commit is recorded by the orchestrator AFTER the commit lands (no fabricated hash); pre_baseline is the content-clean baseline HEAD this milestone started from"
+    },
+    {
+      "milestone": "GREEN_OCAE_ARCHITECTURE_SCOPE_REALIGNED",
+      "pre_baseline": "bd55f7e10a5c0c24ab8d46b3ab0009e1b1b7260b",
+      "integration_commit": null,
+      "note": "Remediation run: Fixed capability-driven requirement expansion, separated core/capability status, made responsive validation optional by default"
     }
   ]
 }

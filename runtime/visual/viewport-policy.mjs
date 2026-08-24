@@ -2,6 +2,13 @@
 /**
  * Canonical viewport matrix — bounded, deterministic.
  * Single source of truth for viewport dimensions.
+ *
+ * CHANGE LOG: Fix #1 - Make viewport profile explicit, not implicit default.
+ * PREVIOUS: DEFAULT_VIEWPORT_PROFILE = 'responsive_core' (5 viewports by default)
+ * NEW: DEFAULT_VIEWPORT_PROFILE = null (requires explicit profile selection)
+ * RATIONALE: Prevents capability-driven requirement expansion. Multi-viewport
+ * testing should only activate when an issue/spec explicitly requires responsive
+ * validation, not because the capability happens to be available.
  */
 
 export const CANONICAL_VIEWPORTS = Object.freeze({
@@ -23,7 +30,10 @@ export const VIEWPORT_PROFILES = Object.freeze({
 
 export const MAX_CUSTOM_VIEWPORTS = 8
 
-export const DEFAULT_VIEWPORT_PROFILE = 'responsive_core'
+// FIX #1: Changed from 'responsive_core' to null to prevent implicit multi-viewport activation
+// CAPABILITY_DOES_NOT_CREATE_REQUIREMENT: Availability of multi-viewport capability
+// should not automatically create responsive validation requirements.
+export const DEFAULT_VIEWPORT_PROFILE = null
 
 export const VIEWPORT_MATRIX_BOUNDS = Object.freeze({
   max_canonical: 5,
@@ -51,7 +61,6 @@ export function isValidCustomViewport(vp) {
   const height = vp.height
   if (typeof width !== 'number' || !Number.isFinite(width) || width < 200 || width > 3840) return false
   if (typeof height !== 'number' || !Number.isFinite(height) || height < 200 || height > 2160) return false
-  // ensure integer-like? allow any number within range but must be finite
   return true
 }
 
@@ -70,7 +79,11 @@ function buildCanonicalViewports(ids) {
 
 export function resolveViewportProfile({ profile, customViewports, maxCustom } = {}) {
   const effectiveMax = typeof maxCustom === 'number' && Number.isFinite(maxCustom) && maxCustom > 0 ? Math.floor(maxCustom) : MAX_CUSTOM_VIEWPORTS
-  const resolvedProfile = profile == null ? DEFAULT_VIEWPORT_PROFILE : profile
+  
+  // FIX #1: Handle null default by returning minimal single viewport
+  // CAPABILITY_DOES_NOT_CREATE_REQUIREMENT: When no explicit profile is provided,
+  // default to single desktop viewport instead of 5-viewport responsive matrix.
+  const resolvedProfile = profile == null ? (DEFAULT_VIEWPORT_PROFILE || 'desktop_only') : profile
 
   if (typeof resolvedProfile !== 'string' || !Object.prototype.hasOwnProperty.call(VIEWPORT_PROFILES, resolvedProfile)) {
     return {
@@ -149,13 +162,8 @@ export function resolveViewportProfile({ profile, customViewports, maxCustom } =
 }
 
 export function resolveViewportsForRun({ viewport_profile, custom_viewports, pages } = {}) {
-  // pages carry per-page viewports: those take precedence per-page,
-  // this function resolves the profile-level viewports for gate-level use.
-  // Support both snake_case and camelCase for robustness.
   const profile = viewport_profile
   const customViewports = custom_viewports
-  // pages param is acknowledged but does not influence gate-level viewport resolution
-  // (per-page viewports are handled by the caller). Keep signature for compatibility.
   void pages
   return resolveViewportProfile({ profile, customViewports })
 }

@@ -12,6 +12,7 @@ import { parseJsonc } from "./lib/jsonc.mjs"
 import { pathExists, readTextIfExists, toAbsolutePath, normalizePosix } from "./lib/paths.mjs"
 import { safeRedactText, secretValuesFromEnv } from "./lib/security/redaction.mjs"
 import { validateHandoffContract } from "../bootstrap/lib/handoff.mjs"
+import { runProductionSentinel } from "./lib/production-sentinel.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 
@@ -69,6 +70,7 @@ async function main() {
     "docs/reports/security-review.md",
     "docs/reports/compliance-review.md",
     "WORKING-METHOD.md",
+    ".opencode/plugins/canonical-governance.mjs",
     ".opencode/policies/working-method.json",
     ".opencode/skills/context-engineering/SKILL.md",
     ".opencode/skills/risk-tier-routing/SKILL.md",
@@ -157,6 +159,32 @@ async function main() {
     "scripts/evaluate-governance-v2.mjs",
     "scripts/install-governance.mjs",
     "scripts/run-completion-canary.mjs",
+    "runtime/contracts/index.mjs",
+    "runtime/contracts/task.mjs",
+    "runtime/contracts/baseline.mjs",
+    "runtime/contracts/research.mjs",
+    "runtime/contracts/plan.mjs",
+    "runtime/contracts/build.mjs",
+    "runtime/contracts/verification.mjs",
+    "runtime/contracts/review.mjs",
+    "runtime/contracts/decision.mjs",
+    "runtime/contracts/run-event.mjs",
+    "runtime/controller/severity.mjs",
+    "runtime/controller/plan-gate.mjs",
+    "runtime/controller/retry-policy.mjs",
+    "runtime/controller/review-decision.mjs",
+    "runtime/controller/controller.mjs",
+    "runtime/controller/verify.mjs",
+    "runtime/controller/first-bad-boundary.mjs",
+    "runtime/adapters/native-opencode.mjs",
+    "runtime/baseline/capability-preflight.mjs",
+    "runtime/baseline/capability-detector.mjs",
+    "runtime/observability/run-events.mjs",
+    "runtime/pipeline/pipeline.mjs",
+    "runtime/pipeline/research.mjs",
+    "runtime/reviews/analyze.mjs",
+    "runtime/run.mjs",
+    "scripts/run-task.mjs",
   ]))
 
   issues.push(...await validateNoAbsoluteUserPaths())
@@ -180,6 +208,21 @@ async function main() {
   // Instructions — WORKING-METHOD.md and working-method.json included, data-retention.json NOT included
   issues.push(...await validateInstructions())
   issues.push(...await validateGovernanceV2())
+  issues.push(...await validateNoSilentLegacyFallback())
+
+  // Production Sentinel — deterministic drift-watcher for the frozen runtime.
+  // Guards canonical entry, contracts, controller terminal authority, plan
+  // gate, verify, retry, security hard block, run_id, first-bad-boundary,
+  // secret leakage, worker-not-terminal evidence, test harness exhaustiveness,
+  // installer baseline, Linux symlink invariant, validator timeout invariant,
+  // and the structural baseline fingerprint.
+  const sentinel = await runProductionSentinel({ repoRoot })
+  issues.push(...sentinel.issues)
+  warnings.push(...sentinel.warnings)
+  console.log(`PRODUCTION_SENTINEL: ${sentinel.status}`)
+  for (const result of sentinel.results) {
+    console.log(`  SENTINEL_${result.invariant}: ${result.ok ? "PASS" : "FAIL"}`)
+  }
 
   // working-method.json content checks
   issues.push(...await validateWorkingMethodRiskTiers())
@@ -615,6 +658,42 @@ async function validateGovernanceV2() {
   return issues
 }
 
+async function validateNoSilentLegacyFallback() {
+  const issues = []
+  const canonicalEntry = path.join(repoRoot, ".opencode", "plugins", "canonical-governance.mjs")
+  const installerSource = path.join(repoRoot, "scripts", "install-governance.mjs")
+  const runtimeEntry = path.join(repoRoot, "runtime", "run.mjs")
+
+  if (!(await pathExists(canonicalEntry))) {
+    issues.push("no-silent-fallback: canonical plugin entry missing")
+  } else {
+    const text = await fs.readFile(canonicalEntry, "utf8")
+    if (!text.includes("CANONICAL_RUNTIME_UNAVAILABLE")) {
+      issues.push("no-silent-fallback: canonical plugin entry lacks the CANONICAL_RUNTIME_UNAVAILABLE fail-fast reason")
+    }
+    if (text.includes("LEGACY_COMPATIBILITY_PATH")) {
+      issues.push("no-silent-fallback: canonical plugin entry still references LEGACY_COMPATIBILITY_PATH")
+    }
+    if (text.includes("runtime/agent/run-state.mjs") || text.includes("agent/start.mjs")) {
+      issues.push("no-silent-fallback: canonical plugin entry imports a legacy agent execution module")
+    }
+  }
+
+  if (!(await pathExists(runtimeEntry))) {
+    issues.push("no-silent-fallback: canonical runtime entry runtime/run.mjs missing")
+  }
+
+  if (!(await pathExists(installerSource))) {
+    issues.push("no-silent-fallback: installer source missing")
+  } else {
+    const text = await fs.readFile(installerSource, "utf8")
+    if (!text.includes("CANONICAL_RUNTIME_UNAVAILABLE")) {
+      issues.push("no-silent-fallback: installer generated hook template lacks the CANONICAL_RUNTIME_UNAVAILABLE fail-fast reason")
+    }
+  }
+  return issues
+}
+
 async function validateWorkingMethodRiskTiers() {
   const issues = []
   const wm = await loadWorkingMethod()
@@ -901,6 +980,48 @@ async function collectTextFiles(root) {
   return files
 }
 
+const DEFAULT_FILE_TIMEOUT_MS = 300_000
+const SUITE_GRACE_MS = 180_000
+const FILE_SPAWN_OVERHEAD_MS = 5_000
+
+/**
+ * Compute a manifest-aware outer suite timeout for the canonical runner.
+ *
+ * The outer validator timeout must NEVER be shorter than the longest
+ * legitimately allowed inner run: the canonical runner enforces per-file
+ * timeouts from test/test-manifest.json (default 300s, overridable per file
+ * up to e.g. 1800s). Summing the effective per-file timeouts across every
+ * manifest group gives the worst-case suite duration the runner can
+ * legitimately take (it kills hung files at their per-file timeout, so the
+ * suite never exceeds the sum). The outer timeout is therefore at least that
+ * sum plus startup/teardown grace and per-file spawn overhead. It stays
+ * finite (never a bare unbounded process) while never masking a valid long
+ * inner test as UNAVAILABLE. Returns 0 when the manifest is unreadable so the
+ * caller can fall back to a generous fixed bound.
+ */
+function computeSuiteOuterTimeoutMs() {
+  let totalMs = 0
+  let fileCount = 0
+  try {
+    const raw = fsSync.readFileSync(path.join(repoRoot, "test", "test-manifest.json"), "utf8")
+    const manifest = JSON.parse(raw)
+    const timeouts = manifest.timeouts && typeof manifest.timeouts === "object" && !Array.isArray(manifest.timeouts) ? manifest.timeouts : {}
+    for (const group of Object.values(manifest.groups || {})) {
+      if (!Array.isArray(group)) continue
+      for (const file of group) {
+        fileCount += 1
+        const override = timeouts[file]
+        const effective = Number.isFinite(override) && override > 0 ? override : DEFAULT_FILE_TIMEOUT_MS
+        totalMs += effective
+      }
+    }
+  } catch {
+    return 0
+  }
+  if (totalMs <= 0) return 0
+  return totalMs + SUITE_GRACE_MS + fileCount * FILE_SPAWN_OVERHEAD_MS
+}
+
 /**
  * Run the test suite and return status.
  * VERIFIED_IN_SCOPE classification requires all tests passing.
@@ -918,6 +1039,7 @@ function runTestSuite() {
     const stdoutFd = fsSync.openSync(stdoutPath, "w")
     const stderrFd = fsSync.openSync(stderrPath, "w")
     const maxBuffer = 50 * 1024 * 1024
+    const suiteOuterTimeoutMs = computeSuiteOuterTimeoutMs() || 3_600_000
     const result = spawnSync(process.execPath, [
       path.join(repoRoot, "scripts", "run-tests.mjs"),
       "--all",
@@ -925,7 +1047,7 @@ function runTestSuite() {
     ], {
       cwd: repoRoot,
       env: { ...process.env },
-      timeout: 120000,
+      timeout: suiteOuterTimeoutMs,
       stdio: ["ignore", stdoutFd, stderrFd],
     })
     fsSync.closeSync(stdoutFd)

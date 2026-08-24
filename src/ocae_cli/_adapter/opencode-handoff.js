@@ -100,6 +100,14 @@ function capturedTarget(directory) {
   return path.normalize(requireRealPath(initial))
 }
 
+function resolveOpenCodeTarget(context = {}) {
+  for (const candidate of [context?.directory, context?.worktree]) {
+    if (typeof candidate !== "string" || !path.isAbsolute(candidate)) continue
+    return capturedTarget(candidate)
+  }
+  throw new Error("RED_BLOCK_TARGET_UNCLEAR")
+}
+
 function requireRealPath(value) {
   return path.normalize(realpathSync(path.resolve(value)))
 }
@@ -409,7 +417,12 @@ async function handleTaskBootstrap({ client, directory, worktree, input, output 
   const text = textParts(output)
   if (!text || /https:\/\/github\.com\/xxammaxx\/OpenCode-Agenten-Oekosystem(?:\.git)?\/?/iu.test(text)) return
   let targetRoot
-  try { targetRoot = capturedTarget(directory || worktree) } catch { return }
+  try {
+    targetRoot = resolveOpenCodeTarget({ directory, worktree })
+  } catch (error) {
+    replaceWithTrustedContext(output, trustedBlock(error instanceof Error ? error.message : "RED_BLOCK_TARGET_UNCLEAR", "TASK_BOOTSTRAP"))
+    return { state: "MIGRATION_BLOCKED", classification: error instanceof Error ? error.message : "RED_BLOCK_TARGET_UNCLEAR" }
+  }
   let manifest
   try { manifest = loadManifest() } catch { return }
   const reconciliation = await reconcileProject({ client, targetRoot, manifest })
@@ -465,7 +478,7 @@ async function handleHandoff({ client, directory, worktree, input, output }) {
   let targetRoot
   try {
     manifest = loadManifest()
-    targetRoot = capturedTarget(directory || worktree)
+    targetRoot = resolveOpenCodeTarget({ directory, worktree })
     await logEvent(client, "OCAE_HANDOFF_DETECTED", manifest, { intent })
     await logEvent(client, "OCAE_HANDOFF_TARGET_CAPTURED", manifest, { intent, target_root: targetRoot })
     if (sourceCollision(targetRoot)) throw new Error("RED_BLOCK_SOURCE_TARGET_IDENTITY_COLLISION")
@@ -525,7 +538,7 @@ async function handleHandoff({ client, directory, worktree, input, output }) {
   }
 }
 
-export const OcaeOpenCodeHandoff = async ({ client, directory, worktree }) => ({
+const OcaeOpenCodeHandoff = async ({ client, directory, worktree }) => ({
   "chat.message": async (input, output) => {
     const text = textParts(output)
     const intent = intentFor(text)
@@ -534,4 +547,8 @@ export const OcaeOpenCodeHandoff = async ({ client, directory, worktree }) => ({
   },
 })
 
-export { compareVersions, inspectProjectMetadata, reconcileProject }
+OcaeOpenCodeHandoff.compareVersions = compareVersions
+OcaeOpenCodeHandoff.inspectProjectMetadata = inspectProjectMetadata
+OcaeOpenCodeHandoff.reconcileProject = reconcileProject
+
+export default OcaeOpenCodeHandoff

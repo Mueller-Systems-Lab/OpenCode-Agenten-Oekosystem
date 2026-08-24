@@ -78,6 +78,23 @@ describe('Resident Runtime', () => {
     assert.ok(content.includes('export'), 'Should contain exports');
   });
 
+  it('installed command classifier preserves native shell compatibility', async () => {
+    const classifierPath = path.join(target, '.agent-governance', 'runtime', 'gates', 'command-effect-classifier.mjs');
+    assert.ok(existsSync(classifierPath), 'command-effect-classifier.mjs should be installed');
+    const classifier = await import(pathToFileURL(classifierPath).href);
+    assert.equal(classifier.classifyCommand('git status').effect_class, 'LOCAL_GIT_READ');
+    assert.equal(classifier.classifyCommand('pnpm build').effect_class, 'LOCAL_BUILD');
+    assert.equal(classifier.classifyCommand('git status; git push').governance_effect, 'PUSH');
+    const realityRefresh = classifier.classifyCommand('git fetch origin --prune; git status --short; git branch --show-current; git rev-parse HEAD; git rev-parse origin/master');
+    assert.equal(classifier.isColdNetworkRead(realityRefresh), true);
+
+    const evaluatePath = path.join(target, '.agent-governance', 'runtime', 'gates', 'evaluate-action.mjs');
+    const evaluate = await import(pathToFileURL(evaluatePath).href);
+    const result = await evaluate.evaluateAction({ tool: 'bash', command: realityRefresh.command, runtime: 'opencode' });
+    assert.equal(result.allowed, true);
+    assert.equal(result.task_id, 'cold-network-read');
+  });
+
   // ── bin/evaluate.mjs runs and returns valid JSON ────────────
 
   it('bin/evaluate.mjs runs and returns valid JSON', async () => {

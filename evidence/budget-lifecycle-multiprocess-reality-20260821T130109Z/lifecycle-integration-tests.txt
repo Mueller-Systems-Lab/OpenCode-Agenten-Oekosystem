@@ -1,0 +1,135 @@
+TAP version 13
+# Subtest: shared budget — canonical runtime integration
+    # Subtest: CASE 1: single run reserve + consume → DONE, worker invoked exactly once
+    ok 1 - CASE 1: single run reserve + consume → DONE, worker invoked exactly once
+      ---
+      duration_ms: 214.86188
+      type: 'test'
+      ...
+    # Subtest: CASE 2: ONE shared governor (capacity 2) across THREE parallel runs → 2 DONE, 1 BLOCKED, denied has 0 worker calls
+    ok 2 - CASE 2: ONE shared governor (capacity 2) across THREE parallel runs → 2 DONE, 1 BLOCKED, denied has 0 worker calls
+      ---
+      duration_ms: 323.92289
+      type: 'test'
+      ...
+    # Subtest: CASE 3: shared governor (capacity 1) across TWO parallel runs → 1 DONE, 1 BLOCKED
+    ok 3 - CASE 3: shared governor (capacity 1) across TWO parallel runs → 1 DONE, 1 BLOCKED
+      ---
+      duration_ms: 216.833495
+      type: 'test'
+      ...
+    # Subtest: CASE 4: released capacity is reusable at runtime (controlled cancellation before invocation)
+    ok 4 - CASE 4: released capacity is reusable at runtime (controlled cancellation before invocation)
+      ---
+      duration_ms: 142.533333
+      type: 'test'
+      ...
+    # Subtest: CASE 5: expired reservation restores capacity (real short wait, TTL clamped to 1500ms)
+    ok 5 - CASE 5: expired reservation restores capacity (real short wait, TTL clamped to 1500ms)
+      ---
+      duration_ms: 1716.053743
+      type: 'test'
+      ...
+    1..5
+ok 1 - shared budget — canonical runtime integration
+  ---
+  duration_ms: 2617.990829
+  type: 'suite'
+  ...
+# Subtest: shared budget — escalation to a HIGH route (review FIX 1)
+    # Subtest: escalation to a HIGH route reserves shared capacity for the NEW route (reserve before escalated worker, commit after)
+    ok 1 - escalation to a HIGH route reserves shared capacity for the NEW route (reserve before escalated worker, commit after)
+      ---
+      duration_ms: 197.343352
+      type: 'test'
+      ...
+    # Subtest: escalation to a HIGH route with exhausted shared capacity → escalated worker NOT invoked, BLOCKED SHARED_BUDGET_EXHAUSTED
+    ok 2 - escalation to a HIGH route with exhausted shared capacity → escalated worker NOT invoked, BLOCKED SHARED_BUDGET_EXHAUSTED
+      ---
+      duration_ms: 147.251341
+      type: 'test'
+      ...
+    1..2
+ok 2 - shared budget — escalation to a HIGH route (review FIX 1)
+  ---
+  duration_ms: 345.840761
+  type: 'suite'
+  ...
+# Subtest: shared budget — configuration fails closed (review MINOR 1)
+    # Subtest: non-HIGH_COST_ROUTE resource → deterministic CONFIG_INVALID throw
+    ok 1 - non-HIGH_COST_ROUTE resource → deterministic CONFIG_INVALID throw
+      ---
+      duration_ms: 45.501428
+      type: 'test'
+      ...
+    1..1
+ok 3 - shared budget — configuration fails closed (review MINOR 1)
+  ---
+  duration_ms: 46.426
+  type: 'suite'
+  ...
+# Subtest: degraded routing — canonical runtime integration
+    # Subtest: CASE 6a: primary DEGRADED + allow_degraded=true → routed on the DEGRADED model (degraded:true)
+    ok 1 - CASE 6a: primary DEGRADED + allow_degraded=true → routed on the DEGRADED model (degraded:true)
+      ---
+      duration_ms: 203.370173
+      type: 'test'
+      ...
+    # Subtest: CASE 6b: only DEGRADED candidate + allow_degraded=false → ROUTING_BLOCKED, NO worker invocation
+    ok 2 - CASE 6b: only DEGRADED candidate + allow_degraded=false → ROUTING_BLOCKED, NO worker invocation
+      ---
+      duration_ms: 82.304849
+      type: 'test'
+      ...
+    1..2
+ok 4 - degraded routing — canonical runtime integration
+  ---
+  duration_ms: 286.32678
+  type: 'suite'
+  ...
+# Subtest: shared budget — structural lifecycle closure (Phase A stop-gate)
+    # Subtest: LIFECYCLE 1: reserve → pre-spawn abort (routeExecutor throw) → RELEASED, capacity restored, no orphan RESERVED
+    ok 1 - LIFECYCLE 1: reserve → pre-spawn abort (routeExecutor throw) → RELEASED, capacity restored, no orphan RESERVED
+      ---
+      duration_ms: 107.173548
+      type: 'test'
+      ...
+    # Subtest: LIFECYCLE 2: exception → budget.shared.release observable (valid run-event v1) + governor release proof
+    ok 2 - LIFECYCLE 2: exception → budget.shared.release observable (valid run-event v1) + governor release proof
+      ---
+      duration_ms: 158.737489
+      type: 'test'
+      ...
+    # Subtest: LIFECYCLE 3: worker returns FAILURE result → CONSUMED (consume boundary holds, no leak)
+    ok 3 - LIFECYCLE 3: worker returns FAILURE result → CONSUMED (consume boundary holds, no leak)
+      ---
+      duration_ms: 146.962852
+      type: 'test'
+      ...
+    # Subtest: LIFECYCLE 4: released capacity immediately reusable at pipeline level (same governor, capacity 1)
+    ok 4 - LIFECYCLE 4: released capacity immediately reusable at pipeline level (same governor, capacity 1)
+      ---
+      duration_ms: 231.090388
+      type: 'test'
+      ...
+    # Subtest: LIFECYCLE 5: run_id forgery → CONTRACT_INVALID abort → CONSUMED, no orphan RESERVED (GAP-2 no-orphan)
+    ok 5 - LIFECYCLE 5: run_id forgery → CONTRACT_INVALID abort → CONSUMED, no orphan RESERVED (GAP-2 no-orphan)
+      ---
+      duration_ms: 127.387394
+      type: 'test'
+      ...
+    1..5
+ok 5 - shared budget — structural lifecycle closure (Phase A stop-gate)
+  ---
+  duration_ms: 772.615733
+  type: 'suite'
+  ...
+1..5
+# tests 15
+# suites 5
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4372.443969

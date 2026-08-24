@@ -1,0 +1,22 @@
+[
+  {
+    "server": "playwright",
+    "tool": "browser_navigate",
+    "status": "SUCCESS",
+    "failure_class": null,
+    "duration_ms": 3680,
+    "input_fingerprint": "63ac355d31834d6a14be0f7c9f6a2d43eb3581b6095fb332020d72bd886dfdd4",
+    "output_fingerprint": "3cf81ebdbce3e9d99e31ef3713d0d1b6ebb0b72e918a995fa2eb14c17f568fa6",
+    "result_terminal_token_like": null
+  },
+  {
+    "server": "playwright",
+    "tool": "browser_snapshot",
+    "status": "SUCCESS",
+    "failure_class": null,
+    "duration_ms": 3610,
+    "input_fingerprint": "d4f3f7e2536520c1998b1293b4992e2dd1b472cc83f5a5a8805e020122660b64",
+    "output_fingerprint": "810259f958cdf8d927bf1e35f2117a03c48d1b69a546315f5abcde1c658f7334",
+    "result_terminal_token_like": null
+  }
+]

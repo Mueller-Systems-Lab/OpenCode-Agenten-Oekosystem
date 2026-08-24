@@ -1,0 +1,11 @@
+{
+  "case_id": "rw-01-isolated-bugfix",
+  "prepared_at": "2026-08-17T05:39:42.807Z",
+  "entry_source": "plugin:chat.message",
+  "run_id": "4af63eea-9116-437f-845d-37b77b9282b4",
+  "task_contract": "ecosystem.task.v1",
+  "phase": "ENTRY",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null
+}

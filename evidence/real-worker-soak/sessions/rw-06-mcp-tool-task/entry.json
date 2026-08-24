@@ -1,0 +1,11 @@
+{
+  "case_id": "rw-06-mcp-tool-task",
+  "prepared_at": "2026-08-17T05:43:11.969Z",
+  "entry_source": "plugin:chat.message",
+  "run_id": "c13d5fa7-0b53-4045-b555-637754721a2e",
+  "task_contract": "ecosystem.task.v1",
+  "phase": "ENTRY",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null
+}

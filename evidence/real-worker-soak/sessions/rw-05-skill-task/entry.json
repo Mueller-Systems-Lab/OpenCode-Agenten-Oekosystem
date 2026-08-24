@@ -1,0 +1,11 @@
+{
+  "case_id": "rw-05-skill-task",
+  "prepared_at": "2026-08-17T05:42:30.308Z",
+  "entry_source": "plugin:chat.message",
+  "run_id": "3f6990f0-e9f5-44b9-8638-5dbafb36aa6b",
+  "task_contract": "ecosystem.task.v1",
+  "phase": "ENTRY",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null
+}

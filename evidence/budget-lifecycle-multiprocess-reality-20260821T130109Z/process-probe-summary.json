@@ -1,0 +1,58 @@
+{
+  "distinct_process_pids": [
+    3373123,
+    3373124
+  ],
+  "process_count": 2,
+  "governor_scope": [
+    "per-process (own SharedBudgetGovernor, no cross-process sharing)",
+    "per-process (own SharedBudgetGovernor, no cross-process sharing)"
+  ],
+  "per_process_capacity": 2,
+  "global_reserved_if_unified_domain": 0,
+  "oversubscription_if_unified_domain": false,
+  "runs": [
+    {
+      "pid": 3373123,
+      "run_id": "3d6d2065-2acd-41a3-86a6-51cf01736316",
+      "decision": "DONE",
+      "worker_calls": 2
+    },
+    {
+      "pid": 3373123,
+      "run_id": "8b24fd9a-be21-42a4-9d89-73e621b00ca7",
+      "decision": "DONE",
+      "worker_calls": 2
+    },
+    {
+      "pid": 3373124,
+      "run_id": "42cb566d-fd30-4f8e-b05c-1587949bdb02",
+      "decision": "DONE",
+      "worker_calls": 2
+    },
+    {
+      "pid": 3373124,
+      "run_id": "d4a33ee4-bf21-4d0e-807f-717945fefb2f",
+      "decision": "DONE",
+      "worker_calls": 2
+    }
+  ],
+  "per_process_snapshots": [
+    {
+      "capacity": 2,
+      "remaining": 0,
+      "reserved": 0,
+      "consumed": 2,
+      "released": 0,
+      "expired": 0
+    },
+    {
+      "capacity": 2,
+      "remaining": 0,
+      "reserved": 0,
+      "consumed": 2,
+      "released": 0,
+      "expired": 0
+    }
+  ]
+}

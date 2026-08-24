@@ -9,12 +9,23 @@ import { buildActionSandboxArgs } from "./secure-bootstrap-sandbox.mjs"
 import { gateToolResult } from "./tool-result-egress-gate.mjs"
 
 const BWRAP = "bwrap"
+// Managed scope mirrors the installer's declared write surface
+// (scripts/install-governance.mjs backupFiles): governance runtime plus the
+// OpenCode ecosystem surface (.opencode agents/skills/policies/plugins,
+// backups, ecosystem-installation.json) and the OpenCode config file. Nothing
+// the installer legitimately writes may be flagged out-of-scope; anything else
+// written by the apply is a real out-of-scope write.
 const MANAGED_PREFIXES = [
   ".agent-governance",
   ".opencode/ecosystem-installation.json",
   ".opencode/backups",
+  ".opencode/agents",
+  ".opencode/skills",
+  ".opencode/policies",
+  ".opencode/plugins",
+  ".hermes/governance",
 ]
-const MANAGED_EXACT_PATHS = new Set([".opencode"])
+const MANAGED_EXACT_PATHS = new Set([".opencode", "opencode.jsonc", "opencode.json"])
 
 function normalizeRelative(relativePath) {
   return relativePath.split(path.sep).join("/")

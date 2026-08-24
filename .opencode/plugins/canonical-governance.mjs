@@ -2,6 +2,7 @@
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
+import { pathToFileURL } from 'node:url';
 import { bootstrapTask, readTaskContext } from '../../runtime/bootstrap/task-bootstrap.mjs';
 
 const PROJECT_ROOT = process.cwd();
@@ -76,7 +77,7 @@ async function loadEvaluateModule() {
   if (evaluateModule !== null) return evaluateModule;
   if (!existsSync(EVALUATE_PATH)) return null;
   try {
-    evaluateModule = await import(EVALUATE_PATH);
+    evaluateModule = await import(pathToFileURL(EVALUATE_PATH).href);
     return evaluateModule;
   } catch (err) {
     console.error('[canonical-governance] failed to load evaluate-action.mjs:', err.message);
@@ -176,7 +177,7 @@ async function evaluateByGate(descriptor) {
       targetRoot: PROJECT_ROOT,
       capsule: readJson(CAPSULE_PATH),
       intent: readJson(INTENT_PATH),
-      auditPath: join(EVIDENCE_DIR, 'action-audit.jsonl'),
+      auditPath: governanceIsInstalled() ? join(EVIDENCE_DIR, 'action-audit.jsonl') : undefined,
     });
     return result;
   } catch (err) {
@@ -200,6 +201,38 @@ function writeEvidence(entry) {
   } catch {}
 }
 
+function safeEntryMessage(error) {
+  const raw = error instanceof Error ? String(error.message || error.name || '') : String(error)
+  return raw.replace(/\s+/g, ' ').trim().slice(0, 240) || 'unknown runtime entry failure'
+}
+
+function writeRuntimeEntryFailure({ pluginRoot, input, output, runtimeAvailability, detail, runId = null }) {
+  const record = {
+    schema_version: 'ocae.runtime-entry-failure.v1',
+    entry_source: 'plugin:chat.message',
+    timestamp: new Date().toISOString(),
+    session_id: input?.sessionID || output?.message?.sessionID || '',
+    message_id: input?.messageID || output?.message?.id || 'unknown',
+    run_id: runId,
+    runtime_availability: runtimeAvailability,
+    failure_reason: 'CANONICAL_RUNTIME_UNAVAILABLE',
+    failure_detail: detail,
+    fallback_attempted: false,
+  }
+  try {
+    if (!governanceIsInstalled()) return
+    const evidenceDir = join(pluginRoot, '.agent-governance', 'evidence')
+    mkdirSync(evidenceDir, { recursive: true })
+    const ts = new Date().toISOString().replace(/[:.]/g, '-')
+    writeFileSync(join(evidenceDir, `runtime-entry-failure-${ts}.json`), JSON.stringify(record, null, 2), 'utf8')
+  } catch { /* observability is best-effort */ }
+}
+
+function runtimeEntryUnavailable({ pluginRoot, input, output, runtimeAvailability, detail }) {
+  writeRuntimeEntryFailure({ pluginRoot, input, output, runtimeAvailability, detail })
+  return new Error(`[canonical-governance] RUNTIME_ENTRY_BLOCKED:CANONICAL_RUNTIME_UNAVAILABLE:${runtimeAvailability}:${detail}`)
+}
+
 async function handleToolExecution(input, output) {
   const tool = input.tool;
   const risk = classifyToolRisk(tool);
@@ -210,10 +243,18 @@ async function handleToolExecution(input, output) {
     if (risk === 'READ' || risk === 'NON_BLOCKING') {
       return undefined;
     }
-    throw new Error(
-      `[canonical-governance] BLOCKED: tool "${tool}" (${risk}) requires governance to be installed. ` +
-      `Reason: write/external/delegate operations are blocked without .agent-governance/manifest.json in the workspace root.`
-    );
+    // Bash is a transport for many concrete effects. Let the shared effect
+    // gate distinguish cold local/network reads from writes and external
+    // actions before applying the install-only preflight boundary.
+    if (tool !== 'bash') {
+      throw new Error(
+        `[canonical-governance] BLOCKED: tool "${tool}" (${risk}) requires governance to be installed. ` +
+        `Reason: write/external/delegate operations are blocked without .agent-governance/manifest.json in the workspace root.`
+      );
+    }
+    // Fall through to the shared gate below. Cold git Reality Refresh and
+    // local inspection are allowed; writes, unknown effects, and external
+    // actions still fail closed because they have no valid capsule.
   }
 
   const integrity = validateRuntimeIntegrity();
@@ -278,11 +319,12 @@ async function handleToolExecution(input, output) {
       return undefined;
 
     case 'RED_BLOCK':
+    case 'D_TECHNICAL_BLOCK':
     case 'DENY':
     case 'BLOCK':
       throw new Error(
         `[canonical-governance] BLOCKED: tool "${tool}" (${risk}) blocked by gate: ` +
-        `${gateResult.reason || 'policy violation'}.`
+        `${gateResult.code || gateResult.reason || 'policy violation'}.`
       );
 
     case 'C_BUNDLED_OWNER_DECISION':
@@ -339,6 +381,40 @@ export const CanonicalGovernancePlugin = async ({ project = {}, client = null, d
         userMessage: text,
       });
       if (result.state !== 'TASK_READY') throw new Error(`[canonical-governance] ${result.code || 'RED_BLOCK_TASK_BOOTSTRAP'}`);
+      // Canonical contract-first runtime entry — MANDATORY. The real user task
+      // enters the deterministic runtime (ecosystem.task.v1 + run_id +
+      // capability/MCP preflight + real run events) before any agent work
+      // starts. Terminal decisions (DONE | FIX | SPLIT | BLOCKED) are produced
+      // exclusively by the deterministic controller; agents remain workers.
+      //
+      // NO SILENT LEGACY FALLBACK: if the canonical runtime cannot be entered
+      // (unavailable, import failure, initialization failure, contract failure
+      // at entry), execution FAILS FAST with CANONICAL_RUNTIME_UNAVAILABLE and
+      // remains observable (runtime-entry-failure record,
+      // fallback_attempted=false). Legacy execution is never started.
+      let runtimeEntry = null
+      try {
+        runtimeEntry = await import('../../runtime/run.mjs')
+      } catch (error) {
+        throw runtimeEntryUnavailable({ pluginRoot, input, output, runtimeAvailability: 'IMPORT_FAILURE', detail: safeEntryMessage(error) })
+      }
+      if (!runtimeEntry || typeof runtimeEntry.enterRun !== 'function') {
+        throw runtimeEntryUnavailable({ pluginRoot, input, output, runtimeAvailability: 'UNAVAILABLE', detail: 'enterRun export missing' })
+      }
+      let entry
+      try {
+        entry = await runtimeEntry.enterRun({
+          targetRoot: pluginRoot,
+          taskText: text,
+          sessionId: input?.sessionID || output?.message?.sessionID || '',
+          messageId: input?.messageID || output?.message?.id || 'unknown',
+        })
+      } catch (error) {
+        throw runtimeEntryUnavailable({ pluginRoot, input, output, runtimeAvailability: 'AVAILABLE', detail: safeEntryMessage(error) })
+      }
+      if (entry.blocked) {
+        throw new Error(`[canonical-governance] RUNTIME_ENTRY_BLOCKED:${entry.decision?.reason_code || entry.code || 'BLOCKED'}`)
+      }
     },
     'tool.execute.before': async function (input, output) {
       return handleToolExecution(input, output);

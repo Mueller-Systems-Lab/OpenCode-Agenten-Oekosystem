@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>09 truncation</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;background:#f7fafc;padding:24px}
+h1{font-size:18px;margin-bottom:16px}.list{max-width:420px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.item{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:12px;display:flex;align-items:center;gap:12px}
+.thumb{width:40px;height:40px;background:#bee3f8;border-radius:6px;flex-shrink:0}
+.narrow{width:200px;flex-shrink:0}
+.narrow .title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;font-weight:600}
+.narrow .sub{font-size:12px;color:#718096}
+.note{text-align:center;margin-top:12px;font-size:12px;color:#e53e3e;font-weight:600}
+</style></head><body data-fixture="09-truncation">
+<h1>Text Truncation — TEXT_TRUNCATION</h1>
+<div class="list">
+<div class="item"><div class="thumb"></div><div class="narrow"><div class="title">Super Long Product Title That Will Be Ellipsized And Is Not Fully Readable</div><div class="sub">SKU-90210 — in stock</div></div></div>
+<div class="item"><div class="thumb"></div><div class="narrow"><div class="title">Another Extremely Verbose Item Name Exceeding Container Width</div><div class="sub">SKU-90211 — low stock</div></div></div>
+</div>
+<p class="note">BUG: titles use nowrap+ellipsis inside 200px container — full text not visible. Expected TEXT_TRUNCATION.</p>
+</body></html>

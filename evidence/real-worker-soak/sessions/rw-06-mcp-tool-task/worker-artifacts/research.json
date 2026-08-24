@@ -1,0 +1,5 @@
+{
+  "code": [],
+  "docs": ["notes.md"],
+  "tests": ["test/notes.test.mjs"]
+}

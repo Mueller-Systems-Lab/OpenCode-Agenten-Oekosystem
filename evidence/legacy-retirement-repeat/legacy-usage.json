@@ -1,0 +1,14 @@
+{
+  "real_sessions": [
+    {
+      "case_id": "rw-01-isolated-bugfix",
+      "round": 2,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    }
+  ],
+  "normal_legacy_fallback_count": 0,
+  "forced_canonical_failure_tests": []
+}

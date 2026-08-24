@@ -1,0 +1,168 @@
+{
+  "created_at": "2026-08-22T05:10:13.531Z",
+  "repo_root": "/media/xxammaxx/software/OpenCode-Agenten-Oekosystem",
+  "fixture_root": "/media/xxammaxx/software/OpenCode-Agenten-Oekosystem/test/fixtures/visual-qa",
+  "evidence_dir": "/tmp/opencode/visual-qa-responsive-mobile",
+  "playwright_mcp_command": [
+    "<playwright-mcp>"
+  ],
+  "vision_reviewer": {
+    "provider": "openai",
+    "model": "gpt-5.4-mini"
+  },
+  "args": {
+    "fixture": "07-responsive-breakpoint",
+    "viewport": "mobile"
+  },
+  "total": 1,
+  "results": [
+    {
+      "run_id": "e997d680-4c77-4d00-89d4-477c4807cd31",
+      "fixture": "07-responsive-breakpoint",
+      "viewport": "mobile",
+      "decision": "FIX",
+      "reason_code": "NON_BLOCKING_REVIEW_FINDINGS",
+      "first_bad_boundary": "VISUAL_QA",
+      "visual_status": "FAIL",
+      "findings": [
+        {
+          "category": "VISUAL_OVERFLOW",
+          "severity": "HIGH",
+          "blocking": false,
+          "confidence": 0.98
+        },
+        {
+          "category": "RESPONSIVE_BREAKPOINT_FAILURE",
+          "severity": "HIGH",
+          "blocking": false,
+          "confidence": 0.93
+        }
+      ],
+      "finding_count": 2,
+      "image_fingerprint": "8d024543cf557f1a69101361532ac405b4f3df6b68e3348fa7b3433c0e732529",
+      "screenshot_path": "/tmp/opencode/visual-qa-responsive-mobile/e997d680-4c77-4d00-89d4-477c4807cd31-07-responsive-breakpoint-mobile.png",
+      "review_provider": "openai",
+      "review_model": "gpt-5.4-mini",
+      "duration_ms": 27582,
+      "events_summary": [
+        {
+          "job": "create-task",
+          "phase": "TASK",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "capability-preflight",
+          "phase": "BASELINE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "research",
+          "phase": "RESEARCH",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-plan",
+          "phase": "PLAN",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "plan-gate",
+          "phase": "PLAN_GATE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-build",
+          "phase": "BUILD",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "verify",
+          "phase": "VERIFY",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.browser.ready",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.screenshot",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.review.result",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.gate",
+          "phase": "VISUAL_QA",
+          "status": "FAIL",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.boundary",
+          "phase": "VISUAL_QA",
+          "status": "FAIL",
+          "failure_signature": null
+        },
+        {
+          "job": "correctness-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "security-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "quality-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "deterministic-controller",
+          "phase": "CONTROLLER",
+          "status": "FAIL",
+          "failure_signature": null
+        }
+      ],
+      "raw_run_id": "e997d680-4c77-4d00-89d4-477c4807cd31"
+    }
+  ],
+  "metrics": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0,
+    "tn": 0,
+    "precision": 1,
+    "recall": 1
+  }
+}

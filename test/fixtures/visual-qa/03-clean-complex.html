@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>03 clean complex</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;color:#222;background:#fff;line-height:1.4;padding:20px}
+h1{font-size:20px;margin-bottom:12px}h2{font-size:14px;margin:16px 0 8px;color:#2d3748}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px}
+th,td{border:1px solid #cbd5e0;padding:8px;text-align:left}th{background:#edf2f7}
+form{border:1px solid #e2e8f0;border-radius:8px;padding:16px;max-width:600px}
+.row{display:flex;gap:12px;margin-bottom:10px;align-items:center}
+.row label{width:120px;font-size:13px;font-weight:600}.row input{flex:1;padding:6px 8px;border:1px solid #cbd5e0;border-radius:4px;font-size:13px}
+button{background:#2b6cb0;color:#fff;border:0;padding:8px 16px;border-radius:4px;font-size:13px;cursor:pointer}
+</style></head><body data-fixture="03-clean-complex">
+<h1>Orders — Clean Complex Layout</h1>
+<table><thead><tr><th>ID</th><th>Customer</th><th>Status</th><th>Amount</th></tr></thead>
+<tbody><tr><td>#1001</td><td>Alice Meyer</td><td>Paid</td><td>€ 129.00</td></tr>
+<tr><td>#1002</td><td>Bob Klein</td><td>Pending</td><td>€ 49.50</td></tr>
+<tr><td>#1003</td><td>Carol Sun</td><td>Shipped</td><td>€ 210.00</td></tr></tbody></table>
+<h2>New order</h2>
+<form>
+<div class="row"><label for="a">Customer</label><input id="a" value="Jane Doe"></div>
+<div class="row"><label for="b">Email</label><input id="b" value="jane@example.test"></div>
+<div class="row"><label for="c">Amount</label><input id="c" value="€ 99.00"></div>
+<button type="button">Create order</button>
+</form>
+</body></html>

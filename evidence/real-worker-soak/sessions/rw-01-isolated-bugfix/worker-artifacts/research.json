@@ -1,0 +1,5 @@
+{
+  "code": ["src/calc.mjs"],
+  "docs": [],
+  "tests": ["test/calc.test.mjs"]
+}

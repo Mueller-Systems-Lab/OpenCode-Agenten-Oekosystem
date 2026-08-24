@@ -1,0 +1,146 @@
+[
+  {
+    "case_id": "rw-01-isolated-bugfix",
+    "research_classification": "RESEARCH_COMPLETE",
+    "relevant_files_expected": [
+      "src/calc.mjs",
+      "test/calc.test.mjs"
+    ],
+    "relevant_files_found": [
+      "src/calc.mjs",
+      "test/calc.test.mjs"
+    ],
+    "missing_files": []
+  },
+  {
+    "case_id": "rw-02-multifile-change",
+    "research_classification": "RESEARCH_COMPLETE",
+    "relevant_files_expected": [
+      "src/format.mjs",
+      "src/user.mjs",
+      "test/format.test.mjs"
+    ],
+    "relevant_files_found": [
+      "src/format.mjs",
+      "src/user.mjs",
+      "test/format.test.mjs"
+    ],
+    "missing_files": []
+  },
+  {
+    "case_id": "rw-03-existing-test-failure",
+    "research_classification": "RESEARCH_COMPLETE",
+    "relevant_files_expected": [
+      "src/total.mjs",
+      "test/total.test.mjs"
+    ],
+    "relevant_files_found": [
+      "src/total.mjs",
+      "test/total.test.mjs"
+    ],
+    "missing_files": []
+  },
+  {
+    "case_id": "rw-04-code-docs-tests",
+    "research_classification": "RESEARCH_COMPLETE",
+    "relevant_files_expected": [
+      "src/greet.mjs",
+      "docs/README.md"
+    ],
+    "relevant_files_found": [
+      "src/greet.mjs",
+      "docs/README.md"
+    ],
+    "missing_files": []
+  },
+  {
+    "case_id": "rw-05-skill-task",
+    "research_classification": "RESEARCH_PARTIAL",
+    "relevant_files_expected": [
+      "src/calc2.mjs",
+      "test/calc2.test.mjs",
+      ".opencode/skills/run-card/SKILL.md"
+    ],
+    "relevant_files_found": [
+      "src/calc2.mjs",
+      "test/calc2.test.mjs"
+    ],
+    "missing_files": [
+      ".opencode/skills/run-card/SKILL.md"
+    ]
+  },
+  {
+    "case_id": "rw-06-mcp-tool-task",
+    "research_classification": "RESEARCH_COMPLETE",
+    "relevant_files_expected": [
+      "notes.md",
+      "test/notes.test.mjs"
+    ],
+    "relevant_files_found": [
+      "notes.md",
+      "test/notes.test.mjs"
+    ],
+    "missing_files": []
+  },
+  {
+    "case_id": "rw-07-controlled-retry",
+    "research_classification": "RESEARCH_COMPLETE",
+    "relevant_files_expected": [
+      "src/sum2.mjs",
+      "test/sum2.test.mjs"
+    ],
+    "relevant_files_found": [
+      "src/sum2.mjs",
+      "test/sum2.test.mjs"
+    ],
+    "missing_files": []
+  },
+  {
+    "case_id": "rw-08-split-decision",
+    "research_classification": "RESEARCH_COMPLETE",
+    "relevant_files_expected": [
+      "src/parse.mjs",
+      "test/parse.test.mjs"
+    ],
+    "relevant_files_found": [
+      "src/parse.mjs",
+      "test/parse.test.mjs"
+    ],
+    "missing_files": []
+  },
+  {
+    "case_id": "rw-09-security-sensitive",
+    "research_classification": "RESEARCH_COMPLETE",
+    "relevant_files_expected": [
+      "src/config.mjs"
+    ],
+    "relevant_files_found": [
+      "src/config.mjs"
+    ],
+    "missing_files": []
+  },
+  {
+    "case_id": "rw-10-plan-gate-reject",
+    "research_classification": "RESEARCH_COMPLETE",
+    "relevant_files_expected": [
+      "src/double.mjs"
+    ],
+    "relevant_files_found": [
+      "src/double.mjs"
+    ],
+    "missing_files": []
+  },
+  {
+    "case_id": "rw-11-controlled-two-attempt-retry",
+    "research_classification": "RESEARCH_COMPLETE",
+    "relevant_files_expected": [
+      "src/avg.mjs",
+      "test/avg.test.mjs"
+    ],
+    "relevant_files_found": [
+      "src/avg.mjs",
+      "test/avg.test.mjs"
+    ],
+    "missing_files": []
+  }
+]

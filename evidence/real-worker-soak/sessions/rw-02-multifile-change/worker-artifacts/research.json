@@ -1,0 +1,10 @@
+{
+  "code": [
+    "src/format.mjs",
+    "src/user.mjs"
+  ],
+  "docs": [],
+  "tests": [
+    "test/format.test.mjs"
+  ]
+}

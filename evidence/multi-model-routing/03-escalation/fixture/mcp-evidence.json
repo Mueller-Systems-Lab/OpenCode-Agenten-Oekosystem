@@ -1,0 +1,7 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "attempt": 1,
+  "real_call": "playwright_browser_navigate",
+  "captured_at": "2026-08-19T12:30:26.437Z"
+}

@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>07 responsive breakpoint</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;background:#f7fafc;line-height:1.4}
+header{background:#1a202c;color:#fff;padding:14px 20px;font-size:16px}
+.layout{display:flex;gap:16px;padding:20px;max-width:900px;margin:0 auto}
+.col{flex:1;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px}
+.col h3{font-size:14px;margin-bottom:6px}.col p{font-size:13px;color:#555}
+.wide{width:500px;background:#fed7d7;border:1px solid #feb2b2;padding:10px;margin-top:10px;font-size:12px}
+@media(max-width:600px){.layout{flex-direction:column}.wide{width:500px}}
+.note{text-align:center;margin-top:10px;font-size:12px;color:#718096}
+.note b{color:#c53030}
+</style></head><body data-fixture="07-responsive-breakpoint">
+<header>Responsive Breakpoint Fixture — Case D</header>
+<div class="layout">
+<div class="col"><h3>Column A</h3><p>On desktop this flex row is clean. Both columns visible side-by-side without overflow.</p></div>
+<div class="col"><h3>Column B</h3><p>Contains a fixed-width element:</p><div class="wide">Fixed 500px box — overflows a 390px mobile viewport, causing horizontal scroll.</div></div>
+</div>
+<p class="note">Desktop: <b>PASS</b> — Mobile: <b>FAIL</b> (horizontal overflow). Expected RESPONSIVE_BREAKPOINT_FAILURE / VISUAL_OVERFLOW on mobile.</p>
+</body></html>

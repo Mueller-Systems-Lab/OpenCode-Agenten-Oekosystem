@@ -1,0 +1,11 @@
+{
+  "case_id": "rw-07-controlled-retry",
+  "prepared_at": "2026-08-17T05:44:05.112Z",
+  "entry_source": "plugin:chat.message",
+  "run_id": "641b032c-d8ee-45dd-9329-117c275eba30",
+  "task_contract": "ecosystem.task.v1",
+  "phase": "ENTRY",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null
+}

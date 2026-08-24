@@ -1,6 +1,6 @@
 # OCAE CLI Reference
 
-OCAE CLI v1.0.3 is the versioned distribution layer for the OpenCode Agent
+OCAE CLI v1.0.4 is the versioned distribution layer for the OpenCode Agent
 Ecosystem. It bundles a build-generated, hash-verified closure of the canonical
 Node installer and invokes it from an isolated payload directory.
 
@@ -15,10 +15,10 @@ runtime assets remain owned by
 Install the published release with `uv`:
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.3
+uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.4
 ```
 
-The source ref is pinned to `v1.0.3`. The package does not clone the repository
+The source ref is pinned to `v1.0.4`. The package does not clone the repository
 during target installation.
 
 ## Quick start

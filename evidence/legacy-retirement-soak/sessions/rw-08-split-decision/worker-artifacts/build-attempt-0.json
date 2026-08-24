@@ -1,0 +1,1 @@
+{ "changed_files": [], "files": {}, "errors": ["blocked by missing external fixture: test/data.json does not exist and must not be fabricated"], "strategy_delta": null, "capabilities_used": ["read", "test"] }

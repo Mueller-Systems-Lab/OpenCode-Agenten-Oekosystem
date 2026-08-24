@@ -1,6 +1,6 @@
 {
-  "version": "1.0.3",
-  "tag": "v1.0.3",
+  "version": "1.0.4",
+  "tag": "v1.0.4",
   "releaseCommit": "UNKNOWN",
   "sourceRepository": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
   "primaryAgent": "issue-orchestrator",

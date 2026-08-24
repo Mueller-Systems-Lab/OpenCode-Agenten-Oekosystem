@@ -1,0 +1,134 @@
+{
+  "run_id": "d81cb34b-4051-46c6-b392-63123f8160df",
+  "fixture": "05-overlap",
+  "viewport": "desktop",
+  "decision": "BLOCKED",
+  "reason_code": "BLOCKING_HIGH_OR_CRITICAL_FINDING",
+  "first_bad_boundary": "VISUAL_QA",
+  "visual_status": "FAIL",
+  "findings": [
+    {
+      "category": "LAYOUT_OVERLAP",
+      "severity": "HIGH",
+      "blocking": true,
+      "confidence": 0.98
+    }
+  ],
+  "finding_count": 1,
+  "image_fingerprint": "66269b68cb4208f045a2e143d03b700978a2ffa9f51c9e97562b50675b08d0a3",
+  "screenshot_path": "/tmp/opencode/visual-qa-overlap/d81cb34b-4051-46c6-b392-63123f8160df-05-overlap-desktop.png",
+  "review_provider": "openai",
+  "review_model": "gpt-5.4-mini",
+  "duration_ms": 20792,
+  "events_summary": [
+    {
+      "job": "create-task",
+      "phase": "TASK",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "capability-preflight",
+      "phase": "BASELINE",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "research",
+      "phase": "RESEARCH",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "native-plan",
+      "phase": "PLAN",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "plan-gate",
+      "phase": "PLAN_GATE",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "native-build",
+      "phase": "BUILD",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "verify",
+      "phase": "VERIFY",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "visual.qa.start",
+      "phase": "VISUAL_QA",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "visual.qa.start",
+      "phase": "VISUAL_QA",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "visual.qa.browser.ready",
+      "phase": "VISUAL_QA",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "visual.qa.screenshot",
+      "phase": "VISUAL_QA",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "visual.qa.review.result",
+      "phase": "VISUAL_QA",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "visual.qa.gate",
+      "phase": "VISUAL_QA",
+      "status": "FAIL",
+      "failure_signature": null
+    },
+    {
+      "job": "visual.qa.boundary",
+      "phase": "VISUAL_QA",
+      "status": "FAIL",
+      "failure_signature": null
+    },
+    {
+      "job": "correctness-review",
+      "phase": "REVIEWS",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "security-review",
+      "phase": "REVIEWS",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "quality-review",
+      "phase": "REVIEWS",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "deterministic-controller",
+      "phase": "CONTROLLER",
+      "status": "FAIL",
+      "failure_signature": null
+    }
+  ],
+  "raw_run_id": "d81cb34b-4051-46c6-b392-63123f8160df"
+}

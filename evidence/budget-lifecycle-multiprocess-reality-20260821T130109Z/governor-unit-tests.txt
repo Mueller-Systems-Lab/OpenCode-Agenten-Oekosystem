@@ -1,0 +1,237 @@
+TAP version 13
+# Subtest: shared budget governor — lifecycle
+    # Subtest: reserve → commit consumes (slot spent, capacity not restored)
+    ok 1 - reserve → commit consumes (slot spent, capacity not restored)
+      ---
+      duration_ms: 7.208581
+      type: 'test'
+      ...
+    # Subtest: reserve → release restores capacity exactly once
+    ok 2 - reserve → release restores capacity exactly once
+      ---
+      duration_ms: 1.177162
+      type: 'test'
+      ...
+    # Subtest: reserve → expire (advance clock) restores capacity
+    ok 3 - reserve → expire (advance clock) restores capacity
+      ---
+      duration_ms: 1.119126
+      type: 'test'
+      ...
+    # Subtest: unknown commit / release fail closed → SHARED_BUDGET_RESERVATION_UNKNOWN
+    ok 4 - unknown commit / release fail closed → SHARED_BUDGET_RESERVATION_UNKNOWN
+      ---
+      duration_ms: 0.861187
+      type: 'test'
+      ...
+    # Subtest: wrong run_id commit / release → SHARED_BUDGET_OWNERSHIP_INVALID, no budget change
+    ok 5 - wrong run_id commit / release → SHARED_BUDGET_OWNERSHIP_INVALID, no budget change
+      ---
+      duration_ms: 2.504296
+      type: 'test'
+      ...
+    # Subtest: double release → idempotent + no capacity drift
+    ok 6 - double release → idempotent + no capacity drift
+      ---
+      duration_ms: 2.10563
+      type: 'test'
+      ...
+    # Subtest: double commit → idempotent + no double consume
+    ok 7 - double commit → idempotent + no double consume
+      ---
+      duration_ms: 1.56689
+      type: 'test'
+      ...
+    # Subtest: release after commit → SHARED_BUDGET_RESERVATION_NOT_ACTIVE (no change)
+    ok 8 - release after commit → SHARED_BUDGET_RESERVATION_NOT_ACTIVE (no change)
+      ---
+      duration_ms: 1.452185
+      type: 'test'
+      ...
+    # Subtest: commit after release → SHARED_BUDGET_RESERVATION_NOT_ACTIVE (no change)
+    ok 9 - commit after release → SHARED_BUDGET_RESERVATION_NOT_ACTIVE (no change)
+      ---
+      duration_ms: 1.659276
+      type: 'test'
+      ...
+    # Subtest: commit of EXPIRED reservation → SHARED_BUDGET_RESERVATION_EXPIRED
+    ok 10 - commit of EXPIRED reservation → SHARED_BUDGET_RESERVATION_EXPIRED
+      ---
+      duration_ms: 2.198307
+      type: 'test'
+      ...
+    # Subtest: TTL determinism: late commit of expired RESERVED → RESERVATION_EXPIRED even before expireStale runs (no mutation, capacity not spent)
+    ok 11 - TTL determinism: late commit of expired RESERVED → RESERVATION_EXPIRED even before expireStale runs (no mutation, capacity not spent)
+      ---
+      duration_ms: 1.281137
+      type: 'test'
+      ...
+    # Subtest: TTL determinism: late release of expired RESERVED → RESERVATION_EXPIRED (no mutation)
+    ok 12 - TTL determinism: late release of expired RESERVED → RESERVATION_EXPIRED (no mutation)
+      ---
+      duration_ms: 0.718938
+      type: 'test'
+      ...
+    # Subtest: TTL determinism: reservation committed BEFORE expiry stays CONSUMED past TTL (idempotent commit)
+    ok 13 - TTL determinism: reservation committed BEFORE expiry stays CONSUMED past TTL (idempotent commit)
+      ---
+      duration_ms: 0.601398
+      type: 'test'
+      ...
+    # Subtest: unknown resource → SHARED_BUDGET_RESERVATION_DENIED (fail closed)
+    ok 14 - unknown resource → SHARED_BUDGET_RESERVATION_DENIED (fail closed)
+      ---
+      duration_ms: 0.439345
+      type: 'test'
+      ...
+    # Subtest: non-positive / NaN capacity fails closed to 0 capacity
+    ok 15 - non-positive / NaN capacity fails closed to 0 capacity
+      ---
+      duration_ms: 0.595212
+      type: 'test'
+      ...
+    # Subtest: ttl clamped into [min_ttl_ms, max_ttl_ms]
+    ok 16 - ttl clamped into [min_ttl_ms, max_ttl_ms]
+      ---
+      duration_ms: 0.496214
+      type: 'test'
+      ...
+    1..16
+ok 1 - shared budget governor — lifecycle
+  ---
+  duration_ms: 31.354817
+  type: 'suite'
+  ...
+# Subtest: shared budget governor — atomicity & concurrency
+    # Subtest: CONCURRENCY 1: capacity=2, 3 concurrent requests → exactly 2 RESERVED, 1 EXHAUSTED (repeated 3x)
+    ok 1 - CONCURRENCY 1: capacity=2, 3 concurrent requests → exactly 2 RESERVED, 1 EXHAUSTED (repeated 3x)
+      ---
+      duration_ms: 6.695127
+      type: 'test'
+      ...
+    # Subtest: CONCURRENCY 2: capacity=10, 100 concurrent requests → 10 reserved, 90 denied, no oversubscription
+    ok 2 - CONCURRENCY 2: capacity=10, 100 concurrent requests → 10 reserved, 90 denied, no oversubscription
+      ---
+      duration_ms: 3.988227
+      type: 'test'
+      ...
+    # Subtest: 1000-concurrent canary: capacity=5 → 5 reserved / 995 denied (in-memory, must run)
+    ok 3 - 1000-concurrent canary: capacity=5 → 5 reserved / 995 denied (in-memory, must run)
+      ---
+      duration_ms: 84.249275
+      type: 'test'
+      ...
+    # Subtest: STRESS: 100 iterations × 100 concurrent (10,000 decisions) — no oversubscription, no drift, no deadlock, no unhandled errors
+    ok 4 - STRESS: 100 iterations × 100 concurrent (10,000 decisions) — no oversubscription, no drift, no deadlock, no unhandled errors
+      ---
+      duration_ms: 256.576075
+      type: 'test'
+      ...
+    # Subtest: expiry interleaving: expired A frees capacity for B (clock injection, no sleeps)
+    ok 5 - expiry interleaving: expired A frees capacity for B (clock injection, no sleeps)
+      ---
+      duration_ms: 1.646399
+      type: 'test'
+      ...
+    # Subtest: commit/release interleaving: only released capacity is reusable
+    ok 6 - commit/release interleaving: only released capacity is reusable
+      ---
+      duration_ms: 0.766766
+      type: 'test'
+      ...
+    1..6
+ok 2 - shared budget governor — atomicity & concurrency
+  ---
+  duration_ms: 354.713195
+  type: 'suite'
+  ...
+# Subtest: shared budget governor — ownership & memory bounds
+    # Subtest: run B cannot release or commit run A reservation (ownership)
+    ok 1 - run B cannot release or commit run A reservation (ownership)
+      ---
+      duration_ms: 0.665478
+      type: 'test'
+      ...
+    # Subtest: memory bound: ledger_size ≤ retention_limit + active; prune works; active never pruned
+    ok 2 - memory bound: ledger_size ≤ retention_limit + active; prune works; active never pruned
+      ---
+      duration_ms: 153.788854
+      type: 'test'
+      ...
+    # Subtest: commit accounting is exact under capacity pressure (consumed slots hold capacity)
+    ok 3 - commit accounting is exact under capacity pressure (consumed slots hold capacity)
+      ---
+      duration_ms: 5.070015
+      type: 'test'
+      ...
+    1..3
+ok 3 - shared budget governor — ownership & memory bounds
+  ---
+  duration_ms: 159.927302
+  type: 'suite'
+  ...
+# Subtest: shared budget governor — security (negative) & event shape
+    # Subtest: worker-output-shaped payload cannot mutate the ledger (no instruction-accepting method)
+    ok 1 - worker-output-shaped payload cannot mutate the ledger (no instruction-accepting method)
+      ---
+      duration_ms: 0.686363
+      type: 'test'
+      ...
+    # Subtest: tool-result-shaped payload is not a method argument (fail closed, key ignored)
+    ok 2 - tool-result-shaped payload is not a method argument (fail closed, key ignored)
+      ---
+      duration_ms: 0.450006
+      type: 'test'
+      ...
+    # Subtest: structural: the class exposes ONLY the documented methods (no apply/mutate/request)
+    ok 3 - structural: the class exposes ONLY the documented methods (no apply/mutate/request)
+      ---
+      duration_ms: 0.840851
+      type: 'test'
+      ...
+    # Subtest: unknown reservation spoof (random uuid) → SHARED_BUDGET_RESERVATION_UNKNOWN
+    ok 4 - unknown reservation spoof (random uuid) → SHARED_BUDGET_RESERVATION_UNKNOWN
+      ---
+      duration_ms: 12.259719
+      type: 'test'
+      ...
+    # Subtest: budget events carry NO prompts/text/output/content (serialized redaction check)
+    ok 5 - budget events carry NO prompts/text/output/content (serialized redaction check)
+      ---
+      duration_ms: 3.663907
+      type: 'test'
+      ...
+    # Subtest: the 5 budget jobs are declared in ROUTING_EVENT_JOBS (additive)
+    ok 6 - the 5 budget jobs are declared in ROUTING_EVENT_JOBS (additive)
+      ---
+      duration_ms: 0.427073
+      type: 'test'
+      ...
+    1..6
+ok 4 - shared budget governor — security (negative) & event shape
+  ---
+  duration_ms: 19.044437
+  type: 'suite'
+  ...
+# Subtest: shared budget governor — repeatability
+    # Subtest: identical inputs → identical decisions over 3 runs
+    ok 1 - identical inputs → identical decisions over 3 runs
+      ---
+      duration_ms: 0.794605
+      type: 'test'
+      ...
+    1..1
+ok 5 - shared budget governor — repeatability
+  ---
+  duration_ms: 1.061999
+  type: 'suite'
+  ...
+1..5
+# tests 32
+# suites 5
+# pass 32
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 869.199466

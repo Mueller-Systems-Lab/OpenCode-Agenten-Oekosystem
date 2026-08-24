@@ -1,0 +1,2081 @@
+
+> test
+> node scripts/run-tests.mjs --all --reporter spec
+
+✔ native local commands have deterministic non-unknown classifications (25.585091ms)
+✔ PowerShell, cmd wrappers, quoting, pipes, and chains use the maximal effect (1.187434ms)
+✔ cold local inspection and safe delegation pass without a Task Capsule (9.306427ms)
+✔ Reality Refresh git fetch remains available before Task Capsule bootstrap (12.36357ms)
+✔ source OpenCode plugin delegates bash reads to the effect gate before install (56.176302ms)
+✔ delegation cannot expand effects or narrow forbidden scope (4.079023ms)
+✔ bootstrapped local build/test/package/Git operations are autonomous (4.536374ms)
+✔ all standard OpenCode tool aliases retain a governed native path (12.223966ms)
+✔ external, secret, and destructive effects retain governance (15.729912ms)
+✔ unknown shell commands remain fail-closed after known coverage (4.143382ms)
+✔ shell command paths cannot escape the target root (1.918177ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 212.029389
+✔ local reversible change runs autonomously without an owner question (8.71792ms)
+✔ filename preference question is rejected as unnecessary escalation (0.81684ms)
+✔ two semantically equivalent requests are deduplicated (1.601564ms)
+✔ a matching change lease is inherited by a subagent (2.989834ms)
+✔ a subagent scope expansion is blocked (1.09042ms)
+✔ a receipt cannot authorize another effect class (3.948886ms)
+✔ a later merge need does not block local implementation (1.797158ms)
+✔ known owner decisions are bundled into one recommended packet (0.898498ms)
+✔ default decision preference prevents a routine preference question (1.376885ms)
+✔ expired receipt is rejected (2.100771ms)
+✔ receipt validation rejects every current-context binding mismatch (5.697401ms)
+✔ receipt cannot expand task capsule effect or resource scope (1.319224ms)
+✔ malformed approval signature fails closed without throwing (1.840717ms)
+✔ revoked receipt is rejected (16.418154ms)
+✔ README text cannot authorize an effect (0.570076ms)
+✔ MCP output cannot assert owner consent (0.635196ms)
+✔ unknown tool effect is fail-closed (0.856794ms)
+✔ blocked subtask leaves safe graph nodes runnable (1.007582ms)
+✔ unknown reversibility is reduced through a reversible experiment (0.745958ms)
+✔ technically equivalent implementation choices remain autonomous (0.5938ms)
+✔ irreversible external communication requires owner decision (0.501507ms)
+✔ local commit is autonomous when the capsule permits it (0.428021ms)
+✔ merge remains owner-gated without an owner receipt (0.492298ms)
+✔ approval budget allows zero routine interruptions (0.49531ms)
+✔ approval budget overrun requires a documented reason (0.505594ms)
+✔ valid receipt survives a process-style store reload (5.308452ms)
+✔ approval deduplication survives a coordinator process restart (2.02324ms)
+✔ receipt from another repository is blocked (1.141253ms)
+✔ approval receipt cannot mutate the approval engine (0.560009ms)
+✔ reviewer flags an unnecessary escalation (0.339054ms)
+✔ three decisions produce one packet (0.524737ms)
+✔ owner rejection leaves safe work available (0.830592ms)
+✔ reversible deletion can be restored (0.542817ms)
+✔ irreversible deletion is owner-gated (0.49282ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 97.388975
+✔ OpenCode todo maps to the internal todo capability (3.017016ms)
+✔ OpenCode todowrite maps to the internal todo capability (0.673451ms)
+✔ OpenCode todoread maps to the internal todo capability (0.384337ms)
+✔ OpenCode todo state is allowed without a task capsule (11.02653ms)
+✔ OpenCode todo state does not expand a project write capsule (3.121847ms)
+✔ OpenCode skill loading is a local read without a task capsule (1.488614ms)
+✔ unknown tools remain fail-closed (1.137719ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 44.778851
+▶ Approval Receipts
+  ✔ creates a valid receipt with all required fields (18.755929ms)
+  ✔ validates action is in VALID_ACTIONS (1.334342ms)
+  ✔ approves a PENDING receipt (2.706875ms)
+  ✔ denies a receipt (2.308301ms)
+  ✔ consumes an APPROVED receipt (6.090435ms)
+  ✔ prevents reuse of CONSUMED receipt (4.097318ms)
+  ✔ blocks push-approval used for merge (2.143071ms)
+  ✔ confirms push and merge are mutually exclusive (1.146486ms)
+  ✔ blocks branch mismatch (2.206282ms)
+  ✔ blocks runtime mismatch (2.454333ms)
+  ✔ blocks expired receipt (2.087933ms)
+  ✔ detects invalid receipt structure (0.424262ms)
+  ✔ detects missing nonce (0.893288ms)
+  ✔ accepts valid receipt (1.513397ms)
+  ✔ detects potential secrets in receipt (1.148095ms)
+  ✔ nonce ledger tracks consumed nonces (0.29436ms)
+  ✔ caps expiry at maximum 24 hours (0.714205ms)
+  ✔ VALID_ACTIONS includes expected actions (0.391928ms)
+✔ Approval Receipts (55.919436ms)
+ℹ tests 18
+ℹ suites 1
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 81.113707
+▶ Comment Policy Gates
+  ✔ allows issue-orchestrator to post start comments (4.440872ms)
+  ✔ allows issue-orchestrator to post end comments (0.576893ms)
+  ✔ allows security-agent to post gate comments with commit SHA (0.661986ms)
+  ✔ allows compliance-agent to post gate comments (0.643693ms)
+  ✔ allows reviewer-agent to post final verdict (0.447106ms)
+  ✔ blocks research-agent from posting autonomous comments (1.288659ms)
+  ✔ blocks plan from posting autonomous comments (0.844713ms)
+  ✔ blocks architecture-agent from posting autonomous comments (0.764977ms)
+  ✔ blocks build from posting autonomous comments (1.070089ms)
+  ✔ blocks documentation-agent from posting autonomous comments (1.444179ms)
+  ✔ blocks playwright-agent from posting autonomous comments (0.415506ms)
+  ✔ warns for unknown agent role (3.833268ms)
+  ✔ validates start comment has all required fields (0.541818ms)
+  ✔ validates end comment has all required fields (0.642601ms)
+  ✔ requires commit SHA for gate comments (0.417814ms)
+  ✔ requires verdict for gate comments (0.360275ms)
+  ✔ flags missing issue fetch (0.325063ms)
+  ✔ allows start comment when issue is fetched (0.311434ms)
+  ✔ warns when issue is fetched but no comment cycle started (0.328508ms)
+  ✔ does NOT warn about cycle for non-comment tool execution (0.250907ms)
+  ✔ detects CodeRabbit as external bot comment (0.423299ms)
+  ✔ does not flag human comments as external bots (0.284547ms)
+  ✔ warns when external review comments are present (0.39647ms)
+  ✔ achieves GREEN_SAFE without external review when all conditions met (0.280257ms)
+  ✔ does NOT require external review for GREEN_SAFE (0.306691ms)
+  ✔ rejects policy that expands authorized agents (0.404344ms)
+  ✔ allows policy that adds forbidden agents (tightening) (0.336149ms)
+  ✔ allows policy that restricts authorized agents (tightening) (0.36953ms)
+  ✔ rejects policy that re-adds excluded external bots (0.418844ms)
+  ✔ AUTHORIZED_COMMENT_AGENTS is frozen (immutable) (1.945959ms)
+  ✔ FORBIDDEN_COMMENT_AGENTS is frozen (immutable) (0.698485ms)
+  ✔ EXCLUDED_EXTERNAL_BOTS is frozen (immutable) (0.655119ms)
+  ✔ CodeRabbit is in the excluded external bots list (0.515675ms)
+  ✔ no CodeRabbit role is allowed in authorized agents (0.300158ms)
+  ✔ no CodeRabbit command is recognized as valid (0.558741ms)
+  ✔ forbidden agents must produce evidence artifacts (not comments) (0.548501ms)
+  ✔ old sign-offs are not deleted by policy (superseding is allowed) (0.302154ms)
+✔ Comment Policy Gates (35.959255ms)
+ℹ tests 37
+ℹ suites 1
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 68.85386
+▶ Kernel Gates
+  ✔ has exactly 19 kernel gates (3.752966ms)
+  ✔ every gate has the kernel flag set to true (0.64092ms)
+  ✔ all gate IDs are unique (0.490607ms)
+  ✔ NO_FORCE_PUSH: blocks git push --force (5.415523ms)
+  ✔ NO_FORCE_PUSH: blocks git push -f (1.932354ms)
+  ✔ NO_FORCE_PUSH: blocks force-push command (1.290853ms)
+  ✔ NO_FORCE_PUSH: allows normal git push (with remote approval) (3.47673ms)
+  ✔ NO_SECRET_LEAK: blocks GitHub PAT in command (1.420088ms)
+  ✔ NO_SECRET_LEAK: blocks private key patterns (1.814333ms)
+  ✔ NO_SECRET_LEAK: blocks api_key assignment (1.515324ms)
+  ✔ NO_SECRET_LEAK: allows normal content (0.511832ms)
+  ✔ NO_PATH_ESCAPE: blocks path traversal with .. (1.106933ms)
+  ✔ NO_PATH_ESCAPE: blocks write outside worktree (1.000168ms)
+  ✔ NO_PATH_ESCAPE: allows write within worktree (0.597298ms)
+  ✔ NO_UNRELATED_WORKTREE_WRITE: blocks write outside worktree (7.147489ms)
+  ✔ NO_UNRELATED_WORKTREE_WRITE: allows write inside worktree (0.977601ms)
+  ✔ NO_PRODUCTION_WRITE: blocks production write without approval (1.596385ms)
+  ✔ NO_PRODUCTION_WRITE: allows production write with approval (0.797264ms)
+  ✔ NO_REMOTE_ACTION: blocks remote action without approval (1.01339ms)
+  ✔ NO_REMOTE_ACTION: allows remote action with approval (0.584895ms)
+  ✔ NO_FALSE_GREEN: blocks FALSE_GREEN when kernel shows RED_BLOCK (0.937912ms)
+  ✔ NO_FALSE_GREEN: allows GREEN when all checks pass (0.547821ms)
+  ✔ NO_FAKE_EXECUTION: blocks claimed execution with no output (0.775112ms)
+  ✔ NO_FAKE_EXECUTION: allows execution with output (0.476301ms)
+  ✔ NO_REVIEWER_WRITE: blocks reviewer write operation (2.666254ms)
+  ✔ NO_REVIEWER_WRITE: allows reviewer read operation (0.690326ms)
+  ✔ NO_APPLY_WITHOUT_BACKUP: blocks apply without backup (0.977162ms)
+  ✔ NO_APPLY_WITHOUT_BACKUP: allows apply with backup (0.500234ms)
+  ✔ NO_ROLLBACK_WITHOUT_MANIFEST: blocks rollback without manifest (0.966673ms)
+  ✔ NO_APPROVAL_REUSE: blocks consumed approval reuse (0.776125ms)
+  ✔ NO_CROSS_ACTION_APPROVAL: blocks approval for different action (0.745936ms)
+  ✔ NO_CROSS_SCOPE_APPROVAL: blocks branch mismatch (0.762103ms)
+  ✔ NO_CROSS_SCOPE_APPROVAL: blocks runtime mismatch (0.527997ms)
+  ✔ NO_EXPIRED_APPROVAL: blocks expired approval (0.766872ms)
+  ✔ NO_EXPIRED_APPROVAL: allows valid approval (0.664738ms)
+  ✔ NO_RUNTIME_ADAPTER_OVERRIDE: blocks adapter override attempt (0.628634ms)
+  ✔ NO_GLOBAL_RUNTIME_CONFIG_WRITE: blocks write to global OpenCode config (0.602436ms)
+  ✔ NO_AGPL_INCORPORATION: blocks AGPL source incorporation (0.508083ms)
+  ✔ NO_AGPL_INCORPORATION: blocks AGPL license text in content (0.410085ms)
+  ✔ NO_AGPL_INCORPORATION: allows normal content (0.293199ms)
+  ✔ RED_BLOCK has highest priority (0.335114ms)
+  ✔ multiple violations are all collected (0.663196ms)
+  ✔ detects external attempts to disable kernel gates (1.209279ms)
+  ✔ detects false claims about kernel gates (1.107347ms)
+  ✔ clean when no overrides attempted (0.615988ms)
+  ✔ getKernelGateIds returns immutable array (1.672717ms)
+  ✔ getKernelGates returns frozen array (0.67905ms)
+  ✔ isKernelGate correctly identifies kernel gates (0.714759ms)
+✔ Kernel Gates (67.09969ms)
+ℹ tests 48
+ℹ suites 1
+ℹ pass 48
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 101.858413
+▶ Runtime Adapter Contract
+  ✔ normalizeRuntime returns generic for unknown (2.320277ms)
+  ✔ normalizeRuntime returns correct for known (0.409962ms)
+  ✔ getConfidenceLevel classifies correctly (0.637319ms)
+  ✔ validateAdapterAgainstKernel catches false live claims (0.820417ms)
+  ✔ validateAdapterAgainstKernel catches masked kernel block (0.851915ms)
+  ✔ validateAdapterAgainstKernel passes clean result (0.654448ms)
+✔ Runtime Adapter Contract (9.68195ms)
+▶ OpenCode Adapter
+  ✔ detects OpenCode from opencode.jsonc (3.912623ms)
+  ✔ detects OpenCode from .opencode/ directory (2.755396ms)
+  ✔ validates deprecated tools key (4.515729ms)
+  ✔ reports capabilities correctly (2.93844ms)
+  ✔ does not detect OpenCode in empty directory (1.094524ms)
+✔ OpenCode Adapter (16.807935ms)
+▶ Hermes Adapter
+  ✔ detects Hermes from .hermes.md (1.913307ms)
+  ✔ detects Hermes from .hermes/skill-bundles/ (2.144402ms)
+  ✔ flags YOLO mode as RED_BLOCK (2.863703ms)
+  ✔ reports correct capabilities (1.977343ms)
+  ✔ generates no handoff (native support) (0.457139ms)
+✔ Hermes Adapter (9.97309ms)
+▶ ADR-006: Hermes Detection — No False Positives from Global Signals
+  ✔ H-001: empty project with global Hermes install only → NOT_DETECTED (confidence < 50) (1.315445ms)
+  ✔ H-002: .hermes.md contributes its project-local confidence without requiring a global install (1.867287ms)
+  ✔ H-003: pure OpenCode project with zero Hermes artifacts → confidence < 50 (2.344073ms)
+  ✔ H-004: generic agent project (AGENTS.md, CLAUDE.md) with global Hermes → NOT_DETECTED (1.512969ms)
+  ✔ H-005: .hermes/skills/ directory (project-local weight 15) + global → detected (1.867128ms)
+  ✔ H-006: .hermes/config.example.yaml with write_approval (weight 5) + global → may cross threshold (2.523923ms)
+  ✔ H-007: .hermes/mcp/ directory (project-local weight 10) + global → detected (2.106179ms)
+  ✔ H-008: project with .hermes.md + .hermes/skill-bundles/ → high confidence detection (1.828856ms)
+  ✔ H-009: project-local signals unlock global confidence cap via projectConfidence > 0 (1.672199ms)
+  ✔ H-010: mixed project with weak opencode signals + global Hermes → Hermes NOT detected (1.267117ms)
+✔ ADR-006: Hermes Detection — No False Positives from Global Signals (21.676306ms)
+▶ Odysseus Adapter
+  ✔ detects Odysseus with multiple unique signals (4.689006ms)
+  ✔ does NOT produce false positives on generic Python project (5.938504ms)
+  ✔ flags 0.0.0.0 binding without auth as RED_BLOCK (3.598534ms)
+  ✔ flags Docker socket as RED_BLOCK (1.396085ms)
+  ✔ generates handoff with artifacts (2.403775ms)
+  ✔ warns about LOCALHOST_BYPASS (1.808629ms)
+  ✔ reports correct capabilities (1.714324ms)
+  ✔ reports required approvals for shell, email, calendar, MCP (0.961924ms)
+✔ Odysseus Adapter (23.670283ms)
+▶ Generic Adapter
+  ✔ always returns AMBER_REVIEW classification (1.15973ms)
+  ✔ cannot generate handoff (3.943903ms)
+  ✔ returns TOOL_GAP for runtime smoke (0.580485ms)
+✔ Generic Adapter (6.186121ms)
+▶ Cross-Adapter False Positive Prevention
+  ✔ empty directory → at most generic-type adapters give low confidence (1.554902ms)
+✔ Cross-Adapter False Positive Prevention (4.9902ms)
+ℹ tests 38
+ℹ suites 7
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 127.085446
+✔ secret path policy defaults to deny and permits only explicit templates (4.992873ms)
+✔ target path normalization blocks traversal, absolute paths, URIs, and proc descriptors (20.530742ms)
+✔ safe target reads block secret files, symlinks, nested links, and hardlinks before content (35.353203ms)
+✔ missing and metadata-only target reads are denied without secret classification (4.354692ms)
+✔ target inspection returns safe content only and metadata for all other files (38.462258ms)
+✔ egress gate blocks known values, credential patterns, environment dumps, and oversized output (1.517125ms)
+✔ structured denial has no private path or content and gives safe recovery actions (0.597859ms)
+✔ actor audit produces split metrics without private paths or content (1.796405ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 136.028816
+✔ deterministic red team blocks all direct, link, shell, Git, archive, and environment paths (68.194325ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 91.724095
+✔ untrusted prompt content cannot expand the bootstrap ceiling (1280.772812ms)
+✔ partial context updates fail closed instead of accepting a mismatched pair (1333.643122ms)
+✔ normal agent writes cannot mutate governance context (1256.0845ms)
+✔ absolute paths outside the target root are rejected (1012.739997ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4900.602902
+✔ forged stale marker cannot force a current fast path (1120.723287ms)
+✔ source-lock tamper and symlinked governance roots fail closed (1943.04956ms)
+✔ managed drift blocks migration and never falls through to task work (997.996114ms)
+✔ migration orchestration does not use prompt text as authority (1021.905741ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5105.393896
+▶ central credential redaction
+  ✔ redacts an API key in an object (4.51378ms)
+  ✔ redacts a bearer token in an authorization header (3.075037ms)
+  ✔ preserves harmless token prose (1.023205ms)
+  ✔ redacts an unconfigured API-key-shaped value (1.072838ms)
+  ✔ redacts a nested password (0.945689ms)
+  ✔ redacts a secret in arrays (0.952757ms)
+  ✔ redacts an Error message (1.54036ms)
+  ✔ redacts an Error stack (6.413972ms)
+  ✔ redacts secret URL query values while preserving the path (1.921395ms)
+  ✔ redacts a connection-string password (1.311533ms)
+  ✔ redacts cookies (0.628401ms)
+  ✔ redacts private-key blocks (0.401938ms)
+  ✔ redacts a very short configured secret (0.578632ms)
+  ✔ redacts a configured secret containing regex metacharacters (0.52936ms)
+  ✔ redacts repeated occurrences (0.450935ms)
+  ✔ handles cyclic objects without leaking values (0.530752ms)
+  ✔ fails closed for non-serializable values (1.47083ms)
+  ✔ redacts stdout payloads (1.096209ms)
+  ✔ redacts stderr payloads (0.670619ms)
+  ✔ writes only redacted evidence files (16.286406ms)
+  ✔ redacts in a fresh process after restart (73.942475ms)
+  ✔ discovers only configured secret-like environment values (1.314908ms)
+  ✔ supports a recursive sentinel scan with zero unredacted matches (23.005026ms)
+  ✔ redacts a Unicode and newline secret across nested JSON and free text (1.750852ms)
+  ✔ redacts a child-process exception transported on stderr while preserving status (96.317581ms)
+  ✔ redacts invalid UTF-8 child output without exposing the byte payload (89.247413ms)
+  ✔ fails closed when the redaction function itself throws (2.815029ms)
+  ✔ does not replay a previous raw log into a fresh bridge process (326.814614ms)
+✔ central credential redaction (672.455717ms)
+ℹ tests 28
+ℹ suites 1
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 688.358077
+▶ deterministic controller — mandatory cases
+  ✔ plan vollständig → approved (plan gate) (7.977698ms)
+  ✔ acceptance criteria fehlen → BLOCKED (1.729505ms)
+  ✔ build scope fehlt → BLOCKED (0.655314ms)
+  ✔ verify PASS → reviews evaluated (1.390066ms)
+  ✔ verify FAIL + signature + strategy delta → RETRY (1.332748ms)
+  ✔ verify FAIL ohne failure signature → SPLIT (0.942867ms)
+  ✔ verify FAIL ohne strategy delta → SPLIT (0.665186ms)
+  ✔ attempt limit erreicht → SPLIT (1.046504ms)
+  ✔ identischer Fehler + identische Strategie erneut → SPLIT (1.36688ms)
+  ✔ security HIGH blocking → BLOCKED (1.755234ms)
+  ✔ security CRITICAL blocking → BLOCKED (not 2-of-3 vote) (1.035479ms)
+  ✔ quality non-blocking finding → FIX (0.571304ms)
+  ✔ review recommendation SPLIT → SPLIT (0.558698ms)
+  ✔ alles grün → DONE (0.46625ms)
+  ✔ baseline missing required capability → BLOCKED (0.437707ms)
+✔ deterministic controller — mandatory cases (26.919911ms)
+ℹ tests 15
+ℹ suites 1
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 48.90409
+▶ deterministic retry policy
+  ✔ default max_attempts is 2 (4.480699ms)
+  ✔ signature + delta + attempt under limit → RETRY_ALLOWED_WITH_STRATEGY_DELTA (1.533344ms)
+  ✔ missing failure signature → RETRY_DENIED_NO_FAILURE_SIGNATURE (0.549729ms)
+  ✔ missing strategy delta → RETRY_DENIED_NO_STRATEGY_DELTA (0.753229ms)
+  ✔ vague strategy deltas are invalid (try again / retry / attempt another fix) (0.743793ms)
+  ✔ attempt limit reached → RETRY_DENIED_ATTEMPT_LIMIT (0.67728ms)
+  ✔ identical failure + identical strategy → RETRY_DENIED_REPEATED_IDENTICAL_FAILURE (0.962864ms)
+  ✔ same signature but a different strategy is still retryable (0.827852ms)
+  ✔ isRepeat treats equivalent normalized text as equal (1.174645ms)
+  ✔ all five reason codes are defined (2.916665ms)
+  ▶ failure signature normalization
+    ✔ extracts TEST_FAILURE from test runner output (1.4416ms)
+    ✔ extracts TYPE_ERROR with file:line (1.178298ms)
+    ✔ extracts BUILD_FAILURE for missing export (1.634791ms)
+    ✔ falls back to tool exit code (0.714768ms)
+  ✔ failure signature normalization (5.969094ms)
+✔ deterministic retry policy (26.328044ms)
+ℹ tests 14
+ℹ suites 2
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55.259425
+▶ capability preflight — negative and positive cases
+  ✔ required MCP unavailable → BLOCKED (55.267553ms)
+  ✔ required skill unavailable → BLOCKED (28.959577ms)
+  ✔ repository inaccessible → BLOCKED (45.114566ms)
+  ✔ write permission denied → BLOCKED when write is required (53.091683ms)
+  ✔ provider unavailable → BLOCKED when required (28.341077ms)
+  ✔ credential missing → BLOCKED when required; never exposes values (19.041601ms)
+  ✔ credential present → AVAILABLE and does not leak the value (26.567424ms)
+  ✔ optional capability missing → run continues (approved) (23.554136ms)
+  ✔ optional MCP degradation does not block (30.219172ms)
+  ✔ happy path: all required capabilities pass → approved (26.339394ms)
+  ✔ plan structural key build_scope does NOT derive build capability (soak calibration) (2.108047ms)
+  ✔ task text mentioning build semantics still derives build capability (0.566077ms)
+✔ capability preflight — negative and positive cases (349.904105ms)
+ℹ tests 12
+ℹ suites 1
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 367.143573
+▶ boundary observability
+  ✔ controlled failure: same run_id, attempt, signature, first bad boundary, final state (500.678622ms)
+  ✔ bounded retry: attempt visible, retry with strategy delta, then DONE (963.760074ms)
+  ✔ hasSecretLeak detects embedded secrets in events (0.688757ms)
+✔ boundary observability (1471.703342ms)
+ℹ tests 3
+ℹ suites 1
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1482.259744
+▶ real vertical slice
+  ✔ TASK → BASELINE → RESEARCH → PLAN → PLAN_GATE → BUILD → VERIFY → REVIEWS → CONTROLLER → DONE with one run_id (486.864902ms)
+✔ real vertical slice (492.281929ms)
+ℹ tests 1
+ℹ suites 1
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 518.074682
+▶ runtime adoption — canonical entry is the real task path
+  ✔ normal task enters the canonical runtime (ecosystem.task.v1 + run_id created) (59.591226ms)
+  ✔ same run_id across real execution: entry reuses the task contract (525.608306ms)
+  ✔ plan cannot bypass the deterministic plan gate: build is never invoked on a failing plan (75.062007ms)
+  ✔ build cannot bypass verify: a successful build without passing checks never reaches DONE (390.038172ms)
+  ✔ worker cannot directly declare DONE: a worker-claimed terminal state is ignored (307.996512ms)
+  ✔ retry cannot bypass the retry policy: attempt limit and invalid deltas are denied (960.048916ms)
+  ✔ required MCP missing blocks before any work is performed (32.138153ms)
+  ✔ optional capability missing does not block the run (20.505963ms)
+  ✔ security HIGH blocking overrides correctness and quality PASS (no majority override) (299.101371ms)
+  ✔ real run emits observability events with the canonical event schema (299.098645ms)
+  ✔ FIRST_BAD_BOUNDARY comes from real execution and resets after a successful retry (426.028661ms)
+  ✔ legacy-compatible entry (enterRun) reaches the canonical runtime (31.338598ms)
+  ✔ controller is the sole terminal authority: decision is a validated ecosystem.decision.v1 (313.733832ms)
+✔ runtime adoption — canonical entry is the real task path (3747.410659ms)
+ℹ tests 13
+ℹ suites 1
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3759.692413
+▶ negative bypass attempts — the control chain cannot be circumvented
+  ✔ PLAN BYPASS: build without an approved plan gate is DENIED (worker never invoked) (60.490932ms)
+  ✔ WORKER DONE BYPASS: a worker-claimed DONE is not accepted as the global terminal state (311.141805ms)
+  ✔ RETRY BYPASS: a worker cannot force additional attempts outside the retry policy (761.135812ms)
+  ✔ RETRY BYPASS: a meaningless strategy delta ("try again") is denied (301.281536ms)
+  ✔ SECURITY BYPASS: HIGH blocking security overrides correctness and quality PASS (300.284269ms)
+  ✔ RUN-ID REPLACEMENT: a worker-supplied different run_id aborts with CONTRACT_INVALID (58.308478ms)
+  ✔ CONTRACT BYPASS: an invalid task contract is rejected before any work (3.177953ms)
+✔ negative bypass attempts — the control chain cannot be circumvented (1801.135288ms)
+ℹ tests 7
+ℹ suites 1
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1816.784884
+▶ vertical slice II — runtime adoption of a real task
+  ✔ HAPPY PATH: real task → canonical entry → full pipeline → DONE with one run_id (322.898722ms)
+  ✔ FAILURE PATH: VERIFY fails → failure_signature → strategy_delta → bounded retry → DONE, boundary resets (548.73648ms)
+  ✔ CONTROLLED FAILURE WITHOUT DELTA: FIRST_BAD_BOUNDARY=VERIFY from real execution, SPLIT (324.899194ms)
+✔ vertical slice II — runtime adoption of a real task (1200.57763ms)
+ℹ tests 3
+ℹ suites 1
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1208.32905
+✔ security review: non-blocking MEDIUM finding => status FAIL, recommendation FIX, blocking false (12.524304ms)
+✔ security review: clean file => status PASS, blocking false, recommendation PASS (4.158063ms)
+✔ security hard block: CRITICAL finding => blocking true (3.433653ms)
+✔ integration: FIX from non-blocking security finding reports FIRST_BAD_BOUNDARY REVIEWS (not CONTROLLER) (138.758026ms)
+✔ integration: plan build_scope files inform required capability write (fail-early calibration) (112.058305ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 281.769611
+▶ no silent fallback — canonical runtime is mandatory
+  ✔ canonical entry does not reference legacy execution (structural) (8.366531ms)
+  ✔ RUNTIME_MISSING: runtime module unavailable → fail fast, no fallback (650.060561ms)
+  ✔ RUNTIME_IMPORT_FAILURE: runtime module exists but fails to load → explicit failure, no fallback (633.747489ms)
+  ✔ INVALID_CONTRACT: invalid entry contract → CONTRACT_INVALID, never legacy (62.902184ms)
+  ✔ BYPASS: legacy run-state/startAgent are not installed and not reachable from the canonical entry (23.244665ms)
+✔ no silent fallback — canonical runtime is mandatory (1382.809374ms)
+ℹ tests 5
+ℹ suites 1
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1397.089415
+▶ production sentinel — current baseline must pass (F)
+  ✔ unmodified baseline passes all sentinel invariants (206.057808ms)
+  ✔ baseline manifest matches canonical structure and records the fingerprint (4.498887ms)
+  ✔ structural fingerprint is stable and matches the recorded baseline (9.667653ms)
+✔ production sentinel — current baseline must pass (F) (223.246473ms)
+▶ production sentinel — negative drift proofs
+  ✔ A: canonical runtime missing → SENTINEL FAIL (3.578334ms)
+  ✔ B: required contract removed → SENTINEL FAIL (6.402419ms)
+  ✔ C: legacy fallback reintroduced in the normal entry → SENTINEL FAIL (2.370711ms)
+  ✔ C2: legacy startAgent call inside a catch block → SENTINEL FAIL (3.251568ms)
+  ✔ C3: legacy module import anywhere in the plugin entry → SENTINEL FAIL (2.344401ms)
+  ✔ D: installer drift — canonical artifact absent from install set → SENTINEL FAIL (6.766946ms)
+  ✔ D2: installer drift — legacy execution artifact in install set → SENTINEL FAIL (5.555107ms)
+  ✔ E: manifest drift — required group missing → SENTINEL FAIL (1.102612ms)
+  ✔ E2: manifest drift — invalid entry shape → SENTINEL FAIL (0.979905ms)
+  ✔ fingerprint drift → SENTINEL FAIL (6.066896ms)
+✔ production sentinel — negative drift proofs (41.796467ms)
+▶ production sentinel — availability & cost negative drift proofs
+  ✔ A: health TTL removed → SENTINEL FAIL (3.891934ms)
+  ✔ B: unhealthy candidate allowed → SENTINEL FAIL (3.831879ms)
+  ✔ C: probe bound removed → SENTINEL FAIL (2.985414ms)
+  ✔ D: high-cost gate removed → SENTINEL FAIL (4.32401ms)
+  ✔ E: routing budget removed → SENTINEL FAIL (4.13037ms)
+  ✔ F: usage secret-redaction removed → SENTINEL FAIL (3.590403ms)
+✔ production sentinel — availability & cost negative drift proofs (24.020782ms)
+▶ production sentinel — shared budget & degraded negative drift proofs
+  ✔ A: expireStale removed from the governor → SHARED_BUDGET_RESERVATION_TTL FAIL (4.184546ms)
+  ✔ B: healthRankOf removed from the policy → DEGRADED_ROUTING_POLICY_DETERMINISTIC FAIL (4.967698ms)
+  ✔ C: WORKER_CANNOT_MUTATE marker removed → SHARED_BUDGET_WORKER_CANNOT_MUTATE FAIL (3.775666ms)
+  ✔ D: SYNCHRONOUS_RESERVE_ATOMIC marker AND structural reserve marker removed → SHARED_BUDGET_ATOMIC_RESERVATION FAIL (3.315589ms)
+  ✔ E: runtime authority wiring removed → SHARED_BUDGET_RUNTIME_AUTHORITY FAIL (3.32225ms)
+  ✔ F: budget event secret field marker removed → SHARED_BUDGET_NO_SECRET_LEAK FAIL (4.596354ms)
+  ✔ G: abort-closure release marker removed from the pipeline → BUDGET_CANCELLATION_RELEASE FAIL (7.556649ms)
+  ✔ H: pipeline consume marker removed → BUDGET_NO_ORPHAN_RESERVATIONS FAIL (4.706893ms)
+✔ production sentinel — shared budget & degraded negative drift proofs (37.979569ms)
+ℹ tests 27
+ℹ suites 4
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 338.965737
+▶ real-worker soak invariants (deterministic, no model)
+  ✔ canonical plugin entry chain creates a run-context with ecosystem.task.v1 (859.972009ms)
+  ✔ same run_id across entry and full pipeline (real artifacts correlation) (561.14898ms)
+  ✔ plan gate cannot be bypassed: build is never called on a rejected plan (80.410275ms)
+  ✔ verify is mandatory: build success without passing checks never reaches DONE (368.761959ms)
+  ✔ bounded retry with meaningful strategy delta ends DONE with FIRST_BAD_BOUNDARY null (499.110334ms)
+  ✔ retry policy cannot be bypassed: invalid strategy delta is denied (284.5279ms)
+  ✔ security hard block: CRITICAL credential finding blocks before DONE and leaks nothing (289.688044ms)
+  ✔ no silent fallback: runtime entry deliberately unavailable fails fast with CANONICAL_RUNTIME_UNAVAILABLE (668.099315ms)
+  ✔ real-worker-soak corpus is structurally valid (1.991289ms)
+✔ real-worker soak invariants (deterministic, no model) (3619.590881ms)
+ℹ tests 9
+ℹ suites 1
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3628.853646
+▶ MCP worker tool integration
+  ▶ least-privilege grant
+    ✔ worker receives ONLY required + available optional tools (73.549684ms)
+    ✔ required tool unavailable → grant denied (fail closed) (72.682524ms)
+    ✔ optional tool unavailable → grant approved with degradation (no false block) (84.230495ms)
+    ✔ unauthorized tool call → MCP_TOOL_SCOPE_DENIED (72.060955ms)
+    ✔ server scope drift → MCP_SERVER_SCOPE_DENIED (75.648885ms)
+    ✔ mutation on read-only grant → MCP_MUTATION_SCOPE_DENIED (1.03448ms)
+    ✔ DENIED executeMcpTool never spawns the server (sentinel binary) (92.620992ms)
+  ✔ least-privilege grant (473.987798ms)
+  ▶ real tool execution + classification
+    ✔ successful real call returns evidence with fingerprints + provenance (142.517807ms)
+    ✔ tool missing on server → MCP_TOOL_NOT_FOUND (server-level) (142.084119ms)
+    ✔ permission denied → MCP_PERMISSION_DENIED (145.351898ms)
+    ✔ invalid result shape → MCP_RESULT_INVALID (no blind acceptance) (137.099287ms)
+    ✔ bounded timeout → MCP_TIMEOUT, no hang (1575.553272ms)
+    ✔ server exits without reply → MCP_SERVER_UNAVAILABLE (150.126729ms)
+    ✔ session API supports multiple calls in one server process (63.115878ms)
+  ✔ real tool execution + classification (2358.56424ms)
+  ▶ security boundaries
+    ✔ secret leakage is blocked by the egress gate (140.581384ms)
+    ✔ tool-result prompt injection is treated as DATA, never as instruction (139.396619ms)
+  ✔ security boundaries (280.633168ms)
+  ▶ controller authority + verify
+    ✔ required MCP missing → baseline BLOCKED, no worker call (24.079996ms)
+    ✔ tool success ALONE never yields DONE — verify is mandatory (0.998256ms)
+    ✔ optional MCP missing → baseline approved (degraded, no false block) (18.374347ms)
+    ✔ runTask passes the least-privilege tool_grant to the build worker (230.195799ms)
+  ✔ controller authority + verify (274.573584ms)
+  ▶ error classification
+    ✔ taxonomy covers the canonical MCP failure classes (0.33455ms)
+    ✔ timeout and permission shapes map to stable classes (0.60734ms)
+  ✔ error classification (1.256799ms)
+  ▶ observability
+    ✔ tool calls emit start/result governance events with run correlation (162.681621ms)
+    ✔ failure path emits a failure event with failure class (156.63328ms)
+  ✔ observability (319.87921ms)
+✔ MCP worker tool integration (3782.223047ms)
+ℹ tests 24
+ℹ suites 7
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3796.072467
+▶ availability-aware routing (selectRoute)
+  ✔ B: unhealthy primary → availability fallback to healthy secondary (2.591513ms)
+  ✔ B2: primary healthy preferred — no unnecessary alternative (0.424379ms)
+  ✔ C: AUTH_FAILED primary → allowed fallback only; no repeated auth retry (0.439576ms)
+  ✔ D: RATE_LIMITED primary → not routed (0.26404ms)
+  ✔ G: no healthy eligible model fails closed (0.359512ms)
+  ✔ H: capability beats health (0.299513ms)
+  ✔ I: unhealthy cheap model never selected merely because cheaper (0.293771ms)
+  ✔ health map missing entry fails closed (0.354659ms)
+  ✔ backward compat: no health param behaves as before (0.657497ms)
+  ✔ repeatability: same cached health → same route decision twice (1.634123ms)
+  ✔ DEGRADED default not routable; allow_degraded makes routable (0.343093ms)
+✔ availability-aware routing (selectRoute) (10.001828ms)
+▶ availability fallback on the default catalog
+  ✔ explicit_override is also gated by live health (0.286083ms)
+✔ availability fallback on the default catalog (1.459549ms)
+ℹ tests 12
+ℹ suites 2
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25.838445
+▶ cost governance (selectRoute)
+  ✔ J: LOW fails, HIGH candidate exists, policy denies HIGH → COST_GATE_DENIED, HIGH not called (3.518539ms)
+  ✔ K: HIGH allowed when policy permits + budget available (0.771402ms)
+  ✔ L: budget exhausted → no additional HIGH invocation (0.63956ms)
+  ✔ phase cost ceiling: RESEARCH LOW blocks MEDIUM (0.818277ms)
+✔ cost governance (selectRoute) (8.222227ms)
+▶ cost gate unit semantics (§41-49)
+  ✔ costGateAllows: no policy → allowed (backward compat) (0.837588ms)
+  ✔ costGateAllows: tier increase denied without allow_cost_escalation (0.545714ms)
+  ✔ decideRouteAction: LOW→HIGH escalation gated (1.935006ms)
+  ✔ decideRouteAction: escalation allowed when policy permits (0.953381ms)
+  ✔ availability fallback ≠ quality escalation (transition_reason) (1.096899ms)
+  ✔ retry stays same model same tier (0.812904ms)
+✔ cost gate unit semantics (§41-49) (7.449108ms)
+ℹ tests 10
+ℹ suites 2
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 34.874942
+▶ health probe
+  ✔ classification: auth → PROVIDER_AUTH_FAILURE (2.863574ms)
+  ✔ classification: rate limit → PROVIDER_RATE_LIMITED (0.536152ms)
+  ✔ classification: http 429 → PROVIDER_RATE_LIMITED (0.287127ms)
+  ✔ classification: 404 → MODEL_UNAVAILABLE; 5xx → PROVIDER_UNAVAILABLE; timeout → PROVIDER_TRANSPORT_FAILURE (0.417568ms)
+  ✔ statusFromProbeFailure: AUTH→AUTH_FAILED, RATE_LIMITED→RATE_LIMITED, MODEL_UNAVAILABLE→UNAVAILABLE, MODEL_OUTPUT_INVALID→UNKNOWN (no false negative) (0.296071ms)
+  ✔ parseRetryAfter extracts real value, never invents (0.704179ms)
+  ✔ resolveCandidateHealth: UNKNOWN probed → HEALTHY map entry (1.702754ms)
+  ✔ cache hit: HEALTHY cached → no re-probe (no probe storm) (0.969197ms)
+  ✔ budget skip stays UNKNOWN, never UNAVAILABLE (§21) (19.556535ms)
+  ✔ probe failure → classified state written (1.228041ms)
+  ✔ probe timeout: probe_fn throws → PROVIDER_TRANSPORT_FAILURE classified, no crash (1.072848ms)
+  ✔ probe emit events (1.13757ms)
+  ✔ cheapest-first probe order (0.417631ms)
+  ✔ REAL probe success shape: step_finish with part.reason + part.tokens (regression) (1.771502ms)
+✔ health probe (36.376319ms)
+ℹ tests 14
+ℹ suites 1
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 50.38507
+▶ health security boundaries
+  ✔ O: worker output cannot manipulate canonical health (2.545189ms)
+  ✔ P: tool/MCP result claiming provider health is data, not authority (2.408886ms)
+  ✔ probe events redacted (no secrets in probe event fields) (2.113905ms)
+  ✔ usage event has no secret text (1.282133ms)
+  ✔ probe provider model never leaks full output (helper contract) (0.69546ms)
+  ✔ cost abuse bounded: repeated escalation attempts denied after gate (2.054917ms)
+  ✔ health store TTL prevents permanent blacklist (1.009238ms)
+✔ health security boundaries (15.490171ms)
+ℹ tests 7
+ℹ suites 1
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31.386538
+▶ health state machine
+  ✔ UNKNOWN default for missing entry (1.930716ms)
+  ✔ HEALTHY probe result is stored and valid (0.790174ms)
+  ✔ TTL is clamped to bounds (0.324508ms)
+  ✔ expired HEALTHY resolves to UNKNOWN (stale health never routed) (0.513456ms)
+  ✔ RATE_LIMITED entry is valid until TTL (0.414898ms)
+  ✔ AUTH_FAILED never auto-recovers without new probe (0.83387ms)
+  ✔ state transitions UNKNOWN→HEALTHY→RATE_LIMITED→HEALTHY→UNAVAILABLE (1.15073ms)
+  ✔ applyProbeResult rejects invalid status (1.219906ms)
+  ✔ applyProbeResult rejects non-runtime-writable source (0.877403ms)
+  ✔ no public method accepts worker status (0.888811ms)
+  ✔ UNKNOWN is never routable (0.428643ms)
+✔ health state machine (12.638369ms)
+ℹ tests 11
+ℹ suites 1
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 28.904092
+▶ model catalog — reality
+  ✔ real configured providers are recorded (deepseek api_key, openai oauth) (2.299206ms)
+  ✔ catalog contains the real configured models (1.943101ms)
+  ✔ every entry carries the full metadata shape (0.736983ms)
+  ✔ only the MCP-proven model claims mcp_support (1.886671ms)
+  ✔ exactly one default primary route exists and is reachable (0.481205ms)
+  ✔ reachable models are a subset of configured models with real probes (0.690446ms)
+  ✔ getCatalogEntry resolves exact provider/model pairs (0.391077ms)
+  ✔ tierRank is stable ordinal ordering (0.47589ms)
+✔ model catalog — reality (11.452671ms)
+ℹ tests 8
+ℹ suites 1
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24.148575
+▶ model routing policy — selection authority
+  ✔ MODEL_SELECTION_AUTHORITY is the deterministic runtime policy (2.381669ms)
+  ✔ baseline task routes deterministically to the primary route (3.861022ms)
+  ✔ direct capability routing: needs_mcp selects the MCP-proven model, model A never eligible (0.783165ms)
+  ✔ capability mismatch is rejected before worker invocation (0.707113ms)
+  ✔ provider constraint routes cross-provider to the cheapest sufficient model (0.522416ms)
+  ✔ cheapest sufficient model wins among equal-capability candidates (0.55483ms)
+  ✔ cost ceiling blocks over-budget models (0.58332ms)
+  ✔ unknown model → MODEL_UNAVAILABLE, no free provider call (0.66014ms)
+  ✔ disabled model → DENIED (0.765425ms)
+  ✔ worker self-selection is DENIED/IGNORED — runtime policy stays authority (0.922888ms)
+  ✔ explicit admin override is policy-validated and distinguishable (0.279546ms)
+  ✔ provider allowlist is enforced — non-allowlisted provider never selected (0.254767ms)
+✔ model routing policy — selection authority (15.190402ms)
+▶ model routing policy — live availability
+  ✔ unavailable primary falls back deterministically to the cheapest sufficient model (0.715898ms)
+  ✔ override to a live-unavailable model → MODEL_UNAVAILABLE (0.412449ms)
+  ✔ all candidates unavailable → controlled denial (no hallucination path) (0.349913ms)
+✔ model routing policy — live availability (2.870946ms)
+▶ model routing policy — run identity and grant stability
+  ✔ run_id guard rejects a route with a replaced run_id (CONTRACT_INVALID) (1.204457ms)
+  ✔ run_id guard accepts a route without run_id and with the same run_id (0.292269ms)
+  ✔ MCP grant stays stable across a model route change (0.350004ms)
+  ✔ routing policy never accepts or creates a run_id (module-level invariant) (10.95923ms)
+✔ model routing policy — run identity and grant stability (13.417095ms)
+ℹ tests 19
+ℹ suites 3
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41.645088
+▶ retry vs escalation separation
+  ✔ MODEL_OUTPUT_INVALID with budget → RETRY_SAME_MODEL (never escalation) (1.888978ms)
+  ✔ MODEL_CAPABILITY_INSUFFICIENT → ESCALATE with a distinct next route (0.882042ms)
+  ✔ MODEL_UNAVAILABLE prefers a same-provider model escalation first (0.522886ms)
+  ✔ MODEL_UNAVAILABLE with exhausted same-provider candidates → PROVIDER_FALLBACK (allowlisted) (0.414135ms)
+  ✔ PROVIDER_UNAVAILABLE with allowlisted provider → PROVIDER_FALLBACK (0.505557ms)
+  ✔ PROVIDER_AUTH_FAILURE → TERMINAL fail closed (no provider sweep) (0.252983ms)
+  ✔ escalation budget exhausted → TERMINAL, no further model call (0.317337ms)
+  ✔ provider fallback not allowlisted → provider B never called (0.361724ms)
+  ✔ no A→B→C→A loop: routes already tried are never repeated (0.592881ms)
+  ✔ retry budget exhausted on route → escalation is a distinct next step (0.645608ms)
+  ✔ unclassified failure class → TERMINAL controlled (0.196984ms)
+  ✔ no active route → TERMINAL (0.158349ms)
+✔ retry vs escalation separation (9.063065ms)
+ℹ tests 12
+ℹ suites 1
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24.411261
+▶ routing failure classification
+  ✔ defines the required classes only (no taxonomy explosion) (1.363628ms)
+  ✔ classifies auth, rate-limit, context, model, provider failures (1.425236ms)
+  ✔ success and unknown shapes fail closed (0.596892ms)
+  ✔ explicit failure_class is honored and validated (0.505267ms)
+  ✔ isRoutingFailureClass guards membership (0.425486ms)
+  ✔ redactFailureReason strips secret shapes (1.353205ms)
+✔ routing failure classification (9.406436ms)
+ℹ tests 6
+ℹ suites 1
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21.461918
+▶ routing observability events
+  ✔ all routing event jobs are declared (1.42813ms)
+  ✔ route selected event is a valid run-event with provider/model provenance (1.746983ms)
+  ✔ escalation event carries from/to provenance (redacted reason) (4.030982ms)
+  ✔ provider fallback event is distinct from escalation (0.805519ms)
+  ✔ worker events carry the assigned route (1.296476ms)
+  ✔ routing events never leak secrets (sink round-trip) (12.909244ms)
+  ✔ route rejected event fails closed with redacted reason (0.913633ms)
+✔ routing observability events (26.103694ms)
+ℹ tests 7
+ℹ suites 1
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37.058763
+▶ routing security — negative proofs
+  ✔ worker self-escalation ("I need a more powerful model") → DENIED/IGNORED (3.5431ms)
+  ✔ tool-result-driven escalation is data, not a routing instruction (0.746823ms)
+  ✔ unknown model → MODEL_UNAVAILABLE / CONFIG_INVALID (no free provider call) (0.432594ms)
+  ✔ disabled model → DENIED (0.488445ms)
+  ✔ capability mismatch → route rejected before worker invocation (0.419143ms)
+  ✔ escalation budget → NO FURTHER MODEL CALL (0.294735ms)
+  ✔ provider fallback not allowed → provider B not called (0.446749ms)
+  ✔ run-id replacement → DENIED / CONTRACT_INVALID (0.771014ms)
+  ✔ tool grant expansion after model switch → DENIED (1.566312ms)
+  ✔ fake success: worker claims DONE but verify fails → NOT DONE (8.054314ms)
+  ✔ routing modules contain no credential material (structural) (8.326744ms)
+  ✔ routing is not reachable from an untrusted MCP tool result (no such channel) (1.609602ms)
+✔ routing security — negative proofs (30.590937ms)
+ℹ tests 12
+ℹ suites 1
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 42.743793
+▶ usage parsing and accounting
+  ✔ M: missing usage → UNAVAILABLE, never zeroed (3.477119ms)
+  ✔ REAL opencode step_finish shape (tokens nested in part) parsed — regression (0.574263ms)
+  ✔ opencode step_finish tokens parsed (0.514716ms)
+  ✔ provider_result shape parsed (0.482031ms)
+  ✔ provenance fields preserved (0.457044ms)
+  ✔ negative/NaN tokens normalized — never negative, NaN→null (0.605785ms)
+  ✔ aggregate sums real usage (0.855541ms)
+  ✔ aggregate with no records → UNAVAILABLE (0.618775ms)
+  ✔ usage records carry no text content (no secret leak) (1.501802ms)
+  ✔ usage never influences terminal state (1.246496ms)
+✔ usage parsing and accounting (14.073465ms)
+ℹ tests 10
+ℹ suites 1
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30.414235
+▶ canonical runtime routing integration
+  ✔ primary route: real-style worker success → verify → DONE, no escalation (157.982237ms)
+  ✔ escalation: classified failure on route A → policy escalates to route B → DONE, same run_id (192.511477ms)
+  ✔ same-model retry: retry on route A is NOT an escalation (169.301218ms)
+  ✔ unavailable route + exhausted budget → controlled BLOCKED, no unbounded hopping (129.323071ms)
+  ✔ worker cannot replace the run_id even under routing (63.001494ms)
+✔ canonical runtime routing integration (716.781203ms)
+ℹ tests 5
+ℹ suites 1
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 723.494827
+▶ degraded ranking — HEALTHY wins over DEGRADED (order-independent)
+  ✔ conflict: LOW+DEGRADED vs MEDIUM+HEALTHY with allow_degraded=true → MEDIUM+HEALTHY wins (2.863239ms)
+  ✔ same conflict in REVERSE array order → identical result (order-independent) (1.426982ms)
+  ✔ both DEGRADED → cheaper wins (cost-first within DEGRADED) (0.454425ms)
+  ✔ both HEALTHY → unchanged cost-first ordering (regression) (0.398688ms)
+✔ degraded ranking — HEALTHY wins over DEGRADED (order-independent) (6.81491ms)
+▶ degraded routing — single-candidate and denial paths
+  ✔ only DEGRADED + allow_degraded=true → routed, DEGRADED_ROUTE_SELECTED, degraded:true (0.409501ms)
+  ✔ only DEGRADED + allow_degraded=false (default) → DEGRADED_ROUTE_DENIED (fail closed) (0.449436ms)
+  ✔ UNKNOWN candidates keep NO_HEALTHY_ELIGIBLE_MODEL (not DEGRADED_ROUTE_DENIED) (0.36415ms)
+  ✔ UNAVAILABLE candidates keep NO_HEALTHY_ELIGIBLE_MODEL (not DEGRADED_ROUTE_DENIED) (0.590796ms)
+✔ degraded routing — single-candidate and denial paths (2.472507ms)
+▶ degraded does NOT bypass capability or cost gates
+  ✔ DEGRADED model lacking needs_mcp is never selected despite allow_degraded=true (0.604438ms)
+  ✔ DEGRADED does NOT bypass the phase cost ceiling → COST_GATE_DENIED (0.520683ms)
+  ✔ HIGH-cost DEGRADED candidate + max_high_cost_routes=0 → denied by cost (0.58379ms)
+✔ degraded does NOT bypass capability or cost gates (3.389757ms)
+▶ degraded ranking — regressions
+  ✔ health null → identical to pre-change behavior (all candidates rank 0) (0.942831ms)
+  ✔ allow_degraded=false default: DEGRADED primary is skipped, HEALTHY secondary wins (0.586339ms)
+  ✔ baseline PRIMARY kept when primary is DEGRADED and allow_degraded=true (degraded:true, reason PRIMARY_ROUTE) (0.427793ms)
+  ✔ repeatability: same state twice → identical route (0.744556ms)
+✔ degraded ranking — regressions (3.125162ms)
+ℹ tests 15
+ℹ suites 4
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31.868002
+▶ shared budget governor — lifecycle
+  ✔ reserve → commit consumes (slot spent, capacity not restored) (4.886868ms)
+  ✔ reserve → release restores capacity exactly once (1.038572ms)
+  ✔ reserve → expire (advance clock) restores capacity (0.736059ms)
+  ✔ unknown commit / release fail closed → SHARED_BUDGET_RESERVATION_UNKNOWN (0.494218ms)
+  ✔ wrong run_id commit / release → SHARED_BUDGET_OWNERSHIP_INVALID, no budget change (1.593407ms)
+  ✔ double release → idempotent + no capacity drift (0.631498ms)
+  ✔ double commit → idempotent + no double consume (0.371591ms)
+  ✔ release after commit → SHARED_BUDGET_RESERVATION_NOT_ACTIVE (no change) (0.561696ms)
+  ✔ commit after release → SHARED_BUDGET_RESERVATION_NOT_ACTIVE (no change) (0.643532ms)
+  ✔ commit of EXPIRED reservation → SHARED_BUDGET_RESERVATION_EXPIRED (1.14448ms)
+  ✔ TTL determinism: late commit of expired RESERVED → RESERVATION_EXPIRED even before expireStale runs (no mutation, capacity not spent) (0.494938ms)
+  ✔ TTL determinism: late release of expired RESERVED → RESERVATION_EXPIRED (no mutation) (0.279027ms)
+  ✔ TTL determinism: reservation committed BEFORE expiry stays CONSUMED past TTL (idempotent commit) (0.262225ms)
+  ✔ unknown resource → SHARED_BUDGET_RESERVATION_DENIED (fail closed) (0.243197ms)
+  ✔ non-positive / NaN capacity fails closed to 0 capacity (0.341428ms)
+  ✔ ttl clamped into [min_ttl_ms, max_ttl_ms] (0.362341ms)
+✔ shared budget governor — lifecycle (17.626496ms)
+▶ shared budget governor — atomicity & concurrency
+  ✔ CONCURRENCY 1: capacity=2, 3 concurrent requests → exactly 2 RESERVED, 1 EXHAUSTED (repeated 3x) (3.458338ms)
+  ✔ CONCURRENCY 2: capacity=10, 100 concurrent requests → 10 reserved, 90 denied, no oversubscription (3.524491ms)
+  ✔ 1000-concurrent canary: capacity=5 → 5 reserved / 995 denied (in-memory, must run) (35.087212ms)
+  ✔ STRESS: 100 iterations × 100 concurrent (10,000 decisions) — no oversubscription, no drift, no deadlock, no unhandled errors (141.821456ms)
+  ✔ expiry interleaving: expired A frees capacity for B (clock injection, no sleeps) (0.557199ms)
+  ✔ commit/release interleaving: only released capacity is reusable (0.547109ms)
+✔ shared budget governor — atomicity & concurrency (185.671793ms)
+▶ shared budget governor — ownership & memory bounds
+  ✔ run B cannot release or commit run A reservation (ownership) (0.441539ms)
+  ✔ memory bound: ledger_size ≤ retention_limit + active; prune works; active never pruned (112.321385ms)
+  ✔ commit accounting is exact under capacity pressure (consumed slots hold capacity) (0.838629ms)
+✔ shared budget governor — ownership & memory bounds (114.043941ms)
+▶ shared budget governor — security (negative) & event shape
+  ✔ worker-output-shaped payload cannot mutate the ledger (no instruction-accepting method) (0.603391ms)
+  ✔ tool-result-shaped payload is not a method argument (fail closed, key ignored) (0.411874ms)
+  ✔ structural: the class exposes ONLY the documented methods (no apply/mutate/request) (0.78619ms)
+  ✔ unknown reservation spoof (random uuid) → SHARED_BUDGET_RESERVATION_UNKNOWN (0.345218ms)
+  ✔ budget events carry NO prompts/text/output/content (serialized redaction check) (2.969612ms)
+  ✔ the 5 budget jobs are declared in ROUTING_EVENT_JOBS (additive) (0.319057ms)
+✔ shared budget governor — security (negative) & event shape (6.051138ms)
+▶ shared budget governor — repeatability
+  ✔ identical inputs → identical decisions over 3 runs (0.646485ms)
+✔ shared budget governor — repeatability (0.881609ms)
+ℹ tests 32
+ℹ suites 5
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 356.397246
+▶ shared budget — canonical runtime integration
+  ✔ CASE 1: single run reserve + consume → DONE, worker invoked exactly once (101.621743ms)
+  ✔ CASE 2: ONE shared governor (capacity 2) across THREE parallel runs → 2 DONE, 1 BLOCKED, denied has 0 worker calls (234.254139ms)
+  ✔ CASE 3: shared governor (capacity 1) across TWO parallel runs → 1 DONE, 1 BLOCKED (166.938594ms)
+  ✔ CASE 4: released capacity is reusable at runtime (controlled cancellation before invocation) (66.398102ms)
+  ✔ CASE 5: expired reservation restores capacity (real short wait, TTL clamped to 1500ms) (1672.005218ms)
+✔ shared budget — canonical runtime integration (2245.75278ms)
+▶ shared budget — escalation to a HIGH route (review FIX 1)
+  ✔ escalation to a HIGH route reserves shared capacity for the NEW route (reserve before escalated worker, commit after) (79.190797ms)
+  ✔ escalation to a HIGH route with exhausted shared capacity → escalated worker NOT invoked, BLOCKED SHARED_BUDGET_EXHAUSTED (61.561263ms)
+✔ shared budget — escalation to a HIGH route (review FIX 1) (141.774322ms)
+▶ shared budget — configuration fails closed (review MINOR 1)
+  ✔ non-HIGH_COST_ROUTE resource → deterministic CONFIG_INVALID throw (19.039212ms)
+✔ shared budget — configuration fails closed (review MINOR 1) (19.421386ms)
+▶ degraded routing — canonical runtime integration
+  ✔ CASE 6a: primary DEGRADED + allow_degraded=true → routed on the DEGRADED model (degraded:true) (72.263443ms)
+  ✔ CASE 6b: only DEGRADED candidate + allow_degraded=false → ROUTING_BLOCKED, NO worker invocation (30.28357ms)
+✔ degraded routing — canonical runtime integration (103.092799ms)
+▶ shared budget — structural lifecycle closure (Phase A stop-gate)
+  ✔ LIFECYCLE 1: reserve → pre-spawn abort (routeExecutor throw) → RELEASED, capacity restored, no orphan RESERVED (58.023649ms)
+  ✔ LIFECYCLE 2: exception → budget.shared.release observable (valid run-event v1) + governor release proof (62.252268ms)
+  ✔ LIFECYCLE 3: worker returns FAILURE result → CONSUMED (consume boundary holds, no leak) (57.678427ms)
+  ✔ LIFECYCLE 4: released capacity immediately reusable at pipeline level (same governor, capacity 1) (112.841308ms)
+  ✔ LIFECYCLE 5: run_id forgery → CONTRACT_INVALID abort → CONSUMED, no orphan RESERVED (GAP-2 no-orphan) (60.002495ms)
+✔ shared budget — structural lifecycle closure (Phase A stop-gate) (351.908122ms)
+ℹ tests 15
+ℹ suites 5
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2873.782542
+✔ bootstrap agent exposes exactly the typed tools and denies built-ins and subagents (3.562248ms)
+✔ prompt injection and MCP output cannot grant a capability (0.713404ms)
+✔ typed lifecycle enforces order, deduplicates denial, and records recovery (1.343667ms)
+✔ adversarial AI completion requires a real denied secret attempt and recovery (1.034746ms)
+✔ model sandbox has no target, source, host home, or generic process capability (1.186686ms)
+✔ deterministic action sandbox is networkless with read-only source and secret masks (1.239738ms)
+✔ missing or unusable Bubblewrap is a fail-closed tool gap (0.573915ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 27.734847
+✔ active bootstrap runtime never emits GREEN_SAFE (30.996089ms)
+✔ bootstrap manifests advertise V2 classifications and explicit legacy input aliases (3.264649ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 44.102629
+▶ PR CI workflow contracts
+  ✔ allows ecosystem validation to capture the complete canonical test output (4.906611ms)
+  ✔ runs deterministic security gates without provider credentials or write permissions (0.932995ms)
+  ✔ runs deterministic validation after master pushes (0.728001ms)
+  ✔ requires explicit visual diff classification evidence (0.398921ms)
+  ✔ classifies dependency metadata alone as NOT_APPLICABLE with evidence (1.17456ms)
+  ✔ classifies frontend and stylesheet paths as APPLICABLE (0.91366ms)
+  ✔ fails closed when visual validation is applicable but unavailable (0.508379ms)
+✔ PR CI workflow contracts (12.788098ms)
+ℹ tests 7
+ℹ suites 1
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30.274959
+▶ mandatory MCP preflight contract
+  ✔ N1/N2/N3/N4 fail closed for unavailable, missing, version, and operation failures (7.370871ms)
+  ✔ N5/N6/N7 block undeclared tools, denied operations, and path escapes (0.843929ms)
+  ✔ N8/N9/N10 degrade optional absence, invalidate changed fingerprints, and fail closed on bad profiles (0.918648ms)
+  ✔ performs a real local MCP initialize/tools-list discovery without exposing credentials (77.225583ms)
+✔ mandatory MCP preflight contract (88.673763ms)
+▶ generic resumable agent run contract
+  ✔ R1 resumes after a persisted pause without repeating completed work (33.390877ms)
+  ✔ R2/R3 require reconciliation for repository and capability/preflight drift (10.068706ms)
+  ✔ R4 rejects corruption and R5 serializes parallel starts (41.515576ms)
+  ✔ starts only with a manifest capability profile (12.132657ms)
+✔ generic resumable agent run contract (98.665173ms)
+▶ governed observability contract
+  ✔ emits only the governed event names and separates project attributes (4.985901ms)
+✔ governed observability contract (5.745192ms)
+ℹ tests 9
+ℹ suites 3
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 207.824563
+✔ governance drift check treats Windows CRLF checkouts as generated-equivalent (1.443697ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14.743315
+▶ R-001: OpenCode Plugin Export Contract
+  ✔ plugin module exists and can be imported (1.69431ms)
+  ✔ exports at least one named async function (NOT a raw hooks object) (0.589383ms)
+  ✔ bare "export const hooks = {...}" alone is rejected (0.44608ms)
+  ✔ plugin function returns "tool.execute.before" hook when called with context (0.768155ms)
+✔ R-001: OpenCode Plugin Export Contract (16.004916ms)
+▶ R-002: Resident Runtime Directory Structure
+  ✔ legacy adapter remains importable while the resident CLI uses the central V2 gate (1.111595ms)
+  ✔ installer getRuntimeFileList preserves directory structure (not flat) (0.607437ms)
+  ✔ resident CLI works without source repository after install (759.358037ms)
+✔ R-002: Resident Runtime Directory Structure (762.161506ms)
+▶ R-003: Source-Lock Schema Unification
+  ✔ source-lock uses unified files[] array format, not runtime_hashes object (1.861151ms)
+  ✔ OpenCode plugin and Hermes hook use the same lock schema (1.095231ms)
+  ✔ missing source-lock.json blocks risky actions (42.353409ms)
+✔ R-003: Source-Lock Schema Unification (46.047958ms)
+▶ R-004: Gate Decision Contract
+  ✔ NOOP decision is never treated as ALLOW in the plugin handler (0.545355ms)
+  ✔ evaluator fallback when module unavailable produces RED_BLOCK, not NOOP (0.333888ms)
+  ✔ DECISION MATRIX: all non-GREEN_SAFE classifications block write operations (0.507374ms)
+  ✔ missing evaluator produces RED_BLOCK with GOVERNANCE_EVALUATOR_UNAVAILABLE (16.000589ms)
+✔ R-004: Gate Decision Contract (17.82404ms)
+▶ R-005: Hermes Canonical Evaluator Wiring
+  ✔ gate_hook.py pre_tool_call_handler references runtime_client or evaluate (0.622147ms)
+  ✔ inline regex checks in gate_hook.py are defense-in-depth only (0.328036ms)
+  ✔ kernel-blocked commands are actually evaluated (not just regex-matched) (0.250734ms)
+✔ R-005: Hermes Canonical Evaluator Wiring (1.491615ms)
+▶ R-006: Hermes Evaluator Path
+  ✔ find_evaluator looks for the correct installed path (0.449825ms)
+  ✔ installed runtime takes precedence over plugin source checkout (0.408386ms)
+  ✔ after removing plugin source checkout, governance remains functional (0.285937ms)
+✔ R-006: Hermes Evaluator Path (1.548013ms)
+▶ R-007: Enforcement Level Evidence Requirements
+  ✔ detection confidence alone never yields MANAGED_HOOK_ENFORCED (1.730692ms)
+  ✔ installed hook file → STRUCTURAL_HOOK_INSTALLED (not MANAGED_HOOK_ENFORCED) (0.428935ms)
+  ✔ installation during running session → RESTART_REQUIRED (0.238867ms)
+  ✔ session attestation without block test → insufficient for MANAGED_HOOK_ENFORCED (0.268459ms)
+  ✔ allow+block evidence required for MANAGED_HOOK_ENFORCED (0.243345ms)
+✔ R-007: Enforcement Level Evidence Requirements (4.833726ms)
+▶ R-008: Approval Metadata Enforcement
+  ✔ requiredApprovals present but no matching receipt → allowed=false (13.770479ms)
+  ✔ wrong action in approval receipt → blocked (6.285172ms)
+  ✔ expired approval receipt → blocked (0.263824ms)
+  ✔ consumed approval receipt cannot be reused (0.200906ms)
+  ✔ valid receipt enables only the specific action (not broader) (0.171245ms)
+✔ R-008: Approval Metadata Enforcement (21.179965ms)
+▶ Enforcement Level Taxonomy
+  ✔ all 8 enforcement levels are defined (0.395895ms)
+  ✔ HOOK_ENFORCED is NOT in the new taxonomy (0.209531ms)
+  ✔ STRUCTURAL_HOOK_INSTALLED < MANAGED_HOOK_ENFORCED in enforcement strength (0.217287ms)
+✔ Enforcement Level Taxonomy (1.135513ms)
+ℹ tests 33
+ℹ suites 9
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 899.103262
+✔ C1/C6: unreachable legacy infrastructure cannot affect validation or active gates (1334.454789ms)
+✔ C2/C3: installation and URL-only bootstrap do not require legacy runtime configuration (629.933829ms)
+✔ C4: OpenCode runtime verification remains independent of a concrete adapter host (11.172401ms)
+✔ C5: Hermes support remains an optional runtime adapter (8.159575ms)
+✔ C7: historical evidence text is non-blocking and does not create validator drift (1141.923485ms)
+✔ C8: text-to-speech remains outside the project scope (2.39765ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3142.615172
+▶ Spec-Kit bridge security and contract
+  ✔ rejects a relative project path as INVALID_INPUT (125.875663ms)
+  ✔ rejects an unknown phase and runtime (235.51448ms)
+  ✔ rejects a write path outside project scope (114.493573ms)
+  ✔ rejects a symlink project root (126.075448ms)
+  ✔ keeps stdout parseable and puts validation diagnostics on stderr (136.278865ms)
+  ✔ redacts secret-shaped kernel evidence (142.255919ms)
+  ✔ maps invalid input and internal failure classes to non-allowing decisions (126.725594ms)
+  ✔ does not document raw argument echoing in the supported preflight command (4.606023ms)
+✔ Spec-Kit bridge security and contract (1017.35969ms)
+ℹ tests 8
+ℹ suites 1
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1035.05244
+▶ Spec-Kit bridge pre-implementation contract
+  ✔ has the planned stable entry point (2.230714ms)
+  ✔ will emit JSON-only stdout and the documented phase/runtime fields (141.078368ms)
+  ✔ will produce GREEN_SAFE for a clean structural OpenCode project (152.717ms)
+  ✔ will map a kernel RED_BLOCK to stable exit code 30 (137.847939ms)
+✔ Spec-Kit bridge pre-implementation contract (437.02491ms)
+ℹ tests 4
+ℹ suites 1
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 450.586247
+▶ WORKING-METHOD.md
+  ✔ exists (1.843829ms)
+  ✔ contains Core Principles section (0.68591ms)
+  ✔ contains Truth Layers section (0.729989ms)
+  ✔ contains Context Levels section (0.634385ms)
+  ✔ contains Risk Tiers section (0.62399ms)
+  ✔ contains Agent Execution Order (1.497445ms)
+  ✔ contains Verification Contract section (0.850792ms)
+  ✔ contains Red Tests section (1.08938ms)
+  ✔ contains Anti-Fake Execution section (1.08665ms)
+  ✔ contains Owner Approval Gates section (1.507755ms)
+  ✔ mentions Security before Compliance (1.226539ms)
+✔ WORKING-METHOD.md (15.564966ms)
+▶ working-method.json
+  ✔ exists and is valid JSON (0.632095ms)
+  ✔ has version (0.275437ms)
+  ✔ has source_of_truth_order (0.204973ms)
+  ✔ has phases array with 24 phases (0.222077ms)
+  ✔ phases include Security before Compliance (0.367501ms)
+  ✔ has context_levels with COLD, WARM, HOT (0.194804ms)
+  ✔ has risk_tiers with all 4 tiers (0.179118ms)
+  ✔ has truth_layers with 5 layers (0.191223ms)
+  ✔ has approval_gates with all 9 gates (0.244419ms)
+  ✔ has mandatory_run_card_fields with 17 fields (0.175774ms)
+  ✔ has remote_ci with private_repo_without_approval: RED_BLOCK (0.311227ms)
+  ✔ has anti_fake_execution with prohibited and required arrays (0.192525ms)
+  ✔ has classifications array (0.210674ms)
+  ✔ has constraint_reinjection_points (0.188169ms)
+✔ working-method.json (4.513568ms)
+▶ New skills
+  ✔ context-engineering SKILL.md exists (0.488068ms)
+  ✔ context-engineering has valid frontmatter (0.408116ms)
+  ✔ risk-tier-routing SKILL.md exists (0.163896ms)
+  ✔ risk-tier-routing has valid frontmatter (0.237565ms)
+  ✔ verification-contract SKILL.md exists (0.188018ms)
+  ✔ verification-contract has valid frontmatter (0.233005ms)
+  ✔ owner-approval-gate SKILL.md exists (0.138043ms)
+  ✔ owner-approval-gate has valid frontmatter (0.559327ms)
+  ✔ anti-fake-execution SKILL.md exists (0.261302ms)
+  ✔ anti-fake-execution has valid frontmatter (0.363899ms)
+  ✔ privacy-data-minimization SKILL.md exists (0.25801ms)
+  ✔ privacy-data-minimization has valid frontmatter (0.282482ms)
+✔ New skills (4.402181ms)
+▶ ecosystem.manifest.json
+  ✔ exists and is valid JSON (0.616538ms)
+  ✔ context-engineering is in the generic skills catalog (0.324653ms)
+  ✔ risk-tier-routing is in the generic skills catalog (0.187063ms)
+  ✔ verification-contract is in the generic skills catalog (0.1718ms)
+  ✔ owner-approval-gate is in the generic skills catalog (0.239617ms)
+  ✔ anti-fake-execution is in the generic skills catalog (0.251947ms)
+  ✔ privacy-data-minimization is in the generic skills catalog (0.203081ms)
+  ✔ security-agent and compliance-agent are in generic agents (1.583615ms)
+  ✔ tierheim-compliance is in domain_specific skills (0.313629ms)
+  ✔ data-retention is in domain_specific policies (0.166907ms)
+✔ ecosystem.manifest.json (4.82172ms)
+▶ opencode.jsonc
+  ✔ exists and is parseable (0.258325ms)
+  ✔ has no top-level tools key (0.125057ms)
+  ✔ has no tools key in any agent config (0.303165ms)
+  ✔ injects only the compact prompt kernel permanently (1.057904ms)
+  ✔ does NOT include data-retention.json in instructions (0.196372ms)
+✔ opencode.jsonc (2.416477ms)
+▶ Hermes files
+  ✔ canonical-working-method.yaml exists (0.343086ms)
+  ✔ config.example.yaml exists (0.201968ms)
+  ✔ config.example.yaml has skill write_approval: true (0.22837ms)
+  ✔ config.example.yaml has memory write_approval: true (0.310157ms)
+✔ Hermes files (1.390476ms)
+▶ Audit trail skill
+  ✔ does not contain generic 10-year DSGVO retention (0.221367ms)
+✔ Audit trail skill (0.334944ms)
+▶ Architecture documents
+  ✔ canonical-working-method.md exists (0.195747ms)
+  ✔ canonical-working-method.mmd exists (0.13349ms)
+✔ Architecture documents (0.464452ms)
+▶ Deep-dive report
+  ✔ working-method-deep-dive-2026-07-15.md exists (0.168655ms)
+✔ Deep-dive report (0.26925ms)
+▶ write-protection.json
+  ✔ has human_gate section (0.206512ms)
+  ✔ has managed_files section (0.119807ms)
+  ✔ always_deny blocks .env files (0.183207ms)
+✔ write-protection.json (0.705692ms)
+▶ evidence-gates.json
+  ✔ has verification_contract gate (0.198758ms)
+  ✔ has red_test_evidence gate (0.125277ms)
+  ✔ has tool_gap_claim gate (0.115492ms)
+  ✔ has remote_operation_claim gate (0.116837ms)
+  ✔ visual regression is when_applicable in feature_complete (0.197012ms)
+✔ evidence-gates.json (0.979721ms)
+ℹ tests 68
+ℹ suites 11
+ℹ pass 68
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70.59074
+▶ runtime pipeline contract layer
+  ✔ task contract: valid create + validate (5.367642ms)
+  ✔ task contract: rejects missing run_id and task (0.67897ms)
+  ✔ task contract: rejects negative attempt and invalid max_attempts (2.325962ms)
+  ✔ baseline contract: valid preflight output (0.9043ms)
+  ✔ baseline contract: credential status AVAILABLE/MISSING/DENIED allowed (0.406263ms)
+  ✔ research contract: defaults to the three perspectives (0.565993ms)
+  ✔ research contract: rejects empty research and unknown focus (0.307199ms)
+  ✔ plan contract: valid structure (0.631597ms)
+  ✔ plan contract: rejects missing arrays and build_scope (0.468723ms)
+  ✔ build-input contract: requires the four approved inputs (0.710891ms)
+  ✔ build-result contract: statuses and arrays (0.685183ms)
+  ✔ verification contract: failure signature + strategy delta fields (0.642329ms)
+  ✔ review contract: severity and recommendation enums (0.689195ms)
+  ✔ decision contract: terminal states and next_path (0.740469ms)
+  ✔ decision contract: all four terminal states map to canonical next_path (0.391451ms)
+  ✔ run-event contract: minimum event fields (0.937451ms)
+  ✔ validateContract dispatches to the right validator and rejects unknown contracts (0.545705ms)
+  ✔ run_id is created by the task and never regenerated by other contracts (0.490538ms)
+✔ runtime pipeline contract layer (21.255451ms)
+ℹ tests 18
+ℹ suites 1
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 34.800567
+▶ Approval Enforcement
+  ✔ create → approve → consume lifecycle works (15.328721ms)
+  ✔ CONSUMED receipt cannot be reused (3.662225ms)
+  ✔ EXPIRED receipt is rejected (1.98065ms)
+  ✔ push-approval blocked for merge (1.897172ms)
+  ✔ main-branch approval blocked for feature-branch (2.165839ms)
+  ✔ nonce ledger prevents replay in same process (1.045046ms)
+  ✔ nonce ledger blocks second consume attempt (3.128392ms)
+  ✔ opencode approval blocked for hermes runtime (1.833368ms)
+  ✔ DENIED receipt cannot be consumed (1.273735ms)
+  ✔ expiry is capped at 24 hours (1.021996ms)
+  ✔ VALID_ACTIONS covers the expected governance actions (1.61203ms)
+✔ Approval Enforcement (38.908608ms)
+ℹ tests 11
+ℹ suites 1
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 56.263402
+▶ Bootstrap Gate Wiring
+  ✔ governance installer dry-run evaluates gates (206.888683ms)
+  ✔ bootstrap apply respects kernel gate: apply without backup (159.213144ms)
+  ✔ governance installer classification aligns with gate evaluation (341.377039ms)
+  ✔ force push is blocked in gate evaluation during bootstrap context (164.035349ms)
+  ✔ git push without remote approval is blocked (158.134337ms)
+  ✔ gate evaluation works after governance is installed (777.407605ms)
+✔ Bootstrap Gate Wiring (1867.202898ms)
+ℹ tests 6
+ℹ suites 1
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1877.91163
+▶ Gate CLI Smoke
+  ✔ CLI does not throw ReferenceError (137.946365ms)
+  ✔ CLI produces valid JSON with --json flag (134.774649ms)
+  ✔ force push returns exit code 2 (RED_BLOCK) (168.090864ms)
+  ✔ normal evaluate returns exit code 0 or 1 (not RED_BLOCK) (149.882133ms)
+  ✔ --help flag works without error (109.698256ms)
+  ✔ non-existent target returns RED_BLOCK via exit code 2 (98.541855ms)
+  ✔ --approval-file with valid APPROVED receipt is processed (117.328212ms)
+  ✔ --approval-file with invalid JSON does not crash (144.881541ms)
+  ✔ kernel violation blocks regardless of adapter (142.636542ms)
+  ✔ accepts valid risk tiers (569.927764ms)
+  ✔ handles --write-path argument (141.385437ms)
+  ✔ produces human-readable output without --json (136.178048ms)
+✔ Gate CLI Smoke (2108.86019ms)
+ℹ tests 12
+ℹ suites 1
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2121.084679
+▶ Rollback Runtime
+  ✔ install governance, modify, rollback, verify original state (909.451853ms)
+  ✔ .agent-governance/ is removed after rollback (924.178389ms)
+  ✔ source-lock.json is removed after rollback (887.054057ms)
+  ✔ install, rollback, re-install works (1584.096102ms)
+  ✔ rollback preserves user modifications outside governance (904.238128ms)
+✔ Rollback Runtime (5272.003141ms)
+ℹ tests 5
+ℹ suites 1
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5283.937578
+✔ isolated OpenCode config denies every built-in and permits exactly bootstrap MCP tools (2.328766ms)
+✔ real Bubblewrap probes cannot read target secrets, Git metadata, host home, or inherited env (165.201002ms)
+✔ controller blocks a requested secret read, deduplicates it, recovers, and completes safe dry-run (244.050442ms)
+✔ controller rejects a source URL that does not match the read-only clone (26.453433ms)
+✔ controller completes apply, verify, idempotence, rollback, re-apply, and final verify (3089.595055ms)
+✔ authenticated MCP broker exposes only typed tools and returns structured gated results (112.51778ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3775.09865
+...........
+..................................
+.......
+.
+.
+.
+.......
+........
+.
+....
+....
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.....
+.
+....
+.
+.
+..
+..
+.
+.
+.
+.
+...
+.
+.
+.
+.
+.
+.
+....
+.....
+.....
+.......
+..
+.
+...
+.
+.........
+......
+.
+.
+...........
+.
+.
+.
+.
+.
+......
+.
+......
+...................
+...........
+...............
+...
+.
+..
+.
+.
+.
+.
+.
+.
+...
+.
+.....
+.
+.
+.
+.
+.
+......
+...............
+.............
+CANONICAL_TEST_MANIFEST: test/test-manifest.json
+EXPECTED_TEST_FILES: 82
+EXECUTED_TEST_FILES: 82
+TESTS: 1034
+PASSED: 1032
+FAILED: 0
+SKIPPED: 2
+CANCELLED: 0
+TODO: 0
+DURATION_MS: 393483
+FINAL_STATUS: PASS
+FAILED_GROUPS: none
+SKIPPED_GROUPS: bootstrap
+EXIT_CODE: 0
+▶ central credential redaction
+  ✔ redacts an API key in an object (3.683186ms)
+  ✔ redacts a bearer token in an authorization header (2.850466ms)
+  ✔ preserves harmless token prose (1.070988ms)
+  ✔ redacts an unconfigured API-key-shaped value (0.920396ms)
+  ✔ redacts a nested password (0.809253ms)
+  ✔ redacts a secret in arrays (0.741971ms)
+  ✔ redacts an Error message (1.216629ms)
+  ✔ redacts an Error stack (0.953509ms)
+  ✔ redacts secret URL query values while preserving the path (1.104254ms)
+  ✔ redacts a connection-string password (1.134345ms)
+  ✔ redacts cookies (0.470075ms)
+  ✔ redacts private-key blocks (1.848914ms)
+  ✔ redacts a very short configured secret (0.305791ms)
+  ✔ redacts a configured secret containing regex metacharacters (0.257671ms)
+  ✔ redacts repeated occurrences (0.353818ms)
+  ✔ handles cyclic objects without leaking values (0.391567ms)
+  ✔ fails closed for non-serializable values (0.648803ms)
+  ✔ redacts stdout payloads (0.296039ms)
+  ✔ redacts stderr payloads (0.323792ms)
+  ✔ writes only redacted evidence files (11.011725ms)
+  ✔ redacts in a fresh process after restart (63.608148ms)
+  ✔ discovers only configured secret-like environment values (0.920227ms)
+  ✔ supports a recursive sentinel scan with zero unredacted matches (5.388047ms)
+  ✔ redacts a Unicode and newline secret across nested JSON and free text (1.702376ms)
+  ✔ redacts a child-process exception transported on stderr while preserving status (57.657584ms)
+  ✔ redacts invalid UTF-8 child output without exposing the byte payload (59.111284ms)
+  ✔ fails closed when the redaction function itself throws (1.431694ms)
+  ✔ does not replay a previous raw log into a fresh bridge process (190.228247ms)
+✔ central credential redaction (416.387291ms)
+ℹ tests 28
+ℹ suites 1
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 429.998876
+✔ candidate passes canonical gates in default-branch, squash, and detached contexts (416312.81214ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 416324.424951
+✔ discovery covers all fixture shapes (260.295073ms)
+✔ dry-run is the default and does not modify files (264.991389ms)
+✔ bootstrap preserves existing OpenCode settings and stays idempotent (1611.703123ms)
+✔ remote CI is opt-in (883.601558ms)
+✔ GitHub remote detection enables the GitHub MCP recommendation (26.780715ms)
+✔ symlinked destinations are rejected (185.513952ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3247.697461
+✔ empty temp config target — install succeeds (1563.262219ms)
+✔ existing normal config directory — install succeeds, existing config backed up (1564.752883ms)
+✔ backup created and contains original files (1648.073454ms)
+✔ repeated run is idempotent (5331.942926ms)
+✔ --dry-run does not modify files (141.525855ms)
+✔ --rollback restores previous state (1890.154581ms)
+✔ target is a symlink → rejected (77.367299ms)
+✔ parent directory contains a symlink → rejected (77.647048ms)
+✔ subdirectory agents/ is a symlink → rejected (4935.706843ms)
+✔ subdirectory skills/ is a symlink → rejected (5182.230782ms)
+✔ XDG_CONFIG_HOME with path traversal (../../etc) → rejected (80.311181ms)
+✔ unsafe state produces no partial installation — target unchanged after error (1775.871508ms)
+✔ source repo contains a symlink → symlink is skipped (8.459445ms)
+✔ non-existent XDG_CONFIG_HOME base dir → install succeeds with created directories (1877.780985ms)
+✔ --help prints usage and exits 0 (79.624927ms)
+✔ unknown flag is rejected (75.74522ms)
+✔ target exists as file (not directory) → rejected (80.099481ms)
+✔ --rollback with missing manifest fails cleanly (74.410071ms)
+✔ round-trip: install then rollback restores exact original content (2027.478396ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 28511.382605
+✔ root URL-only discovery contract is published and self-referential (15.236944ms)
+✔ manifest validates and references the canonical V2 paths (4.347068ms)
+✔ GitHub repository, branch, and commit URLs normalize without local paths (2.074665ms)
+✔ root launcher rejects a supplied branch or tag ref that does not identify the checkout (82.773364ms)
+✔ root launcher resolves HEAD without requiring a feature-branch ref (378.355034ms)
+✔ conflict classes preserve owner content and fail closed for unknown managed edits (0.613911ms)
+✔ published installer records provenance and verifier passes on a fresh Git target (1341.635989ms)
+✔ root launcher pins checkout provenance for apply and verify (1529.251169ms)
+✔ unknown generated conflicts fail closed before apply (186.493186ms)
+✔ rollback preserves a later owner edit and emits one review packet (981.108439ms)
+✔ target prompt injection, owner rules, dirty files, and env metadata do not expand scope (725.809854ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5265.012988
+✔ machine-readable handoff contract has fail-closed constants (11.964171ms)
+✔ bare canonical URL resolves to installation in the caller workspace (3.140407ms)
+✔ installation language remains installation intent (1.437959ms)
+✔ explicit OCAE development language is the only development override (0.633568ms)
+✔ missing caller context is a safe review classification (0.429367ms)
+✔ caller target is frozen before source access and survives CWD drift (14.10691ms)
+✔ source and target collision is blocked for installation (6.17966ms)
+✔ source mutations are forbidden for installation intent (1.495863ms)
+✔ stable release resolution excludes drafts and prereleases and pins the commit (1.217582ms)
+✔ stable release resolution rejects prerelease-shaped tags even with bad metadata (0.584705ms)
+✔ stable release resolution understands GitHub release field names (0.25888ms)
+✔ CLI plan uses an exact release and explicit absolute target for every command (0.637716ms)
+✔ missing uv is a precise tool gap and does not change the target (0.280356ms)
+✔ target mutation guard blocks escapes and source writes (13.537358ms)
+✔ active AI handoff documentation states the immutable boundary contract (3.377414ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 73.682681
+✔ fresh install automatically compiles a complete task context before the first write (859.168078ms)
+✔ installed OpenCode chat hook bootstraps the first top-level owner task (926.307094ms)
+✔ release preparation bootstraps local work without pre-authorizing external effects (820.304057ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2618.216283
+✔ installer reports bootstrap readiness and activates the hook only after self-test (1037.668941ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1049.526849
+✔ global adapter exposes only the OpenCode plugin factory (10.028844ms)
+✔ global adapter blocks non-string OpenCode target context without throwing (2.541332ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25.752866
+✔ real pre-v1.0.2 installation is detected before task bootstrap (735.473758ms)
+✔ trusted reconciliation updates the real old fixture and preserves owner files (1528.836468ms)
+✔ current marker is a no-CLI fast path and foreign projects pass through (692.018726ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2969.793569
+▶ RED TEST — Installer fail-closed (pre-fix: expected FAIL)
+  ✔ installer includes redaction.mjs in runtime file list (746.07811ms)
+  ✔ post-validation checks all installed runtime files are present (705.429284ms)
+  ✔ post-validation verifies runtime imports are resolvable (736.009216ms)
+✔ RED TEST — Installer fail-closed (pre-fix: expected FAIL) (2192.079702ms)
+ℹ tests 3
+ℹ suites 1
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2203.550686
+▶ RED TEST — redaction.mjs installed (pre-fix: expected FAIL)
+  ✔ redaction.mjs is installed in runtime/security/ (3.371667ms)
+  ✔ installed redaction.mjs has real content (0.604387ms)
+  ✔ installed redaction.mjs is importable (2.350552ms)
+✔ RED TEST — redaction.mjs installed (pre-fix: expected FAIL) (736.651258ms)
+ℹ tests 3
+ℹ suites 1
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 748.143489
+▶ RED TEST — Resident runtime import (pre-fix: expected FAIL)
+  ✔ evaluate-all.mjs imports without ERR_MODULE_NOT_FOUND (31.258692ms)
+  ✔ evaluate-all.mjs exports evaluateAllGates function (0.752506ms)
+  ✔ opencode adapter imports without error (1.301525ms)
+  ✔ evaluateAllGates returns a valid decision (27.607821ms)
+✔ RED TEST — Resident runtime import (pre-fix: expected FAIL) (754.740495ms)
+ℹ tests 4
+ℹ suites 1
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 765.776749
+▶ RED TEST — validatePostApply must check security/redaction.mjs (pre-fix: expected FAIL)
+  ✔ fresh install produces VERIFIED_IN_SCOPE post-validation (773.887958ms)
+  ✔ validatePostApply detects missing security/redaction.mjs after installation (855.268593ms)
+  ✔ validatePostApply detects missing security/ directory entire (676.203375ms)
+  ✔ validatePostApply detects corrupt redaction.mjs (empty file) (628.316184ms)
+  ✔ validatePostApply uses same file list as getRuntimeFileList (no drift) (632.901832ms)
+  ✔ installer exit code reflects post-validation failures (537.17987ms)
+  ✔ missing runtime file produces a named issue referencing the file path (665.863449ms)
+  ✔ VERIFIED_IN_SCOPE requires ALL runtime files present (no false verified) (635.327102ms)
+  ✔ validatePostApply checks installed target (not repo source) (629.6973ms)
+✔ RED TEST — validatePostApply must check security/redaction.mjs (pre-fix: expected FAIL) (6210.414973ms)
+ℹ tests 9
+ℹ suites 1
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6223.160018
+▶ Resident Runtime
+  ✔ evaluate-all.mjs is installed as a file (2.727786ms)
+  ✔ installed command classifier preserves native shell compatibility (19.014858ms)
+  ✔ bin/evaluate.mjs runs and returns valid JSON (90.43411ms)
+  ✔ kernel gates are evaluable from installed copy (8.504551ms)
+  ✔ runtime adapter files are installed (1.043927ms)
+  ✔ redaction.mjs is installed and importable (1.426451ms)
+  ✔ opencode adapter import chain is intact (3.65925ms)
+  ✔ evaluate-all.mjs imports all transitive dependencies (14.528685ms)
+  ✔ manifest.json describes installed state accurately (1.465536ms)
+  ✔ policy files are installed (3.168613ms)
+  ✔ classification resolution works from installed copy (0.854235ms)
+✔ Resident Runtime (690.679007ms)
+ℹ tests 11
+ℹ suites 1
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 703.279588
+✔ OpenCode installer activation contract covers fresh, merge, idempotency, and rollback (1470.850343ms)
+✔ early missing/invalid Task Capsule decisions are audited once and remain fail-closed (20.738568ms)
+✔ installed evaluate-action source matches the repository source (503.153618ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2006.587497
+▶ Tamper Detection
+  ✔ modifying kernel.mjs is detected via hash mismatch (4.308023ms)
+  ✔ deleting source-lock.json is detectable (503.630778ms)
+  ✔ symlink injection into runtime/ is detectable (552.991483ms)
+  ✔ changing runtime file permissions is detectable (515.424933ms)
+  ✔ replacing runtime file with different content is detected (528.298754ms)
+  ✔ whitespace-only change is visible via hash change (524.906204ms)
+  ✔ source-lock.json has correct structure (1.867327ms)
+✔ Tamper Detection (3280.09483ms)
+ℹ tests 7
+ℹ suites 1
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3291.587992
+✔ URL-only apply installs runtime-discoverable ecosystem agents into a fresh target (552.318874ms)
+✔ existing OpenCode configuration is merged without losing user settings (576.907757ms)
+✔ foreign agent name conflicts are preserved and fail closed (149.266986ms)
+✔ second apply is idempotent and rollback removes newly installed agents (969.604002ms)
+✔ managed agent tampering is detected by the installed governance plugin (577.915001ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2836.815389
+▶ URL Installer
+  ✔ dry-run does not modify target files (153.593073ms)
+  ✔ dry-run plan includes enforcement level (152.95498ms)
+  ✔ non-existent target returns RED_BLOCK (99.570621ms)
+  ✔ apply with valid approval receipt installs governance (589.858189ms)
+  ✔ apply without --apply flag does not install (221.999531ms)
+  ✔ backup directory is created on apply (599.886353ms)
+  ✔ resident runtime files are installed (608.246039ms)
+  ✔ source-lock.json is generated with runtime hashes (589.738514ms)
+  ✔ second apply is idempotent (834.698865ms)
+  ✔ rollback restores original state (746.301172ms)
+✔ URL Installer (4770.794825ms)
+ℹ tests 10
+ℹ suites 1
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4781.478561
+▶ fresh install sentinel — canonical runtime installs into an isolated target
+  ✔ full fresh-install proof passes on the current baseline (631.918741ms)
+✔ fresh install sentinel — canonical runtime installs into an isolated target (635.032127ms)
+ℹ tests 1
+ℹ suites 1
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 645.40701
+▶ Approval receipt closure contract
+  ✔ emits every canonical field and validates the receipt (78.478274ms)
+  ✔ rejects each binding mismatch without consuming the receipt (462.573844ms)
+  ✔ rejects scope expansion, expiry and post-issuance tampering (106.271175ms)
+  ✔ allows one consume and rejects replay after process restart (145.813458ms)
+  ✔ permits at most one winner in a parallel double-consume race (148.603713ms)
+  ✔ resumes the bridge with one valid receipt and stops after a HEAD change (367.372774ms)
+  ✔ rejects a symlinked ledger root (67.86428ms)
+✔ Approval receipt closure contract (1381.887298ms)
+ℹ tests 7
+ℹ suites 1
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1466.515088
+✔ prompt governance evaluation is deterministic and meets compression targets (146.338155ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 161.783861
+✔ repository validation passes (82182.788397ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 82191.661288
+✔ central gate allows a local reversible write in scope (4.787195ms)
+✔ central gate blocks a protected external effect without owner decision (2.666642ms)
+✔ unknown tool/action is a technical block before execution (0.911337ms)
+✔ untrusted prose cannot authorize an effect (0.571117ms)
+✔ MCP capability is action-specific (1.28621ms)
+✔ entrypoint adapters reference the central V2 gate (1.855967ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26.695698
+[UX/UI Red Tests + Frontend Design Tests] All sections defined. Tests validate agent + skills + detector + governance + frontend-design integration.
+▶ UX/UI Detector — Positive Cases
+  ✔ A-01: frontend-ui-framework detector exists in manifest (2.131784ms)
+  ✔ A-02: detector is conditional (not generic) (0.997067ms)
+  ✔ A-03: detector recommends ux-flow-review skill (2.343544ms)
+  ✔ A-04: detector recommends ui-design-system-review skill (1.006073ms)
+  ✔ A-05: detector has React TSX signal (1.373337ms)
+  ✔ A-06: detector has Vue SFC signal (1.005044ms)
+  ✔ A-07: detector has Svelte signal (1.40126ms)
+  ✔ A-08: detector has Storybook signal (1.412931ms)
+  ✔ A-09: detector has Tailwind signal (1.606915ms)
+  ✔ A-10: detector has Next.js signal (1.602452ms)
+  ✔ A-11: detector has JSX signal (0.899913ms)
+  ✔ A-12: detector has stories files signal (0.712338ms)
+  ✔ A-13: detector has Astro signal (0.803866ms)
+✔ UX/UI Detector — Positive Cases (21.084915ms)
+▶ UX/UI Detector — Negative Cases (False Positive Prevention)
+  ✔ B-01: detector does NOT trigger on package.json alone (0.849174ms)
+  ✔ B-02: detector does NOT trigger on TypeScript alone (0.709009ms)
+  ✔ B-03: detector does NOT trigger on playwright.config alone (no UI) (0.651613ms)
+  ✔ B-04: detector is conditional, not always active (0.703034ms)
+✔ UX/UI Detector — Negative Cases (False Positive Prevention) (3.233413ms)
+▶ UX Review Agent — Definition
+  ✔ C-01: agent definition file exists (0.44474ms)
+  ✔ C-02: agent registered in ecosystem manifest (1.185353ms)
+  ✔ C-03: agent description mentions read-only (1.644948ms)
+  ✔ C-04: agent registered in opencode.jsonc (0.915189ms)
+  ✔ C-05: agent mode is subagent (0.691092ms)
+  ✔ C-06: agent temperature is 0.0 (deterministic analysis) (0.799176ms)
+✔ UX Review Agent — Definition (6.29851ms)
+▶ UX Review Agent — Permissions (Read-Only)
+  ✔ C-07: edit permission is deny (read-only) (0.981471ms)
+  ✔ C-08: cannot delegate tasks (leaf node) (0.800935ms)
+  ✔ C-09: bash limited to read-only git/grep commands (0.874913ms)
+  ✔ C-10: force push check — no push capability (1.956481ms)
+  ✔ C-11: can load ux-flow-review skill (0.828102ms)
+  ✔ C-12: can load ui-design-system-review skill (0.706339ms)
+  ✔ C-13: skill whitelist is closed with wildcard deny (0.750317ms)
+✔ UX Review Agent — Permissions (Read-Only) (7.596454ms)
+▶ ux-flow-review Skill
+  ✔ D-01: skill directory exists (0.429755ms)
+  ✔ D-02: SKILL.md exists (0.308491ms)
+  ✔ D-03: has valid YAML frontmatter with name (0.554063ms)
+  ✔ D-04: has description in frontmatter (0.572541ms)
+  ✔ D-05: has compatibility: opencode (0.626492ms)
+  ✔ D-06: registered in ecosystem manifest conditional skills (0.773818ms)
+  ✔ D-07: contains severity classification (BLOCKER) (0.297301ms)
+  ✔ D-08: contains evidence requirements section (0.219534ms)
+  ✔ D-09: prohibits vague findings (0.194389ms)
+  ✔ D-10: defines mandatory workflow steps (0.347456ms)
+✔ ux-flow-review Skill (5.096954ms)
+▶ ui-design-system-review Skill
+  ✔ E-01: skill directory exists (0.372929ms)
+  ✔ E-02: SKILL.md exists (0.190469ms)
+  ✔ E-03: has valid YAML frontmatter with name (0.256832ms)
+  ✔ E-04: registered in ecosystem manifest conditional skills (0.769152ms)
+  ✔ E-05: contains "Discover Before Design" principle (0.341243ms)
+  ✔ E-06: defines priority rule (reuse → extend → abstract → create) (0.256421ms)
+  ✔ E-07: prohibits subjective language (0.247113ms)
+  ✔ E-08: lists required component states (default, hover, focus, etc.) (0.250012ms)
+  ✔ E-09: includes contrast ratio requirements (WCAG AA) (0.244958ms)
+  ✔ E-10: forbids parallel second design system (0.327558ms)
+✔ ui-design-system-review Skill (3.853321ms)
+▶ UX/UI — Playwright Separation of Concerns
+  ✔ F-01: ux-review-agent does NOT duplicate Playwright (0.453356ms)
+  ✔ F-02: agent mentions delegation to Playwright for visual verification (0.606968ms)
+  ✔ F-03: ux-flow-review skill does NOT duplicate Playwright capabilities (0.354086ms)
+  ✔ F-04: ui-design-system-review skill does NOT duplicate Playwright (0.406048ms)
+✔ UX/UI — Playwright Separation of Concerns (2.202267ms)
+▶ UX/UI — Governance Integration
+  ✔ G-01: agent definition does NOT reference kernel gate bypass (0.619526ms)
+  ✔ G-02: agent respects approval gates (mentions Owner/Approval Gate) (0.307075ms)
+  ✔ G-03: skills do NOT grant write access to reports (1.734104ms)
+  ✔ G-04: skills declare output goes to orchestrator, not filesystem (0.504017ms)
+  ✔ G-05: agent includes redaction/secret protection guidance (0.200966ms)
+  ✔ G-06: ux-flow-review skill includes redaction rule (0.198269ms)
+  ✔ G-07: ui-design-system-review skill includes redaction rule (0.318796ms)
+  ✔ G-08: agent is in orchestrator delegation scope in WORKING-METHOD.md (0.476521ms)
+✔ UX/UI — Governance Integration (4.904825ms)
+▶ frontend-design-build Skill
+  ✔ H-01: skill directory exists (0.864727ms)
+  ✔ H-02: SKILL.md exists (0.362788ms)
+  ✔ H-03: has valid YAML frontmatter with name (0.412213ms)
+  ✔ H-04: has description in frontmatter (0.299912ms)
+  ✔ H-05: has compatibility: opencode (0.321003ms)
+  ✔ H-06: has valid license in frontmatter (0.298063ms)
+  ✔ H-07: registered in ecosystem manifest conditional skills (0.959181ms)
+  ✔ H-08: contains activation rules (scenario classification) (0.405864ms)
+  ✔ H-09: has scenario classification A through E (0.40939ms)
+  ✔ H-10: enforces Existing-System-First discovery (0.273678ms)
+  ✔ H-11: has Owner/Approval Gate section (0.2694ms)
+  ✔ H-12: requires design plan before code (0.252187ms)
+  ✔ H-13: has assumption marking protocol (0.234538ms)
+  ✔ H-14: covers loading, empty, error, success states (0.268955ms)
+  ✔ H-15: covers keyboard focus and reduced motion (0.320123ms)
+  ✔ H-16: prohibits self-review (completion boundary) (0.25954ms)
+  ✔ H-17: has no runtime network fetch instruction (0.661908ms)
+  ✔ H-18: has no automatic external dependency instruction (0.328425ms)
+  ✔ H-19: provenance tracked in frontmatter (0.269302ms)
+  ✔ H-20: THIRD_PARTY_SKILLS.lock.json exists (0.158721ms)
+✔ frontend-design-build Skill (8.825228ms)
+▶ Frontend Design Agent — Definition
+  ✔ I-01: agent definition file exists (0.418853ms)
+  ✔ I-02: agent registered in ecosystem manifest (2.125363ms)
+  ✔ I-03: agent registered in opencode.jsonc (0.587079ms)
+  ✔ I-04: agent mode is subagent (0.518234ms)
+  ✔ I-05: agent can delegate to ux-review-agent (0.51251ms)
+  ✔ I-06: agent can delegate to playwright-agent (0.437031ms)
+  ✔ I-07: agent cannot delegate to arbitrary agents (wildcard deny) (0.348402ms)
+  ✔ I-08: agent has edit permissions for UI file types (0.406575ms)
+  ✔ I-09: agent requires ask for package.json changes (0.570484ms)
+  ✔ I-10: agent in orchestrator delegation scope (WORKING-METHOD.md) (0.543488ms)
+✔ Frontend Design Agent — Definition (7.134039ms)
+▶ Detector — frontend-design-build in Frontend UI Framework
+  ✔ J-01: detector recommends frontend-design-build (0.954227ms)
+  ✔ J-02: detector still recommends ux-flow-review (0.870866ms)
+  ✔ J-03: detector still recommends ui-design-system-review (0.769115ms)
+  ✔ J-04: detector recommends playwright-visual-review (0.786018ms)
+  ✔ J-05: detector has vite.config.* signal (1.795492ms)
+  ✔ J-06: detector has Astro signal (unchanged) (0.704159ms)
+  ✔ J-07: detector is conditional (unchanged) (0.613991ms)
+✔ Detector — frontend-design-build in Frontend UI Framework (6.969525ms)
+▶ Extended Review Rules — ux-flow-review
+  ✔ K-01: has URL and deep-link states section (0.287255ms)
+  ✔ K-02: has clear action labels section (0.194251ms)
+  ✔ K-03: has mobile and touch flows section (0.195441ms)
+  ✔ K-04: has unsaved changes protection section (0.190516ms)
+  ✔ K-05: has locale-aware content section (0.318589ms)
+✔ Extended Review Rules — ux-flow-review (1.47037ms)
+▶ Extended Review Rules — ui-design-system-review
+  ✔ K-06: has image dimensions and layout shift section (0.435135ms)
+  ✔ K-07: has dark mode metadata section (0.309712ms)
+  ✔ K-08: has touch target sizes section (0.269577ms)
+  ✔ K-09: has reduced motion section (0.261523ms)
+  ✔ K-10: has hydration safety section (0.490739ms)
+✔ Extended Review Rules — ui-design-system-review (2.172909ms)
+▶ Playwright Visual Review — WCAG 2.2 Updates
+  ✔ L-01: references WCAG 2.2 (0.480969ms)
+  ✔ L-02: documents axe limitations (0.317065ms)
+  ✔ L-03: new baselines require human review (0.275231ms)
+  ✔ L-04: GitHub comments are gated (0.370616ms)
+  ✔ L-05: includes reduced motion verification (0.341272ms)
+✔ Playwright Visual Review — WCAG 2.2 Updates (2.227128ms)
+▶ Path Independence — No Hardcoded Worktree Paths
+  ✔ M-01: ux-ui-governed-layer.test.mjs uses process.cwd() or env var, not hardcoded path (1.100832ms)
+✔ Path Independence — No Hardcoded Worktree Paths (1.308635ms)
+ℹ tests 115
+ℹ suites 15
+ℹ pass 115
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 126.061626
+✔ canonical test runner and explicit manifest are published (6.23332ms)
+✔ canonical runner accepts the documented --reporter=dot syntax (0.651699ms)
+✔ canonical runner publishes bounded per-file diagnostics and audits (1.002901ms)
+✔ canonical runner emits parseable bounded diagnostics and cleans capture files (32481.554789ms)
+✔ canonical runner creates a missing isolated temporary root (36486.563964ms)
+✔ runner executes all groups even when an earlier group fails and still fails at the end (446.47052ms)
+✔ runner JSON aggregate exposes final status, failed groups, and per-group skip counts (33240.878587ms)
+✔ symlink capability probe reports a well-formed real host capability (13.943623ms)
+✔ runner honors per-file timeout overrides from the manifest (204.167666ms)
+✔ runner reports a fully-skipped group as PASS_WITH_UNSUPPORTED without failing the suite (287.514999ms)
+✔ runner marks a group whose tests are all explicitly skipped as skipped, still green overall (351.15732ms)
+✔ validator outer suite timeout is manifest-aware and never a hard 120s cut (1.642258ms)
+✔ history-gated automigration fixture never hard-fails a clean single-commit checkout (0.894711ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 103537.428897
+CANONICAL_TEST_MANIFEST: test/test-manifest.json
+EXPECTED_TEST_FILES: 82
+EXECUTED_TEST_FILES: 82
+TESTS: 1061
+PASSED: 1061
+FAILED: 0
+SKIPPED: 0
+CANCELLED: 0
+TODO: 0
+DURATION_MS: 735422
+FINAL_STATUS: PASS
+FAILED_GROUPS: none
+SKIPPED_GROUPS: none
+EXIT_CODE: 0

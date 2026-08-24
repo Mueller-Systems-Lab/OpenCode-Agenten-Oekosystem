@@ -220,8 +220,10 @@ function validateSourceRepository(repoRoot) {
     "runtime/approval/approval-bundler.mjs",
     "runtime/approval/approval-audit.mjs",
     "runtime/approval/capability-registry.mjs",
+    "runtime/gates/command-effect-classifier.mjs",
     "runtime/gates/evaluate-action.mjs",
     "runtime/bootstrap/task-bootstrap.mjs",
+    "runtime/run.mjs",
     "governance/owner-intent.schema.json",
     "governance/task-capsule.schema.json",
     "governance/task-bootstrap-policy.schema.json",
@@ -235,6 +237,15 @@ function validateSourceRepository(repoRoot) {
     "ecosystem.manifest.json",
     ".opencode/agents",
     ".opencode/skills",
+    "runtime/security/tool-result-egress-gate.mjs",
+    "runtime/visual/browser-evidence.mjs",
+    "runtime/visual/vision-reviewer.mjs",
+    "runtime/visual/visual-finding.mjs",
+    "runtime/visual/visual-gate.mjs",
+    "runtime/visual/visual-qa.mjs",
+    "runtime/visual/viewport-policy.mjs",
+    "runtime/visual/severity-calibration.mjs",
+    "runtime/visual/cross-viewport-correlation.mjs",
   ]
   const missing = []
   for (const rel of required) {
@@ -277,8 +288,71 @@ function getRuntimeFileList() {
     { source: "runtime/approval/approval-bundler.mjs", dest: "approval/approval-bundler.mjs" },
     { source: "runtime/approval/approval-audit.mjs", dest: "approval/approval-audit.mjs" },
     { source: "runtime/approval/capability-registry.mjs", dest: "approval/capability-registry.mjs" },
+    { source: "runtime/gates/command-effect-classifier.mjs", dest: "gates/command-effect-classifier.mjs" },
     { source: "runtime/gates/evaluate-action.mjs", dest: "gates/evaluate-action.mjs" },
     { source: "runtime/bootstrap/task-bootstrap.mjs", dest: "bootstrap/task-bootstrap.mjs" },
+    // contracts/ — contract-first runtime contracts (canonical runtime)
+    { source: "runtime/contracts/index.mjs", dest: "contracts/index.mjs" },
+    { source: "runtime/contracts/task.mjs", dest: "contracts/task.mjs" },
+    { source: "runtime/contracts/baseline.mjs", dest: "contracts/baseline.mjs" },
+    { source: "runtime/contracts/research.mjs", dest: "contracts/research.mjs" },
+    { source: "runtime/contracts/plan.mjs", dest: "contracts/plan.mjs" },
+    { source: "runtime/contracts/build.mjs", dest: "contracts/build.mjs" },
+    { source: "runtime/contracts/verification.mjs", dest: "contracts/verification.mjs" },
+    { source: "runtime/contracts/review.mjs", dest: "contracts/review.mjs" },
+    { source: "runtime/contracts/decision.mjs", dest: "contracts/decision.mjs" },
+    { source: "runtime/contracts/run-event.mjs", dest: "contracts/run-event.mjs" },
+    // baseline/ — capability detection + preflight
+    { source: "runtime/baseline/capability-detector.mjs", dest: "baseline/capability-detector.mjs" },
+    { source: "runtime/baseline/capability-preflight.mjs", dest: "baseline/capability-preflight.mjs" },
+    // pipeline/ — deterministic pipeline composition
+    { source: "runtime/pipeline/pipeline.mjs", dest: "pipeline/pipeline.mjs" },
+    { source: "runtime/pipeline/research.mjs", dest: "pipeline/research.mjs" },
+    // adapters/ — native OpenCode seam
+    { source: "runtime/adapters/native-opencode.mjs", dest: "adapters/native-opencode.mjs" },
+    // controller/ — deterministic gates, retry policy, terminal authority
+    { source: "runtime/controller/plan-gate.mjs", dest: "controller/plan-gate.mjs" },
+    { source: "runtime/controller/retry-policy.mjs", dest: "controller/retry-policy.mjs" },
+    { source: "runtime/controller/review-decision.mjs", dest: "controller/review-decision.mjs" },
+    { source: "runtime/controller/severity.mjs", dest: "controller/severity.mjs" },
+    { source: "runtime/controller/controller.mjs", dest: "controller/controller.mjs" },
+    { source: "runtime/controller/verify.mjs", dest: "controller/verify.mjs" },
+    { source: "runtime/controller/first-bad-boundary.mjs", dest: "controller/first-bad-boundary.mjs" },
+    // observability/ — run events + governance events
+    { source: "runtime/observability/events.mjs", dest: "observability/events.mjs" },
+    { source: "runtime/observability/run-events.mjs", dest: "observability/run-events.mjs" },
+    // mcp/ — least-privilege worker tool integration (runtime-critical, additive)
+    { source: "runtime/mcp/error-classifier.mjs", dest: "mcp/error-classifier.mjs" },
+    { source: "runtime/mcp/tool-grant.mjs", dest: "mcp/tool-grant.mjs" },
+    { source: "runtime/mcp/tool-executor.mjs", dest: "mcp/tool-executor.mjs" },
+    { source: "runtime/mcp/server-registry.mjs", dest: "mcp/server-registry.mjs" },
+    // routing/ — deterministic model routing policy (runtime-critical, additive)
+    { source: "runtime/routing/index.mjs", dest: "routing/index.mjs" },
+    { source: "runtime/routing/model-catalog.mjs", dest: "routing/model-catalog.mjs" },
+    { source: "runtime/routing/failure-classifier.mjs", dest: "routing/failure-classifier.mjs" },
+    { source: "runtime/routing/routing-policy.mjs", dest: "routing/routing-policy.mjs" },
+    { source: "runtime/routing/routing-events.mjs", dest: "routing/routing-events.mjs" },
+    // routing/ — availability & cost governance (runtime-critical, additive)
+    { source: "runtime/routing/health-state.mjs", dest: "routing/health-state.mjs" },
+    { source: "runtime/routing/health-probe.mjs", dest: "routing/health-probe.mjs" },
+    { source: "runtime/routing/usage.mjs", dest: "routing/usage.mjs" },
+    // routing/ — shared runtime budget governor (runtime-critical, additive)
+    { source: "runtime/routing/budget-governor.mjs", dest: "routing/budget-governor.mjs" },
+    // visual/ — Playwright Visual QA (runtime-critical, additive — subordinate evidence service)
+    { source: "runtime/visual/browser-evidence.mjs", dest: "visual/browser-evidence.mjs" },
+    { source: "runtime/visual/vision-reviewer.mjs", dest: "visual/vision-reviewer.mjs" },
+    { source: "runtime/visual/visual-finding.mjs", dest: "visual/visual-finding.mjs" },
+    { source: "runtime/visual/visual-gate.mjs", dest: "visual/visual-gate.mjs" },
+    { source: "runtime/visual/visual-qa.mjs", dest: "visual/visual-qa.mjs" },
+    { source: "runtime/visual/viewport-policy.mjs", dest: "visual/viewport-policy.mjs" },
+    { source: "runtime/visual/severity-calibration.mjs", dest: "visual/severity-calibration.mjs" },
+    { source: "runtime/visual/cross-viewport-correlation.mjs", dest: "visual/cross-viewport-correlation.mjs" },
+    // security/ — tool result egress gate (runtime-critical for MCP tool-executor)
+    { source: "runtime/security/tool-result-egress-gate.mjs", dest: "security/tool-result-egress-gate.mjs" },
+    // reviews/ — deterministic review analyzers
+    { source: "runtime/reviews/analyze.mjs", dest: "reviews/analyze.mjs" },
+    // canonical contract-first runtime entry point
+    { source: "runtime/run.mjs", dest: "run.mjs" },
     { source: "governance/generated/capability-registry.json", dest: "governance/generated/capability-registry.json" },
     { source: "governance/owner-intent.schema.json", dest: "governance/owner-intent.schema.json" },
     { source: "governance/task-capsule.schema.json", dest: "governance/task-capsule.schema.json" },
@@ -942,6 +1016,17 @@ async function copyRuntimeFiles(repoRoot, targetRoot) {
     await assertSafePath(runtimeDir, destPath, "runtime destination")
     await copySourceIfSafe(sourcePath, destPath, targetRoot)
   }
+
+  // Shared MCP preflight helper. It must live at
+  // <target>/.agent-governance/scripts/lib/mcp-preflight.mjs so the relative
+  // import ../../scripts/lib/mcp-preflight.mjs resolves from the installed
+  // runtime subdirectories (runtime/baseline/, runtime/observability/).
+  {
+    const sharedSource = path.join(repoRoot, "scripts", "lib", "mcp-preflight.mjs")
+    const sharedDest = path.join(governanceRoot, "scripts", "lib", "mcp-preflight.mjs")
+    await assertSafePath(governanceRoot, sharedDest, "runtime shared helper destination")
+    await copySourceIfSafe(sharedSource, sharedDest, targetRoot)
+  }
 }
 
 async function copyPolicies(repoRoot, targetRoot) {
@@ -955,6 +1040,17 @@ async function copyPolicies(repoRoot, targetRoot) {
     const destPath = path.join(policiesDir, pf)
     await assertSafePath(policiesDir, destPath, "policy destination")
     await copySourceIfSafe(sourcePath, destPath, targetRoot)
+  }
+
+  // Shared MCP preflight helper. It must live at
+  // <target>/.agent-governance/scripts/lib/mcp-preflight.mjs so the relative
+  // import ../../scripts/lib/mcp-preflight.mjs resolves from the installed
+  // runtime subdirectories (runtime/baseline/, runtime/observability/).
+  {
+    const sharedSource = path.join(repoRoot, "scripts", "lib", "mcp-preflight.mjs")
+    const sharedDest = path.join(governanceRoot, "scripts", "lib", "mcp-preflight.mjs")
+    await assertSafePath(governanceRoot, sharedDest, "runtime shared helper destination")
+    await copySourceIfSafe(sharedSource, sharedDest, targetRoot)
   }
 }
 
@@ -1111,6 +1207,12 @@ async function generateSourceLock(repoRoot, targetRoot) {
     sourceRelative: "governance/task-bootstrap-policy.json",
     installedPath: path.join(".agent-governance", "policies", "task-bootstrap-policy.json"),
     kind: "task_bootstrap_policy",
+  })
+  await addManagedSource({
+    sourcePath: path.join(repoRoot, "scripts", "lib", "mcp-preflight.mjs"),
+    sourceRelative: "scripts/lib/mcp-preflight.mjs",
+    installedPath: path.join(".agent-governance", "scripts", "lib", "mcp-preflight.mjs"),
+    kind: "runtime_shared",
   })
 
   const runtimeStatePath = path.join(targetRoot, RUNTIME_STATE_RELATIVE_PATH)
@@ -1311,6 +1413,31 @@ const validateSourceLock = (targetRoot) => {
   return mismatches.length ? { valid: false, reason: 'source-lock integrity failed', mismatches } : { valid: true };
 };
 
+const safeEntryMessage = (error) => (String((error && error.message) || error || '').replace(/\\s+/g, ' ').trim().slice(0, 240) || 'unknown runtime entry failure');
+const writeRuntimeEntryFailure = (targetRoot, input, output, availability, detail) => {
+  try {
+    const record = {
+      schema_version: 'ocae.runtime-entry-failure.v1',
+      entry_source: 'plugin:chat.message',
+      timestamp: new Date().toISOString(),
+      session_id: (input && (input.sessionID || (output && output.message && output.message.sessionID))) || '',
+      message_id: (input && (input.messageID || (output && output.message && output.message.id))) || 'unknown',
+      run_id: null,
+      runtime_availability: availability,
+      failure_reason: 'CANONICAL_RUNTIME_UNAVAILABLE',
+      failure_detail: detail,
+      fallback_attempted: false,
+    };
+    fs.mkdirSync(path.join(targetRoot, '.agent-governance', 'evidence'), { recursive: true });
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    fs.writeFileSync(path.join(targetRoot, '.agent-governance', 'evidence', 'runtime-entry-failure-' + ts + '.json'), JSON.stringify(record, null, 2), 'utf8');
+  } catch { /* observability is best-effort */ }
+};
+const runtimeEntryUnavailable = (targetRoot, input, output, availability, detail) => {
+  writeRuntimeEntryFailure(targetRoot, input, output, availability, detail);
+  return new Error('[governance-v2] RUNTIME_ENTRY_BLOCKED:CANONICAL_RUNTIME_UNAVAILABLE:' + availability + ':' + detail);
+};
+
 export const CanonicalGovernancePlugin = async ({ directory, worktree, client = null } = {}) => {
   const targetRoot = directory || worktree || process.cwd();
   const decisions = new Map();
@@ -1351,6 +1478,34 @@ export const CanonicalGovernancePlugin = async ({ directory, worktree, client = 
         userMessage: text,
       });
       if (result.state !== 'TASK_READY') throw new Error('[governance-v2] ' + (result.code || 'RED_BLOCK_TASK_BOOTSTRAP'));
+      // Canonical contract-first runtime entry — MANDATORY. The real user task
+      // enters the deterministic runtime (ecosystem.task.v1 + run_id +
+      // capability/MCP preflight + run events) before any agent work.
+      // NO SILENT LEGACY FALLBACK: if the canonical runtime cannot be entered
+      // (unavailable, import failure, initialization failure, contract failure
+      // at entry), execution FAILS FAST with CANONICAL_RUNTIME_UNAVAILABLE and
+      // remains observable (runtime-entry-failure record, fallback_attempted=false).
+      let runtimeEntry = null;
+      try {
+        runtimeEntry = await import('../../runtime/run.mjs');
+      } catch (error) {
+        throw runtimeEntryUnavailable(targetRoot, input, output, 'IMPORT_FAILURE', safeEntryMessage(error));
+      }
+      if (!runtimeEntry || typeof runtimeEntry.enterRun !== 'function') {
+        throw runtimeEntryUnavailable(targetRoot, input, output, 'UNAVAILABLE', 'enterRun export missing');
+      }
+      let entry;
+      try {
+        entry = await runtimeEntry.enterRun({
+          targetRoot,
+          taskText: text,
+          sessionId: input?.sessionID || output?.message?.sessionID || '',
+          messageId: input?.messageID || output?.message?.id || 'unknown',
+        });
+      } catch (error) {
+        throw runtimeEntryUnavailable(targetRoot, input, output, 'AVAILABLE', safeEntryMessage(error));
+      }
+      if (entry.blocked) throw new Error('[governance-v2] RUNTIME_ENTRY_BLOCKED:' + (entry.decision?.reason_code || entry.code || 'BLOCKED'));
     },
     'tool.execute.before': async (input, output) => {
       const integrity = validateSourceLock(targetRoot);
@@ -1553,6 +1708,20 @@ async function validatePostApply(targetRoot) {
   for (const file of requiredFiles) {
     if (!fs.existsSync(file)) {
       issues.push(`Missing required file: ${relativePath(targetRoot, file)}`)
+    }
+  }
+
+  if (opencodeHookActive) {
+    const installedHookPath = path.join(governanceRoot, "hooks", "opencode", "canonical-governance.mjs")
+    if (fs.existsSync(installedHookPath)) {
+      try {
+        const hookText = await fsPromises.readFile(installedHookPath, "utf8")
+        if (hookText.includes("LEGACY_COMPATIBILITY_PATH")) {
+          issues.push("Installed canonical-governance hook still contains the silent legacy fallback (LEGACY_COMPATIBILITY_PATH) — reinstall required")
+        }
+      } catch {
+        issues.push("Installed canonical-governance hook cannot be read for legacy-fallback drift check")
+      }
     }
   }
 

@@ -1,0 +1,11 @@
+{
+  "changed_files": [
+    "src/sum2.mjs"
+  ],
+  "errors": [],
+  "strategy_delta": null,
+  "terminal_claim": null,
+  "files": {
+    "src/sum2.mjs": "export function sum2(items) { return items.reduce((acc, n) => acc + n, 0) }\n"
+  }
+}

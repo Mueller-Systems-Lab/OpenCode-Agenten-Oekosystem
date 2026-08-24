@@ -1,0 +1,15 @@
+{
+  "changed_files": [
+    "src/format.mjs",
+    "src/user.mjs",
+    "test/format.test.mjs"
+  ],
+  "errors": [],
+  "strategy_delta": null,
+  "terminal_claim": null,
+  "files": {
+    "src/format.mjs": "export function formatDisplayName(name) { return name.trim() }\n",
+    "src/user.mjs": "import { formatDisplayName } from './format.mjs'\nexport function display(user) { return formatDisplayName(user.name) }\n",
+    "test/format.test.mjs": "import test from 'node:test'\nimport assert from 'node:assert/strict'\nimport { formatDisplayName } from '../src/format.mjs'\ntest('formatDisplayName trims', () => { assert.equal(formatDisplayName('  a  '), 'a') })\n"
+  }
+}

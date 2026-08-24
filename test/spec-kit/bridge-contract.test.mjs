@@ -5,6 +5,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { repoRoot } from '../helpers.mjs';
+import { skipIfHostCannotSymlink } from '../lib/symlink-capability.mjs';
 
 const bridge = path.join(repoRoot, 'scripts', 'evaluate-operation.mjs');
 const dirs = [];
@@ -47,7 +48,8 @@ describe('Spec-Kit bridge security and contract', () => {
     assert.match(result.stderr, /escapes project scope/);
   });
 
-  it('rejects a symlink project root', async () => {
+  it('rejects a symlink project root', async (t) => {
+    if (await skipIfHostCannotSymlink(t, { type: 'dir' })) return
     const dir = await project();
     const link = `${dir}-link`;
     await fs.symlink(dir, link);

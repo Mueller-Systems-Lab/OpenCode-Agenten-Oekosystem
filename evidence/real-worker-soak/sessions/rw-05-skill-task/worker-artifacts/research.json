@@ -1,0 +1,6 @@
+{
+  "code": ["src/calc2.mjs"],
+  "docs": [".opencode/skills/run-card/SKILL.md"],
+  "tests": ["test/calc2.test.mjs"],
+  "skills_used": ["run-card"]
+}

@@ -1,3 +1,7 @@
+// LEGACY_COMPATIBILITY_PATH (step-level resume mechanics): RUN_COMPLETE /
+// VERIFIED_IN_SCOPE produced here are WORKER/step results. The canonical task
+// terminal state (DONE | FIX | SPLIT | BLOCKED) is produced exclusively by
+// runtime/controller/controller.mjs. Keep this module for resume/step bookkeeping.
 import crypto from "node:crypto"
 import fs from "node:fs/promises"
 import path from "node:path"

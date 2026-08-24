@@ -1,0 +1,11 @@
+{
+  "case_id": "rw-02-multifile-change",
+  "prepared_at": "2026-08-17T12:25:18.643Z",
+  "entry_source": "plugin:chat.message",
+  "run_id": "b00e0fb2-23e0-45dd-8c10-e8ae045bbb27",
+  "task_contract": "ecosystem.task.v1",
+  "phase": "ENTRY",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null
+}

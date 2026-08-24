@@ -1,0 +1,15 @@
+{
+  "distinct_process_pids": [
+    3373176,
+    3373177
+  ],
+  "per_process_capacity": 2,
+  "per_process_midflight_reserved": [
+    2,
+    2
+  ],
+  "global_reserved_across_processes": 4,
+  "unified_domain_capacity": 2,
+  "unified_domain_oversubscription": 2,
+  "gap_proven": true
+}

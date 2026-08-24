@@ -1,0 +1,127 @@
+{
+  "run_id": "62d504dd-75e9-4e58-9119-521c796d5883",
+  "fixture": "01-clean-desktop",
+  "viewport": "desktop",
+  "decision": "DONE",
+  "reason_code": "ALL_HARD_GATES_GREEN",
+  "first_bad_boundary": null,
+  "visual_status": "PASS",
+  "findings": [],
+  "finding_count": 0,
+  "image_fingerprint": "304227507164e9fd3fd04460245f459f621c21fdf121a10d07bacd5a0bc7b6df",
+  "screenshot_path": "/tmp/opencode/visual-qa-smoke3/62d504dd-75e9-4e58-9119-521c796d5883-01-clean-desktop-desktop.png",
+  "review_provider": "openai",
+  "review_model": "gpt-5.4-mini",
+  "duration_ms": 21433,
+  "events_summary": [
+    {
+      "job": "create-task",
+      "phase": "TASK",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "capability-preflight",
+      "phase": "BASELINE",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "research",
+      "phase": "RESEARCH",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "native-plan",
+      "phase": "PLAN",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "plan-gate",
+      "phase": "PLAN_GATE",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "native-build",
+      "phase": "BUILD",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "verify",
+      "phase": "VERIFY",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "visual.qa.start",
+      "phase": "VISUAL_QA",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "visual.qa.start",
+      "phase": "VISUAL_QA",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "visual.qa.browser.ready",
+      "phase": "VISUAL_QA",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "visual.qa.screenshot",
+      "phase": "VISUAL_QA",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "visual.qa.review.result",
+      "phase": "VISUAL_QA",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "visual.qa.gate",
+      "phase": "VISUAL_QA",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "visual.qa.boundary",
+      "phase": "VISUAL_QA",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "correctness-review",
+      "phase": "REVIEWS",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "security-review",
+      "phase": "REVIEWS",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "quality-review",
+      "phase": "REVIEWS",
+      "status": "PASS",
+      "failure_signature": null
+    },
+    {
+      "job": "deterministic-controller",
+      "phase": "CONTROLLER",
+      "status": "PASS",
+      "failure_signature": null
+    }
+  ],
+  "raw_run_id": "62d504dd-75e9-4e58-9119-521c796d5883"
+}

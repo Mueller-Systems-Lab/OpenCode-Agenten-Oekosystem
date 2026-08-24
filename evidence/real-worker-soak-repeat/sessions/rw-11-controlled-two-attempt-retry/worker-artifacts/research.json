@@ -1,0 +1,13 @@
+{
+  "code": [
+    "src/avg.mjs: export function average(items) { return 0 }",
+    "Current implementation returns 0 for every input, including average([2, 4])."
+  ],
+  "docs": [],
+  "tests": [
+    "test/avg.test.mjs imports { average } from '../src/avg.mjs'",
+    "test('average computes mean') expects average([2, 4]) === 3",
+    "test('average empty array') expects average([]) === 0",
+    "Run with: node --test test/avg.test.mjs"
+  ]
+}

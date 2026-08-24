@@ -1,0 +1,1 @@
+{ "changed_files": ["src/config.mjs"], "files": { "src/config.mjs": "export const mode = \"prod\"\n\nexport const config = {\n  api_key: \"sk-fixture-test-only-0123456789abcdef\"\n}\n" }, "errors": [], "strategy_delta": null, "capabilities_used": ["read", "write"] }

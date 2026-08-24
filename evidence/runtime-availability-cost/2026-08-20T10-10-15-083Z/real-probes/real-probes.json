@@ -1,0 +1,31 @@
+{
+  "classification": "REAL_HEALTH_PROBE_OK",
+  "deepseek": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "ok": true,
+    "status": "HEALTHY",
+    "failure_class": null,
+    "latency_ms": 21530,
+    "usage_present": true,
+    "input_tokens": 10332,
+    "output_tokens": 2,
+    "total_tokens": 11419,
+    "provider_reported_cost": 0.0014669872,
+    "probed_at": "2026-08-20T10:10:36.637Z"
+  },
+  "openai": {
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "ok": true,
+    "status": "HEALTHY",
+    "failure_class": null,
+    "latency_ms": 23866,
+    "usage_present": true,
+    "input_tokens": 9896,
+    "output_tokens": 7,
+    "total_tokens": 9927,
+    "provider_reported_cost": 0,
+    "probed_at": "2026-08-20T10:11:00.503Z"
+  }
+}

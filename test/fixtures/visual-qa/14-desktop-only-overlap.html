@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>14 desktop-only overlap</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;background:#f7fafc;line-height:1.4}
+header{background:#1a202c;color:#fff;padding:14px 20px;font-size:16px}
+.stage{display:flex;gap:16px;padding:20px;max-width:900px;margin:0 auto}
+.panel{flex:1;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px}
+.panel h3{font-size:14px;margin-bottom:6px}.panel p{font-size:13px;color:#555}
+@media(min-width:1000px){
+  .stage{position:relative;display:block;height:260px;max-width:900px}
+  .panel{position:absolute;width:320px;height:160px}
+  .panel-a{left:40px;top:40px;background:#3182ce;color:#fff;border-color:#2b6cb0}
+  .panel-a p{color:#e2e8f0}
+  .panel-b{left:140px;top:80px;background:#ed8936;color:#fff;opacity:0.95}
+  .panel-b p{color:#fff}
+}
+.note{text-align:center;margin-top:10px;font-size:12px;color:#718096}.note b{color:#c53030}
+</style></head><body data-fixture="14-desktop-only-overlap">
+<header>Desktop-only Overlap — Case E (14)</header>
+<div class="stage">
+<div class="panel panel-a"><h3>Blue Panel</h3><p>Mobile/tablet: flex row clean — panels side-by-side, no overlap.</p><button style="margin-top:8px;padding:6px 10px;border:0;border-radius:4px;background:#fff;color:#3182ce;font-weight:600">Confirm Booking</button></div>
+<div class="panel panel-b"><h3>Orange Panel</h3><p>At &ge;1000px panels become absolute and overlap — Confirm button obscured.</p></div>
+</div>
+<p class="note">Expected: mobile PASS / tablet PASS / <b>desktop FAIL</b> / <b>wide-desktop FAIL</b> — @media(min-width:1000px) LAYOUT_OVERLAP.</p>
+</body></html>

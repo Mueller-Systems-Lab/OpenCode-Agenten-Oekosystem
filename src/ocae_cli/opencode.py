@@ -7,6 +7,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,7 +18,7 @@ from .runtime import resolve_node, resolve_opencode, run_external, tool_version
 
 
 INTEGRATION_ID = "ocae-opencode-handoff"
-INTEGRATION_VERSION = "1.0.3"
+INTEGRATION_VERSION = "1.0.4"
 SUPPORTED_OPENCODE_RANGE = ">=1.18.0 <1.19.0"
 ADAPTER_FILENAME = "opencode-handoff.js"
 MANIFEST_FILENAME = "ocae-opencode-integration.json"
@@ -83,6 +84,24 @@ def _write_bytes_atomic(path: Path, value: bytes) -> None:
     finally:
         if temporary.exists():
             temporary.unlink()
+
+
+def _restore_previous_integration(
+    adapter: Path,
+    manifest_path: Path,
+    previous_adapter: bytes | None,
+    previous_manifest: bytes | None,
+) -> None:
+    if previous_adapter is None:
+        if adapter.exists():
+            adapter.unlink()
+    else:
+        _write_bytes_atomic(adapter, previous_adapter)
+    if previous_manifest is None:
+        if manifest_path.exists():
+            manifest_path.unlink()
+    else:
+        _write_bytes_atomic(manifest_path, previous_manifest)
 
 
 def _absolute_regular_file(path: Path, classification: str) -> Path:
@@ -207,6 +226,41 @@ def _debug_config_contains_adapter(executable: Path, config_dir: Path, adapter: 
     return absolute in normalized or uri.lower() in normalized
 
 
+def _runtime_smoke(executable: Path, config_dir: Path) -> dict[str, object]:
+    environment = _clean_cli_environment()
+    environment.update({
+        "OPENCODE_CONFIG_DIR": str(config_dir),
+        "OPENCODE_DISABLE_MODELS_FETCH": "1",
+        "NO_COLOR": "1",
+    })
+    try:
+        with tempfile.TemporaryDirectory(prefix="ocae-opencode-smoke-") as working_directory:
+            child = subprocess.Popen(
+                [str(executable), "--log-level", "ERROR"],
+                cwd=working_directory,
+                env=environment,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                shell=False,
+            )
+            try:
+                exit_code = child.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                child.terminate()
+                try:
+                    child.wait(timeout=3)
+                except subprocess.TimeoutExpired:
+                    child.kill()
+                    child.wait(timeout=3)
+                return {"passed": True, "state": "STARTED"}
+            if exit_code == 0:
+                return {"passed": True, "state": "EXITED_CLEANLY", "exit_code": exit_code}
+            return {"passed": False, "state": "EXITED_EARLY", "exit_code": exit_code}
+    except (OSError, subprocess.SubprocessError) as error:
+        return {"passed": False, "state": "SPAWN_FAILED", "reason": str(error)}
+
+
 def _syntax_passes(adapter: Path) -> bool:
     node = resolve_node()
     if not node:
@@ -277,7 +331,10 @@ def _verify_impl() -> dict:
     loaded = _debug_config_contains_adapter(executable, config_dir, adapter)
     if not loaded:
         return _result("RED_BLOCK_PLUGIN_LOAD", "OpenCode debug config did not expose the managed global plugin", config_directory=str(config_dir), adapter_path=str(adapter))
-    return _result("VERIFIED_IN_SCOPE", config_directory=str(config_dir), plugin_directory=str(plugin_dir), adapter_path=str(adapter), cli_path=str(cli_path), opencode_version=opencode_version)
+    smoke = _runtime_smoke(executable, config_dir)
+    if not smoke.get("passed"):
+        return _result("RED_BLOCK_PLUGIN_RUNTIME_SMOKE", "OpenCode startup smoke failed", config_directory=str(config_dir), adapter_path=str(adapter), runtime_smoke=smoke)
+    return _result("VERIFIED_IN_SCOPE", config_directory=str(config_dir), plugin_directory=str(plugin_dir), adapter_path=str(adapter), cli_path=str(cli_path), opencode_version=opencode_version, runtime_smoke=smoke)
 
 
 def verify_opencode_integration() -> dict:
@@ -362,20 +419,14 @@ def integrate_opencode() -> dict:
             _write_bytes_atomic(adapter, adapter_bytes)
             manifest = _manifest_value(config_dir, adapter, cli_path, opencode_version, source)
             _write_json_atomic(manifest_path, manifest)
+            result = _verify_impl()
+            if result["classification"] != "VERIFIED_IN_SCOPE":
+                _restore_previous_integration(adapter, manifest_path, previous_adapter, previous_manifest)
+                return _result("INTEGRATION_ROLLED_BACK", "OpenCode integration verification failed; previous integration state was restored", verification=result)
         except Exception:
-            if previous_adapter is None and adapter.exists():
-                adapter.unlink()
-            elif previous_adapter is not None:
-                _write_bytes_atomic(adapter, previous_adapter)
-            if previous_manifest is None and manifest_path.exists():
-                manifest_path.unlink()
-            elif previous_manifest is not None:
-                _write_bytes_atomic(manifest_path, previous_manifest)
+            _restore_previous_integration(adapter, manifest_path, previous_adapter, previous_manifest)
             raise
 
-        result = _verify_impl()
-        if result["classification"] != "VERIFIED_IN_SCOPE":
-            return result
         result["classification"] = "VERIFIED_IN_SCOPE"
         result["reason"] = "OCAE OpenCode global handoff adapter installed and verified"
         result["manifest_path"] = str(manifest_path)

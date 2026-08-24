@@ -1,0 +1,12 @@
+{
+  "code": [
+    "src/sum2.mjs (current): export function sum2(items) { return 0 }"
+  ],
+  "docs": [
+    "No docs found for sum2. Task statement defines behavior: sum2([]) === 0, sum2([-1, 1]) === 0, sum2([1000000, 2000000]) === 3000000. Implementation currently returns 0 for everything."
+  ],
+  "tests": [
+    "test/sum2.test.mjs: imports node:test, node:assert/strict, imports { sum2 } from '../src/sum2.mjs'.",
+    "test case 'sum2 edge cases': assert.equal(sum2([]), 0); assert.equal(sum2([-1, 1]), 0); assert.equal(sum2([1000000, 2000000]), 3000000)."
+  ]
+}

@@ -1,7 +1,7 @@
 # OpenCode Agent Ecosystem Bootstrap
 
 > **Legacy / architecture background:** The current user-facing installation is
-> [OCAE CLI v1.0.3](README.md#quick-install) and its [CLI reference](docs/ocae-cli.md).
+> [OCAE CLI v1.0.4](README.md#quick-install) and its [CLI reference](docs/ocae-cli.md).
 > This document describes the lower-level/manual bootstrap contract for
 > automation and compatibility.
 

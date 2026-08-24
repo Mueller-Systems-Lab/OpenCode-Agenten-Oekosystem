@@ -1,0 +1,131 @@
+{
+  "case_id": "rw-07-controlled-retry",
+  "task_class": "controlled_retry",
+  "round": 1,
+  "run_id": "c9eb9d2a-5c8f-47ac-8f0b-d8de9017b2b3",
+  "entry_run_id": "c9eb9d2a-5c8f-47ac-8f0b-d8de9017b2b3",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "c9eb9d2a-5c8f-47ac-8f0b-d8de9017b2b3"
+  ],
+  "entry_source": "plugin:chat.message",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null,
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "plan_fingerprint": "sha256:c9bc933df08ceb65e8cccaf86dca6305bb3b9b34b3800a923fd8fc0c3c2d14ec",
+  "plan_has_text": true,
+  "plan_gate_status": "PASS",
+  "plan_gate_approved": true,
+  "plan_gate_errors": [],
+  "build_status": "SUCCESS",
+  "build_calls": 2,
+  "verify_status": "PASS",
+  "failure_signatures": [
+    "TEST_FAILURE:sum2 edge cases"
+  ],
+  "strategy_deltas": [
+    "replace the naive reduce with explicit edge-case handling: return 0 for empty arrays and otherwise sum all items with a for loop to avoid numeric edge cases"
+  ],
+  "attempt_count": 2,
+  "retry_count": 1,
+  "final_decision": "DONE",
+  "reason_code": "ALL_HARD_GATES_GREEN",
+  "first_bad_boundary": null,
+  "phase_history": [
+    {
+      "name": "TASK",
+      "status": "PASS"
+    },
+    {
+      "name": "BASELINE",
+      "status": "PASS"
+    },
+    {
+      "name": "RESEARCH",
+      "status": "PASS"
+    },
+    {
+      "name": "PLAN",
+      "status": "PASS"
+    },
+    {
+      "name": "PLAN_GATE",
+      "status": "PASS"
+    },
+    {
+      "name": "BUILD",
+      "status": "PASS"
+    },
+    {
+      "name": "VERIFY",
+      "status": "PASS"
+    },
+    {
+      "name": "REVIEWS",
+      "status": "PASS"
+    },
+    {
+      "name": "CONTROLLER",
+      "status": "PASS"
+    }
+  ],
+  "reviews": [
+    {
+      "review_type": "correctness",
+      "status": "PASS",
+      "severity": "INFO",
+      "blocking": false,
+      "findings": []
+    },
+    {
+      "review_type": "security",
+      "status": "PASS",
+      "severity": "INFO",
+      "blocking": false,
+      "findings": []
+    },
+    {
+      "review_type": "quality",
+      "status": "PASS",
+      "severity": "INFO",
+      "blocking": false,
+      "findings": []
+    }
+  ],
+  "research_findings": [
+    {
+      "focus": "code",
+      "findings": [
+        "src/sum2.mjs"
+      ]
+    },
+    {
+      "focus": "docs",
+      "findings": []
+    },
+    {
+      "focus": "tests",
+      "findings": [
+        "test/sum2.test.mjs"
+      ]
+    }
+  ],
+  "changed_files": [
+    "src/sum2.mjs"
+  ],
+  "out_of_scope": [],
+  "git_diff_files": [
+    "src/sum2.mjs"
+  ],
+  "worker_terminal_claims": [],
+  "worker_terminal_override_denied": true,
+  "contract_validation_failures": [],
+  "contract_repairs": [],
+  "secret_leak": false,
+  "duration_ms": 5338,
+  "event_count": 13,
+  "unexpected_behavior": [],
+  "run_error": null
+}

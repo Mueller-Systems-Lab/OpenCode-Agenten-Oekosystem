@@ -1,0 +1,11 @@
+{
+  "case_id": "rw-04-code-docs-tests",
+  "prepared_at": "2026-08-17T06:04:53.554Z",
+  "entry_source": "plugin:chat.message",
+  "run_id": "a96e3579-f742-4de4-a8a7-bdfc6d6b54d8",
+  "task_contract": "ecosystem.task.v1",
+  "phase": "ENTRY",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null
+}

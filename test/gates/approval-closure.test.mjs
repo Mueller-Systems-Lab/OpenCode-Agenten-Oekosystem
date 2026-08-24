@@ -16,6 +16,7 @@ import {
 } from '../../scripts/lib/gates/approval.mjs';
 import { ApprovalIntegrityViolation } from '../../scripts/lib/gates/errors.mjs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { skipIfHostCannotSymlink } from "../lib/symlink-capability.mjs";
 
 const repoRoot = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const tempRoots = [];
@@ -202,7 +203,8 @@ describe('Approval receipt closure contract', { concurrency: 1 }, () => {
     assert.match(JSON.stringify(changedDecision.blocked_by), /APPROVAL|HEAD|SCOPE|INTEGRITY/i);
   });
 
-  it('rejects a symlinked ledger root', async () => {
+  it('rejects a symlinked ledger root', async (t) => {
+    if (await skipIfHostCannotSymlink(t, { type: 'dir' })) return
     const repo = await makeRepo();
     const receipt = approved(repo);
     const outside = await fs.mkdtemp(path.join(os.tmpdir(), 'spec-kit-ledger-outside-'));

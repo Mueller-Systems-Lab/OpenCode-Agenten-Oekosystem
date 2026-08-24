@@ -1,0 +1,90 @@
+{
+  "case_id": "rw-10-plan-gate-reject",
+  "task_class": "plan_gate_reject",
+  "round": 1,
+  "run_id": "5bbebed3-9ff7-4351-b2e3-2d61eba5f7ac",
+  "entry_run_id": "5bbebed3-9ff7-4351-b2e3-2d61eba5f7ac",
+  "run_id_correlation": true,
+  "run_ids_seen": [
+    "5bbebed3-9ff7-4351-b2e3-2d61eba5f7ac"
+  ],
+  "entry_source": "plugin:chat.message",
+  "canonical_runtime_used": true,
+  "legacy_fallback_used": false,
+  "legacy_fallback_reason": null,
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "plan_fingerprint": "sha256:aa8fa2a34e291ca7d72bbe7f2d3aa1a40d9a611d3f8d6f81c4c37391f286add9",
+  "plan_has_text": true,
+  "plan_gate_status": "FAIL",
+  "plan_gate_approved": false,
+  "plan_gate_errors": [
+    "ACCEPTANCE_CRITERIA_MISSING"
+  ],
+  "build_status": null,
+  "build_calls": 0,
+  "verify_status": null,
+  "failure_signatures": [],
+  "strategy_deltas": [],
+  "attempt_count": 1,
+  "retry_count": 0,
+  "final_decision": "BLOCKED",
+  "reason_code": "ACCEPTANCE_CRITERIA_MISSING",
+  "first_bad_boundary": "PLAN_GATE",
+  "phase_history": [
+    {
+      "name": "TASK",
+      "status": "PASS"
+    },
+    {
+      "name": "BASELINE",
+      "status": "PASS"
+    },
+    {
+      "name": "RESEARCH",
+      "status": "PASS"
+    },
+    {
+      "name": "PLAN",
+      "status": "PASS"
+    },
+    {
+      "name": "PLAN_GATE",
+      "status": "FAIL"
+    },
+    {
+      "name": "CONTROLLER",
+      "status": "FAIL"
+    }
+  ],
+  "reviews": [],
+  "research_findings": [
+    {
+      "focus": "code",
+      "findings": [
+        "src/double.mjs"
+      ]
+    },
+    {
+      "focus": "docs",
+      "findings": []
+    },
+    {
+      "focus": "tests",
+      "findings": []
+    }
+  ],
+  "changed_files": [],
+  "out_of_scope": [],
+  "git_diff_files": [],
+  "worker_terminal_claims": [],
+  "worker_terminal_override_denied": true,
+  "contract_validation_failures": [],
+  "contract_repairs": [],
+  "secret_leak": false,
+  "duration_ms": 1878,
+  "event_count": 6,
+  "unexpected_behavior": [],
+  "run_error": null,
+  "plan_gate_rejected_reason": "ACCEPTANCE_CRITERIA_MISSING"
+}

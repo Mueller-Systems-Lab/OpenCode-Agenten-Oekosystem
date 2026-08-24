@@ -4,6 +4,7 @@ import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import test from "node:test"
+import { skipIfHostCannotSymlink } from "../lib/symlink-capability.mjs"
 
 import {
   runDeterministicBootstrapRedTeam,
@@ -62,7 +63,8 @@ async function createAdversarialTarget() {
   return { targetRoot, sentinels }
 }
 
-test("deterministic red team blocks all direct, link, shell, Git, archive, and environment paths", async () => {
+test("deterministic red team blocks all direct, link, shell, Git, archive, and environment paths", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "file" })) return
   const { targetRoot, sentinels } = await createAdversarialTarget()
   try {
     const result = await runDeterministicBootstrapRedTeam({

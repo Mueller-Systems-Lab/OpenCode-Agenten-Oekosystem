@@ -7,6 +7,7 @@ import { copyFixture, repoRoot, runNodeScript, snapshotTree, readJson } from "..
 import { discoverProject } from "../../scripts/lib/discovery.mjs"
 import { loadManifest, selectManifestRecommendations } from "../../scripts/lib/manifest.mjs"
 import { selectMcpCandidates } from "../../scripts/lib/mcp.mjs"
+import { skipIfHostCannotSymlink } from "../lib/symlink-capability.mjs"
 
 const manifest = await loadManifest(path.join(repoRoot, "ecosystem.manifest.json"))
 
@@ -167,7 +168,8 @@ test("GitHub remote detection enables the GitHub MCP recommendation", async () =
   assert.ok(mcpCandidates.some((entry) => entry.name === "github"))
 })
 
-test("symlinked destinations are rejected", async () => {
+test("symlinked destinations are rejected", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "file" })) return
   const target = await copyFixture("generic-no-dsgvo")
   const externalFile = path.join(target, "..", "outside.txt")
   await fs.writeFile(externalFile, "outside", "utf8")

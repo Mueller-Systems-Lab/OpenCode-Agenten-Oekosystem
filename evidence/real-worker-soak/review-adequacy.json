@@ -1,0 +1,106 @@
+[
+  {
+    "case_id": "rw-01-isolated-bugfix",
+    "correctness": "PASS",
+    "security": "PASS",
+    "security_blocking": false,
+    "security_findings": [],
+    "quality": "PASS",
+    "quality_findings": [],
+    "review_classification": "REVIEW_SECURITY_TRUE_NEGATIVE"
+  },
+  {
+    "case_id": "rw-02-multifile-change",
+    "correctness": "PASS",
+    "security": "PASS",
+    "security_blocking": false,
+    "security_findings": [],
+    "quality": "PASS",
+    "quality_findings": [],
+    "review_classification": "REVIEW_SECURITY_TRUE_NEGATIVE"
+  },
+  {
+    "case_id": "rw-03-existing-test-failure",
+    "correctness": "PASS",
+    "security": "PASS",
+    "security_blocking": false,
+    "security_findings": [],
+    "quality": "PASS",
+    "quality_findings": [],
+    "review_classification": "REVIEW_SECURITY_TRUE_NEGATIVE"
+  },
+  {
+    "case_id": "rw-04-code-docs-tests",
+    "correctness": "PASS",
+    "security": "PASS",
+    "security_blocking": false,
+    "security_findings": [],
+    "quality": "PASS",
+    "quality_findings": [],
+    "review_classification": "REVIEW_SECURITY_TRUE_NEGATIVE"
+  },
+  {
+    "case_id": "rw-05-skill-task",
+    "correctness": "PASS",
+    "security": "PASS",
+    "security_blocking": false,
+    "security_findings": [],
+    "quality": "PASS",
+    "quality_findings": [],
+    "review_classification": "REVIEW_SECURITY_TRUE_NEGATIVE"
+  },
+  {
+    "case_id": "rw-06-mcp-tool-task",
+    "correctness": "PASS",
+    "security": "PASS",
+    "security_blocking": false,
+    "security_findings": [],
+    "quality": "PASS",
+    "quality_findings": [],
+    "review_classification": "REVIEW_SECURITY_TRUE_NEGATIVE"
+  },
+  {
+    "case_id": "rw-07-controlled-retry",
+    "correctness": "PASS",
+    "security": "PASS",
+    "security_blocking": false,
+    "security_findings": [],
+    "quality": "PASS",
+    "quality_findings": [],
+    "review_classification": "REVIEW_SECURITY_TRUE_NEGATIVE"
+  },
+  {
+    "case_id": "rw-08-split-decision",
+    "security_findings": [],
+    "quality_findings": [],
+    "review_classification": "REVIEW_OBSERVED"
+  },
+  {
+    "case_id": "rw-09-security-sensitive",
+    "correctness": "PASS",
+    "security": "FAIL",
+    "security_blocking": true,
+    "security_findings": [
+      "credential-like assignment detected"
+    ],
+    "quality": "PASS",
+    "quality_findings": [],
+    "review_classification": "REVIEW_SECURITY_ACTIONABLE_TRUE"
+  },
+  {
+    "case_id": "rw-10-plan-gate-reject",
+    "security_findings": [],
+    "quality_findings": [],
+    "review_classification": "REVIEW_OBSERVED"
+  },
+  {
+    "case_id": "rw-11-controlled-two-attempt-retry",
+    "correctness": "PASS",
+    "security": "PASS",
+    "security_blocking": false,
+    "security_findings": [],
+    "quality": "PASS",
+    "quality_findings": [],
+    "review_classification": "REVIEW_SECURITY_TRUE_NEGATIVE"
+  }
+]

@@ -6,17 +6,31 @@ import os from "node:os"
 import { spawnSync } from "node:child_process"
 import { pathToFileURL } from "node:url"
 import { repoRoot } from "../helpers.mjs"
-import { inspectProjectMetadata, reconcileProject } from "../../src/ocae_cli/_adapter/opencode-handoff.js"
+import adapter from "../../src/ocae_cli/_adapter/opencode-handoff.js"
+
+const { inspectProjectMetadata, reconcileProject } = adapter
 
 const CURRENT_COMMIT = spawnSync("git", ["rev-parse", "HEAD"], { cwd: repoRoot, encoding: "utf8" }).stdout.trim()
 const OLD_COMMIT = "93a779a6fd7da32c937430191570bda2a83ffab4"
 const TRUSTED_MANIFEST = {
-  adapter_version: "1.0.3",
-  ocae_version: "1.0.3",
+  adapter_version: "1.0.4",
+  ocae_version: "1.0.4",
   opencode_version: "1.18.18",
   cli_path: "C:\\trusted\\ocae.exe",
   source_commit: CURRENT_COMMIT,
 }
+
+// Reconstructing the genuine pre-v1.0.2 fixture requires the historical source
+// tree, which `git archive <OLD_COMMIT>` reads from the local repository
+// history. In clean single-commit checkouts (e.g. the post-merge squash-clone
+// context) that object is genuinely absent, so the fixture cannot be rebuilt.
+// This is a real capability probe — same principle as the host symlink probe:
+// a real test failure is never converted into a skip, only a proven-absent
+// history object gates the tests as explicitly unsupported.
+const OLD_COMMIT_AVAILABLE = (() => {
+  const probe = spawnSync("git", ["cat-file", "-t", OLD_COMMIT], { cwd: repoRoot, encoding: "utf8" })
+  return probe.status === 0 && String(probe.stdout || "").trim() === "commit"
+})()
 
 function git(cwd, args) {
   return spawnSync("git", args, { cwd, encoding: "utf8", stdio: "pipe" })
@@ -64,6 +78,10 @@ async function makeOldInstallation(t) {
 }
 
 test("real pre-v1.0.2 installation is detected before task bootstrap", async (t) => {
+  if (!OLD_COMMIT_AVAILABLE) {
+    t.skip(`GIT_HISTORY_UNAVAILABLE: commit ${OLD_COMMIT} is absent from the local repository; the genuine pre-v1.0.2 fixture cannot be reconstructed in this clean single-commit context`)
+    return
+  }
   const target = await makeOldInstallation(t)
   const state = inspectProjectMetadata(target, TRUSTED_MANIFEST)
   assert.equal(state.state, "MIGRATION_REQUIRED")
@@ -73,6 +91,10 @@ test("real pre-v1.0.2 installation is detected before task bootstrap", async (t)
 })
 
 test("trusted reconciliation updates the real old fixture and preserves owner files", async (t) => {
+  if (!OLD_COMMIT_AVAILABLE) {
+    t.skip(`GIT_HISTORY_UNAVAILABLE: commit ${OLD_COMMIT} is absent from the local repository; the genuine pre-v1.0.2 fixture cannot be reconstructed in this clean single-commit context`)
+    return
+  }
   const target = await makeOldInstallation(t)
   await fs.appendFile(path.join(target, "README.md"), "owner edit\n", "utf8")
   const untracked = path.join(target, "user-untracked.txt")

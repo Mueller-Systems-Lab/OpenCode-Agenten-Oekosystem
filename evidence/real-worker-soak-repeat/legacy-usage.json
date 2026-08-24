@@ -1,0 +1,29 @@
+{
+  "real_sessions": [
+    {
+      "case_id": "rw-01-isolated-bugfix",
+      "round": 2,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    },
+    {
+      "case_id": "rw-04-code-docs-tests",
+      "round": 2,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    },
+    {
+      "case_id": "rw-11-controlled-two-attempt-retry",
+      "round": 2,
+      "canonical_runtime_used": true,
+      "legacy_fallback_used": false,
+      "legacy_fallback_reason": null,
+      "entry_source": "plugin:chat.message"
+    }
+  ],
+  "forced_legacy_tests": []
+}

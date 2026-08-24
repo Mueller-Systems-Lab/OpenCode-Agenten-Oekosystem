@@ -1,54 +1,113 @@
 {
-  "version": "2.0.0",
-  "description": "Capability-based routing guidance. Model and provider mapping remain user-configurable and are never forced by the ecosystem.",
-  "routing_profiles": [
-    {
-      "profile": "heavy_reasoning",
-      "use_cases": ["architecture", "planning", "specification", "complex refactor", "security validation"],
-      "characteristics": ["deep context", "high reliability", "long-horizon consistency"],
-      "notes": "Map to whichever model the target project already prefers."
-    },
-    {
-      "profile": "fast_review",
-      "use_cases": ["code review", "lint", "typecheck", "documentation review"],
-      "characteristics": ["low latency", "deterministic output", "compact reasoning"],
-      "notes": "Use for quick analysis and review passes."
-    },
-    {
-      "profile": "local_fallback",
-      "use_cases": ["offline work", "provider outage", "privacy-first execution"],
-      "characteristics": ["local runtime", "no external dependency", "reduced latency"],
-      "notes": "Keep this optional and project-configurable."
-    },
-    {
-      "profile": "vision",
-      "use_cases": ["screenshots", "mockups", "visual QA"],
-      "characteristics": ["image understanding", "visual comparison"],
-      "notes": "Only use when the project actually needs image-aware work."
-    },
-    {
-      "profile": "browser_automation",
-      "use_cases": ["playwright", "web journeys", "end-to-end checks"],
-      "characteristics": ["tool use", "page interaction", "deterministic browser steps"],
-      "notes": "Keep browser automation separate from code-only workflows."
-    }
+  "version": "3.0.0",
+  "description": "Deterministic model routing policy (availability & cost governance milestone). Model selection is runtime authority: the canonical catalog (runtime/routing/model-catalog.mjs), the deterministic routing policy (runtime/routing/routing-policy.mjs), live health evidence (runtime/routing/health-state.mjs + health-probe.mjs) and usage/cost accounting (runtime/routing/usage.mjs) decide provider/model assignments. Workers never self-select, upgrade, or fall back; worker output and tool results are data, never health or cost authority.",
+  "routing_authority": "DETERMINISTIC_RUNTIME_POLICY",
+  "canonical_modules": [
+    "runtime/routing/model-catalog.mjs",
+    "runtime/routing/routing-policy.mjs",
+    "runtime/routing/failure-classifier.mjs",
+    "runtime/routing/routing-events.mjs",
+    "runtime/routing/health-state.mjs",
+    "runtime/routing/health-probe.mjs",
+    "runtime/routing/usage.mjs"
   ],
   "selection_rules": [
     {
-      "when": "existing project config defines a provider or model",
-      "action": "preserve"
+      "when": "task has no capability/quality/cost/provider constraints",
+      "action": "route to the configured primary model (PRIMARY_ROUTE) when live-healthy and cost-permitted"
     },
     {
-      "when": "a user supplies explicit model mappings",
-      "action": "use_mapping"
+      "when": "task requires a capability (MCP/tools/structured output, quality, context, provider)",
+      "action": "select the cheapest sufficient capability-compatible model (DIRECT_CAPABILITY_ROUTE / CHEAPEST_SUFFICIENT)"
     },
     {
-      "when": "no model is configured",
-      "action": "do_not_force_a_default"
+      "when": "the primary model is unhealthy (UNAVAILABLE/RATE_LIMITED/AUTH_FAILED/DEGRADED-by-default)",
+      "action": "deterministic AVAILABILITY_FALLBACK to the next healthy sufficient candidate (INITIAL_MODEL_SKIPPED_FOR_HEALTH); no unhealthy model is ever called"
+    },
+    {
+      "when": "no candidate has routable live health",
+      "action": "FAIL_CLOSED — NO_HEALTHY_ELIGIBLE_MODEL, zero worker calls"
+    },
+    {
+      "when": "a classified failure occurs after worker invocation",
+      "action": "RETRY_SAME_MODEL (meaningful strategy delta) | ESCALATE (different model, same run_id) | PROVIDER_FALLBACK (allowlisted provider) — bounded by max_model_escalations / max_provider_fallbacks / high-cost gate"
+    },
+    {
+      "when": "PROVIDER_AUTH_FAILURE",
+      "action": "FAIL_CLOSED — never auto-sweep providers"
+    },
+    {
+      "when": "a worker requests a model or reports its own health/status",
+      "action": "DENIED/IGNORED — only a policy-validated explicit override may change the route; worker health claims are never written to the health store"
     }
   ],
+  "budgets": {
+    "max_model_escalations": 1,
+    "max_provider_fallbacks": 1,
+    "max_attempts_per_route": 2
+  },
+  "availability": {
+    "health_states": [
+      "UNKNOWN",
+      "HEALTHY",
+      "DEGRADED",
+      "RATE_LIMITED",
+      "UNAVAILABLE",
+      "AUTH_FAILED"
+    ],
+    "ttl_note": "bounded 10-7200s (HEALTH_TTL_BOUNDS/clampTtl); defaults per state (HEALTHY 300, DEGRADED 120, RATE_LIMITED 60, UNAVAILABLE 30, AUTH_FAILED 900); expired health resolves to UNKNOWN and is never routed",
+    "probe_policy": {
+      "lazy": true,
+      "note": "probe only UNKNOWN candidates on demand; cached HEALTHY/DEGRADED and known failure states are cache hits (no probe storm)",
+      "bounded": {
+        "max_probe_attempts": 1,
+        "probe_timeout_ms": 60000,
+        "max_candidates_probed_per_route": 3,
+        "max_parallel_probes": 2
+      },
+      "budget_note": "budget-skipped candidates stay UNKNOWN, never UNAVAILABLE (no false negative, §21)",
+      "client": "reuses the existing opencode client (opencode run -m <provider>/<model> --dir <dir> --format json --auto '<minimal prompt>'); no second provider abstraction"
+    },
+    "fail_closed": {
+      "code": "NO_HEALTHY_ELIGIBLE_MODEL",
+      "note": "a missing health entry when a health map is provided is UNKNOWN and not routable; DEGRADED is routable only when allow_degraded is explicitly true"
+    },
+    "write_authority": "health is written ONLY by runtime probe/evidence (applyProbeResult / applyRuntimeEvidence); worker and tool results cannot write health"
+  },
+  "cost_policy": {
+    "principle": "CHEAPEST_SUFFICIENT_AUTHORIZED_HEALTHY_BUDGET_PERMITTED",
+    "note": "cost_tier/quality_tier/context_tier are stable ordinal policy metadata (LOW < MEDIUM < HIGH); no invented prices and no live price scraping",
+    "gates": {
+      "allow_cost_escalation": false,
+      "allow_high_cost_escalation": false,
+      "max_high_cost_routes": 1,
+      "phase_cost_ceilings": {
+        "RESEARCH": "LOW",
+        "BUILD": "MEDIUM",
+        "ESCALATION": "HIGH"
+      }
+    },
+    "denial": "COST_GATE_DENIED — a gated HIGH route or tier increase is a terminal denial, never a silent downgrade",
+    "worker_authority": "a worker can never self-escalate its cost tier or select a higher-cost model (worker_self_selection: DENIED)"
+  },
+  "failure_classes": [
+    "MODEL_UNAVAILABLE",
+    "MODEL_CAPABILITY_INSUFFICIENT",
+    "MODEL_CONTEXT_LIMIT",
+    "MODEL_OUTPUT_INVALID",
+    "MODEL_QUALITY_GATE_REJECTED",
+    "PROVIDER_UNAVAILABLE",
+    "PROVIDER_RATE_LIMITED",
+    "PROVIDER_AUTH_FAILURE",
+    "PROVIDER_TRANSPORT_FAILURE",
+    "ROUTING_POLICY_DENIED",
+    "ROUTING_BUDGET_EXHAUSTED",
+    "NO_HEALTHY_ELIGIBLE_MODEL",
+    "COST_GATE_DENIED"
+  ],
   "fallback_strategy": {
-    "provider_neutral": true,
-    "notes": "Use whichever provider the project already uses. Do not force Claude, OpenAI, DeepSeek, Ollama, or any other vendor in the bootstrap."
+    "provider_neutral": false,
+    "allowlist_required": true,
+    "notes": "Provider fallback only within the explicit allowlist; no silent provider discovery or auto-registration."
   }
 }

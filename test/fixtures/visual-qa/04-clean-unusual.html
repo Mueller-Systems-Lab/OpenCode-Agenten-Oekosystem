@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>04 clean unusual</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;color:#222;background:#fff;line-height:1.4}
+.wrap{display:grid;grid-template-columns:220px 1fr 120px;gap:20px;padding:24px;max-width:1000px;margin:0 auto}
+.side{writing-mode:vertical-rl;text-orientation:mixed;background:#faf5ff;border:1px solid #e9d8fd;color:#553c9a;padding:12px;text-align:center;font-size:12px;letter-spacing:0.08em}
+.main h1{font-size:22px;margin-bottom:8px}.main p{font-size:13px;color:#4a5568;margin-bottom:10px}
+.big-gap{height:120px}.feature{background:#fffff0;border:2px dashed #ecc94b;border-radius:10px;padding:16px;margin-top:12px}
+.asym{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:12px}
+.asym div{background:#ebf8ff;border:1px solid #bee3f8;border-radius:8px;padding:10px;font-size:13px}
+footer{text-align:center;padding:16px;font-size:11px;color:#a0aec0;border-top:1px solid #edf2f7;margin-top:20px}
+</style></head><body data-fixture="04-clean-unusual">
+<div class="wrap">
+<div class="side">CATEGORY — ARCHIVE — 2026</div>
+<div class="main">
+<h1>Unusual but Correct</h1>
+<p>This layout is intentionally asymmetric with large whitespace and a vertical label.</p>
+<div class="big-gap"></div>
+<p>The large gap above is deliberate whitespace, not a broken layout.</p>
+<div class="feature"><strong>Featured note:</strong> Dashed border is intentional design — not a defect.</div>
+<div class="asym"><div>Primary column — wider, holds the main narrative. No truncation.</div><div>Side note — narrow but all content fits.</div></div>
+</div>
+<div class="side" style="background:#f0fff4;border-color:#c6f6d5;color:#276749">META — V2 — STABLE</div>
+</div>
+<footer>Unusual geometry is intentional. Expect PASS — reviewer must not hallucinate a defect.</footer>
+</body></html>

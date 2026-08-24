@@ -1,0 +1,22 @@
+[
+  {
+    "server": "playwright",
+    "tool": "browser_navigate",
+    "status": "SUCCESS",
+    "failure_class": null,
+    "duration_ms": 3868,
+    "input_fingerprint": "63ac355d31834d6a14be0f7c9f6a2d43eb3581b6095fb332020d72bd886dfdd4",
+    "output_fingerprint": "3fd7d924633733a4a4e8909153e6d4f299b4e16075c9d429ffc4c2ad652284ab",
+    "result_terminal_token_like": null
+  },
+  {
+    "server": "playwright",
+    "tool": "browser_missing_tool",
+    "status": "DENIED",
+    "failure_class": "MCP_TOOL_SCOPE_DENIED",
+    "duration_ms": 0,
+    "input_fingerprint": "2d472ded97f33f4a9e09533efc673090bdfeed1e423e09e323fc0f965f1a8897",
+    "output_fingerprint": null,
+    "result_terminal_token_like": null
+  }
+]

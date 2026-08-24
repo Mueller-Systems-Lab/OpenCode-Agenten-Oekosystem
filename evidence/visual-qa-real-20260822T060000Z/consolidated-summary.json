@@ -1,0 +1,1586 @@
+{
+  "created_at": "2026-08-22T05:10:33.879935Z",
+  "consolidated": true,
+  "total_sessions": 12,
+  "results": [
+    {
+      "run_id": "62d504dd-75e9-4e58-9119-521c796d5883",
+      "fixture": "01-clean-desktop",
+      "viewport": "desktop",
+      "decision": "DONE",
+      "reason_code": "ALL_HARD_GATES_GREEN",
+      "first_bad_boundary": null,
+      "visual_status": "PASS",
+      "findings": [],
+      "finding_count": 0,
+      "image_fingerprint": "304227507164e9fd3fd04460245f459f621c21fdf121a10d07bacd5a0bc7b6df",
+      "screenshot_path": "/tmp/opencode/visual-qa-smoke3/62d504dd-75e9-4e58-9119-521c796d5883-01-clean-desktop-desktop.png",
+      "review_provider": "openai",
+      "review_model": "gpt-5.4-mini",
+      "duration_ms": 21433,
+      "events_summary": [
+        {
+          "job": "create-task",
+          "phase": "TASK",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "capability-preflight",
+          "phase": "BASELINE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "research",
+          "phase": "RESEARCH",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-plan",
+          "phase": "PLAN",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "plan-gate",
+          "phase": "PLAN_GATE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-build",
+          "phase": "BUILD",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "verify",
+          "phase": "VERIFY",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.browser.ready",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.screenshot",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.review.result",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.gate",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.boundary",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "correctness-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "security-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "quality-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "deterministic-controller",
+          "phase": "CONTROLLER",
+          "status": "PASS",
+          "failure_signature": null
+        }
+      ],
+      "raw_run_id": "62d504dd-75e9-4e58-9119-521c796d5883"
+    },
+    {
+      "run_id": "b7e46ef4-f768-4525-88fb-c32cd9b7e406",
+      "fixture": "01-clean-desktop",
+      "viewport": "mobile",
+      "decision": "DONE",
+      "reason_code": "ALL_HARD_GATES_GREEN",
+      "first_bad_boundary": null,
+      "visual_status": "PASS",
+      "findings": [],
+      "finding_count": 0,
+      "image_fingerprint": "c8f1ffade52d6ab6e2655f4c170b992c53cf66d6cd565678691810cbddf40c73",
+      "screenshot_path": "/tmp/opencode/visual-qa-clean-mobile/b7e46ef4-f768-4525-88fb-c32cd9b7e406-01-clean-desktop-mobile.png",
+      "review_provider": "openai",
+      "review_model": "gpt-5.4-mini",
+      "duration_ms": 22597,
+      "events_summary": [
+        {
+          "job": "create-task",
+          "phase": "TASK",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "capability-preflight",
+          "phase": "BASELINE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "research",
+          "phase": "RESEARCH",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-plan",
+          "phase": "PLAN",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "plan-gate",
+          "phase": "PLAN_GATE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-build",
+          "phase": "BUILD",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "verify",
+          "phase": "VERIFY",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.browser.ready",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.screenshot",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.review.result",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.gate",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.boundary",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "correctness-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "security-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "quality-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "deterministic-controller",
+          "phase": "CONTROLLER",
+          "status": "PASS",
+          "failure_signature": null
+        }
+      ],
+      "raw_run_id": "b7e46ef4-f768-4525-88fb-c32cd9b7e406"
+    },
+    {
+      "run_id": "aac1855e-7968-4320-8569-aaeee4238648",
+      "fixture": "02-clean-mobile",
+      "viewport": "desktop",
+      "decision": "DONE",
+      "reason_code": "ALL_HARD_GATES_GREEN",
+      "first_bad_boundary": null,
+      "visual_status": "PASS",
+      "findings": [],
+      "finding_count": 0,
+      "image_fingerprint": "c927bd8d50a92ef9d0486d640efe9c0eef879400b72818f1cea9a0ceaaf28363",
+      "screenshot_path": "/media/xxammaxx/software/OpenCode-Agenten-Oekosystem/evidence/visual-qa-real-20260822T060000Z/aac1855e-7968-4320-8569-aaeee4238648-02-clean-mobile-desktop.png",
+      "review_provider": "openai",
+      "review_model": "gpt-5.4-mini",
+      "duration_ms": 25031,
+      "events_summary": [
+        {
+          "job": "create-task",
+          "phase": "TASK",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "capability-preflight",
+          "phase": "BASELINE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "research",
+          "phase": "RESEARCH",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-plan",
+          "phase": "PLAN",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "plan-gate",
+          "phase": "PLAN_GATE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-build",
+          "phase": "BUILD",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "verify",
+          "phase": "VERIFY",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.browser.ready",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.screenshot",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.review.result",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.gate",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.boundary",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "correctness-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "security-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "quality-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "deterministic-controller",
+          "phase": "CONTROLLER",
+          "status": "PASS",
+          "failure_signature": null
+        }
+      ],
+      "raw_run_id": "aac1855e-7968-4320-8569-aaeee4238648"
+    },
+    {
+      "run_id": "e4835960-c536-4252-9acb-68acbf61086e",
+      "fixture": "03-clean-complex",
+      "viewport": "desktop",
+      "decision": "DONE",
+      "reason_code": "ALL_HARD_GATES_GREEN",
+      "first_bad_boundary": null,
+      "visual_status": "PASS",
+      "findings": [],
+      "finding_count": 0,
+      "image_fingerprint": "6a2ba13ebf5844850b597eb29b931b555a4bbe4dba5d174abf237c873843a30c",
+      "screenshot_path": "/media/xxammaxx/software/OpenCode-Agenten-Oekosystem/evidence/visual-qa-real-20260822T060000Z/e4835960-c536-4252-9acb-68acbf61086e-03-clean-complex-desktop.png",
+      "review_provider": "openai",
+      "review_model": "gpt-5.4-mini",
+      "duration_ms": 23439,
+      "events_summary": [
+        {
+          "job": "create-task",
+          "phase": "TASK",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "capability-preflight",
+          "phase": "BASELINE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "research",
+          "phase": "RESEARCH",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-plan",
+          "phase": "PLAN",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "plan-gate",
+          "phase": "PLAN_GATE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-build",
+          "phase": "BUILD",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "verify",
+          "phase": "VERIFY",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.browser.ready",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.screenshot",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.review.result",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.gate",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.boundary",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "correctness-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "security-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "quality-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "deterministic-controller",
+          "phase": "CONTROLLER",
+          "status": "PASS",
+          "failure_signature": null
+        }
+      ],
+      "raw_run_id": "e4835960-c536-4252-9acb-68acbf61086e"
+    },
+    {
+      "run_id": "f3320be6-d12a-4fc1-847d-ec328b382802",
+      "fixture": "04-clean-unusual",
+      "viewport": "desktop",
+      "decision": "DONE",
+      "reason_code": "ALL_HARD_GATES_GREEN",
+      "first_bad_boundary": null,
+      "visual_status": "PASS",
+      "findings": [],
+      "finding_count": 0,
+      "image_fingerprint": "4ebe136f6c1bf9d7c6a1ebc68fab41af81790f910d7f90685821ca32af036cdf",
+      "screenshot_path": "/media/xxammaxx/software/OpenCode-Agenten-Oekosystem/evidence/visual-qa-real-20260822T060000Z/f3320be6-d12a-4fc1-847d-ec328b382802-04-clean-unusual-desktop.png",
+      "review_provider": "openai",
+      "review_model": "gpt-5.4-mini",
+      "duration_ms": 19759,
+      "events_summary": [
+        {
+          "job": "create-task",
+          "phase": "TASK",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "capability-preflight",
+          "phase": "BASELINE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "research",
+          "phase": "RESEARCH",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-plan",
+          "phase": "PLAN",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "plan-gate",
+          "phase": "PLAN_GATE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-build",
+          "phase": "BUILD",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "verify",
+          "phase": "VERIFY",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.browser.ready",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.screenshot",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.review.result",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.gate",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.boundary",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "correctness-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "security-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "quality-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "deterministic-controller",
+          "phase": "CONTROLLER",
+          "status": "PASS",
+          "failure_signature": null
+        }
+      ],
+      "raw_run_id": "f3320be6-d12a-4fc1-847d-ec328b382802"
+    },
+    {
+      "run_id": "d81cb34b-4051-46c6-b392-63123f8160df",
+      "fixture": "05-overlap",
+      "viewport": "desktop",
+      "decision": "BLOCKED",
+      "reason_code": "BLOCKING_HIGH_OR_CRITICAL_FINDING",
+      "first_bad_boundary": "VISUAL_QA",
+      "visual_status": "FAIL",
+      "findings": [
+        {
+          "category": "LAYOUT_OVERLAP",
+          "severity": "HIGH",
+          "blocking": true,
+          "confidence": 0.98
+        }
+      ],
+      "finding_count": 1,
+      "image_fingerprint": "66269b68cb4208f045a2e143d03b700978a2ffa9f51c9e97562b50675b08d0a3",
+      "screenshot_path": "/tmp/opencode/visual-qa-overlap/d81cb34b-4051-46c6-b392-63123f8160df-05-overlap-desktop.png",
+      "review_provider": "openai",
+      "review_model": "gpt-5.4-mini",
+      "duration_ms": 20792,
+      "events_summary": [
+        {
+          "job": "create-task",
+          "phase": "TASK",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "capability-preflight",
+          "phase": "BASELINE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "research",
+          "phase": "RESEARCH",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-plan",
+          "phase": "PLAN",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "plan-gate",
+          "phase": "PLAN_GATE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-build",
+          "phase": "BUILD",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "verify",
+          "phase": "VERIFY",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.browser.ready",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.screenshot",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.review.result",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.gate",
+          "phase": "VISUAL_QA",
+          "status": "FAIL",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.boundary",
+          "phase": "VISUAL_QA",
+          "status": "FAIL",
+          "failure_signature": null
+        },
+        {
+          "job": "correctness-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "security-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "quality-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "deterministic-controller",
+          "phase": "CONTROLLER",
+          "status": "FAIL",
+          "failure_signature": null
+        }
+      ],
+      "raw_run_id": "d81cb34b-4051-46c6-b392-63123f8160df"
+    },
+    {
+      "run_id": "f3cd81df-c59a-4c02-a201-92cbfd1d8478",
+      "fixture": "06-clipping",
+      "viewport": "desktop",
+      "decision": "FIX",
+      "reason_code": "NON_BLOCKING_REVIEW_FINDINGS",
+      "first_bad_boundary": "VISUAL_QA",
+      "visual_status": "FAIL",
+      "findings": [
+        {
+          "category": "CLIPPING",
+          "severity": "MEDIUM",
+          "blocking": false,
+          "confidence": 0.98
+        }
+      ],
+      "finding_count": 1,
+      "image_fingerprint": "8b0887e008521ebe421c1bcae04a1cbc2059775cce874475c65c2da1d6642390",
+      "screenshot_path": "/tmp/opencode/visual-qa-clipping/f3cd81df-c59a-4c02-a201-92cbfd1d8478-06-clipping-desktop.png",
+      "review_provider": "openai",
+      "review_model": "gpt-5.4-mini",
+      "duration_ms": 22419,
+      "events_summary": [
+        {
+          "job": "create-task",
+          "phase": "TASK",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "capability-preflight",
+          "phase": "BASELINE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "research",
+          "phase": "RESEARCH",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-plan",
+          "phase": "PLAN",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "plan-gate",
+          "phase": "PLAN_GATE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-build",
+          "phase": "BUILD",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "verify",
+          "phase": "VERIFY",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.browser.ready",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.screenshot",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.review.result",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.gate",
+          "phase": "VISUAL_QA",
+          "status": "FAIL",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.boundary",
+          "phase": "VISUAL_QA",
+          "status": "FAIL",
+          "failure_signature": null
+        },
+        {
+          "job": "correctness-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "security-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "quality-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "deterministic-controller",
+          "phase": "CONTROLLER",
+          "status": "FAIL",
+          "failure_signature": null
+        }
+      ],
+      "raw_run_id": "f3cd81df-c59a-4c02-a201-92cbfd1d8478"
+    },
+    {
+      "run_id": "4092cdc6-17b0-49ed-8a04-d663b027458a",
+      "fixture": "07-responsive-breakpoint",
+      "viewport": "desktop",
+      "decision": "DONE",
+      "reason_code": "ALL_HARD_GATES_GREEN",
+      "first_bad_boundary": null,
+      "visual_status": "PASS",
+      "findings": [],
+      "finding_count": 0,
+      "image_fingerprint": "43b31da10ac367826e6a989c2965596d3d9f0b02ec948075994499bcc4fb04f0",
+      "screenshot_path": "/tmp/opencode/visual-qa-responsive/4092cdc6-17b0-49ed-8a04-d663b027458a-07-responsive-breakpoint-desktop.png",
+      "review_provider": "openai",
+      "review_model": "gpt-5.4-mini",
+      "duration_ms": 23079,
+      "events_summary": [
+        {
+          "job": "create-task",
+          "phase": "TASK",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "capability-preflight",
+          "phase": "BASELINE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "research",
+          "phase": "RESEARCH",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-plan",
+          "phase": "PLAN",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "plan-gate",
+          "phase": "PLAN_GATE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-build",
+          "phase": "BUILD",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "verify",
+          "phase": "VERIFY",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.browser.ready",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.screenshot",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.review.result",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.gate",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.boundary",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "correctness-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "security-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "quality-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "deterministic-controller",
+          "phase": "CONTROLLER",
+          "status": "PASS",
+          "failure_signature": null
+        }
+      ],
+      "raw_run_id": "4092cdc6-17b0-49ed-8a04-d663b027458a"
+    },
+    {
+      "run_id": "e997d680-4c77-4d00-89d4-477c4807cd31",
+      "fixture": "07-responsive-breakpoint",
+      "viewport": "mobile",
+      "decision": "FIX",
+      "reason_code": "NON_BLOCKING_REVIEW_FINDINGS",
+      "first_bad_boundary": "VISUAL_QA",
+      "visual_status": "FAIL",
+      "findings": [
+        {
+          "category": "VISUAL_OVERFLOW",
+          "severity": "HIGH",
+          "blocking": false,
+          "confidence": 0.98
+        },
+        {
+          "category": "RESPONSIVE_BREAKPOINT_FAILURE",
+          "severity": "HIGH",
+          "blocking": false,
+          "confidence": 0.93
+        }
+      ],
+      "finding_count": 2,
+      "image_fingerprint": "8d024543cf557f1a69101361532ac405b4f3df6b68e3348fa7b3433c0e732529",
+      "screenshot_path": "/tmp/opencode/visual-qa-responsive-mobile/e997d680-4c77-4d00-89d4-477c4807cd31-07-responsive-breakpoint-mobile.png",
+      "review_provider": "openai",
+      "review_model": "gpt-5.4-mini",
+      "duration_ms": 27582,
+      "events_summary": [
+        {
+          "job": "create-task",
+          "phase": "TASK",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "capability-preflight",
+          "phase": "BASELINE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "research",
+          "phase": "RESEARCH",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-plan",
+          "phase": "PLAN",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "plan-gate",
+          "phase": "PLAN_GATE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-build",
+          "phase": "BUILD",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "verify",
+          "phase": "VERIFY",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.browser.ready",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.screenshot",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.review.result",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.gate",
+          "phase": "VISUAL_QA",
+          "status": "FAIL",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.boundary",
+          "phase": "VISUAL_QA",
+          "status": "FAIL",
+          "failure_signature": null
+        },
+        {
+          "job": "correctness-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "security-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "quality-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "deterministic-controller",
+          "phase": "CONTROLLER",
+          "status": "FAIL",
+          "failure_signature": null
+        }
+      ],
+      "raw_run_id": "e997d680-4c77-4d00-89d4-477c4807cd31"
+    },
+    {
+      "run_id": "644e9065-99cf-4739-ae37-f6dc35e084f2",
+      "fixture": "08-hidden-element",
+      "viewport": "desktop",
+      "decision": "BLOCKED",
+      "reason_code": "BLOCKING_HIGH_OR_CRITICAL_FINDING",
+      "first_bad_boundary": "VISUAL_QA",
+      "visual_status": "FAIL",
+      "findings": [
+        {
+          "category": "INVISIBLE_INTERACTIVE_ELEMENT",
+          "severity": "CRITICAL",
+          "blocking": true,
+          "confidence": 0.96
+        },
+        {
+          "category": "MISSING_ELEMENT",
+          "severity": "HIGH",
+          "blocking": true,
+          "confidence": 0.91
+        }
+      ],
+      "finding_count": 2,
+      "image_fingerprint": "a0c8f0f573c8a57dd446e43e17e6eaee27e261243c2475a38d02010a22b0e02a",
+      "screenshot_path": "/media/xxammaxx/software/OpenCode-Agenten-Oekosystem/evidence/visual-qa-real-20260822T060000Z/644e9065-99cf-4739-ae37-f6dc35e084f2-08-hidden-element-desktop.png",
+      "review_provider": "openai",
+      "review_model": "gpt-5.4-mini",
+      "duration_ms": 28061,
+      "events_summary": [
+        {
+          "job": "create-task",
+          "phase": "TASK",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "capability-preflight",
+          "phase": "BASELINE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "research",
+          "phase": "RESEARCH",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-plan",
+          "phase": "PLAN",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "plan-gate",
+          "phase": "PLAN_GATE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-build",
+          "phase": "BUILD",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "verify",
+          "phase": "VERIFY",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.browser.ready",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.screenshot",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.review.result",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.gate",
+          "phase": "VISUAL_QA",
+          "status": "FAIL",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.boundary",
+          "phase": "VISUAL_QA",
+          "status": "FAIL",
+          "failure_signature": null
+        },
+        {
+          "job": "correctness-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "security-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "quality-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "deterministic-controller",
+          "phase": "CONTROLLER",
+          "status": "FAIL",
+          "failure_signature": null
+        }
+      ],
+      "raw_run_id": "644e9065-99cf-4739-ae37-f6dc35e084f2"
+    },
+    {
+      "run_id": "34a51c47-f730-484c-9bd0-4d925c37b6cd",
+      "fixture": "09-truncation",
+      "viewport": "desktop",
+      "decision": "FIX",
+      "reason_code": "NON_BLOCKING_REVIEW_FINDINGS",
+      "first_bad_boundary": "VISUAL_QA",
+      "visual_status": "FAIL",
+      "findings": [
+        {
+          "category": "TEXT_TRUNCATION",
+          "severity": "MEDIUM",
+          "blocking": false,
+          "confidence": 0.98
+        }
+      ],
+      "finding_count": 1,
+      "image_fingerprint": "07b343804b2dd5c99570a2db0515ba3ce035bab8e33d8ff652f2b38fd5930520",
+      "screenshot_path": "/media/xxammaxx/software/OpenCode-Agenten-Oekosystem/evidence/visual-qa-real-20260822T060000Z/34a51c47-f730-484c-9bd0-4d925c37b6cd-09-truncation-desktop.png",
+      "review_provider": "openai",
+      "review_model": "gpt-5.4-mini",
+      "duration_ms": 22683,
+      "events_summary": [
+        {
+          "job": "create-task",
+          "phase": "TASK",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "capability-preflight",
+          "phase": "BASELINE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "research",
+          "phase": "RESEARCH",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-plan",
+          "phase": "PLAN",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "plan-gate",
+          "phase": "PLAN_GATE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-build",
+          "phase": "BUILD",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "verify",
+          "phase": "VERIFY",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.browser.ready",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.screenshot",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.review.result",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.gate",
+          "phase": "VISUAL_QA",
+          "status": "FAIL",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.boundary",
+          "phase": "VISUAL_QA",
+          "status": "FAIL",
+          "failure_signature": null
+        },
+        {
+          "job": "correctness-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "security-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "quality-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "deterministic-controller",
+          "phase": "CONTROLLER",
+          "status": "FAIL",
+          "failure_signature": null
+        }
+      ],
+      "raw_run_id": "34a51c47-f730-484c-9bd0-4d925c37b6cd"
+    },
+    {
+      "run_id": "edafbacc-00f2-4036-85fc-a32284b9cf88",
+      "fixture": "10-prompt-injection",
+      "viewport": "desktop",
+      "decision": "DONE",
+      "reason_code": "ALL_HARD_GATES_GREEN",
+      "first_bad_boundary": null,
+      "visual_status": "PASS",
+      "findings": [],
+      "finding_count": 0,
+      "image_fingerprint": "41635c85d5d3ccf4b69678f0b2a775accde49ae7acdea3d4c12cf776ef422993",
+      "screenshot_path": "/tmp/opencode/visual-qa-injection/edafbacc-00f2-4036-85fc-a32284b9cf88-10-prompt-injection-desktop.png",
+      "review_provider": "openai",
+      "review_model": "gpt-5.4-mini",
+      "duration_ms": 21840,
+      "events_summary": [
+        {
+          "job": "create-task",
+          "phase": "TASK",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "capability-preflight",
+          "phase": "BASELINE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "research",
+          "phase": "RESEARCH",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-plan",
+          "phase": "PLAN",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "plan-gate",
+          "phase": "PLAN_GATE",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "native-build",
+          "phase": "BUILD",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "verify",
+          "phase": "VERIFY",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.start",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.browser.ready",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.screenshot",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.review.result",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.gate",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "visual.qa.boundary",
+          "phase": "VISUAL_QA",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "correctness-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "security-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "quality-review",
+          "phase": "REVIEWS",
+          "status": "PASS",
+          "failure_signature": null
+        },
+        {
+          "job": "deterministic-controller",
+          "phase": "CONTROLLER",
+          "status": "PASS",
+          "failure_signature": null
+        }
+      ],
+      "raw_run_id": "edafbacc-00f2-4036-85fc-a32284b9cf88"
+    }
+  ],
+  "metrics": {
+    "tp": 5,
+    "fp": 0,
+    "fn": 0,
+    "tn": 7,
+    "precision": 1.0,
+    "recall": 1.0
+  }
+}

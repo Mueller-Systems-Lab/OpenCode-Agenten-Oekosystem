@@ -11,6 +11,7 @@
     "execution_profiles": {"type": "object", "required": ["COMPACT", "STANDARD", "CRITICAL", "BLOCKED"]},
     "decision_classes": {"type": "object", "required": ["A", "B", "C", "D"]},
     "effect_classes": {"type": "array", "minItems": 10, "items": {"type": "string"}},
+    "command_effect_classes": {"type": "array", "minItems": 14, "items": {"type": "string"}},
     "tool_capabilities": {"type": "object", "minProperties": 1},
     "reversibility_classes": {"type": "array", "minItems": 5, "items": {"type": "string"}},
     "prompt_kernel": {"type": "object", "required": ["file", "max_tokens", "permanent_rules", "lazy_detail_policies"]}

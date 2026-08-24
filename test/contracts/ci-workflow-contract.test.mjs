@@ -8,6 +8,7 @@ import { classifyVisualPaths, renderClassification } from "../../scripts/classif
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const securityWorkflow = readFileSync(path.join(root, ".github/workflows/opencode-security-review.yml"), "utf8")
 const visualWorkflow = readFileSync(path.join(root, ".github/workflows/opencode-visual-qa.yml"), "utf8")
+const coreGatesWorkflow = readFileSync(path.join(root, ".github/workflows/ocae-core-gates.yml"), "utf8")
 const classifier = path.join(root, "scripts/classify-visual-qa-diff.mjs")
 
 describe("PR CI workflow contracts", () => {
@@ -53,6 +54,31 @@ describe("PR CI workflow contracts", () => {
     }
     assert.match(securityWorkflow, /OCAE_CANONICAL_TEST_RUNNER:\s*"1"/)
     assert.doesNotMatch(securityWorkflow, /continue-on-error|\|\|\s*true/)
+  })
+
+  it("runs required OCAE core gates on every master pull request without path filters", () => {
+    assert.doesNotMatch(coreGatesWorkflow, /ANTHROPIC_API_KEY|anomalyco\/opencode\/github|@latest/)
+    assert.doesNotMatch(coreGatesWorkflow, /pull-requests:\s*write|issues:\s*write|id-token:\s*write|contents:\s*write/)
+    assert.doesNotMatch(coreGatesWorkflow, /continue-on-error|\|\|\s*true/)
+    // A required-check workflow must never be skipped by path filters: that
+    // would leave the check permanently pending and block every PR.
+    assert.match(coreGatesWorkflow, /pull_request:/)
+    assert.match(coreGatesWorkflow, /branches:\s*\[master\]/)
+    assert.match(coreGatesWorkflow, /types:\s*\[opened,\s*synchronize/)
+    assert.doesNotMatch(coreGatesWorkflow, /paths(-ignore)?:/)
+    assert.match(coreGatesWorkflow, /push:\s*\n\s*branches:\s*\n\s*-\s*master/)
+    assert.match(coreGatesWorkflow, /ref:\s*\$\{\{\s*github\.event\.pull_request\.head\.sha\s*\|\|\s*github\.sha\s*\}\}/)
+    assert.match(coreGatesWorkflow, /node-version:\s*22/)
+    assert.match(coreGatesWorkflow, /name:\s*ocae-required/)
+    assert.match(coreGatesWorkflow, /name:\s*OCAE Core Gates/)
+    for (const group of ["unit", "contract", "integration", "bootstrap", "governance", "e2e"]) {
+      assert.match(coreGatesWorkflow, new RegExp(`scripts/run-tests\\.mjs --group ${group}`))
+    }
+    assert.match(coreGatesWorkflow, /--group integration_portable/)
+    assert.match(coreGatesWorkflow, /OCAE_SECURE_SANDBOX_NOT_APPLICABLE: "1"/)
+    assert.match(coreGatesWorkflow, /OCAE_CANONICAL_TEST_RUNNER:\s*"1"/)
+    assert.match(coreGatesWorkflow, /scripts\/validate-ecosystem\.mjs/)
+    assert.match(coreGatesWorkflow, /scripts\/check-governance-drift\.mjs/)
   })
 
   it("requires explicit visual diff classification evidence", () => {

@@ -33,6 +33,19 @@ verification. The optional `ocae integrate opencode` command installs one
 OCAE-owned global OpenCode adapter for bare-URL handoff; it is idempotent and
 does not rewrite `opencode.jsonc`.
 
+## Repository protection and delivery flow
+
+`master` is protected: changes land through pull requests, direct pushes,
+force pushes, and branch deletion are denied, and merging requires the
+`ocae-required` check (workflow **OCAE Core Gates**) to pass. Protection is
+activated via a repository ruleset after `ocae-required` first reports on a
+real pull request (see [docs/adr/ADR-master-protection-core-gates.md](docs/adr/ADR-master-protection-core-gates.md)). The gate runs
+the canonical test suite, the ecosystem validation (production sentinel), and
+the governance drift check — deterministic, without external services at test time, and
+without paid provider secrets. Optional capabilities (visual QA, viewport matrices) are not required
+merge gates. Emergency owner recovery is an explicit, auditable ruleset change;
+there is no silent bypass.
+
 ## What is OCAE?
 
 OCAE CLI v1.0.4 is the installable distribution layer for this repository. The

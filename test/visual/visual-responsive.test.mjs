@@ -71,8 +71,8 @@ describe('responsive — viewport policy canonical matrix', () => {
     assert.equal(MAX_CUSTOM_VIEWPORTS, 8)
   })
 
-  it('DEFAULT_VIEWPORT_PROFILE is responsive_core', () => {
-    assert.equal(DEFAULT_VIEWPORT_PROFILE, 'responsive_core')
+  it('DEFAULT_VIEWPORT_PROFILE is null — explicit profile required (RESPONSIVE_CORE_NOT_IMPLICIT_DEFAULT)', () => {
+    assert.equal(DEFAULT_VIEWPORT_PROFILE, null)
   })
 
   it('resolveViewportProfile responsive_core → 5 viewports', () => {
@@ -158,11 +158,11 @@ describe('responsive — viewport policy canonical matrix', () => {
     assert.equal(isValidCustomViewport({ name: 'ok', width: 800, height: 50 }), false)
   })
 
-  it('resolveViewportProfile default profile when undefined → responsive_core', () => {
+  it('resolveViewportProfile default profile when undefined → desktop_only fallback (implicit responsive_core removed)', () => {
     const res = resolveViewportProfile({})
     assert.equal(res.ok, true)
-    assert.equal(res.profile, 'responsive_core')
-    assert.equal(res.viewports.length, 5)
+    assert.equal(res.profile, 'desktop_only')
+    assert.equal(res.viewports.length, 1)
   })
 })
 

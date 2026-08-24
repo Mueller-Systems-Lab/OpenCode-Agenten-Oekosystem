@@ -1,4 +1,5 @@
 import assert from "node:assert/strict"
+import { spawnSync } from "node:child_process"
 import crypto from "node:crypto"
 import fs from "node:fs/promises"
 import os from "node:os"
@@ -234,4 +235,57 @@ test("authenticated MCP broker exposes only typed tools and returns structured g
   const discovered = await call("tools/call", { name: "discover_source", arguments: {} })
   assert.equal(discovered.result.structuredContent.status, "VERIFIED_IN_SCOPE")
   assert.equal(JSON.stringify(discovered).includes(sentinel), false)
+})
+
+async function createRemoteSource(originUrl) {
+  const sourceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "ocae-provenance-source-"))
+  const git = (args) => spawnSync("git", args, { cwd: sourceRoot, stdio: "ignore" })
+  git(["init", "--initial-branch=master"])
+  git(["config", "user.email", "provenance@example.invalid"])
+  git(["config", "user.name", "Provenance Test"])
+  git(["commit", "--allow-empty", "-m", "initial"])
+  git(["remote", "add", "origin", originUrl])
+  return sourceRoot
+}
+
+test("source provenance accepts GitHub HTTPS and SSH remotes that identify the requested repository", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "file" })) return
+  const { targetRoot } = await createTarget()
+  t.after(() => fs.rm(targetRoot, { recursive: true, force: true }))
+  for (const origin of [
+    "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+    "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git",
+    "git@github.com:xxammaxx/OpenCode-Agenten-Oekosystem.git",
+    "ssh://git@github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git",
+  ]) {
+    const sourceRoot = await createRemoteSource(origin)
+    t.after(() => fs.rm(sourceRoot, { recursive: true, force: true }))
+    await assert.doesNotReject(createSecureBootstrapController({
+      sourceRoot,
+      targetRoot,
+      sourceUrl: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+    }))
+  }
+})
+
+test("source provenance blocks cross-owner, cross-repository, and non-GitHub remotes", async (t) => {
+  if (await skipIfHostCannotSymlink(t, { type: "file" })) return
+  const { targetRoot } = await createTarget()
+  t.after(() => fs.rm(targetRoot, { recursive: true, force: true }))
+  for (const origin of [
+    "git@github.com:attacker/OpenCode-Agenten-Oekosystem.git",
+    "git@github.com:xxammaxx/OtherRepository.git",
+    "git@example.com:owner/repo.git",
+  ]) {
+    const sourceRoot = await createRemoteSource(origin)
+    t.after(() => fs.rm(sourceRoot, { recursive: true, force: true }))
+    await assert.rejects(
+      createSecureBootstrapController({
+        sourceRoot,
+        targetRoot,
+        sourceUrl: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+      }),
+      /RED_BLOCK_SOURCE_PROVENANCE_MISMATCH/,
+    )
+  }
 })

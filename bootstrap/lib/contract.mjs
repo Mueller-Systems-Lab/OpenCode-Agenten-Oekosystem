@@ -22,6 +22,11 @@ export const CONFLICT_CLASSES = Object.freeze([
 
 const COMMIT_RE = /^[0-9a-f]{7,64}$/i
 const GITHUB_RE = /^https:\/\/github\.com\/([^/]+)\/([^/?#]+?)(?:\.git)?\/?$/i
+const GIT_REMOTE_RES = [
+  /^https:\/\/github\.com\/([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?$/,
+  /^git@github\.com:([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?$/,
+  /^ssh:\/\/git@github\.com\/([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?$/,
+]
 
 export function normalizeBootstrapUrl(input) {
   if (typeof input !== "string" || input.trim() === "") {
@@ -55,6 +60,27 @@ export function normalizeBootstrapUrl(input) {
   }
 
   throw new TypeError("GitHub URL must be a repository, /tree/<ref>, or /commit/<sha> URL")
+}
+
+/**
+ * Normalizes an ALREADY CONFIGURED local git remote for repository-identity
+ * comparison only. This is NOT a bootstrap source URL validator: bootstrap
+ * input stays HTTPS-only via normalizeBootstrapUrl.
+ */
+export function normalizeGitRemoteRepository(input) {
+  if (typeof input !== "string" || input.trim() === "") {
+    throw new TypeError("GitHub git remote URL is required")
+  }
+  const raw = input.trim()
+  for (const pattern of GIT_REMOTE_RES) {
+    const match = pattern.exec(raw)
+    if (!match) continue
+    const owner = match[1]
+    const repo = match[2].replace(/\.git$/, "")
+    if (owner === "." || owner === ".." || repo === "." || repo === ".." || repo === "") break
+    return { repository: `https://github.com/${owner}/${repo}` }
+  }
+  throw new TypeError("GitHub git remote URL must use https://github.com/, git@github.com:, or ssh://git@github.com/")
 }
 
 export function canonicalRepositoryUrl(input) {

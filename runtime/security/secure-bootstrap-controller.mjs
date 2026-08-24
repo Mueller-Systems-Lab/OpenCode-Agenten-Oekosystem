@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process"
 import path from "node:path"
 
-import { normalizeBootstrapUrl } from "../../bootstrap/lib/contract.mjs"
+import { normalizeBootstrapUrl, normalizeGitRemoteRepository } from "../../bootstrap/lib/contract.mjs"
 import { createAuditEvent, summarizeAuditEvents } from "./bootstrap-audit.mjs"
 import {
   createBootstrapCapabilityState,
@@ -34,11 +34,16 @@ function sourceRef(sourceRoot) {
 
 function validateSourceProvenance(sourceRoot, sourceUrl, commit, ref) {
   const requested = normalizeBootstrapUrl(sourceUrl)
-  const remote = normalizeBootstrapUrl(execFileSync("git", ["remote", "get-url", "origin"], {
-    cwd: sourceRoot,
-    encoding: "utf8",
-    timeout: 10_000,
-  }).trim())
+  let remote
+  try {
+    remote = normalizeGitRemoteRepository(execFileSync("git", ["remote", "get-url", "origin"], {
+      cwd: sourceRoot,
+      encoding: "utf8",
+      timeout: 10_000,
+    }).trim())
+  } catch {
+    throw new Error("RED_BLOCK_SOURCE_PROVENANCE_MISMATCH")
+  }
   if (requested.repository !== remote.repository) {
     throw new Error("RED_BLOCK_SOURCE_PROVENANCE_MISMATCH")
   }

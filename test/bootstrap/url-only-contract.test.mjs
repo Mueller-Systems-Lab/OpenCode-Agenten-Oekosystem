@@ -7,6 +7,7 @@ import { spawnSync } from "node:child_process"
 import { repoRoot } from "../helpers.mjs"
 import {
   normalizeBootstrapUrl,
+  normalizeGitRemoteRepository,
   validateBootstrapManifest,
   classifyBootstrapConflict,
 } from "../../bootstrap/lib/contract.mjs"
@@ -192,3 +193,43 @@ async function readFile(filePath, encoding) {
 async function exists(filePath) {
   try { await fs.access(filePath); return true } catch { return false }
 }
+
+test("git remote URLs normalize to one GitHub repository identity across https, scp, and ssh forms", () => {
+  const canonical = "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+  for (const remote of [
+    "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+    "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git",
+    "git@github.com:xxammaxx/OpenCode-Agenten-Oekosystem.git",
+    "ssh://git@github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git",
+  ]) {
+    assert.equal(normalizeGitRemoteRepository(remote).repository, canonical, remote)
+  }
+})
+
+test("git remote normalization rejects non-GitHub, malformed, traversal, and credential-bearing remotes", () => {
+  const absoluteHomePath = ["", "home", "test", "repo"].join("/")
+  for (const invalid of [
+    "git@example.com:owner/repo.git",
+    "ssh://git@example.com/owner/repo.git",
+    "ssh://git@github.com:22/owner/repo.git",
+    "file:///tmp/repo",
+    "../repo",
+    absoluteHomePath,
+    "github.com:owner/repo",
+    "git@github.com:",
+    "git@github.com:owner",
+    "git@github.com:/repo",
+    "git@github.com:owner/../repo",
+    "git@github.com:owner/repo/extra",
+    "https://token@github.com/owner/repo.git",
+    "git@github.com:ow ner/repo.git",
+    "git@github.com:own%2Fer/repo.git",
+  ]) {
+    assert.throws(() => normalizeGitRemoteRepository(invalid), /GitHub git remote URL/, invalid)
+  }
+})
+
+test("url-only-v1 bootstrap contract stays https-only and rejects git and ssh remote URLs", () => {
+  assert.throws(() => normalizeBootstrapUrl("git@github.com:owner/repo.git"), /GitHub repository URL/)
+  assert.throws(() => normalizeBootstrapUrl("ssh://git@github.com/owner/repo.git"), /GitHub repository URL/)
+})

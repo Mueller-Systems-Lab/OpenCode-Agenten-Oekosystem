@@ -1,0 +1,15 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]: CATEGORY — ARCHIVE — 2026
+    - generic [ref=e4]:
+      - heading "Unusual but Correct" [level=1] [ref=e5]
+      - paragraph [ref=e6]: This layout is intentionally asymmetric with large whitespace and a vertical label.
+      - paragraph [ref=e8]: The large gap above is deliberate whitespace, not a broken layout.
+      - generic [ref=e9]:
+        - strong [ref=e10]: "Featured note:"
+        - text: Dashed border is intentional design — not a defect.
+      - generic [ref=e11]:
+        - generic [ref=e12]: Primary column — wider, holds the main narrative. No truncation.
+        - generic [ref=e13]: Side note — narrow but all content fits.
+    - generic [ref=e14]: META — V2 — STABLE
+  - contentinfo [ref=e15]: Unusual geometry is intentional. Expect PASS — reviewer must not hallucinate a defect.

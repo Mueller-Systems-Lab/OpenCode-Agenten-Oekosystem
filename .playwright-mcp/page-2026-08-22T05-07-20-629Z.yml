@@ -1,0 +1,24 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - heading "Acme Mobile" [level=1] [ref=e3]
+    - navigation [ref=e4]:
+      - link "Home" [ref=e5] [cursor=pointer]:
+        - /url: "#"
+      - link "Docs" [ref=e6] [cursor=pointer]:
+        - /url: "#"
+      - link "Profile" [ref=e7] [cursor=pointer]:
+        - /url: "#"
+  - generic [ref=e8]:
+    - generic [ref=e9]:
+      - heading "Card One" [level=3] [ref=e10]
+      - paragraph [ref=e11]: Clean responsive content. No overflow on any viewport.
+    - generic [ref=e12]:
+      - heading "Card Two" [level=3] [ref=e13]
+      - paragraph [ref=e14]: Stacks to single column below 600px via media query.
+    - generic [ref=e15]:
+      - heading "Card Three" [level=3] [ref=e16]
+      - paragraph [ref=e17]: All text fully visible, no clipping or overlap.
+    - generic [ref=e18]:
+      - heading "Card Four" [level=3] [ref=e19]
+      - paragraph [ref=e20]: Footer stays below content, no overlap.
+  - contentinfo [ref=e21]: © 2026 Acme — Responsive PASS fixture.

@@ -1,0 +1,11 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]: Small-Mobile-Only Breakage — Case C (12)
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - heading "Column A" [level=3] [ref=e5]
+      - paragraph [ref=e6]: At 390px+ the layout is clean — narrow 280px box fits.
+    - generic [ref=e7]:
+      - heading "Column B" [level=3] [ref=e8]
+      - paragraph [ref=e9]: "Conditional overflow:"
+      - generic [ref=e10]: Wide box — 280px default (clean at 390), but @media(max-width:370px) expands to 500px and overflows 360 viewport.
+  - paragraph [ref=e11]: "Expected: mobile-small (360) FAIL / mobile (390) PASS / tablet PASS / desktop PASS — only 360 triggers RESPONSIVE_BREAKPOINT_FAILURE."

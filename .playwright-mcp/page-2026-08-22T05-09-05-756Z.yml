@@ -1,0 +1,10 @@
+- generic [active] [ref=e1]:
+  - heading "Text Truncation — TEXT_TRUNCATION" [level=1] [ref=e2]
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - generic [ref=e7]: Super Long Product Title That Will Be Ellipsized And Is Not Fully Readable
+      - generic [ref=e8]: SKU-90210 — in stock
+    - generic [ref=e11]:
+      - generic [ref=e12]: Another Extremely Verbose Item Name Exceeding Container Width
+      - generic [ref=e13]: SKU-90211 — low stock
+  - paragraph [ref=e14]: "BUG: titles use nowrap+ellipsis inside 200px container — full text not visible. Expected TEXT_TRUNCATION."

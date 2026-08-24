@@ -1,0 +1,11 @@
+- generic [active] [ref=e1]:
+  - heading "Overlap Defect — Case B" [level=1] [ref=e2]
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - strong [ref=e5]: Blue Panel
+      - paragraph [ref=e6]: "Contains the primary action:"
+      - button "Confirm Booking" [ref=e7]
+    - generic [ref=e8]:
+      - strong [ref=e9]: Orange Panel
+      - paragraph [ref=e10]: This panel is absolutely positioned and covers part of the blue panel, obscuring the button text.
+  - paragraph [ref=e11]: "BUG: orange panel overlaps blue panel — button text obscured. Expected LAYOUT_OVERLAP."

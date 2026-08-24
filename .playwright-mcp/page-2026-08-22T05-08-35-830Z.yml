@@ -1,0 +1,8 @@
+- generic [active] [ref=e1]:
+  - heading "Hidden Interactive Element — Case E" [level=1] [ref=e2]
+  - generic [ref=e3]:
+    - paragraph [ref=e4]: Checkout form — submit should be visible and usable. One button is present in the DOM but not visually usable.
+    - button "Cancel" [ref=e5]
+    - button "Submit order" [ref=e6]: Submit
+    - paragraph [ref=e7]: The primary "Submit" action exists in the DOM/accessibility tree (left:-9999px / opacity:0) but is invisible — user cannot complete checkout.
+  - paragraph [ref=e8]: "BUG: DOM contains <button>Submit</button> but visually hidden/offscreen. Expected INVISIBLE_INTERACTIVE_ELEMENT / MISSING_ELEMENT."

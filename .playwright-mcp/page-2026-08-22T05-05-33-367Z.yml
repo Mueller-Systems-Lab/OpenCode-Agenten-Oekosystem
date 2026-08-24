@@ -1,0 +1,8 @@
+- generic [active] [ref=e1]:
+  - heading "Clipping Defect — Case C" [level=1] [ref=e2]
+  - generic [ref=e3]:
+    - generic [ref=e4]: Image area
+    - generic [ref=e5]:
+      - heading "Wonderful Mountain Retreat Experience" [level=3] [ref=e6]
+      - paragraph [ref=e7]: This descriptive text is clipped mid-word at the container edge because overflow:hidden cuts off the remaining content without any affordance. The user cannot read the full sentence.
+  - paragraph [ref=e8]: "BUG: card body overflow:hidden clips text mid-word. Expected CLIPPING / VISUAL_OVERFLOW."

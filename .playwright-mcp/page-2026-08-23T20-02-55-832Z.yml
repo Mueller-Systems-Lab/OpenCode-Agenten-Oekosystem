@@ -1,0 +1,24 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - heading "Acme Dashboard" [level=1] [ref=e3]
+    - navigation [ref=e4]:
+      - link "Home" [ref=e5] [cursor=pointer]:
+        - /url: "#"
+      - link "Docs" [ref=e6] [cursor=pointer]:
+        - /url: "#"
+      - link "Settings" [ref=e7] [cursor=pointer]:
+        - /url: "#"
+  - generic [ref=e8]:
+    - generic [ref=e9]:
+      - heading "Project Alpha" [level=3] [ref=e10]
+      - paragraph [ref=e11]: "Status: active. Owner: Team A. Updated 2 days ago."
+    - generic [ref=e12]:
+      - heading "Project Beta" [level=3] [ref=e13]
+      - paragraph [ref=e14]: "Status: review. Owner: Team B. Updated yesterday."
+    - generic [ref=e15]:
+      - heading "Project Gamma" [level=3] [ref=e16]
+      - paragraph [ref=e17]: "Status: shipped. Owner: Team C. Updated today."
+    - generic [ref=e18]:
+      - heading "Project Delta" [level=3] [ref=e19]
+      - paragraph [ref=e20]: "Status: draft. Owner: Team A. Updated 1 week ago."
+  - contentinfo [ref=e21]: © 2026 Acme — All rights reserved.

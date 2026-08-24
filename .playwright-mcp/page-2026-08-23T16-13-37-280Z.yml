@@ -1,0 +1,11 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]: Mobile-only Overflow — Case B (11)
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - heading "Column A" [level=3] [ref=e5]
+      - paragraph [ref=e6]: "Desktop clean: flex row fits 900px container. Both columns side-by-side."
+    - generic [ref=e7]:
+      - heading "Column B" [level=3] [ref=e8]
+      - paragraph [ref=e9]: "Fixed-width child:"
+      - generic [ref=e10]: Fixed 500px box — overflows at 360 and 390 (mobile-small/mobile) causing horizontal scroll; fits at 768+ tablet/desktop.
+  - paragraph [ref=e11]: "Expected: mobile-small FAIL / mobile FAIL / tablet PASS / desktop PASS / wide-desktop PASS — RESPONSIVE_BREAKPOINT_FAILURE / VISUAL_OVERFLOW."

@@ -1,0 +1,11 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]: Responsive Breakpoint Fixture — Case D
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - heading "Column A" [level=3] [ref=e5]
+      - paragraph [ref=e6]: On desktop this flex row is clean. Both columns visible side-by-side without overflow.
+    - generic [ref=e7]:
+      - heading "Column B" [level=3] [ref=e8]
+      - paragraph [ref=e9]: "Contains a fixed-width element:"
+      - generic [ref=e10]: Fixed 500px box — overflows a 390px mobile viewport, causing horizontal scroll.
+  - paragraph [ref=e11]: "Desktop: PASS — Mobile: FAIL (horizontal overflow). Expected RESPONSIVE_BREAKPOINT_FAILURE / VISUAL_OVERFLOW on mobile."

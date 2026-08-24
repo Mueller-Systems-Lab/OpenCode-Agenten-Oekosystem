@@ -1,0 +1,37 @@
+- generic [active] [ref=e1]:
+  - heading "Orders — Clean Complex Layout" [level=1] [ref=e2]
+  - table [ref=e3]:
+    - rowgroup [ref=e4]:
+      - row [ref=e5]:
+        - columnheader "ID" [ref=e6]
+        - columnheader "Customer" [ref=e7]
+        - columnheader "Status" [ref=e8]
+        - columnheader "Amount" [ref=e9]
+    - rowgroup [ref=e10]:
+      - row [ref=e11]:
+        - cell "#1001" [ref=e12]
+        - cell "Alice Meyer" [ref=e13]
+        - cell "Paid" [ref=e14]
+        - cell "€ 129.00" [ref=e15]
+      - row [ref=e16]:
+        - cell "#1002" [ref=e17]
+        - cell "Bob Klein" [ref=e18]
+        - cell "Pending" [ref=e19]
+        - cell "€ 49.50" [ref=e20]
+      - row [ref=e21]:
+        - cell "#1003" [ref=e22]
+        - cell "Carol Sun" [ref=e23]
+        - cell "Shipped" [ref=e24]
+        - cell "€ 210.00" [ref=e25]
+  - heading "New order" [level=2] [ref=e26]
+  - generic [ref=e27]:
+    - generic [ref=e28]:
+      - generic [ref=e29]: Customer
+      - textbox "Customer" [ref=e30]: Jane Doe
+    - generic [ref=e31]:
+      - generic [ref=e32]: Email
+      - textbox "Email" [ref=e33]: jane@example.test
+    - generic [ref=e34]:
+      - generic [ref=e35]: Amount
+      - textbox "Amount" [ref=e36]: € 99.00
+    - button "Create order" [ref=e37] [cursor=pointer]

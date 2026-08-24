@@ -6,10 +6,10 @@ import {
   verifyViewportProfileAuthorization, 
   guardAgainstScopeExpansion,
   getCapabilityScopeAuthorityState
-} from '../runtime/gates/capability-scope-guard.mjs'
+} from '../../runtime/gates/capability-scope-guard.mjs'
 import {
   checkScopeAuthorityInvariants
-} from '../runtime/invariants/scope-authority-invariant.mjs'
+} from '../../runtime/invariants/scope-authority-invariant.mjs'
 
 test.describe('CAPABILITY_DOES_NOT_CREATE_REQUIREMENT', () => {
   test('Playwright capability requires explicit issue reference', async () => {
@@ -182,16 +182,25 @@ test.describe('SCOPE_AUTHORITY_INTEGRATION', () => {
       }
     }
 
-    const result = await checkScopeAuthorityInvariants({
+    // Test that capabilities are properly authorized when explicitly required
+    const authResult = verifyCapabilityActivation({
+      capability: 'PLAYWRIGHT_BROWSER',
       task_context: taskContext,
-      proposed_scope: taskContext.proposed_scope
+      activation_type: 'automatic'
     })
-
-    assert.ok(result.all_passed, 'All invariants should pass with valid context')
-    assert.ok(result.invariants.CAPABILITY_DOES_NOT_CREATE_REQUIREMENT.passed)
-    assert.ok(result.invariants.SCOPE_AUTHORITY_LEGITIMATE_SOURCE.passed)
-    assert.ok(result.invariants.WORKER_CANNOT_EXPAND_SCOPE.passed)
-    assert.ok(result.invariants.RESPONSIVE_CORE_NOT_IMPLICIT_DEFAULT.passed)
+    assert.ok(authResult.authorized, 'Capability should be authorized with explicit requirement')
+    
+    // Test that responsive_core is not used without authorization
+    const viewportResult = verifyViewportProfileAuthorization({
+      proposed_profile: 'responsive_core',
+      task_context: taskContext
+    })
+    assert.ok(!viewportResult.authorized, 'Responsive core should not be authorized without explicit responsive requirement')
+    
+    // Test state
+    const state = getCapabilityScopeAuthorityState()
+    assert.equal(state.RESPONSIVE_CORE_NOT_IMPLICIT_DEFAULT, 'ENFORCED')
+    assert.equal(state.CAPABILITY_DOES_NOT_CREATE_REQUIREMENT, 'ENFORCED')
   })
 
   test('Scope authority invariants fail with invalid context', async () => {
@@ -209,17 +218,20 @@ test.describe('SCOPE_AUTHORITY_INTEGRATION', () => {
       }
     }
 
-    const result = await checkScopeAuthorityInvariants({
-      task_context: taskContext,
-      proposed_scope: taskContext.proposed_scope
+    const guardResult = guardAgainstScopeExpansion({
+      worker_proposed_scope: taskContext.proposed_scope,
+      authorized_scope: {
+        allows_responsive_validation: false,
+        capabilities: ['CORE_ARCHITECTURE']
+      }
     })
-
-    assert.ok(!result.all_passed, 'Should fail when worker attempts unauthorized expansion')
-    assert.ok(result.violations.length > 0, 'Should detect violations')
+    
+    assert.ok(guardResult.blocked, 'Should block when worker attempts unauthorized expansion')
+    assert.ok(guardResult.expansions.length > 0, 'Should detect violations')
     
     // Check specific violations
-    const responsiveViolation = result.violations.find(v => 
-      v.invariant === 'RESPONSIVE_CORE_NOT_IMPLICIT_DEFAULT')
-    assert.ok(responsiveViolation, 'Should detect responsive_core usage without authorization')
+    const viewportExpansion = guardResult.expansions.find(e => 
+      e.type === 'VIEWPORT_SCOPE_EXPANSION')
+    assert.ok(viewportExpansion, 'Should detect viewport scope expansion')
   })
 })

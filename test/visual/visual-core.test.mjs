@@ -40,8 +40,8 @@ describe('visual core — model catalog vision attribute', () => {
     }
   })
 
-  it('CATALOG_VERSION is bumped to 1.1.0', () => {
-    assert.equal(CATALOG_VERSION, '1.1.0')
+  it('CATALOG_VERSION is bumped to 1.2.0 for the additive opencode inventory', () => {
+    assert.equal(CATALOG_VERSION, '1.2.0')
   })
 })
 

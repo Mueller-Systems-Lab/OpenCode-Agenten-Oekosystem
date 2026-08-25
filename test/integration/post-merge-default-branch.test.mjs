@@ -50,6 +50,19 @@ if (process.env.OCAE_POST_MERGE_CONTEXT_CHILD === "1") {
     git(checkout, ["add", "-A"], { stdio: "ignore" })
     git(checkout, ["commit", "-m", "candidate squash tree"], { stdio: "ignore" })
 
+    // The outer canonical run executes this test. The isolated child must
+    // validate the remaining manifest without recursively invoking itself.
+    const manifestPath = path.join(checkout, "test", "test-manifest.json")
+    const childManifest = JSON.parse(await fs.readFile(manifestPath, "utf8"))
+    const nonRecursiveTests = new Set([
+      "test/integration/post-merge-default-branch.test.mjs",
+      "test/harness/runner-contract.test.mjs",
+    ])
+    for (const group of Object.keys(childManifest.groups)) {
+      childManifest.groups[group] = childManifest.groups[group].filter((file) => !nonRecursiveTests.has(file))
+    }
+    await fs.writeFile(manifestPath, JSON.stringify(childManifest, null, 2) + "\n")
+
     const controlledEnv = {
       PATH: process.env.PATH,
       HOME: isolatedHome,

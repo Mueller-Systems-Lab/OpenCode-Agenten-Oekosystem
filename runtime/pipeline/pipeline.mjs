@@ -62,6 +62,12 @@ import {
   budgetSharedEvent,
 } from '../routing/index.mjs'
 import { runVisualQa } from '../visual/visual-qa.mjs'
+import {
+  resolveModelHarness,
+  composeWorkerTaskText,
+  applyToolExposure,
+  harnessEvidenceFields,
+} from '../harness/index.mjs'
 
 /**
  * run_id immutability guard. Every phase contract must keep the task run_id.
@@ -103,6 +109,7 @@ export async function runPipeline({
   routing = null,
   cost_policy = null,
   routeExecutor = null,
+  harness_options = {},
   onWorkerFailure = null,
   sharedBudget = null,
   visualQa = null,
@@ -241,6 +248,47 @@ export async function runPipeline({
   const usedHighCostRoutes = new Set()
   let highCostRoutesUsed = 0
 
+  const workerHarnessEvidence = (routeState) => routeState?.harness
+    ? harnessEvidenceFields(routeState.harness)
+    : {}
+
+  const prepareWorkerInput = (input, routeState) => {
+    if (!routeState?.harness) return { input, grant: tool_grant }
+    const grantedTools = (tool_grant?.allowed_tools || [])
+      .map((entry) => typeof entry === 'string' ? entry : entry?.tool)
+      .filter((tool) => typeof tool === 'string')
+    const workerTaskText = composeWorkerTaskText({
+      taskText: task.task,
+      effectiveHarness: routeState.harness.effective_harness,
+    })
+    const toolExposure = applyToolExposure({
+      grantedTools,
+      toolPolicy: routeState.harness.effective_harness.tool_policy,
+    })
+    const exposed = new Set(toolExposure.exposed_tools)
+    const grant = tool_grant
+      ? {
+          ...tool_grant,
+          allowed_tools: (tool_grant.allowed_tools || []).filter((entry) => exposed.has(typeof entry === 'string' ? entry : entry?.tool)),
+          allowed_servers: [...new Set((tool_grant.allowed_tools || [])
+            .filter((entry) => exposed.has(typeof entry === 'string' ? entry : entry?.tool))
+            .map((entry) => entry?.server)
+            .filter((server) => typeof server === 'string'))],
+          denied_tools: [...(tool_grant.denied_tools || []), ...toolExposure.hidden_tools.map((tool) => ({ tool, reason: 'HARNESS_HIDDEN_TOOL' }))],
+        }
+      : null
+    return {
+      input: {
+        ...input,
+        worker_task_text: workerTaskText,
+        effective_tools: toolExposure.exposed_tools,
+        hidden_tools: toolExposure.hidden_tools,
+        harness_evidence: workerHarnessEvidence(routeState),
+      },
+      grant,
+    }
+  }
+
   while (true) {
     const buildInput = createBuildInput({
       run_id: runId,
@@ -346,24 +394,31 @@ export async function runPipeline({
       const activeExecutor = routeState && routeExecutor
         ? routeExecutor(routeState, { attempt })
         : buildExecutor
-      const execute = activeExecutor ? (input) => activeExecutor(input, { tool_grant }) : null
+      let effectiveToolGrant = tool_grant
+      const execute = activeExecutor ? (input) => activeExecutor(input, { tool_grant: effectiveToolGrant }) : null
       if (routeState) {
-        await emit({ ...workerStartEvent({ run_id: runId, route: routeState, attempt }) })
+        await emit({ ...workerStartEvent({ run_id: runId, route: routeState, attempt }), ...workerHarnessEvidence(routeState) })
       }
+      const prepared = prepareWorkerInput(buildInput, routeState)
+      effectiveToolGrant = prepared.grant
       workerInvoked = true
-      const nativeBuild = await runNativeBuild({ buildInput, execute })
+      const nativeBuild = await runNativeBuild({ buildInput: prepared.input, execute })
       // A worker cannot replace the run_id of this run.
       if (nativeBuild.outcome?.run_id && nativeBuild.outcome.run_id !== runId) {
         throw new Error(`CONTRACT_INVALID:build_worker:run_id ${nativeBuild.outcome.run_id} does not match task run_id ${runId}`)
       }
-      buildResult = nativeBuild.build_result
-      enforceRunId(runId, buildResult, 'build-result')
       rawOutcome = nativeBuild.outcome || null
+      buildResult = {
+        ...nativeBuild.build_result,
+        live_model_evidence: rawOutcome?.live_model_evidence === true,
+        live_model_result: rawOutcome?.live_model_result || null,
+      }
+      enforceRunId(runId, buildResult, 'build-result')
       buildOk = buildResult.status === 'SUCCESS'
       if (routeState && rawOutcome?.failure_class) {
-        await emit({ ...workerFailureEvent({ run_id: runId, route: routeState, failure_class: rawOutcome.failure_class, reason: rawOutcome.failure_reason || null, attempt }) })
+        await emit({ ...workerFailureEvent({ run_id: runId, route: routeState, failure_class: rawOutcome.failure_class, reason: rawOutcome.failure_reason || null, attempt }), ...workerHarnessEvidence(routeState) })
       } else if (routeState) {
-        await emit({ ...workerResultEvent({ run_id: runId, route: routeState, status: buildOk ? 'SUCCESS' : 'FAILURE', attempt }) })
+        await emit({ ...workerResultEvent({ run_id: runId, route: routeState, status: buildOk ? 'SUCCESS' : 'FAILURE', attempt }), ...workerHarnessEvidence(routeState) })
       }
       if (routeState) {
         // Cost governance: track distinct high-cost routes used (bounded by
@@ -381,10 +436,11 @@ export async function runPipeline({
         await emit({
           ...usageEvent({
             run_id: runId,
-            usage: parsed.ok ? parsed.usage : { usage_status: 'UNAVAILABLE', run_id: runId, attempt, provider: routeState.provider, model: routeState.model },
+          usage: parsed.ok ? parsed.usage : { usage_status: 'UNAVAILABLE', run_id: runId, attempt, provider: routeState.provider, model: routeState.model },
             phase: 'BUILD',
             attempt,
           }),
+          ...workerHarnessEvidence(routeState),
         })
       }
       // SHARED BUDGET: commit AFTER the worker result (the worker was invoked →
@@ -488,7 +544,7 @@ export async function runPipeline({
           failure_signature: `BUILD_FAILURE:${(buildResult.errors || []).join('_').slice(0, 96) || 'build'}`,
           strategy_delta: rawOutcome?.strategy_delta || null,
           checks: [{ command: 'native-build', passed: false, error: (buildResult.errors || []).join('; ') }],
-        },
+      },
       })
     }
     if (verification.verification.passed === false && !verification.verification.strategy_delta && rawOutcome?.strategy_delta) {
@@ -593,6 +649,20 @@ export async function runPipeline({
           routing_reason: transition.routing_reason || (isFallback ? 'PROVIDER_FALLBACK' : 'ESCALATION'),
           route_index: (routeState.route_index || 0) + 1,
         }
+        routeState.harness = resolveModelHarness({
+          provider: routeState.provider,
+          model: routeState.model,
+          task_role: harness_options.task_role || 'BUILD',
+          allow_candidate: harness_options.allow_candidate === true,
+          profiles: harness_options.profiles,
+          worker_requested_profile: harness_options.worker_requested_profile || null,
+        })
+        await emit({
+          phase: 'ROUTING', job: 'model.harness.resolved', status: 'PASS', attempt,
+          provider: routeState.provider, model: routeState.model,
+          ...harnessEvidenceFields(routeState.harness),
+          worker_self_selection: routeState.harness.worker_self_selection,
+        })
         failedAttempts.push({
           failure_signature: verification.verification.failure_signature || `ROUTE_TRANSITION:${failureClass}`,
           strategy_delta: verification.verification.strategy_delta || transition.routing_reason || null,

@@ -3,8 +3,8 @@
  * Canonical Model Catalog — runtime-owned model metadata.
  *
  * Reality contract:
- *   - provider/model ids come from the REAL configured providers of this
- *     environment (`opencode models` + `~/.local/share/opencode/auth.json`).
+ *   - provider/model ids come from the REAL providers/models exposed by the
+ *     OpenCode host; auth lifecycle remains outside OCAE.
  *   - availability is observed, not assumed:
  *       'reachable'  = a real model call succeeded in this environment
  *       'configured' = listed by the provider but not yet probed (NOT
@@ -19,7 +19,7 @@
  * The catalog is data, not authority. The deterministic routing policy
  * (routing-policy.mjs) owns model selection; a model can never select itself.
  */
-export const CATALOG_VERSION = '1.1.0'
+export const CATALOG_VERSION = '1.2.0'
 
 export const COST_TIERS = Object.freeze(['LOW', 'MEDIUM', 'HIGH'])
 export const QUALITY_TIERS = Object.freeze(['LOW', 'MEDIUM', 'HIGH'])
@@ -35,10 +35,14 @@ export function tierRank(tier, tiers) {
  * REAL provider inventory (non-secret identifiers only).
  * deepseek: API-key authenticated. openai: OAuth authenticated.
  * Both were verified reachable via real model calls in this milestone.
+ * opencode: free-tier models via the OpenCode free transport. The transport
+ * is callable without a credential in this environment; reachability is still
+ * established only by a fresh real probe.
  */
 export const PROVIDER_INVENTORY = Object.freeze([
   { provider: 'deepseek', authenticated: true, reachable: true, auth_type: 'api_key' },
   { provider: 'openai', authenticated: true, reachable: true, auth_type: 'oauth' },
+  { provider: 'opencode', authenticated: false, reachable: true, auth_type: 'opencode_free_transport' },
 ])
 
 export const DEFAULT_MODEL_CATALOG = Object.freeze([
@@ -206,6 +210,86 @@ export const DEFAULT_MODEL_CATALOG = Object.freeze([
     cost_tier: 'HIGH',
     quality_tier: 'HIGH',
     context_tier: 'HIGH',
+    default_primary: false,
+    capabilities: ['tools', 'structured_output'],
+  },
+  // --- opencode (free-tier models via local opencode runtime auth) --------
+  // Availability is flipped to 'reachable' only for models with fresh probe
+  // evidence in the same change. DEFAULT_ROUTING_POLICY is
+  // UNCHANGED (allowed_providers stays deepseek+openai) — evaluation passes
+  // its own per-run policy object.
+  {
+    provider: 'opencode',
+    model: 'hy3-free',
+    enabled: true,
+    availability: 'reachable', // fresh zero-cost probe succeeded
+    tool_support: true,
+    mcp_support: false,
+    vision_support: false, // no real vision probe in this environment
+    structured_output: 'STANDARD',
+    cost_tier: 'LOW',
+    quality_tier: 'LOW',
+    context_tier: 'MEDIUM',
+    default_primary: false,
+    capabilities: ['tools', 'structured_output'],
+  },
+  {
+    provider: 'opencode',
+    model: 'muse-spark-1.2-contributor-free',
+    enabled: true,
+    availability: 'configured', // listed; not selected for this milestone
+    tool_support: true,
+    mcp_support: false,
+    vision_support: false, // no real vision probe in this environment
+    structured_output: 'STANDARD',
+    cost_tier: 'LOW',
+    quality_tier: 'LOW',
+    context_tier: 'MEDIUM',
+    default_primary: false,
+    capabilities: ['tools', 'structured_output'],
+  },
+  {
+    provider: 'opencode',
+    model: 'nemotron-3-ultra-free',
+    enabled: true,
+    availability: 'reachable', // fresh zero-cost probe succeeded
+    tool_support: true,
+    mcp_support: false,
+    vision_support: false, // no real vision probe in this environment
+    structured_output: 'STANDARD',
+    cost_tier: 'LOW',
+    quality_tier: 'LOW',
+    context_tier: 'MEDIUM',
+    default_primary: false,
+    capabilities: ['tools', 'structured_output'],
+  },
+  {
+    provider: 'opencode',
+    model: 'nemotron-3.5-lightning-free',
+    enabled: true,
+    availability: 'configured', // reserve — listed, not yet probed
+    tool_support: true,
+    mcp_support: false,
+    vision_support: false, // no real vision probe in this environment
+    structured_output: 'STANDARD',
+    cost_tier: 'LOW',
+    quality_tier: 'LOW',
+    context_tier: 'MEDIUM',
+    default_primary: false,
+    capabilities: ['tools', 'structured_output'],
+  },
+  {
+    provider: 'opencode',
+    model: 'mimo-v2.5-free',
+    enabled: true,
+    availability: 'configured', // reserve — listed, not yet probed
+    tool_support: true,
+    mcp_support: false,
+    vision_support: false, // no real vision probe in this environment
+    structured_output: 'STANDARD',
+    cost_tier: 'LOW',
+    quality_tier: 'LOW',
+    context_tier: 'MEDIUM',
     default_primary: false,
     capabilities: ['tools', 'structured_output'],
   },

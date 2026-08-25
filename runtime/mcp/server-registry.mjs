@@ -3,7 +3,7 @@
  * Real MCP server registry for runtime workers.
  *
  * Loads the MCP configuration that the running OpenCode actually uses
- * (repo opencode.jsonc merged over the global ~/.config/opencode config),
+ * (repo opencode.jsonc merged over the host-configured OpenCode config),
  * normalizes the OpenCode config shape (command array / remote URLs) into
  * the preflight inventory shape, and runs the REAL stdio handshake discovery
  * via scripts/lib/mcp-preflight.mjs discoverMcpServers.
@@ -12,7 +12,6 @@
  * inventory; least-privilege grants come from runtime/mcp/tool-grant.mjs.
  */
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 import { discoverMcpServers } from '../../scripts/lib/mcp-preflight.mjs'
 import { parseJsonc } from '../../scripts/lib/jsonc.mjs'
@@ -47,10 +46,11 @@ export function trustTierForServer(serverName, { repoRoot = process.cwd() } = {}
 
 export const MCP_REGISTRY_SCHEMA_VERSION = '1.0.0'
 
-const GLOBAL_CONFIG_CANDIDATES = [
-  path.join(os.homedir(), '.config', 'opencode', 'opencode.jsonc'),
-  path.join(os.homedir(), '.config', 'opencode', 'opencode.json'),
-]
+function globalConfigCandidates(env = process.env) {
+  const configHome = env.OPENCODE_CONFIG_DIR || env.XDG_CONFIG_HOME || path.join(env.HOME || '', '.config')
+  const root = env.OPENCODE_CONFIG_DIR ? configHome : path.join(configHome, 'opencode')
+  return [path.join(root, 'opencode.jsonc'), path.join(root, 'opencode.json')]
+}
 
 function loadConfigFile(filePath) {
   try {
@@ -64,7 +64,7 @@ function loadConfigFile(filePath) {
 export function loadMcpConfig({ repoRoot = process.cwd(), env = process.env } = {}) {
   const configs = {}
   // Global config first (lower precedence), repo config overrides it.
-  for (const candidate of GLOBAL_CONFIG_CANDIDATES) {
+  for (const candidate of globalConfigCandidates(env)) {
     const globalConfig = loadConfigFile(candidate)
     if (globalConfig?.mcp && typeof globalConfig.mcp === 'object') {
       for (const [name, entry] of Object.entries(globalConfig.mcp)) {

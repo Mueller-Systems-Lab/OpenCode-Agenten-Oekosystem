@@ -3,7 +3,7 @@
   "$id": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/blob/master/bootstrap/manifest.schema.json",
   "title": "URL-only Bootstrap Manifest",
   "type": "object",
-  "required": ["schema_version", "ecosystem", "repository", "bootstrap_protocol", "entrypoint", "launcher", "installer", "verifier", "rollback", "supported_platforms", "unsupported_platforms", "required_tools", "minimum_versions", "secure_ai_sandbox", "supported_project_types", "default_mode", "available_modes", "managed_paths", "protected_paths", "generated_paths", "dry_run_required", "idempotence_required", "v2_gate_required", "approval_model", "completion_classification"],
+  "required": ["schema_version", "ecosystem", "repository", "bootstrap_protocol", "entrypoint", "launcher", "installer", "verifier", "rollback", "supported_platforms", "unsupported_platforms", "required_tools", "minimum_versions", "product_contract", "secure_ai_sandbox", "supported_project_types", "default_mode", "available_modes", "managed_paths", "protected_paths", "generated_paths", "dry_run_required", "idempotence_required", "v2_gate_required", "approval_model", "completion_classification"],
   "properties": {
     "schema_version": { "const": "1" },
     "ecosystem": { "const": "OpenCode-Agenten-Oekosystem" },
@@ -35,6 +35,44 @@
         { "contains": { "const": "bwrap" } }
       ],
       "items": { "type": "string" }
+    },
+    "product_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["invariant", "host", "source_url", "artifact_classes", "capability_status"],
+      "properties": {
+        "invariant": { "const": "OCAE_IS_AN_OPENCODE_URL_INSTALLABLE_AGENT_ECOSYSTEM" },
+        "host": { "const": "OPENCODE" },
+        "source_url": { "const": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem" },
+        "artifact_classes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["installable_product_runtime", "installable_agent_definitions", "installable_governance", "installable_harness_profiles", "installable_plugin_tool_integration", "installer_bootstrap", "development_test_infrastructure", "evaluation_only", "local_developer_state", "volatile_evidence"],
+          "properties": {
+            "installable_product_runtime": { "type": "array", "items": { "type": "string" } },
+            "installable_agent_definitions": { "type": "array", "items": { "type": "string" } },
+            "installable_governance": { "type": "array", "items": { "type": "string" } },
+            "installable_harness_profiles": { "type": "array", "items": { "type": "string" } },
+            "installable_plugin_tool_integration": { "type": "array", "items": { "type": "string" } },
+            "installer_bootstrap": { "type": "array", "items": { "type": "string" } },
+            "development_test_infrastructure": { "type": "array", "items": { "type": "string" } },
+            "evaluation_only": { "type": "array", "items": { "type": "string" } },
+            "local_developer_state": { "type": "array", "items": { "type": "string" } },
+            "volatile_evidence": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "capability_status": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["core", "provider", "tools", "optional_capabilities"],
+          "properties": {
+            "core": { "type": "array", "items": { "enum": ["CORE_READY", "CORE_NOT_READY"] } },
+            "provider": { "type": "array", "items": { "enum": ["PROVIDER_READY", "PROVIDER_NOT_CONFIGURED"] } },
+            "tools": { "type": "array", "items": { "enum": ["TOOLS_READY", "TOOLS_NOT_CONFIGURED"] } },
+            "optional_capabilities": { "const": "HOST_DISCOVERED" }
+          }
+        }
+      }
     },
     "minimum_versions": {
       "type": "object",

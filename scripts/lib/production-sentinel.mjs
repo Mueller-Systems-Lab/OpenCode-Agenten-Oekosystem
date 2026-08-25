@@ -112,6 +112,12 @@ export const SENTINEL_INVARIANTS = Object.freeze([
   'VISUAL_MATRIX_COST_POLICY_ENFORCED',
   'VISUAL_MATRIX_SHARED_BUDGET_ENFORCED',
   'VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK',
+  // hierarchical model-harness invariants (runtime-critical, additive)
+  'HIERARCHICAL_HARNESS_SHARED_CORE',
+  'MODEL_HARNESS_RESOLVER_RUNTIME_AUTHORITY',
+  'WORKER_CANNOT_SELF_SELECT_HARNESS',
+  'MODEL_PROFILE_CANNOT_ESCALATE_SCOPE',
+  'GENERIC_HARNESS_FALLBACK_REQUIRED',
 ])
 
 export const REQUIRED_CONTRACT_IDS = Object.freeze([
@@ -189,6 +195,13 @@ export const INSTALLER_REQUIRED_ARTIFACTS = Object.freeze([
   'visual/viewport-policy.mjs',
   'visual/severity-calibration.mjs',
   'visual/cross-viewport-correlation.mjs',
+  // hierarchical model-harness artifacts (runtime-critical, additive)
+  'harness/model-harness-contract.mjs',
+  'harness/product-model-harness-profiles.mjs',
+  'harness/task-role-profiles.mjs',
+  'harness/harness-resolver.mjs',
+  'harness/apply-harness.mjs',
+  'harness/index.mjs',
 ])
 
 /** Legacy execution components that must never rejoin the installed path. */
@@ -2359,6 +2372,145 @@ export async function checkVisualMultiViewportNoSecretLeak({ repoRoot }) {
 }
 
 // ---------------------------------------------------------------------------
+// Hierarchical model-harness invariant checks (structural, additive — the
+// harness is declarative data + a deterministic resolver above the unchanged
+// canonical core; profiles can never become authority)
+// ---------------------------------------------------------------------------
+
+async function readHarnessSource(repoRoot, name) {
+  return readIfExists(path.join(repoRoot, 'runtime', 'harness', name))
+}
+
+export async function checkHierarchicalHarnessSharedCore({ repoRoot }) {
+  const issues = []
+  const harnessDir = path.join(repoRoot, 'runtime', 'harness')
+  if (!(await pathExists(harnessDir))) {
+    issues.push('HIERARCHICAL_HARNESS_SHARED_CORE: runtime/harness/ directory missing')
+    return { ok: false, issues }
+  }
+  const requiredModules = ['model-harness-contract.mjs', 'product-model-harness-profiles.mjs', 'task-role-profiles.mjs', 'harness-resolver.mjs', 'apply-harness.mjs', 'index.mjs']
+  for (const name of requiredModules) {
+    if (!(await pathExists(path.join(harnessDir, name)))) {
+      issues.push(`HIERARCHICAL_HARNESS_SHARED_CORE: runtime/harness/${name} missing`)
+    }
+  }
+  // The harness layer must never import controller/approval authority.
+  for (const name of requiredModules) {
+    const source = await readHarnessSource(repoRoot, name)
+    if (!source) continue
+    for (const spec of extractImportSpecifiers(source)) {
+      if (/controller|approval/.test(spec)) {
+        issues.push(`HIERARCHICAL_HARNESS_SHARED_CORE: runtime/harness/${name} must not import core authority (${spec})`)
+      }
+    }
+  }
+  const pipeline = await readPipelineSource(repoRoot)
+  if (pipeline && pipeline.includes("import { resolveModelHarness }")) {
+    // pipeline stays core: harness resolution belongs to the run entry, not
+    // the pipeline — flagged when the pipeline starts resolving itself.
+    issues.push('HIERARCHICAL_HARNESS_SHARED_CORE: pipeline must not resolve model harnesses (run entry owns the wiring)')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkModelHarnessResolverRuntimeAuthority({ repoRoot }) {
+  const issues = []
+  const resolver = await readHarnessSource(repoRoot, 'harness-resolver.mjs')
+  if (!resolver) {
+    issues.push('MODEL_HARNESS_RESOLVER_RUNTIME_AUTHORITY: runtime/harness/harness-resolver.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!resolver.includes('HARNESS_RESOLVER_AUTHORITY')) issues.push('MODEL_HARNESS_RESOLVER_RUNTIME_AUTHORITY: authority marker missing')
+  if (!resolver.includes('DETERMINISTIC_RUNTIME_HARNESS_RESOLVER')) issues.push('MODEL_HARNESS_RESOLVER_RUNTIME_AUTHORITY: deterministic runtime resolver marker missing')
+  if (!resolver.includes('worker_self_selection')) issues.push('MODEL_HARNESS_RESOLVER_RUNTIME_AUTHORITY: resolver must surface worker_self_selection')
+  if (/Date|now\(\)|randomUUID|Math\.random/.test(resolver)) {
+    issues.push('MODEL_HARNESS_RESOLVER_RUNTIME_AUTHORITY: resolver must stay deterministic (no dates/random/uuids)')
+  }
+  const run = await readIfExists(path.join(repoRoot, 'runtime', 'run.mjs'))
+  if (run) {
+    if (!run.includes('resolveModelHarness')) issues.push('MODEL_HARNESS_RESOLVER_RUNTIME_AUTHORITY: canonical run must wire the harness resolver')
+    if (!run.includes("'model.harness.resolved'")) issues.push('MODEL_HARNESS_RESOLVER_RUNTIME_AUTHORITY: harness resolution must be observable (model.harness.resolved)')
+    if (!run.includes('HARNESS_CONTRACT_INVALID')) issues.push('MODEL_HARNESS_RESOLVER_RUNTIME_AUTHORITY: harness contract violation must fail closed (HARNESS_CONTRACT_INVALID)')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkWorkerCannotSelfSelectHarness({ repoRoot }) {
+  const issues = []
+  const resolver = await readHarnessSource(repoRoot, 'harness-resolver.mjs')
+  if (!resolver) {
+    issues.push('WORKER_CANNOT_SELF_SELECT_HARNESS: runtime/harness/harness-resolver.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!resolver.includes('worker_requested_profile')) issues.push('WORKER_CANNOT_SELF_SELECT_HARNESS: worker profile request must be inspected')
+  if (!resolver.includes("'DENIED'")) issues.push('WORKER_CANNOT_SELF_SELECT_HARNESS: worker self-selection must be DENIED')
+  // The request must never flow into profile selection: the resolver may only
+  // branch on it for the denial marker, never pass it to findProfileForModel.
+  if (/findProfileForModel\([^)]*worker_requested_profile/.test(resolver)) {
+    issues.push('WORKER_CANNOT_SELF_SELECT_HARNESS: worker request must never reach profile selection')
+  }
+  const run = await readIfExists(path.join(repoRoot, 'runtime', 'run.mjs'))
+  if (run && !run.includes('worker_self_selection')) {
+    issues.push('WORKER_CANNOT_SELF_SELECT_HARNESS: run must observe worker_self_selection from the harness resolution')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkModelProfileCannotEscalateScope({ repoRoot }) {
+  const issues = []
+  const contract = await readHarnessSource(repoRoot, 'model-harness-contract.mjs')
+  if (!contract) {
+    issues.push('MODEL_PROFILE_CANNOT_ESCALATE_SCOPE: runtime/harness/model-harness-contract.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!contract.includes('FORBIDDEN_PROFILE_KEYS')) issues.push('MODEL_PROFILE_CANNOT_ESCALATE_SCOPE: forbidden key list missing')
+  if (!contract.includes('validateModelHarnessProfile')) issues.push('MODEL_PROFILE_CANNOT_ESCALATE_SCOPE: profile validator missing')
+  if (!contract.includes('findForbiddenKeys')) issues.push('MODEL_PROFILE_CANNOT_ESCALATE_SCOPE: recursive forbidden-key walk missing')
+  for (const forbidden of ["'permissions'", "'tool_allowlist_additions'", "'retry_budget'", "'escalation'", "'cost_authorization'", "'acceptance_criteria'", "'terminal_decision'"]) {
+    if (!contract.includes(forbidden)) {
+      issues.push(`MODEL_PROFILE_CANNOT_ESCALATE_SCOPE: forbidden key ${forbidden} must be listed`)
+    }
+  }
+  const apply = await readHarnessSource(repoRoot, 'apply-harness.mjs')
+  if (!apply) {
+    issues.push('MODEL_PROFILE_CANNOT_ESCALATE_SCOPE: runtime/harness/apply-harness.mjs missing')
+  } else {
+    // Hide-only tool exposure: never-adds semantics + SECURITY_VIOLATION guard.
+    if (!apply.includes('SECURITY_VIOLATION')) issues.push('MODEL_PROFILE_CANNOT_ESCALATE_SCOPE: tool exposure must fail closed with SECURITY_VIOLATION')
+    if (!apply.includes('grantedTools.includes(tool)')) issues.push('MODEL_PROFILE_CANNOT_ESCALATE_SCOPE: applyToolExposure must check the grant before honoring a policy tool')
+    if (!apply.includes('exposed_tools: [...grantedTools]') && !apply.includes('exposed: grantedTools')) {
+      issues.push('MODEL_PROFILE_CANNOT_ESCALATE_SCOPE: FULL_TOOLSET must expose exactly the granted tools')
+    }
+    if (/exposed_tools:\s*\[\s*\.\.\.(?!grantedTools)/.test(apply)) {
+      issues.push('MODEL_PROFILE_CANNOT_ESCALATE_SCOPE: exposure result must derive from grantedTools only')
+    }
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkGenericHarnessFallbackRequired({ repoRoot }) {
+  const issues = []
+  const profiles = await readHarnessSource(repoRoot, 'product-model-harness-profiles.mjs')
+  if (!profiles) {
+    issues.push('GENERIC_HARNESS_FALLBACK_REQUIRED: runtime/harness/product-model-harness-profiles.mjs missing')
+    return { ok: false, issues }
+  }
+  if (!profiles.includes("profile_id: 'generic'")) issues.push('GENERIC_HARNESS_FALLBACK_REQUIRED: registry must contain the generic profile')
+  if (!/profile_id:\s*'generic'[\s\S]{0,400}?status:\s*'active'/.test(profiles)) {
+    issues.push('GENERIC_HARNESS_FALLBACK_REQUIRED: generic profile must be status active')
+  }
+  if (!profiles.includes('GENERIC_PROFILE_ID')) issues.push('GENERIC_HARNESS_FALLBACK_REQUIRED: GENERIC_PROFILE_ID marker missing')
+  const resolver = await readHarnessSource(repoRoot, 'harness-resolver.mjs')
+  if (!resolver || !resolver.includes('GENERIC_FALLBACK')) {
+    issues.push('GENERIC_HARNESS_FALLBACK_REQUIRED: resolver must implement the GENERIC_FALLBACK resolution')
+  }
+  if (resolver && !/GENERIC_HARNESS_FALLBACK_REQUIRED/.test(resolver)) {
+    issues.push('GENERIC_HARNESS_FALLBACK_REQUIRED: resolver must document the generic-fallback requirement')
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+// ---------------------------------------------------------------------------
 // Baseline fingerprint — structural drift only, never file-byte drift
 // ---------------------------------------------------------------------------
 
@@ -2531,6 +2683,13 @@ export async function runProductionSentinel({ repoRoot }) {
   pushResult('VISUAL_MATRIX_COST_POLICY_ENFORCED', await checkVisualMatrixCostPolicyEnforced({ repoRoot }))
   pushResult('VISUAL_MATRIX_SHARED_BUDGET_ENFORCED', await checkVisualMatrixSharedBudgetEnforced({ repoRoot }))
   pushResult('VISUAL_MULTI_VIEWPORT_NO_SECRET_LEAK', await checkVisualMultiViewportNoSecretLeak({ repoRoot }))
+  // Hierarchical model-harness invariants (additive, after the 78 prior
+  // invariants)
+  pushResult('HIERARCHICAL_HARNESS_SHARED_CORE', await checkHierarchicalHarnessSharedCore({ repoRoot }))
+  pushResult('MODEL_HARNESS_RESOLVER_RUNTIME_AUTHORITY', await checkModelHarnessResolverRuntimeAuthority({ repoRoot }))
+  pushResult('WORKER_CANNOT_SELF_SELECT_HARNESS', await checkWorkerCannotSelfSelectHarness({ repoRoot }))
+  pushResult('MODEL_PROFILE_CANNOT_ESCALATE_SCOPE', await checkModelProfileCannotEscalateScope({ repoRoot }))
+  pushResult('GENERIC_HARNESS_FALLBACK_REQUIRED', await checkGenericHarnessFallbackRequired({ repoRoot }))
 
   const issues = results.flatMap((result) => result.issues)
   const warnings = []

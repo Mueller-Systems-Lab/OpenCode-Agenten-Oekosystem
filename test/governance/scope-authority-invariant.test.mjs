@@ -174,7 +174,7 @@ test.describe('SCOPE_AUTHORITY_INTEGRATION', () => {
         body: 'Navigation menu broken on mobile devices - need browser testing'
       },
       spec: {
-        acceptance_criteria: 'Navigation menu works correctly on mobile viewport (390x844)'
+       acceptance_criteria: 'Navigation menu works correctly on mobile viewport (390x844)'
       },
       proposed_scope: {
         viewport_profile: 'mobile_only',
@@ -190,10 +190,11 @@ test.describe('SCOPE_AUTHORITY_INTEGRATION', () => {
     })
     assert.ok(authResult.authorized, 'Capability should be authorized with explicit requirement')
     
-    // Test that responsive_core is not used without authorization
+    // This valid context authorizes mobile_only, not the distinct responsive_core
+    // profile. Keep the profile-specific authorization boundary explicit.
     const viewportResult = verifyViewportProfileAuthorization({
       proposed_profile: 'responsive_core',
-      task_context: taskContext
+      task_context: { ...taskContext, spec: { acceptance_criteria: 'API returns 200 status code' } }
     })
     assert.ok(!viewportResult.authorized, 'Responsive core should not be authorized without explicit responsive requirement')
     

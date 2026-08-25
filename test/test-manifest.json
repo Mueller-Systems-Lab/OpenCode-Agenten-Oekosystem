@@ -46,11 +46,20 @@
             "test/routing/usage.test.mjs",
             "test/routing/runtime-integration.test.mjs",
             "test/routing/degraded-ranking.test.mjs",
-            "test/routing/shared-budget.test.mjs",
-            "test/routing/shared-budget-integration.test.mjs",
+             "test/routing/shared-budget.test.mjs",
+             "test/routing/shared-budget-integration.test.mjs",
+             "test/routing/shared-budget-default-wiring.test.mjs",
             "test/visual/visual-core.test.mjs",
             "test/visual/visual-qa-integration.test.mjs",
-            "test/visual/visual-responsive.test.mjs"
+            "test/visual/visual-responsive.test.mjs",
+            "test/harness/resolver.test.mjs",
+            "test/harness/composition.test.mjs",
+            "test/harness/fingerprint.test.mjs",
+            "test/harness/authority.test.mjs",
+            "test/harness/generic-fallback.test.mjs",
+            "test/harness/apply.test.mjs",
+             "test/harness/runtime-wiring.test.mjs"
+             ,"test/harness/evaluation.test.mjs"
         ],
         "contract": [
             "test/contracts/bootstrap-capability-contract.test.mjs",
@@ -94,12 +103,14 @@
             "test/install/tamper-detection.test.mjs",
             "test/install/agent-installation.test.mjs",
             "test/install/url-installer.test.mjs",
-            "test/install/fresh-install-sentinel.test.mjs"
+            "test/install/fresh-install-sentinel.test.mjs",
+            "test/install/product-realignment.test.mjs"
         ],
         "governance": [
             "test/gates/approval-closure.test.mjs",
             "test/prompt-governance/prompt-governance.test.mjs",
-            "test/validation/validation.test.mjs"
+             "test/validation/validation.test.mjs"
+             ,"test/governance/scope-authority-invariant.test.mjs"
         ],
         "e2e": [
             "test/runtime-closure/runtime-entrypoints.test.mjs",

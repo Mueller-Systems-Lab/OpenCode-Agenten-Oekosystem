@@ -50,6 +50,7 @@ import {
   SharedBudgetGovernor,
   SHARED_BUDGET_RESOURCES,
 } from './routing/index.mjs'
+import { resolveModelHarness, harnessEvidenceFields } from './harness/index.mjs'
 
 export const RUNTIME_PHASES = Object.freeze(['TASK', 'BASELINE', 'RESEARCH', 'PLAN', 'PLAN_GATE', 'BUILD', 'VERIFY', 'VISUAL_QA', 'REVIEWS', 'CONTROLLER'])
 
@@ -353,6 +354,51 @@ export async function runTask(options = {}) {
           strategy_delta: 'worker requested model ignored — MODEL_SELECTION_AUTHORITY=DETERMINISTIC_RUNTIME_POLICY',
         })
       }
+      // 3c-b. Hierarchical model harness (additive): after the route is set,
+      //       the deterministic resolver maps the ROUTED model + task role to
+      //       an effective worker harness (L1 model profile + L2 role overlay,
+      //       generic fallback). Profiles are data, never authority: routing,
+      //       pipeline, controller, grants, and budgets are unchanged, and a
+      //       worker-requested profile is always denied. A harness contract
+      //       violation fails closed via the routing rejection path.
+      try {
+        const harnessSelection = resolveModelHarness({
+          provider: route.provider,
+          model: route.model,
+          task_role: routing.harness?.task_role || 'BUILD',
+          allow_candidate: routing.harness?.allow_candidate === true,
+          profiles: routing.harness?.profiles,
+          worker_requested_profile: routing.harness?.worker_requested_profile || null,
+        })
+        route = Object.freeze({ ...route, harness: harnessSelection })
+        await emit({
+          run_id: runId, phase: 'ROUTING', job: 'model.harness.resolved', status: 'PASS',
+          ...harnessEvidenceFields(harnessSelection),
+          worker_self_selection: harnessSelection.worker_self_selection,
+        })
+      } catch (error) {
+        const message = error instanceof Error ? String(error.message) : String(error)
+        if (message.indexOf('CONTRACT_INVALID') !== 0) throw error
+        await emit({
+          run_id: runId, phase: 'ROUTING', job: 'model.harness.resolved', status: 'FAIL',
+          failure_signature: 'HARNESS_CONTRACT_INVALID', attempt: task.attempt,
+        })
+        const decision = createDecision({
+          run_id: runId, decision: 'BLOCKED', reason_code: 'HARNESS_CONTRACT_INVALID',
+          first_bad_boundary: 'ROUTING',
+          phase_history: [{ name: 'TASK', status: 'PASS' }, { name: 'ROUTING', status: 'FAIL' }],
+        })
+        await emit({
+          run_id: runId, phase: 'CONTROLLER', job: 'deterministic-controller', status: 'FAIL',
+          attempt: task.attempt, reason_code: decision.reason_code, contract_out: 'ecosystem.decision.v1',
+        })
+        return {
+          phase: 'ROUTING_BLOCKED', run_id: runId, task, baseline, decision, events,
+          routing_rejection: { code: 'HARNESS_CONTRACT_INVALID', reason: message.slice(0, 200) },
+          route: null,
+          health: { store: healthStore, ...healthMeta }, usage: [],
+        }
+      }
     } else {
       await emit({ ...routeRejectedEvent({ run_id: runId, reason_code: selection.code, reason: selection.reason, attempt: task.attempt }) })
       const decision = createDecision({
@@ -437,6 +483,7 @@ export async function runTask(options = {}) {
     routing: routing?.enabled ? routingPolicy : null,
     cost_policy: routing?.cost_policy || null,
     routeExecutor,
+    harness_options: routing?.harness || {},
     onWorkerFailure,
     sharedBudget,
     visualQa,
@@ -471,6 +518,8 @@ export async function runTask(options = {}) {
     ...result,
     phase: 'PIPELINE',
     decision_validated: true,
+    live_model_evidence: result.build_result?.live_model_evidence === true,
+    live_model_result: result.build_result?.live_model_result || null,
     tool_grant: toolGrant,
     route: result.route || route,
     health: { store: healthStore, ...healthMeta },

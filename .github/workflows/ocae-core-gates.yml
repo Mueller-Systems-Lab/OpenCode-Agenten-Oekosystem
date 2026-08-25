@@ -32,6 +32,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Install OpenCode host CLI for discovery proof
+        run: |
+          npm install --global opencode-ai@1.18.22
+          opencode --version
       - name: Install required secure sandbox
         run: |
           sudo apt-get update

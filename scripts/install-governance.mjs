@@ -29,6 +29,7 @@ import {
   CLASSIFICATIONS,
   classificationToExitCode,
 } from "./lib/gates/classifications.mjs"
+import { readProductContract, buildPostInstallStatus } from "./lib/install-contract.mjs"
 import {
   selfTestBootstrapRuntime,
   validateBootstrapRuntime,
@@ -246,6 +247,12 @@ function validateSourceRepository(repoRoot) {
     "runtime/visual/viewport-policy.mjs",
     "runtime/visual/severity-calibration.mjs",
     "runtime/visual/cross-viewport-correlation.mjs",
+    "runtime/harness/model-harness-contract.mjs",
+    "runtime/harness/product-model-harness-profiles.mjs",
+    "runtime/harness/task-role-profiles.mjs",
+    "runtime/harness/harness-resolver.mjs",
+    "runtime/harness/apply-harness.mjs",
+    "runtime/harness/index.mjs",
   ]
   const missing = []
   for (const rel of required) {
@@ -347,6 +354,14 @@ function getRuntimeFileList() {
     { source: "runtime/visual/viewport-policy.mjs", dest: "visual/viewport-policy.mjs" },
     { source: "runtime/visual/severity-calibration.mjs", dest: "visual/severity-calibration.mjs" },
     { source: "runtime/visual/cross-viewport-correlation.mjs", dest: "visual/cross-viewport-correlation.mjs" },
+    // harness/ — hierarchical model-harness (runtime-critical, additive — data
+    // profiles + deterministic resolver above the unchanged canonical core)
+    { source: "runtime/harness/model-harness-contract.mjs", dest: "harness/model-harness-contract.mjs" },
+    { source: "runtime/harness/product-model-harness-profiles.mjs", dest: "harness/product-model-harness-profiles.mjs" },
+    { source: "runtime/harness/task-role-profiles.mjs", dest: "harness/task-role-profiles.mjs" },
+    { source: "runtime/harness/harness-resolver.mjs", dest: "harness/harness-resolver.mjs" },
+    { source: "runtime/harness/apply-harness.mjs", dest: "harness/apply-harness.mjs" },
+    { source: "runtime/harness/index.mjs", dest: "harness/index.mjs" },
     // security/ — tool result egress gate (runtime-critical for MCP tool-executor)
     { source: "runtime/security/tool-result-egress-gate.mjs", dest: "security/tool-result-egress-gate.mjs" },
     // reviews/ — deterministic review analyzers
@@ -1271,6 +1286,8 @@ async function generateManifest(targetRoot, detectedRuntimes, enforcementLevel, 
     task_context_writer: "VALID",
     governance_bootstrap_ready: true,
     manual_bootstrap_required: false,
+    product_contract: readProductContract(repoRoot),
+    installed_harness_profiles: ["generic.v1"],
     kernel_gates: 19,
     installed_agents: agentInventory.map((agent) => agent.agent_id),
     capability_profile_bindings: Object.fromEntries(agentInventory.map((agent) => [agent.agent_id, {
@@ -1689,6 +1706,13 @@ async function validatePostApply(targetRoot) {
     }
   }
 
+  for (const evaluationOnly of [
+    path.join(runtimeDir, "harness", "model-harness-profiles.mjs"),
+    path.join(runtimeDir, "harness", "evaluation.mjs"),
+  ]) {
+    if (fs.existsSync(evaluationOnly)) issues.push(`Evaluation-only artifact installed: ${relativePath(targetRoot, evaluationOnly)}`)
+  }
+
   // ── Bin and manifest files ──
   const requiredFiles = [
     path.join(governanceRoot, "manifest.json"),
@@ -1805,6 +1829,11 @@ async function validatePostApply(targetRoot) {
 
   const classification =
     issues.length > 0 ? "RED_BLOCK" : warnings.length > 0 ? "NEEDS_REVIEW" : "VERIFIED_IN_SCOPE"
+  const postInstallStatus = buildPostInstallStatus({
+    targetRoot,
+    coreIssues: issues,
+    toolsInstalled: fs.existsSync(path.join(runtimeDir, "mcp", "server-registry.mjs")) && fs.existsSync(path.join(targetRoot, ".opencode", "policies")),
+  })
 
   return {
     classification,
@@ -1816,6 +1845,9 @@ async function validatePostApply(targetRoot) {
     project_runtime_state: runtimeStateValidation.valid ? "CURRENT" : "INVALID",
     hook_activation_order: hookActivationOrder,
     governance_bootstrap_ready: issues.length === 0,
+    product_contract: readProductContract(repoRoot),
+    installed_harness_profiles: ["generic.v1"],
+    post_install_status: postInstallStatus,
   }
 }
 
@@ -1899,6 +1931,9 @@ async function writeInstallationManifest({ targetRoot, sourceRoot, sourceCommit,
     source_commit: sourceCommit,
     installed_at: new Date().toISOString(),
     bootstrap_protocol: BOOTSTRAP_PROTOCOL,
+    product_contract: readProductContract(sourceRoot),
+    installed_harness_profiles: ["generic.v1"],
+    post_install_status: verification.post_install_status,
     governance_bootstrap_ready: verification.governance_bootstrap_ready === true,
     manual_bootstrap_required: false,
     hook_activation_order: verification.hook_activation_order || "UNKNOWN",

@@ -9,6 +9,15 @@ import { repoRoot } from "../helpers.mjs"
 const manifestPath = path.join(repoRoot, "test", "test-manifest.json")
 const runnerPath = path.join(repoRoot, "scripts", "run-tests.mjs")
 
+function createNonRecursiveManifest() {
+  const isolatedRoot = fs.mkdtempSync(path.join(fs.realpathSync.native(process.env.TMPDIR || os.tmpdir()), "ocae-runner-contract-manifest-"))
+  const childManifestPath = path.join(isolatedRoot, "test-manifest.json")
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"))
+  manifest.groups.unit = manifest.groups.unit.filter((file) => file !== "test/harness/runner-contract.test.mjs")
+  fs.writeFileSync(childManifestPath, JSON.stringify(manifest))
+  return { path: childManifestPath, unitFiles: manifest.groups.unit, cleanup: () => fs.rmSync(isolatedRoot, { recursive: true, force: true }) }
+}
+
 // run-tests.mjs streams child test progress to stdout and writes the --json
 // aggregate as the final block; parse that trailing report out of stdout.
 function parseRunnerJsonReport(stdout) {
@@ -39,6 +48,25 @@ test("canonical test runner and explicit manifest are published", () => {
   for (const file of files) assert.equal(fs.existsSync(path.join(repoRoot, file)), true, `missing manifest test: ${file}`)
 })
 
+test("canonical manifest is complete for CORE_REQUIRED JavaScript tests", () => {
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"))
+  const listed = new Set(Object.values(manifest.groups).flat())
+  const discovered = []
+  function walk(directory) {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const child = path.join(directory, entry.name)
+      if (entry.isDirectory()) {
+        if (!['fixtures', '__pycache__'].includes(entry.name)) walk(child)
+      } else if (entry.isFile() && entry.name.endsWith('.test.mjs')) {
+        discovered.push(path.relative(repoRoot, child).split(path.sep).join('/'))
+      }
+    }
+  }
+  walk(path.join(repoRoot, 'test'))
+  const missing = discovered.filter((file) => !listed.has(file))
+  assert.deepEqual(missing, [], 'CORE_REQUIRED .test.mjs files must be in the canonical manifest')
+})
+
 test("canonical runner accepts the documented --reporter=dot syntax", () => {
   const source = fs.readFileSync(runnerPath, "utf8")
   assert.match(source, /arg\.startsWith\("--reporter="\)/)
@@ -65,9 +93,19 @@ test("canonical runner publishes bounded per-file diagnostics and audits", () =>
   assert.match(postMergeSource, /\{\s*timeout:\s*1900_000\s*\}/)
 })
 
+test("post-merge context gate must avoid recursively running itself", () => {
+  const source = fs.readFileSync(path.join(repoRoot, "test/integration/post-merge-default-branch.test.mjs"), "utf8")
+  assert.match(source, /const nonRecursiveTests = new Set\(\[/)
+  assert.match(source, /test\/integration\/post-merge-default-branch\.test\.mjs/)
+  assert.match(source, /test\/harness\/runner-contract\.test\.mjs/)
+  assert.match(source, /childManifest\.groups\[group\] = childManifest\.groups\[group\]\.filter/)
+})
+
 test("canonical runner emits parseable bounded diagnostics and cleans capture files", () => {
+  const childManifest = createNonRecursiveManifest()
   const result = spawnSync(process.execPath, [
     runnerPath,
+    "--manifest", childManifest.path,
     "--group", "unit",
     "--reporter=dot",
     "--diagnostics",
@@ -85,7 +123,7 @@ test("canonical runner emits parseable bounded diagnostics and cleans capture fi
     .split("\n")
     .filter((line) => line.startsWith("DIAGNOSTIC_FILE_RESULT "))
     .map((line) => JSON.parse(line.slice("DIAGNOSTIC_FILE_RESULT ".length)))
-  const unitTestFiles = JSON.parse(fs.readFileSync(manifestPath, "utf8")).groups.unit
+  const unitTestFiles = childManifest.unitFiles
   assert.equal(records.length, unitTestFiles.length)
   for (const record of records) {
     assert.ok(Buffer.byteLength(JSON.stringify(record)) <= 16 * 1024)
@@ -94,9 +132,11 @@ test("canonical runner emits parseable bounded diagnostics and cleans capture fi
     assert.deepEqual(record.child_processes_after, [])
     assert.deepEqual(record.temp_files_remaining, [])
   }
+  childManifest.cleanup()
 })
 
 test("canonical runner creates a missing isolated temporary root", () => {
+  const childManifest = createNonRecursiveManifest()
   const isolatedRoot = path.join(
     fs.mkdtempSync(path.join(fs.realpathSync.native(process.env.TMPDIR || os.tmpdir()), "ocae-runner-contract-")),
     "fresh-temp-root",
@@ -104,6 +144,7 @@ test("canonical runner creates a missing isolated temporary root", () => {
   try {
     const result = spawnSync(process.execPath, [
       runnerPath,
+      "--manifest", childManifest.path,
       "--group", "unit",
       "--reporter=dot",
     ], {
@@ -124,6 +165,7 @@ test("canonical runner creates a missing isolated temporary root", () => {
     assert.equal(fs.statSync(isolatedRoot).isDirectory(), true)
   } finally {
     fs.rmSync(path.dirname(isolatedRoot), { recursive: true, force: true })
+    childManifest.cleanup()
   }
 })
 
@@ -174,8 +216,10 @@ test("runner executes all groups even when an earlier group fails and still fail
 })
 
 test("runner JSON aggregate exposes final status, failed groups, and per-group skip counts", () => {
+  const childManifest = createNonRecursiveManifest()
   const result = spawnSync(process.execPath, [
     path.join(repoRoot, "scripts", "run-tests.mjs"),
+    "--manifest", childManifest.path,
     "--group", "unit",
     "--json",
   ], {
@@ -197,6 +241,7 @@ test("runner JSON aggregate exposes final status, failed groups, and per-group s
   assert.equal(typeof unit.skipped, "number")
   assert.ok(["PASS", "FAIL", "PASS_WITH_UNSUPPORTED"].includes(unit.status), "per-group status must be canonical")
   assert.equal(report.exit_code, report.final_status === "PASS" ? 0 : 1, "exit code must match final status")
+  childManifest.cleanup()
 })
 
 test("symlink capability probe reports a well-formed real host capability", async () => {
@@ -383,4 +428,3 @@ test("history-gated automigration fixture never hard-fails a clean single-commit
     "the explicit skip gate must precede the fixture construction in every test",
   )
 })
-

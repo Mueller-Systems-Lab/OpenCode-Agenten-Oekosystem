@@ -6,6 +6,7 @@ import path from "node:path"
 import { spawnSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import { validateBootstrapManifest, containsPrivateAbsolutePath } from "./lib/contract.mjs"
+import { buildPostInstallStatus } from "../scripts/lib/install-contract.mjs"
 
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 
@@ -61,6 +62,9 @@ export async function verifyInstallation({ targetRoot, sourceRoot: source = sour
       if (rel.endsWith("/**")) continue
       required.push(rel)
     }
+    for (const rel of manifest.product_contract?.artifact_classes?.installable_harness_profiles || []) {
+      if (!rel.includes("/**")) required.push(rel)
+    }
   }
   for (const rel of required) {
     if (!fsSync.existsSync(path.join(target, rel))) issues.push(`missing installed file: ${rel}`)
@@ -112,6 +116,8 @@ export async function verifyInstallation({ targetRoot, sourceRoot: source = sour
     if (installation.manual_bootstrap_required === true) issues.push("installation manifest requires manual bootstrap")
     if (!Array.isArray(installation.managed_files)) issues.push("installation manifest managed_files must be an array")
     if (!Array.isArray(installation.preserved_files)) issues.push("installation manifest preserved_files must be an array")
+    if (installation.product_contract?.invariant !== manifest?.product_contract?.invariant) issues.push("installation manifest is not bound to the product invariant")
+    if (!Array.isArray(installation.installed_harness_profiles) || !installation.installed_harness_profiles.includes("generic.v1")) issues.push("installation manifest does not declare generic.v1")
     const serialized = JSON.stringify(installation)
     if (containsPrivateAbsolutePath(serialized)) issues.push("installation manifest contains a private absolute path")
     if (/file:\/\//i.test(serialized)) issues.push("installation manifest contains a file URL")
@@ -122,12 +128,24 @@ export async function verifyInstallation({ targetRoot, sourceRoot: source = sour
     if (!fsSync.existsSync(path.join(sourceDir, rel))) issues.push(`source governance artifact missing: ${rel}`)
   }
 
+  for (const rel of [
+    ".agent-governance/runtime/harness/model-harness-profiles.mjs",
+    ".agent-governance/runtime/harness/evaluation.mjs",
+  ]) {
+    if (fsSync.existsSync(path.join(target, rel))) issues.push(`evaluation-only artifact must not be installed: ${rel}`)
+  }
+
   for (const command of [["scripts/generate-governance.mjs", "--check"], ["scripts/check-governance-drift.mjs"]]) {
     const result = spawnSync(process.execPath, [path.join(sourceDir, command[0]), ...command.slice(1)], { cwd: sourceDir, encoding: "utf8" })
     if (result.status !== 0) warnings.push(`source verification command failed: ${command.join(" ")}`)
   }
 
   const classification = issues.length > 0 ? "RED_BLOCK" : warnings.length > 0 ? "NEEDS_REVIEW" : "VERIFIED_IN_SCOPE"
+  const postInstallStatus = buildPostInstallStatus({
+    targetRoot: target,
+    coreIssues: issues,
+    toolsInstalled: fsSync.existsSync(path.join(target, ".agent-governance/runtime/mcp/server-registry.mjs")) && fsSync.existsSync(path.join(target, ".opencode/policies")),
+  })
   return {
     classification,
     target_root: target,
@@ -142,6 +160,9 @@ export async function verifyInstallation({ targetRoot, sourceRoot: source = sour
     hook_activation_order: hookActivationOrder,
     bootstrap_state: bootstrapState?.state || null,
     governance_bootstrap_ready: classification === "VERIFIED_IN_SCOPE",
+    product_contract: manifest?.product_contract || null,
+    installed_harness_profiles: installation?.installed_harness_profiles || [],
+    post_install_status: postInstallStatus,
     manual_bootstrap_required: false,
     checked_at: new Date().toISOString(),
   }

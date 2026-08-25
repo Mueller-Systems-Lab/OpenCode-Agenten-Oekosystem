@@ -38,6 +38,15 @@ export function create({
   usage_output_tokens = null,
   usage_total_tokens = null,
   provider_reported_cost = null,
+  // Additive optional observability fields (hierarchical model-harness):
+  // flat, secret-free evidence for harness resolution. Default null → events
+  // created without them are byte-identical to before.
+  model_profile = null,
+  profile_version = null,
+  task_role = null,
+  effective_harness_fingerprint = null,
+  harness_resolution = null,
+  worker_self_selection = null,
 } = {}) {
   return {
     contract: CONTRACT_ID,
@@ -67,6 +76,12 @@ export function create({
     usage_output_tokens,
     usage_total_tokens,
     provider_reported_cost,
+    model_profile,
+    profile_version,
+    task_role,
+    effective_harness_fingerprint,
+    harness_resolution,
+    worker_self_selection,
   }
 }
 
@@ -95,6 +110,17 @@ export function validate(value) {
   for (const key of ['routing_budget_remaining', 'latency_ms', 'retry_after', 'usage_input_tokens', 'usage_output_tokens', 'usage_total_tokens', 'provider_reported_cost']) {
     if (value[key] !== null && value[key] !== undefined && !(typeof value[key] === 'number' && Number.isFinite(value[key]))) {
       issues.push(`${key} must be a number or null`)
+    }
+  }
+  // Additive optional field validation (hierarchical model-harness):
+  // string-or-null fields
+  for (const key of ['model_profile', 'effective_harness_fingerprint', 'harness_resolution', 'worker_self_selection', 'task_role']) {
+    if (value[key] !== null && value[key] !== undefined && typeof value[key] !== 'string') issues.push(`${key} must be a string or null`)
+  }
+  // number-or-null fields
+  for (const key of ['profile_version']) {
+    if (value[key] !== null && value[key] !== undefined && !Number.isInteger(value[key])) {
+      issues.push(`${key} must be an integer or null`)
     }
   }
   return { ok: issues.length === 0, issues }

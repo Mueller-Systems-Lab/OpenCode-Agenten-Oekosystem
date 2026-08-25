@@ -1,0 +1,511 @@
+{
+  "contract": "ecosystem.model-harness-evaluation.v1",
+  "corpus_version": "issue-33-corpus.v1",
+  "corpus_fingerprint": "217693f623ba4f0d197ae58107ee98a017a37f434c5142be0bd1797d56e723d7",
+  "corpus_cases": [
+    {
+      "case_id": "isolated-bugfix",
+      "task_role": "BUILD",
+      "verifier": "changed_file"
+    },
+    {
+      "case_id": "multi-file-change",
+      "task_role": "PLAN",
+      "verifier": "plan_targets"
+    },
+    {
+      "case_id": "structured-output-exactness",
+      "task_role": "REVIEW",
+      "verifier": "structured_result"
+    },
+    {
+      "case_id": "tool-minimal-artifact",
+      "task_role": "TOOL_USE",
+      "verifier": "tool_boundary"
+    },
+    {
+      "case_id": "controlled-retry",
+      "task_role": "RESEARCH",
+      "verifier": "retained_failure"
+    }
+  ],
+  "corpus_frozen": true,
+  "promotion_policy_version": "issue-33-promotion.v2",
+  "promotion_criteria_frozen": true,
+  "repetitions": 2,
+  "order": "sequence order in each precomputed model plan; generic/candidate paired per case and repetition",
+  "plans": [
+    {
+      "model": {
+        "provider": "opencode",
+        "model": "hy3-free"
+      },
+      "cases": 5,
+      "repetitions": 2,
+      "variants": [
+        "generic",
+        "candidate"
+      ],
+      "planned_runs": 20,
+      "fingerprint": "aea6354e73a25b2ae75e8bd27939beb211694920f0a1de1cedacf7d043d87f4c",
+      "rows": [
+        {
+          "sequence": 0,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "isolated-bugfix",
+          "task_role": "BUILD",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 1,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "isolated-bugfix",
+          "task_role": "BUILD",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 2,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "multi-file-change",
+          "task_role": "PLAN",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 3,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "multi-file-change",
+          "task_role": "PLAN",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 4,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "structured-output-exactness",
+          "task_role": "REVIEW",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 5,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "structured-output-exactness",
+          "task_role": "REVIEW",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 6,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "tool-minimal-artifact",
+          "task_role": "TOOL_USE",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 7,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "tool-minimal-artifact",
+          "task_role": "TOOL_USE",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 8,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "controlled-retry",
+          "task_role": "RESEARCH",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 9,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "controlled-retry",
+          "task_role": "RESEARCH",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 10,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "isolated-bugfix",
+          "task_role": "BUILD",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 11,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "isolated-bugfix",
+          "task_role": "BUILD",
+          "repetition": 2,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 12,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "multi-file-change",
+          "task_role": "PLAN",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 13,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "multi-file-change",
+          "task_role": "PLAN",
+          "repetition": 2,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 14,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "structured-output-exactness",
+          "task_role": "REVIEW",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 15,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "structured-output-exactness",
+          "task_role": "REVIEW",
+          "repetition": 2,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 16,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "tool-minimal-artifact",
+          "task_role": "TOOL_USE",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 17,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "tool-minimal-artifact",
+          "task_role": "TOOL_USE",
+          "repetition": 2,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 18,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "controlled-retry",
+          "task_role": "RESEARCH",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 19,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "controlled-retry",
+          "task_role": "RESEARCH",
+          "repetition": 2,
+          "arm": "candidate"
+        }
+      ]
+    },
+    {
+      "model": {
+        "provider": "opencode",
+        "model": "nemotron-3-ultra-free"
+      },
+      "cases": 5,
+      "repetitions": 2,
+      "variants": [
+        "generic",
+        "candidate"
+      ],
+      "planned_runs": 20,
+      "fingerprint": "11c1bb5cd0e4da05dffb5bc98d90f42d1f6fcdd287af603f0ac704c246f2ff42",
+      "rows": [
+        {
+          "sequence": 0,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "isolated-bugfix",
+          "task_role": "BUILD",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 1,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "isolated-bugfix",
+          "task_role": "BUILD",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 2,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "multi-file-change",
+          "task_role": "PLAN",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 3,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "multi-file-change",
+          "task_role": "PLAN",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 4,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "structured-output-exactness",
+          "task_role": "REVIEW",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 5,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "structured-output-exactness",
+          "task_role": "REVIEW",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 6,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "tool-minimal-artifact",
+          "task_role": "TOOL_USE",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 7,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "tool-minimal-artifact",
+          "task_role": "TOOL_USE",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 8,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "controlled-retry",
+          "task_role": "RESEARCH",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 9,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "controlled-retry",
+          "task_role": "RESEARCH",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 10,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "isolated-bugfix",
+          "task_role": "BUILD",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 11,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "isolated-bugfix",
+          "task_role": "BUILD",
+          "repetition": 2,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 12,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "multi-file-change",
+          "task_role": "PLAN",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 13,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "multi-file-change",
+          "task_role": "PLAN",
+          "repetition": 2,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 14,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "structured-output-exactness",
+          "task_role": "REVIEW",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 15,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "structured-output-exactness",
+          "task_role": "REVIEW",
+          "repetition": 2,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 16,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "tool-minimal-artifact",
+          "task_role": "TOOL_USE",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 17,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "tool-minimal-artifact",
+          "task_role": "TOOL_USE",
+          "repetition": 2,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 18,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "controlled-retry",
+          "task_role": "RESEARCH",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 19,
+          "model": {
+            "provider": "opencode",
+            "model": "nemotron-3-ultra-free"
+          },
+          "case_id": "controlled-retry",
+          "task_role": "RESEARCH",
+          "repetition": 2,
+          "arm": "candidate"
+        }
+      ]
+    }
+  ]
+}

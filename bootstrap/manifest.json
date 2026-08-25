@@ -16,6 +16,36 @@
   },
   "required_tools": ["git", "node", "bwrap"],
   "minimum_versions": { "node": "20.0.0", "git": "2.30.0", "bwrap": "0.9.0" },
+  "product_contract": {
+    "invariant": "OCAE_IS_AN_OPENCODE_URL_INSTALLABLE_AGENT_ECOSYSTEM",
+    "host": "OPENCODE",
+    "source_url": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+    "artifact_classes": {
+      "installable_product_runtime": [".agent-governance/runtime/**"],
+      "installable_agent_definitions": [".opencode/agents/**"],
+      "installable_governance": [".agent-governance/**", ".opencode/policies/**"],
+      "installable_harness_profiles": [
+        ".agent-governance/runtime/harness/model-harness-contract.mjs",
+        ".agent-governance/runtime/harness/product-model-harness-profiles.mjs",
+        ".agent-governance/runtime/harness/task-role-profiles.mjs",
+        ".agent-governance/runtime/harness/harness-resolver.mjs",
+        ".agent-governance/runtime/harness/apply-harness.mjs",
+        ".agent-governance/runtime/harness/index.mjs"
+      ],
+      "installable_plugin_tool_integration": [".opencode/plugins/governance-v2.mjs", ".agent-governance/hooks/opencode/**"],
+      "installer_bootstrap": ["bootstrap/manifest.json", "bootstrap.mjs", "scripts/install-governance.mjs", "bootstrap/verify.mjs"],
+      "development_test_infrastructure": ["test/**", "scripts/run-tests.mjs", "scripts/fresh-install-sentinel.mjs", "scripts/lib/production-sentinel.mjs"],
+      "evaluation_only": ["runtime/harness/model-harness-profiles.mjs", "runtime/harness/evaluation.mjs", "scripts/run-issue-33-live-evaluation.mjs", "docs/evaluation/**", "test/harness/evaluation.test.mjs"],
+      "local_developer_state": [".git/**", ".opencode/memory/**", ".playwright-mcp/**", "~/.config/opencode/**", "~/.local/share/opencode/**", "**/.env*"],
+      "volatile_evidence": ["evidence/**", ".agent-governance/evidence/**", "docs/evaluation/**"]
+    },
+    "capability_status": {
+      "core": ["CORE_READY", "CORE_NOT_READY"],
+      "provider": ["PROVIDER_READY", "PROVIDER_NOT_CONFIGURED"],
+      "tools": ["TOOLS_READY", "TOOLS_NOT_CONFIGURED"],
+      "optional_capabilities": "HOST_DISCOVERED"
+    }
+  },
   "secure_ai_sandbox": {
     "implementation": "bubblewrap",
     "required_kernel_features": ["user_namespaces", "mount_namespaces"],

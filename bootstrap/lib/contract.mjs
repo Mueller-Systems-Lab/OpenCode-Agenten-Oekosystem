@@ -3,6 +3,7 @@ import path from "node:path"
 export const BOOTSTRAP_PROTOCOL = "url-only-v1"
 export const ECOSYSTEM = "OpenCode-Agenten-Oekosystem"
 export const REPOSITORY = "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+export const PRODUCT_INVARIANT = "OCAE_IS_AN_OPENCODE_URL_INSTALLABLE_AGENT_ECOSYSTEM"
 export const CLASSIFICATIONS = Object.freeze([
   "RED_BLOCK",
   "TOOL_GAP",
@@ -99,7 +100,7 @@ export function validateBootstrapManifest(manifest) {
   if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) return ["manifest must be an object"]
   const required = [
     "schema_version", "ecosystem", "repository", "bootstrap_protocol", "entrypoint", "installer",
-    "verifier", "launcher", "rollback", "supported_platforms", "unsupported_platforms", "required_tools", "minimum_versions", "secure_ai_sandbox",
+    "verifier", "launcher", "rollback", "supported_platforms", "unsupported_platforms", "required_tools", "minimum_versions", "product_contract", "secure_ai_sandbox",
     "supported_project_types", "default_mode", "available_modes", "managed_paths", "protected_paths",
     "generated_paths", "dry_run_required", "idempotence_required", "v2_gate_required", "approval_model",
     "completion_classification",
@@ -108,6 +109,26 @@ export function validateBootstrapManifest(manifest) {
   if (manifest.schema_version !== "1") issues.push("schema_version must be 1")
   if (manifest.ecosystem !== ECOSYSTEM) issues.push(`ecosystem must be ${ECOSYSTEM}`)
   if (manifest.repository !== REPOSITORY) issues.push(`repository must be ${REPOSITORY}`)
+  if (manifest.product_contract?.invariant !== PRODUCT_INVARIANT) issues.push(`product_contract.invariant must be ${PRODUCT_INVARIANT}`)
+  if (manifest.product_contract?.host !== "OPENCODE") issues.push("product_contract.host must be OPENCODE")
+  if (manifest.product_contract?.source_url !== REPOSITORY) issues.push(`product_contract.source_url must be ${REPOSITORY}`)
+  const artifactClasses = manifest.product_contract?.artifact_classes
+  for (const key of [
+    "installable_product_runtime", "installable_agent_definitions", "installable_governance",
+    "installable_harness_profiles", "installable_plugin_tool_integration", "installer_bootstrap",
+    "development_test_infrastructure", "evaluation_only", "local_developer_state", "volatile_evidence",
+  ]) {
+    if (!Array.isArray(artifactClasses?.[key])) issues.push(`product_contract.artifact_classes.${key} must be an array`)
+  }
+  if (!artifactClasses?.installable_harness_profiles?.includes(".agent-governance/runtime/harness/product-model-harness-profiles.mjs")) {
+    issues.push("product_contract must declare the generic product harness registry")
+  }
+  if (!artifactClasses?.evaluation_only?.includes("runtime/harness/evaluation.mjs")) {
+    issues.push("product_contract must classify evaluation runtime as evaluation_only")
+  }
+  if (manifest.product_contract?.capability_status?.optional_capabilities !== "HOST_DISCOVERED") {
+    issues.push("product_contract.capability_status.optional_capabilities must be HOST_DISCOVERED")
+  }
   if (manifest.bootstrap_protocol !== BOOTSTRAP_PROTOCOL) issues.push(`bootstrap_protocol must be ${BOOTSTRAP_PROTOCOL}`)
   for (const key of ["supported_platforms", "required_tools", "supported_project_types", "available_modes", "managed_paths", "protected_paths", "generated_paths"]) {
     if (key in manifest && !Array.isArray(manifest[key])) issues.push(`${key} must be an array`)

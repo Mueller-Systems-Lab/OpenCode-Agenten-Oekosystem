@@ -72,7 +72,7 @@ test('isolated OpenCode discovers installed OCAE agents without developer auth s
   const result = install(target, env)
   assert.equal(result.status, 0, result.stderr || result.stdout)
   const agents = spawnSync('opencode', ['agent', 'list', '--pure'], { cwd: target, env, encoding: 'utf8', timeout: 15000 })
-  assert.equal(agents.status, 0, agents.stderr || agents.stdout)
+  assert.equal(agents.status, 0, agents.error?.message || agents.stderr || agents.stdout || 'OpenCode discovery exited without a status')
   for (const id of ['issue-orchestrator', 'review-agent', 'executor']) assert.match(agents.stdout, new RegExp(`^${id} \\((primary|subagent)\\)$`, 'm'))
   assert.equal(await fs.stat(path.join(home, '.local', 'share', 'opencode', 'auth.json')).then(() => true).catch(() => false), false)
 })

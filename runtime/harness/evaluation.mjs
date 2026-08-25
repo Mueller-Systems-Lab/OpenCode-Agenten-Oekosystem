@@ -192,10 +192,73 @@ export async function runEvaluation({ plan, corpus = frozenCorpus(), executor, e
       if (timedOut && (!result || result.error !== 'TIMEOUT')) { result = { ...(result || {}), error: 'TIMEOUT', failure_class: 'TIMEOUT' } }
     }
     if (!result) result = { error: failure, failure_retained: true }
+    if (selected.kind === 'canonical'
+      && (timedOut || result.failure_class === 'TIMEOUT' || result.error === 'TIMEOUT')
+      && !CANONICAL_RESULT_RECEIPTS.has(result)) {
+      const timeoutRunId = crypto.randomUUID()
+      result = bindCanonicalResult({
+        ...result,
+        canonical_execution: true,
+        run_id: timeoutRunId,
+      }, {
+        run_id: timeoutRunId,
+        provider: request.provider,
+        model: request.model,
+        runtime_entry: true,
+        live_model_evidence: false,
+      }).result
+    }
     const verification = verifyResult(entry, result)
     if (failure && !verification.code) failure = failure
     const forbidden = result.paid_calls > 0 || result.fallback === true
-     const record = Object.freeze({ contract: EVALUATION_CONTRACT, evaluation_id: evaluationId, series_id: seriesId, plan_fingerprint: plan.fingerprint, corpus_fingerprint: corpus.fingerprint, sequence: planned.sequence, provider: provider || planned.model.provider, model: model || planned.model.model, case_id: planned.case_id, repetition: planned.repetition, arm: planned.arm, profile_id: resolution.profile_id, profile_version: resolution.profile_version, variant: planned.arm, task_role: planned.task_role, effective_harness_fingerprint: resolution.fingerprint, harness_fingerprint: resolution.fingerprint, verified_success: verification.ok && !forbidden, functional_correctness: result.functional_correctness ?? verification.ok, tool_selection_correct: result.tool_selection_correct ?? (result.tools_added !== true), tool_calls: result.tool_calls ?? null, invalid_tool_calls: result.invalid_tool_calls ?? null, retry_count: result.retry_count ?? 0, runtime_failures: result.runtime_failures ?? (verification.ok ? [] : [verification.code]), input_context_volume: result.input_context_volume ?? null, tool_result_volume: result.tool_result_volume ?? null, latency_ms: Date.now() - t0, failure_class: forbidden ? 'FORBIDDEN_EFFECT' : (failure || verification.code === 'TIMEOUT' ? verification.code : (result.failure_class || null)), failure: failure || result.error || null, verifier: entry.verifier, verifier_result: verification, outcome: verification.ok && !forbidden ? 'VERIFIED_SUCCESS' : 'FAILURE', rate_limited: verification.code === 'RATE_LIMITED', paid_calls: result.paid_calls ?? null, fallback: result.fallback ?? null, retained: true, provenance: selected.provenance, canonical_execution: selected.kind === 'canonical', run_id: result.run_id ?? null, cost_tier: result.cost_tier ?? null })
+    const toolCallCount = result.tool_call_count ?? result.tool_calls ?? null
+    const record = Object.freeze({
+      contract: EVALUATION_CONTRACT,
+      evaluation_id: evaluationId,
+      series_id: seriesId,
+      plan_fingerprint: plan.fingerprint,
+      corpus_fingerprint: corpus.fingerprint,
+      sequence: planned.sequence,
+      provider: provider || planned.model.provider,
+      model: model || planned.model.model,
+      case_id: planned.case_id,
+      repetition: planned.repetition,
+      arm: planned.arm,
+      profile_id: resolution.profile_id,
+      profile_version: resolution.profile_version,
+      variant: planned.arm,
+      task_role: planned.task_role,
+      effective_harness_fingerprint: resolution.fingerprint,
+      harness_fingerprint: resolution.fingerprint,
+      verified_success: verification.ok && !forbidden,
+      functional_correctness: result.functional_correctness ?? verification.ok,
+      first_tool_correct: result.first_tool_correct ?? result.tool_selection_correct ?? null,
+      required_tool_used: result.required_tool_used ?? null,
+      tool_selection_correct: result.tool_selection_correct ?? null,
+      invalid_tool_calls: result.invalid_tool_calls ?? null,
+      unnecessary_tool_calls: result.unnecessary_tool_calls ?? null,
+      tool_call_count: toolCallCount,
+      tool_calls: toolCallCount,
+      retry_count: result.retry_count ?? 0,
+      runtime_failures: result.runtime_failures ?? (verification.ok ? [] : [verification.code]),
+      input_context_volume: result.input_context_volume ?? null,
+      tool_result_volume: result.tool_result_volume ?? null,
+      latency_ms: Date.now() - t0,
+      failure_class: forbidden ? 'FORBIDDEN_EFFECT' : (failure || verification.code === 'TIMEOUT' ? verification.code : (result.failure_class || null)),
+      failure: failure || result.error || null,
+      verifier_type: entry.verifier,
+      verifier: entry.verifier,
+      verifier_result: verification,
+      outcome: verification.ok && !forbidden ? 'VERIFIED_SUCCESS' : 'FAILURE',
+      rate_limited: verification.code === 'RATE_LIMITED',
+      paid_calls: result.paid_calls ?? null,
+      fallback: result.fallback ?? null,
+      retained: true,
+      provenance: selected.provenance,
+      canonical_execution: selected.kind === 'canonical',
+      run_id: result.run_id ?? null,
+      cost_tier: result.cost_tier ?? null,
+    })
      records.push(record)
      const receipt = CANONICAL_RESULT_RECEIPTS.get(result)
      if (selected.kind === 'canonical' && receipt) {

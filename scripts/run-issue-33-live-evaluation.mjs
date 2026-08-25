@@ -22,7 +22,12 @@ import {
 } from '../runtime/harness/evaluation.mjs'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const evidenceDir = path.join(repoRoot, 'docs', 'evaluation')
+const requestedEvidenceDir = process.env.OCAE_EVAL_OUTPUT_DIR || path.join('docs', 'evaluation', `issue-33-phase-b-${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')}`)
+const evidenceDir = path.resolve(repoRoot, requestedEvidenceDir)
+const evidenceRelativePath = path.relative(repoRoot, evidenceDir)
+if (evidenceRelativePath.startsWith('..') || path.isAbsolute(evidenceRelativePath)) {
+  throw new Error('CONTRACT_INVALID:evaluation:evidence output must remain inside repository root')
+}
 const planPath = path.join(evidenceDir, 'issue-33-live-plan.json')
 const evidencePath = path.join(evidenceDir, 'issue-33-live-evidence.json')
 const repetitions = 2
@@ -183,6 +188,10 @@ await fs.writeFile(planPath, `${JSON.stringify({
   promotion_policy_version: 'issue-33-promotion.v2',
   promotion_criteria_frozen: true,
   repetitions,
+  variants: ['generic', 'candidate'],
+  max_live_runs: plans.reduce((sum, plan) => sum + plan.rows.length, 0),
+  max_retries_per_run: 0,
+  max_total_retries: 0,
   order: 'sequence order in each precomputed model plan; generic/candidate paired per case and repetition',
   plans: plans.map((plan) => ({ model: plan.models[0], cases: corpus.cases.length, repetitions, variants: ['generic', 'candidate'], planned_runs: plan.rows.length, fingerprint: plan.fingerprint, rows: plan.rows })),
 }, null, 2)}\n`, { mode: 0o600 })

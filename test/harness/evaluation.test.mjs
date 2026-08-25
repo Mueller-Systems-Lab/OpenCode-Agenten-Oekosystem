@@ -185,3 +185,59 @@ test('non-cancellable executor timeout is retained as TIMEOUT and later rows con
   assert.ok(evaluation.records.some((row) => row.failure_class === 'TIMEOUT' && row.retained))
   assert.ok(calls > 1)
 })
+
+test('canonical records expose the complete paired-run metric contract', async () => {
+  const corpus = frozenCorpus()
+  const plan = createEvaluationPlan({ corpus, models: [models[0]], repetitions: 1, max_rows: 10 })
+  const evaluation = await runEvaluation({
+    plan,
+    corpus,
+    executor: createFixtureExecutor(() => ({
+      changed_files: ['proof.json'],
+      first_tool_correct: null,
+      required_tool_used: null,
+      invalid_tool_calls: 0,
+      unnecessary_tool_calls: 0,
+      tool_call_count: 0,
+    })),
+  })
+  const record = evaluation.records[0]
+  for (const field of [
+    'run_id', 'provider', 'model', 'variant', 'profile_id', 'profile_version',
+    'task_role', 'effective_harness_fingerprint', 'verified_success',
+    'functional_correctness', 'first_tool_correct', 'required_tool_used',
+    'invalid_tool_calls', 'unnecessary_tool_calls', 'tool_call_count',
+    'retry_count', 'runtime_failures', 'input_context_volume',
+    'tool_result_volume', 'latency_ms', 'failure_class', 'verifier_type',
+    'verifier_result',
+  ]) assert.ok(Object.hasOwn(record, field), `missing canonical record field: ${field}`)
+  assert.equal(record.verifier_type, 'changed_file')
+  assert.equal(record.tool_call_count, 0)
+})
+
+test('live timeout records retain canonical identity but cannot become promotion evidence', async () => {
+  const corpus = frozenCorpus()
+  const plan = createEvaluationPlan({ corpus, models: [models[0]], repetitions: 1, max_rows: 10 })
+  const evaluation = await runEvaluation({
+    plan,
+    corpus,
+    mode: 'live',
+    budgets: { timeout_ms: 5 },
+    executor: createCanonicalRuntimeExecutor({
+      providerExecutor: {
+        canonicalProviderExecutor: true,
+        contract: 'ecosystem.provider-executor.v1',
+        metadata: { connector_id: 'timeout-test', provider: models[0].provider, model: models[0].model, live_capable: true },
+        execute: async () => new Promise(() => {}),
+      },
+      runTaskImpl: async (options) => {
+        const worker = await options.routeExecutor({}, {})
+        return worker({}, {})
+      },
+    }),
+  })
+  assert.ok(evaluation.records.every((record) => record.failure_class === 'TIMEOUT' && record.retained))
+  assert.ok(evaluation.records.every((record) => typeof record.run_id === 'string' && record.run_id.length > 0))
+  assert.equal(validateEvaluationIntegrity({ evaluation, plan, corpus }).ok, true)
+  assert.equal(decidePromotion({ evaluation }).decision, 'E_BLOCKED_NO_LIVE_EVIDENCE')
+})

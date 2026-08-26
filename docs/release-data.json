@@ -1,7 +1,7 @@
 {
   "version": "1.0.7",
   "tag": "v1.0.7",
-  "releaseCommit": "444a1ef22161a43830d36454ea256cf3e2b62460",
+  "releaseCommit": "4d6d4586e98e60976e89cb426e77edee35a3bfef",
   "sourceRepository": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
   "installCommand": "uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.7",
   "primaryAgent": "issue-orchestrator",

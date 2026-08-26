@@ -36,7 +36,8 @@ verification. The optional `ocae integrate opencode` command installs one
 OCAE-owned global OpenCode adapter for bare-URL handoff; it is idempotent and
 does not rewrite `opencode.jsonc`.
 
-The stable release is `v1.0.7`, published from its release commit. The install command is pinned to
+The stable release is `v1.0.7`, published from commit
+`4d6d4586e98e60976e89cb426e77edee35a3bfef`. The install command is pinned to
 that release tag; the repository `master` branch may contain documentation
 and publication updates after the product release baseline.
 

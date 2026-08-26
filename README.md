@@ -18,7 +18,7 @@ and [`ocae.handoff.json`](ocae.handoff.json).
 ## Quick install
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.5
+uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.6
 ```
 
 Then, from the target project:
@@ -36,7 +36,7 @@ verification. The optional `ocae integrate opencode` command installs one
 OCAE-owned global OpenCode adapter for bare-URL handoff; it is idempotent and
 does not rewrite `opencode.jsonc`.
 
-The stable release is `v1.0.5`, published from its exact release commit. The
+The stable release is `v1.0.6`, published from its exact release commit. The
 install command is pinned to
 that release tag; the repository `master` branch may contain documentation
 and publication updates after the product release baseline.
@@ -56,7 +56,7 @@ there is no silent bypass.
 
 ## What is OCAE?
 
-OCAE CLI v1.0.5 is the installable distribution layer for this repository. The
+OCAE CLI v1.0.6 is the installable distribution layer for this repository. The
 Python CLI validates inputs, package integrity, provenance, and tool preflight.
 The canonical governance and installation logic remains in
 [`scripts/install-governance.mjs`](scripts/install-governance.mjs), which is

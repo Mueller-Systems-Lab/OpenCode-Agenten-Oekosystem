@@ -51,6 +51,7 @@ class PayloadTests(unittest.TestCase):
         self.assertEqual(result["status"], "PASS")
         self.assertEqual(result["source_commit"], build_backend._source_commit())
         self.assertGreater(result["file_count"], 50)
+        self.assertIn("scripts/lib/install-contract.mjs", {entry["relative_path"] for entry in payload.payload_manifest()["files"]})
 
     def test_payload_rejects_unsafe_member_paths(self):
         with self.assertRaises(ValueError):

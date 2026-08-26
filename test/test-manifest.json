@@ -73,6 +73,7 @@
             "test/spec-kit/bridge-contract.test.mjs",
             "test/spec-kit/bridge-red.test.mjs",
             "test/validation/working-method.test.mjs",
+            "test/validation/final-publication-contract.test.mjs",
             "test/contracts/runtime-pipeline-contracts.test.mjs"
         ],
         "integration": [

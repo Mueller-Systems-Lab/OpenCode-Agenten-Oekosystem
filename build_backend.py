@@ -19,6 +19,7 @@ CANONICAL_SOURCE_REPOSITORY = "https://github.com/xxammaxx/OpenCode-Agenten-Oeko
 
 RUNTIME_FILES = (
     "scripts/install-governance.mjs",
+    "scripts/lib/install-contract.mjs",
     "scripts/lib/paths.mjs",
     "scripts/lib/backup.mjs",
     "scripts/lib/security/redaction.mjs",

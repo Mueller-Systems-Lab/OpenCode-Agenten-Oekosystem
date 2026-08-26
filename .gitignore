@@ -28,6 +28,10 @@ src/ocae_cli/_version.py
 *.log
 .opencode/logs/**/*.jsonl
 
+# Local browser/session state
+/.playwright-mcp/
+.opencode/memory/ocae-*.md
+
 # Reports (generated, not source)
 .opencode/reports/**/*.json
 .opencode/reports/**/*.png

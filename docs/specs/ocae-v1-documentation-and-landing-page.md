@@ -1,10 +1,10 @@
 # OCAE CLI v1 Documentation and Landing Page Specification
 
-Status: Active
+Status: Completed — superseded by the stable v1.0.5 publication
 
 ## Goal
 
-Reconcile active user-facing documentation with the released `ocae-cli` v1.0.0
+Reconcile active user-facing documentation with the released `ocae-cli` v1.0.5
 product and provide a dependency-free, publishable GitHub Pages landing page.
 The runtime and installer implementation are out of scope.
 
@@ -23,17 +23,17 @@ navigation surfaces or contain a current product claim that users would rely on.
 
 ## Product truths
 
-- Version: `1.0.0` / tag `v1.0.0`
+- Version: `1.0.5` / tag `v1.0.5`
 - Primary runtime: OpenCode
 - Installable inventory: 13 agents, one primary and 12 subagents
 - Primary agent: `issue-orchestrator`
 - Canonical installer: `scripts/install-governance.mjs`
-- CLI installation: `uv tool install ...@v1.0.0`
+- CLI installation: `uv tool install ...@v1.0.5`
 - Hermes: optional and non-blocking
 
 ## Acceptance criteria
 
-1. The first README screen removes the archive notice and presents the v1.0.0
+1. The first README screen removes the archive notice and presents the v1.0.5
    CLI install path, three-step quick start, and 13-agent product scope.
 2. `docs/index.html` contains a semantic, responsive product landing page with
    hero, copyable install command, quick start, agent inventory, governance,
@@ -56,7 +56,7 @@ navigation surfaces or contain a current product claim that users would rely on.
 
 | Area | Evidence | Pass condition |
 |---|---|---|
-| Truth | manifest, CLI version, agent directory | all resolve to v1.0.0 and 13 installable agents |
+| Truth | manifest, CLI version, agent directory | all resolve to v1.0.5 and 13 installable agents |
 | Docs | `scripts/validate-docs.mjs` | stale claims absent; commands and links valid |
 | HTML | local static checks | balanced required elements and safe external links |
 | Security | source inspection | no remote scripts, `eval`, secrets, or unsafe link targets |

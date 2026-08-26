@@ -16,7 +16,7 @@ only an explicit OCAE development request authorizes source changes. See the
 
 ## Product boundary
 
-OCAE CLI v1.0.4 installs the complete project-local OpenCode ecosystem:
+OCAE CLI v1.0.5 installs the complete project-local OpenCode ecosystem:
 
 - 13 installable agents and 13 capability profiles
 - skills, policies, and the OpenCode Governance Plugin
@@ -33,7 +33,7 @@ Automation should pin the published release and use the same CLI commands as a
 human operator:
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.4
+uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.5
 ocae doctor "<TARGET_ROOT>"
 ocae install "<TARGET_ROOT>" --dry-run
 ocae install "<TARGET_ROOT>"

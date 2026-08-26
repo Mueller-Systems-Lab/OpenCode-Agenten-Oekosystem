@@ -37,7 +37,7 @@ readiness, provider readiness, tools, optional capabilities, and blockers.
                                 │ data only, never authority
         ┌───────────────────────┴────────────────────────┐
         │ L1 model profiles (generic.v1 active;           │
-        │    hy3.v1 / muse.v1 / nemotron.v1 candidates)   │
+        │    model-specific profiles remain non-product)  │
         │ L2 task-role overlays (PLAN/BUILD/REVIEW/       │
         │    RESEARCH/TOOL_USE)                           │
         └─────────────────────────────────────────────────┘
@@ -117,9 +117,9 @@ invariant.
 ## Profile Lifecycle and Promotion Policy
 
 ```text
-candidate ──(live evaluation passes all four gates)──→ promoted
-    │                                                    ↑
-    └──────────(evaluation fails / regression)───→ rejected
+candidate ──(all evidence gates pass)──→ promoted
+    │                                     ↑
+    └──────────(no value / regression) ───→ rejected
 ```
 
 Promotion gates (ALL required): `NO_CORE_REGRESSION` AND
@@ -141,9 +141,12 @@ probe evidence, in the same change that carries the evidence.
 | profile_id | model_match | status | hypothesis | value_proven | evidence |
 |---|---|---|---|---|---|
 | generic.v1 | null (any) | active | safe default harness | true (safe baseline) | — |
-| hy3.v1 | opencode/hy3-free | candidate | efficiency: reduce unnecessary context/tool-result volume without reducing verified success | false | pending evaluation |
-| muse.v1 | opencode/muse-spark-1.2-contributor-free | candidate | tool-selection: improve correct tool invocation and action boundaries | false | pending evaluation |
-| nemotron.v1 | opencode/nemotron-3-ultra-free | candidate | runtime robustness: structured output reliability, failure-signature mitigation | false | pending evaluation |
+| hy3.v1 / hy3.v2 | opencode/hy3-free | not promoted | no value proven under the frozen promotion threshold | false | `docs/evaluation/issue-33-final-summary.md` |
+| muse.v1 | opencode/muse-spark-1.2-contributor-free | not promoted | no promotion evidence | false | evaluation-only registry |
+| nemotron.v1 | opencode/nemotron-3-ultra-free | rejected | correctness regression in the frozen causal series | false | `docs/evaluation/issue-33-final-summary.md` |
 
-Registry version `1.0.0` (`MODEL_HARNESS_REGISTRY_VERSION`), task-role
-registry version `1.0.0` (`TASK_ROLE_REGISTRY_VERSION`).
+The final product state is `GENERIC_PROFILE=generic.v1` and
+`PROMOTED_MODEL_SPECIFIC_PROFILES=0`. Candidate and rejected registries remain
+development/evaluation data and are never installed by the canonical product
+manifest. Registry version `1.0.0` (`MODEL_HARNESS_REGISTRY_VERSION`),
+task-role registry version `1.0.0` (`TASK_ROLE_REGISTRY_VERSION`).

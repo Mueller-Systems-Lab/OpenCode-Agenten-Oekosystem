@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import contextlib
+import base64
+import hashlib
 import io
 import json
 import os
@@ -22,11 +24,42 @@ from ocae_cli import opencode
 
 
 class PayloadTests(unittest.TestCase):
+    def test_package_record_verification_preserves_posix_paths(self):
+        with tempfile.TemporaryDirectory() as directory:
+            file_path = Path(directory) / "ocae_cli" / "__init__.py"
+            file_path.parent.mkdir(parents=True)
+            file_path.write_bytes(b"recorded package file")
+            digest = base64.urlsafe_b64encode(hashlib.sha256(file_path.read_bytes()).digest()).rstrip(b"=").decode()
+
+            class FakeDistribution:
+                def read_text(self, name):
+                    self.assert_name = name
+                    return f"ocae_cli/__init__.py,sha256={digest},{file_path.stat().st_size}\n"
+
+                def locate_file(self, relative):
+                    self.relative = relative
+                    return file_path
+
+            fake = FakeDistribution()
+            with patch.object(payload.importlib.metadata, "distribution", return_value=fake):
+                result = payload.verify_package_record()
+            self.assertEqual(result["status"], "PASS")
+            self.assertEqual(fake.relative, "ocae_cli/__init__.py")
+
     def test_payload_manifest_and_archive_are_verified(self):
         result = payload.verify_payload()
         self.assertEqual(result["status"], "PASS")
         self.assertEqual(result["source_commit"], build_backend._source_commit())
         self.assertGreater(result["file_count"], 50)
+        packaged = {entry["relative_path"] for entry in payload.payload_manifest()["files"]}
+        self.assertIn("scripts/lib/install-contract.mjs", packaged)
+        for required in (
+            "runtime/run.mjs",
+            "runtime/security/tool-result-egress-gate.mjs",
+            "runtime/visual/visual-qa.mjs",
+            "runtime/harness/index.mjs",
+        ):
+            self.assertIn(required, packaged)
 
     def test_payload_rejects_unsafe_member_paths(self):
         with self.assertRaises(ValueError):

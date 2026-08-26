@@ -5,6 +5,12 @@ function setText(selector, value) {
   document.querySelectorAll(selector).forEach((node) => { node.textContent = value })
 }
 
+function setInstallCommand(value) {
+  if (!value) return
+  if (command) command.textContent = value
+  document.querySelectorAll(".install-command").forEach((node) => { node.textContent = value })
+}
+
 async function copyInstallCommand() {
   if (!command || !copyButton) return
   const status = document.querySelector(".copy-status")
@@ -50,7 +56,8 @@ fetch("release-data.json", { credentials: "same-origin" })
     setText(".release-tag", data.tag)
     setText(".agent-count", String(data.agentCount))
     setText(".primary-agent", data.primaryAgent)
-    setText(".release-commit", `${data.releaseCommit.slice(0, 10)}…`)
+    setText(".release-commit", data.releaseCommit)
+    setInstallCommand(data.installCommand)
   })
   .catch(() => {
     // Static fallback content remains visible when release-data.json is unavailable.

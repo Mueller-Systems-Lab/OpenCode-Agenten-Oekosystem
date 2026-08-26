@@ -5,15 +5,17 @@ import path from "node:path"
 import os from "node:os"
 import crypto from "node:crypto"
 import { spawnSync } from "node:child_process"
+import { readFileSync } from "node:fs"
 import { repoRoot } from "../helpers.mjs"
 import adapter from "../../src/ocae_cli/_adapter/opencode-handoff.js"
 
 const { inspectProjectMetadata, reconcileProject } = adapter
 
 const sourceCommit = spawnSync("git", ["rev-parse", "HEAD"], { cwd: repoRoot, encoding: "utf8" }).stdout.trim()
+const currentVersion = JSON.parse(readFileSync(path.join(repoRoot, "ecosystem.manifest.json"), "utf8")).version
 const manifest = {
   adapter_version: "1.0.4",
-  ocae_version: "1.0.4",
+  ocae_version: currentVersion,
   opencode_version: "1.18.18",
   cli_path: "C:\\trusted\\ocae.exe",
   source_commit: sourceCommit,

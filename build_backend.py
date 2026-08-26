@@ -19,6 +19,7 @@ CANONICAL_SOURCE_REPOSITORY = "https://github.com/xxammaxx/OpenCode-Agenten-Oeko
 
 RUNTIME_FILES = (
     "scripts/install-governance.mjs",
+    "scripts/lib/install-contract.mjs",
     "scripts/lib/paths.mjs",
     "scripts/lib/backup.mjs",
     "scripts/lib/security/redaction.mjs",
@@ -140,6 +141,17 @@ def _sha256(path: Path) -> str:
 
 def _payload_files() -> list[str]:
     files = list(RUNTIME_FILES)
+    # The canonical installer validates and copies the complete runtime graph.
+    # Keep the packaged source tree aligned with that graph so a URL-installed
+    # CLI cannot pass package verification and then fail during source
+    # validation because an imported runtime helper was omitted.
+    for root_name in ("runtime", "scripts/lib"):
+        root = ROOT / root_name
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if path.is_file() and not path.is_symlink():
+                files.append(path.relative_to(ROOT).as_posix())
     for root_name in (".opencode/agents", ".opencode/skills", ".opencode/policies"):
         root = ROOT / root_name
         if not root.is_dir():

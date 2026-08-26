@@ -73,7 +73,6 @@ complete; model-specific optimization value was not proven. No further profile
 research, candidate v3, adaptive/self-evolving harness work, or continuous
 tuning is started by this closure.
 
-Recommended next milestone: `OCAE_OPERATIONAL_AGENT_ECOSYSTEM_VALIDATION` —
-validate the URL-installed OCAE product through a real multi-agent task,
-routing, tool/MCP preflight, worker execution, verification, and controller
-decision.
+Closure decision: no further harness research is part of this release. Future
+work is maintenance-only unless a separately authorized, evidence-backed
+product requirement or real defect reopens the topic.

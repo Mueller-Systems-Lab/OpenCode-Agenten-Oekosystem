@@ -49,7 +49,10 @@ def verify_package_record() -> dict:
         for row in csv.reader(io.StringIO(record_text)):
             if len(row) < 3 or not row[1]:
                 continue
-            relative = row[0].replace("/", "\\")
+            # Wheel RECORD paths use POSIX separators on every platform. Path
+            # accepts those separators natively; converting them to a literal
+            # backslash makes every recorded file look missing on POSIX.
+            relative = row[0]
             path = Path(distribution.locate_file(relative))
             if not path.is_file():
                 failures.append({"path": row[0], "reason": "missing"})

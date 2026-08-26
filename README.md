@@ -1,8 +1,11 @@
 # OCAE — OpenCode Agent Ecosystem
 
-OCAE is a versioned agent and governance ecosystem for OpenCode. Install one
-CLI and get 13 specialized agents, capability profiles, skills, policies, and
-fail-closed project-local governance in an existing project.
+Status: **Stable / Operational**
+
+OCAE is a URL-installable, governed multi-agent ecosystem for OpenCode. Install
+one versioned CLI into an existing project and get 13 specialized agents,
+capability profiles, skills, policies, verification, and fail-closed
+project-local governance.
 
 ## FOR AI AGENTS RECEIVING THIS URL:
 
@@ -15,7 +18,7 @@ and [`ocae.handoff.json`](ocae.handoff.json).
 ## Quick install
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.4
+uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.7
 ```
 
 Then, from the target project:
@@ -33,6 +36,11 @@ verification. The optional `ocae integrate opencode` command installs one
 OCAE-owned global OpenCode adapter for bare-URL handoff; it is idempotent and
 does not rewrite `opencode.jsonc`.
 
+The stable release is `v1.0.7`, published from commit
+`4d6d4586e98e60976e89cb426e77edee35a3bfef`. The install command is pinned to
+that release tag; the repository `master` branch may contain documentation
+and publication updates after the product release baseline.
+
 ## Repository protection and delivery flow
 
 `master` is protected: changes land through pull requests, direct pushes,
@@ -48,7 +56,7 @@ there is no silent bypass.
 
 ## What is OCAE?
 
-OCAE CLI v1.0.4 is the installable distribution layer for this repository. The
+OCAE CLI v1.0.7 is the installable distribution layer for this repository. The
 Python CLI validates inputs, package integrity, provenance, and tool preflight.
 The canonical governance and installation logic remains in
 [`scripts/install-governance.mjs`](scripts/install-governance.mjs), which is
@@ -101,6 +109,11 @@ Agent → Capability Profile → MCP Preflight → Governance Decision → Tool 
 OpenCode discovery for the released runtime verified 13/13 agents. The governed
 canary uses `issue-orchestrator` as the primary agent.
 
+The model harness is intentionally conservative: `generic.v1` is the only
+promoted/installable model profile. HY3 candidates were not promoted because
+they did not prove value, and Nemotron was rejected for a correctness
+regression. Evaluation code and evidence remain development-only.
+
 ## Governance and safety
 
 OCAE is project-local and fail-closed. It backs up before mutation, records an
@@ -110,6 +123,9 @@ default, and no MCP server is enabled automatically.
 
 OpenCode is the primary verified runtime. Hermes is an optional, non-blocking
 runtime adapter; no Hermes deployment is required for the CLI installation.
+Playwright visual QA and additional MCP integrations are optional capabilities,
+not installation prerequisites. MCP servers remain disabled unless explicitly
+enabled by the project owner.
 
 ## How it works
 
@@ -153,6 +169,10 @@ See the complete [CLI reference](docs/ocae-cli.md).
 - Node.js for the canonical installer
 - OpenCode for runtime discovery and governed agent execution
 
+With no provider credentials configured, installation still prepares the core
+and reports `CORE_READY` with `PROVIDER_NOT_CONFIGURED`; that is not an
+installation failure.
+
 ## Updating and rollback
 
 Update the CLI with:
@@ -175,12 +195,20 @@ provenance and managed-file state before changing it. To restore a backup, use
 - [`docs/architecture/`](docs/architecture/) — architecture and ADR material
 - [`docs/specs/`](docs/specs/) — specifications and verification contracts
 - [`docs/reports/`](docs/reports/) — historical evidence and run reports
+- [`docs/evaluation/`](docs/evaluation/) — frozen harness evidence and the
+  final no-promotion decision
+- [GitHub Pages landing page](https://xxammaxx.github.io/OpenCode-Agenten-Oekosystem/)
 
 ## Known limitations
 
 On hosts that cannot create the required symlink shape, installation may report
 `HOST_SYMLINK_CAPABILITY_LIMITATION`. This is a host capability limitation;
 the installer remains fail-closed and reports the exact affected operation.
+
+Model-specific optimization is not part of the stable product: no candidate
+profile is promoted. OpenCode version compatibility follows the supported range
+documented in the [CLI reference](docs/ocae-cli.md). Hermes and optional MCP
+capabilities require their own host tooling and credentials.
 
 ## License
 

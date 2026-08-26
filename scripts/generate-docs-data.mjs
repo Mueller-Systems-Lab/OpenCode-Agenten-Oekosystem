@@ -16,7 +16,7 @@ function releaseCommit() {
   try {
     return execFileSync("git", ["rev-list", "-n", "1", `v${manifest.version}`], { cwd: root, encoding: "utf8" }).trim()
   } catch {
-    return "UNKNOWN"
+    return process.env.OCAE_RELEASE_COMMIT?.trim() || "UNRELEASED"
   }
 }
 
@@ -44,6 +44,7 @@ const data = {
   tag: `v${manifest.version}`,
   releaseCommit: releaseCommit(),
   sourceRepository: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+  installCommand: `uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v${manifest.version}`,
   primaryAgent: primary[0].id,
   agentCount: agents.length,
   capabilityProfileCount: agents.length,

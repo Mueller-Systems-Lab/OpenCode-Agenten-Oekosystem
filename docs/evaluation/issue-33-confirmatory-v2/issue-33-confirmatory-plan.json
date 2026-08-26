@@ -1,0 +1,401 @@
+{
+  "contract": "ecosystem.model-harness-evaluation.v1",
+  "corpus_version": "issue-33-confirmatory-corpus.v2",
+  "corpus_fingerprint": "e3d2f2d095d6407ea4035bacbc3644027e83b444ccd457937c8306f9725f33b8",
+  "corpus_cases": [
+    {
+      "case_id": "tool-selection-new",
+      "task_role": "TOOL_USE",
+      "verifier": "tool_boundary"
+    },
+    {
+      "case_id": "multi-step-new",
+      "task_role": "PLAN",
+      "verifier": "plan_targets"
+    },
+    {
+      "case_id": "code-build-new",
+      "task_role": "BUILD",
+      "verifier": "changed_file"
+    },
+    {
+      "case_id": "review-reasoning-new",
+      "task_role": "REVIEW",
+      "verifier": "structured_result"
+    },
+    {
+      "case_id": "context-heavy-new",
+      "task_role": "RESEARCH",
+      "verifier": "retained_failure"
+    }
+  ],
+  "corpus_frozen": true,
+  "candidate_locked": true,
+  "candidate_profile": "hy3.v2",
+  "candidate_profile_fingerprints": {
+    "BUILD": "509ed3d5f098eedcc63c4b91967057431770774be37aca41a9c5865c9c4e1687",
+    "PLAN": "47006a32ead095f3bdb136b6883c259660cf10dfc6651d6478d9e16e0148ed0d",
+    "REVIEW": "d98205cbf1dc23fa27569f7e10c3d68e7cb64197e50ab15a80098fec74cd696c",
+    "TOOL_USE": "b64e6635ca5f6a0c1f98518adc5e4bf7d318f50434bf032de271f3af191627ee",
+    "RESEARCH": "c56f999efbee7c3e8bef00dda6d527629df17e1a0b3dc5859ca073b37218d745"
+  },
+  "promotion_policy_version": "issue-33-promotion.v2",
+  "promotion_criteria_frozen": true,
+  "repetitions": 3,
+  "variants": [
+    "generic",
+    "candidate"
+  ],
+  "max_live_runs": 30,
+  "max_retries_per_run": 0,
+  "max_total_retries": 0,
+  "order": "sequence order in the precomputed plan; generic/candidate paired per case and repetition",
+  "plans": [
+    {
+      "model": {
+        "provider": "opencode",
+        "model": "hy3-free"
+      },
+      "cases": 5,
+      "repetitions": 3,
+      "variants": [
+        "generic",
+        "candidate"
+      ],
+      "planned_runs": 30,
+      "fingerprint": "465219b6076286ef2fb2016bf4e509a0e66d3cb6e320fe22ab763a5690dd6df4",
+      "rows": [
+        {
+          "sequence": 0,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "tool-selection-new",
+          "task_role": "TOOL_USE",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 1,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "tool-selection-new",
+          "task_role": "TOOL_USE",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 2,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "multi-step-new",
+          "task_role": "PLAN",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 3,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "multi-step-new",
+          "task_role": "PLAN",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 4,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "code-build-new",
+          "task_role": "BUILD",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 5,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "code-build-new",
+          "task_role": "BUILD",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 6,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "review-reasoning-new",
+          "task_role": "REVIEW",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 7,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "review-reasoning-new",
+          "task_role": "REVIEW",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 8,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "context-heavy-new",
+          "task_role": "RESEARCH",
+          "repetition": 1,
+          "arm": "generic"
+        },
+        {
+          "sequence": 9,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "context-heavy-new",
+          "task_role": "RESEARCH",
+          "repetition": 1,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 10,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "tool-selection-new",
+          "task_role": "TOOL_USE",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 11,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "tool-selection-new",
+          "task_role": "TOOL_USE",
+          "repetition": 2,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 12,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "multi-step-new",
+          "task_role": "PLAN",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 13,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "multi-step-new",
+          "task_role": "PLAN",
+          "repetition": 2,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 14,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "code-build-new",
+          "task_role": "BUILD",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 15,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "code-build-new",
+          "task_role": "BUILD",
+          "repetition": 2,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 16,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "review-reasoning-new",
+          "task_role": "REVIEW",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 17,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "review-reasoning-new",
+          "task_role": "REVIEW",
+          "repetition": 2,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 18,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "context-heavy-new",
+          "task_role": "RESEARCH",
+          "repetition": 2,
+          "arm": "generic"
+        },
+        {
+          "sequence": 19,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "context-heavy-new",
+          "task_role": "RESEARCH",
+          "repetition": 2,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 20,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "tool-selection-new",
+          "task_role": "TOOL_USE",
+          "repetition": 3,
+          "arm": "generic"
+        },
+        {
+          "sequence": 21,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "tool-selection-new",
+          "task_role": "TOOL_USE",
+          "repetition": 3,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 22,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "multi-step-new",
+          "task_role": "PLAN",
+          "repetition": 3,
+          "arm": "generic"
+        },
+        {
+          "sequence": 23,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "multi-step-new",
+          "task_role": "PLAN",
+          "repetition": 3,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 24,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "code-build-new",
+          "task_role": "BUILD",
+          "repetition": 3,
+          "arm": "generic"
+        },
+        {
+          "sequence": 25,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "code-build-new",
+          "task_role": "BUILD",
+          "repetition": 3,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 26,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "review-reasoning-new",
+          "task_role": "REVIEW",
+          "repetition": 3,
+          "arm": "generic"
+        },
+        {
+          "sequence": 27,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "review-reasoning-new",
+          "task_role": "REVIEW",
+          "repetition": 3,
+          "arm": "candidate"
+        },
+        {
+          "sequence": 28,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "context-heavy-new",
+          "task_role": "RESEARCH",
+          "repetition": 3,
+          "arm": "generic"
+        },
+        {
+          "sequence": 29,
+          "model": {
+            "provider": "opencode",
+            "model": "hy3-free"
+          },
+          "case_id": "context-heavy-new",
+          "task_role": "RESEARCH",
+          "repetition": 3,
+          "arm": "candidate"
+        }
+      ]
+    }
+  ]
+}

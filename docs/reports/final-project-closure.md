@@ -1,6 +1,6 @@
 # OCAE Final Project Closure
 
-Status: finalization branch prepared; final PR landing remains owner-gated.
+Status: final closure PR ready; final landing remains owner-gated.
 
 ## Product decision
 
@@ -116,6 +116,17 @@ closure PR merge before post-merge live-page QA can be recorded.
 ## Closure state
 
 `FINAL_CLOSURE_BRANCH=release/final-project-closure`
+
+`FINAL_PR=37` · `FINAL_PR_HEAD=c641f3024ac1180605e25df5ffca96ef9192620e`
+
+`OCAE_REQUIRED=SUCCESS` · `SECURITY_REVIEW=SUCCESS` ·
+`OPEN_REVIEW_THREADS=0` · `MERGEABLE=CLEAN`
+
+`LANDING_MODE=auto` · `MERGE_METHOD=merge` ·
+`READINESS_POLICY_DIGEST=70b3b0605cddc6f2e6abe9331942e469e32758fbc1abb1474b3af09fdda825df`
+
+`FINAL_LANDING_AUTHORIZATION=OWNER_REQUIRED_NOT_YET_GRANTED` ·
+`FINAL_MERGED=FALSE`
 
 The final PR is prepared from current `origin/master` plus the bounded closure
 changes. It must satisfy `ocae-required=SUCCESS`, `security-review=SUCCESS`,

@@ -98,7 +98,9 @@ export function composeWorkerTaskText({ taskText, effectiveHarness }) {
     blocks.push(['Efficiency:', ...hints.map((hint) => `- ${hint}`)].join('\n'))
   }
 
-  const planningGranularity = planningPolicy.granularity === 'STANDARD' && contextPolicy.framing_style === 'CONCISE'
+  const planningGranularity = planningPolicy.emit_directive === false
+    ? null
+    : planningPolicy.granularity === 'STANDARD' && contextPolicy.framing_style === 'CONCISE'
     ? 'COMPACT'
     : planningPolicy.granularity
   const planningDirective = PLANNING_DIRECTIVES[planningGranularity]

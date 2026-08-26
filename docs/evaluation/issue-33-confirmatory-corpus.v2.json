@@ -1,0 +1,47 @@
+{
+  "contract": "ecosystem.model-harness-evaluation.v1",
+  "version": "issue-33-confirmatory-corpus.v2",
+  "generated_after_candidate_lock": true,
+  "independent_builder": "phase-c-corpus-builder",
+  "product_classes": [
+    "tool selection",
+    "multi-step",
+    "code/build",
+    "review/reasoning",
+    "context-heavy task"
+  ],
+  "cases": [
+    {
+      "case_id": "tool-selection-new",
+      "task_role": "TOOL_USE",
+      "task": "Determine the smallest granted tool sequence needed to inspect whether a named configuration file exists, then report only the observed result and the tool used.",
+      "verifier": "tool_boundary"
+    },
+    {
+      "case_id": "multi-step-new",
+      "task_role": "PLAN",
+      "task": "Produce a three-step implementation plan for adding a bounded parser, including one verification step and concrete target names.",
+      "verifier": "plan_targets"
+    },
+    {
+      "case_id": "code-build-new",
+      "task_role": "BUILD",
+      "task": "Implement the smallest build-safe change needed to expose a deterministic formatter and report exactly one changed file.",
+      "verifier": "changed_file"
+    },
+    {
+      "case_id": "review-reasoning-new",
+      "task_role": "REVIEW",
+      "task": "Review a proposed change for correctness and return the requested structured verdict with no prose outside the structure.",
+      "verifier": "structured_result"
+    },
+    {
+      "case_id": "context-heavy-new",
+      "task_role": "RESEARCH",
+      "task": "Answer a bounded research question using a long set of supplied constraints; retain and report any observed verification failure instead of inventing a result.",
+      "verifier": "retained_failure"
+    }
+  ],
+  "frozen": true,
+  "fingerprint": "e3d2f2d095d6407ea4035bacbc3644027e83b444ccd457937c8306f9725f33b8"
+}

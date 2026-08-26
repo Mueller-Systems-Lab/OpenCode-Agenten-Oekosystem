@@ -60,6 +60,7 @@
             "test/harness/apply.test.mjs",
              "test/harness/runtime-wiring.test.mjs"
              ,"test/harness/evaluation.test.mjs"
+             ,"test/harness/phase-c-candidate-v2.test.mjs"
         ],
         "contract": [
             "test/contracts/bootstrap-capability-contract.test.mjs",

@@ -1,0 +1,68 @@
+{
+  "contract": "issue-33-independent-verifier.v1",
+  "corpus_fingerprint": "e3d2f2d095d6407ea4035bacbc3644027e83b444ccd457937c8306f9725f33b8",
+  "plan_fingerprint": "465219b6076286ef2fb2016bf4e509a0e66d3cb6e320fe22ab763a5690dd6df4",
+  "checks": [
+    {
+      "name": "candidate_locked_before_holdout_creation",
+      "ok": true
+    },
+    {
+      "name": "holdout_independent_from_development_corpus",
+      "ok": true
+    },
+    {
+      "name": "corpus_frozen_and_fingerprint_valid",
+      "ok": true
+    },
+    {
+      "name": "new_cases_cover_required_product_classes",
+      "ok": true
+    },
+    {
+      "name": "promotion_policy_frozen",
+      "ok": true
+    },
+    {
+      "name": "all_planned_runs_completed",
+      "ok": true
+    },
+    {
+      "name": "all_failures_retained",
+      "ok": true
+    },
+    {
+      "name": "paired_arms_balanced",
+      "ok": true
+    },
+    {
+      "name": "only_harness_variant_changed",
+      "ok": true
+    },
+    {
+      "name": "paid_effects_zero",
+      "ok": true
+    },
+    {
+      "name": "product_boundary_preserved",
+      "ok": true
+    },
+    {
+      "name": "no_profile_promoted",
+      "ok": true
+    },
+    {
+      "name": "success_gate_and_efficiency_gate",
+      "ok": true
+    }
+  ],
+  "planned_runs": 30,
+  "completed_runs": 30,
+  "generic_verified_success": 15,
+  "candidate_verified_success": 15,
+  "generic_average_input_context_volume": 474.2,
+  "candidate_average_input_context_volume": 438.6,
+  "effect_size": 0.07507380851961191,
+  "promotion_decision": "B_REJECT_NO_VALUE",
+  "result": "PASS"
+}

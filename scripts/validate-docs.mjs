@@ -32,7 +32,11 @@ function checkLinks(source, text) {
 }
 
 const manifest = JSON.parse(read("ecosystem.manifest.json"))
-const cliVersion = /__version__\s*=\s*["']([^"']+)["']/.exec(read("src/ocae_cli/_version.py"))?.[1]
+// `_version.py` is a generated, git-ignored packaging artifact. Documentation
+// validation must work from a fresh checkout before the build backend runs.
+const versionPath = path.join(root, "src/ocae_cli/_version.py")
+const versionText = fs.existsSync(versionPath) ? fs.readFileSync(versionPath, "utf8") : ""
+const cliVersion = /__version__\s*=\s*["']([^"']+)["']/.exec(versionText)?.[1] || String(manifest.version)
 const releaseData = JSON.parse(read("docs/release-data.json"))
 const agentFiles = fs.existsSync(path.join(root, ".opencode/agents"))
   ? fs.readdirSync(path.join(root, ".opencode/agents")).filter((name) => name.endsWith(".md")).sort()

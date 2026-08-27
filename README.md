@@ -7,6 +7,12 @@ one versioned CLI into an existing project and get 13 specialized agents,
 capability profiles, skills, policies, verification, and fail-closed
 project-local governance.
 
+<p align="left">
+  <img src="docs/brand/mueller-systems-lab-icon.svg" alt="Mueller-Systems-Lab" width="96">
+</p>
+
+Developed by [Mueller-Systems-Lab](https://github.com/Mueller-Systems-Lab). OCAE remains an independent product identity.
+
 ## FOR AI AGENTS RECEIVING THIS URL:
 
 If another OpenCode project is already open, the default task is to install OCAE
@@ -18,7 +24,7 @@ and [`ocae.handoff.json`](ocae.handoff.json).
 ## Quick install
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.7
+uv tool install ocae-cli --from git+https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git@v1.0.7
 ```
 
 Then, from the target project:
@@ -197,7 +203,7 @@ provenance and managed-file state before changing it. To restore a backup, use
 - [`docs/reports/`](docs/reports/) — historical evidence and run reports
 - [`docs/evaluation/`](docs/evaluation/) — frozen harness evidence and the
   final no-promotion decision
-- [GitHub Pages landing page](https://xxammaxx.github.io/OpenCode-Agenten-Oekosystem/)
+- [GitHub Pages landing page](https://mueller-systems-lab.github.io/OpenCode-Agenten-Oekosystem/)
 
 ## Known limitations
 

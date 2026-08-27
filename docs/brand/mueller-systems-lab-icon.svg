@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Mueller-Systems-Lab icon</title>
+  <desc id="desc">Silver angular M and S monogram with cyan signal and system ring.</desc>
+  <rect width="1024" height="1024" rx="160" fill="#071426"/>
+  <g transform="translate(202 197) scale(1.45)" fill="none" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M72 286V72l150 126L372 72v214" stroke="#E5EAF0" stroke-width="42"/>
+    <path d="M352 153H207c-37 0-62 27-62 62s25 62 62 62h78c37 0 62 27 62 62s-25 62-62 62H143" stroke="#9AA8B8" stroke-width="42"/>
+    <path d="M18 250h72l22-34 24 68 28-112 29 158 25-80h112" stroke="#5ED6FF" stroke-width="13"/>
+    <circle cx="18" cy="250" r="12" fill="#5ED6FF" stroke="none"/>
+    <circle cx="330" cy="250" r="12" fill="#5ED6FF" stroke="none"/>
+    <path d="M84 134A215 215 0 0 1 430 132M76 366A215 215 0 0 0 430 366" stroke="#20B8F2" stroke-width="9"/>
+    <path d="M260 414v25m-43 0h86m-63 18h40" stroke="#5ED6FF" stroke-width="9"/>
+  </g>
+</svg>

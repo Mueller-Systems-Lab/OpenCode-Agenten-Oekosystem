@@ -15,7 +15,7 @@ runtime assets remain owned by
 Install the published release with `uv`:
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.7
+uv tool install ocae-cli --from git+https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git@v1.0.7
 ```
 
 The source ref is pinned to `v1.0.7`. The package does not clone the repository

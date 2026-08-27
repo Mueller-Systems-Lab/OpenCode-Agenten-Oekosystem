@@ -14,7 +14,7 @@ test("final publication metadata is coherent", () => {
   assert.equal(release.version, String(manifest.version))
   assert.equal(release.tag, `v${manifest.version}`)
   assert.match(release.releaseCommit, /^[0-9a-f]{40}$/)
-  assert.equal(release.installCommand, `uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v${manifest.version}`)
+  assert.equal(release.installCommand, `uv tool install ocae-cli --from git+https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git@v${manifest.version}`)
   assert.equal(release.agentCount, fs.readdirSync(path.join(root, ".opencode/agents")).filter((name) => name.endsWith(".md")).length)
   assert.equal(release.capabilityProfileCount, release.agentCount)
 })

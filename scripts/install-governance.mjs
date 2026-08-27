@@ -1487,7 +1487,7 @@ export const CanonicalGovernancePlugin = async ({ directory, worktree, client = 
   return {
     'chat.message': async (input, output) => {
       const text = directText(output);
-      if (!text || output?.message?.role !== 'user' || /https:\\/\\/github\\.com\\/xxammaxx\\/OpenCode-Agenten-Oekosystem(?:\\.git)?\\/?/i.test(text)) return;
+      if (!text || output?.message?.role !== 'user' || /https:\\/\\/github\\.com\\/Mueller-Systems-Lab\\/OpenCode-Agenten-Oekosystem(?:\\.git)?\\/?/i.test(text)) return;
       const result = await bootstrapTask({
         targetRoot,
         sessionId: input?.sessionID || output?.message?.sessionID || '',
@@ -2187,7 +2187,7 @@ async function runApplyPhase(args) {
     sourceRoot: repoRoot,
     sourceCommit,
     sourceRef: getSourceRef(repoRoot),
-    sourceRepository: getSourceRepository(repoRoot) || "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+    sourceRepository: getSourceRepository(repoRoot) || "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
     mode: (await readInstallationManifest(targetRoot)) ? "UPDATE_EXISTING" : "INSTALL_NEW",
     filePlan,
     conflicts,

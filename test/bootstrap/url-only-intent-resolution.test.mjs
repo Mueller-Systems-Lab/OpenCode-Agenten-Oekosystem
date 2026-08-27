@@ -19,7 +19,7 @@ import {
   validateHandoffContract,
 } from "../../bootstrap/lib/handoff.mjs"
 
-const canonicalUrl = "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+const canonicalUrl = "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
 
 async function makeHandoffFixture() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "ocae-handoff-contract-"))

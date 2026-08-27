@@ -29,7 +29,7 @@ test("root URL-only discovery contract is published and self-referential", async
   assert.match(readme, /Never read target .*secret files/i)
   assert.match(guide, /Never read target .*secret files/i)
   assert.match(guide, /bootstrap\.mjs/)
-  assert.match(guide, /https:\/\/github\.com\/xxammaxx\/OpenCode-Agenten-Oekosystem/)
+  assert.match(guide, /https:\/\/github\.com\/Mueller-Systems-Lab\/OpenCode-Agenten-Oekosystem/)
   assert.doesNotMatch(guide, /recommended handoff URL:[\s\S]*\/tree\/feat\/governance-v2-closure-20260724/)
   assert.match(await read("llms.txt"), /AI-BOOTSTRAP\.md/)
 })
@@ -44,22 +44,22 @@ test("manifest validates and references the canonical V2 paths", async () => {
 })
 
 test("GitHub repository, branch, and commit URLs normalize without local paths", () => {
-  assert.deepEqual(normalizeBootstrapUrl("https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"), {
-    repository: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+  assert.deepEqual(normalizeBootstrapUrl("https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"), {
+    repository: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
     ref: null,
     ref_type: "default",
   })
-  assert.equal(normalizeBootstrapUrl("https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/tree/feat/demo").ref, "feat/demo")
-  assert.equal(normalizeBootstrapUrl("https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/commit/0123456789abcdef0123456789abcdef01234567").ref_type, "commit")
+  assert.equal(normalizeBootstrapUrl("https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem/tree/feat/demo").ref, "feat/demo")
+  assert.equal(normalizeBootstrapUrl("https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem/commit/0123456789abcdef0123456789abcdef01234567").ref_type, "commit")
   assert.throws(() => normalizeBootstrapUrl("file:///tmp/source"), /GitHub repository URL/)
-  assert.throws(() => normalizeBootstrapUrl("https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/tree/"), /ref/i)
+  assert.throws(() => normalizeBootstrapUrl("https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem/tree/"), /ref/i)
 })
 
 test("root launcher rejects a supplied branch or tag ref that does not identify the checkout", () => {
   const result = runNodeScript("bootstrap.mjs", [
     "--target", repoRoot,
     "--verify",
-    "--source-url", "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/tree/definitely-not-this-ref",
+    "--source-url", "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem/tree/definitely-not-this-ref",
   ])
   assert.equal(result.status, 2)
   assert.match(result.stderr, /Source branch or tag mismatch/)
@@ -69,7 +69,7 @@ test("root launcher resolves HEAD without requiring a feature-branch ref", () =>
   const result = runNodeScript("bootstrap.mjs", [
     "--target", repoRoot,
     "--verify",
-    "--source-url", "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+    "--source-url", "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
   ])
   assert.doesNotMatch(result.stderr, /Cannot resolve source ref/)
 })
@@ -122,17 +122,17 @@ test("root launcher pins checkout provenance for apply and verify", async (t) =>
   const apply = runNodeScript("bootstrap.mjs", [
     "--target", target,
     "--apply",
-    "--source-url", "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+    "--source-url", "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
   ])
   assert.equal(apply.status, 0, apply.stderr || apply.stdout)
   const installation = JSON.parse(await readFile(path.join(target, ".opencode/ecosystem-installation.json"), "utf8"))
   assert.match(installation.source_commit, /^[0-9a-f]{40}$/)
-  assert.equal(installation.source_repository, "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem")
+  assert.equal(installation.source_repository, "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem")
 
   const verify = runNodeScript("bootstrap.mjs", [
     "--target", target,
     "--verify",
-    "--source-url", "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+    "--source-url", "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
   ])
   assert.equal(verify.status, 0, verify.stderr || verify.stdout)
   assert.equal(JSON.parse(verify.stdout).classification, "VERIFIED_IN_SCOPE")
@@ -195,12 +195,12 @@ async function exists(filePath) {
 }
 
 test("git remote URLs normalize to one GitHub repository identity across https, scp, and ssh forms", () => {
-  const canonical = "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+  const canonical = "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
   for (const remote of [
-    "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
-    "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git",
-    "git@github.com:xxammaxx/OpenCode-Agenten-Oekosystem.git",
-    "ssh://git@github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git",
+    "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
+    "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git",
+    "git@github.com:Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git",
+    "ssh://git@github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git",
   ]) {
     assert.equal(normalizeGitRemoteRepository(remote).repository, canonical, remote)
   }

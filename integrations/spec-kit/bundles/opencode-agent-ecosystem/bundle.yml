@@ -19,17 +19,17 @@ provides:
   extensions:
     - id: opencode-evidence
       version: "0.1.0"
-      source: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+      source: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
   presets:
     - id: opencode-canonical-method
       version: "0.1.0"
       priority: 10
       strategy: replace
-      source: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+      source: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
   workflows:
     - id: opencode-safe-delivery
       version: "0.1.0"
-      source: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+      source: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
 
 tags:
   - opencode

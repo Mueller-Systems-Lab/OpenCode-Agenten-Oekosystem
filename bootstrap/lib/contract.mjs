@@ -2,7 +2,7 @@ import path from "node:path"
 
 export const BOOTSTRAP_PROTOCOL = "url-only-v1"
 export const ECOSYSTEM = "OpenCode-Agenten-Oekosystem"
-export const REPOSITORY = "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+export const REPOSITORY = "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
 export const PRODUCT_INVARIANT = "OCAE_IS_AN_OPENCODE_URL_INSTALLABLE_AGENT_ECOSYSTEM"
 export const CLASSIFICATIONS = Object.freeze([
   "RED_BLOCK",

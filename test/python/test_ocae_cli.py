@@ -75,7 +75,7 @@ class PayloadTests(unittest.TestCase):
         value = provenance.provenance()
         self.assertEqual(value["distribution"], "ocae-cli")
         self.assertTrue(value["source_commit"] == "DIRTY_WORKTREE" or len(value["source_commit"]) == 40)
-        self.assertEqual(value["source_repository"], "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem")
+        self.assertEqual(value["source_repository"], "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem")
 
 
 class RuntimeTests(unittest.TestCase):
@@ -153,7 +153,7 @@ class OpenCodeIntegrationTests(unittest.TestCase):
                     "exit_code": 0,
                     "stdout": json.dumps({
                         "version": opencode.__version__,
-                        "source_repository": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+                        "source_repository": "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
                         "source_commit": "4f97bdd6ed78a607a64742352a372ef453a7b009",
                     }),
                     "stderr": "",
@@ -184,7 +184,7 @@ class OpenCodeIntegrationTests(unittest.TestCase):
                     "exit_code": 0,
                     "stdout": json.dumps({
                         "version": opencode.__version__,
-                        "source_repository": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+                        "source_repository": "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
                         "source_commit": "4f97bdd6ed78a607a64742352a372ef453a7b009",
                     }),
                     "stderr": "",
@@ -233,7 +233,7 @@ class OpenCodeIntegrationTests(unittest.TestCase):
                     "exit_code": 0,
                     "stdout": json.dumps({
                         "version": opencode.__version__,
-                        "source_repository": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+                        "source_repository": "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
                         "source_commit": "4f97bdd6ed78a607a64742352a372ef453a7b009",
                     }),
                     "stderr": "",

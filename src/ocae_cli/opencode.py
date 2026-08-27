@@ -384,7 +384,7 @@ def integrate_opencode() -> dict:
         except json.JSONDecodeError as error:
             raise IntegrationError("RED_BLOCK_CLI_PROVENANCE", "the bound OCAE CLI returned invalid provenance JSON") from error
         if (
-            source.get("source_repository") != "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+            source.get("source_repository") != "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
             or not re.fullmatch(r"[0-9a-f]{40}", str(source.get("source_commit", "")), re.IGNORECASE)
             or source.get("version") != __version__
         ):

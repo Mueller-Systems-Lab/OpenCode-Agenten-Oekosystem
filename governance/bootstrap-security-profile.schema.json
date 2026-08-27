@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/governance/bootstrap-security-profile.schema.json",
+  "$id": "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem/governance/bootstrap-security-profile.schema.json",
   "title": "Bootstrap Security Profile",
   "type": "object",
   "additionalProperties": false,

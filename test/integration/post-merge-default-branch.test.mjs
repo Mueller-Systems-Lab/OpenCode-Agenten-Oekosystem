@@ -7,7 +7,7 @@ import test from "node:test"
 import { fileURLToPath } from "node:url"
 
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
-const rootUrl = "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+const rootUrl = "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
 
 function git(cwd, args, options = {}) {
   return execFileSync("git", args, {

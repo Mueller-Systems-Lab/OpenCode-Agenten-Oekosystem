@@ -71,7 +71,7 @@ test("C2/C3: installation and URL-only bootstrap do not require legacy runtime c
     const result = spawnSync(process.execPath, ["scripts/install-governance.mjs", "--target", targetRoot, "--apply", "--json", "--runtime", "opencode"], {
       cwd: repoRoot,
       encoding: "utf8",
-      env: withoutLegacyRuntimeEnv({ OCAE_BOOTSTRAP_SOURCE_REPOSITORY: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem" }),
+      env: withoutLegacyRuntimeEnv({ OCAE_BOOTSTRAP_SOURCE_REPOSITORY: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem" }),
     })
     assert.equal(result.status, 0, result.stderr || result.stdout)
     await fs.access(path.join(targetRoot, ".opencode/plugins/governance-v2.mjs"))

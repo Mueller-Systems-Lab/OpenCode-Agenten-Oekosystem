@@ -166,7 +166,7 @@ def governance_install(args, session_id=None):
     """Slash command: install governance into current project."""
     return {
         "message": "Governance installation: Use the canonical URL installer:\n"
-        "  1. Provide repository URL: https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem\n"
+        "  1. Provide repository URL: https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem\n"
         "  2. The AI will run a dry-run first, then require approval before applying.\n"
         "  3. After installation, restart your session via the managed launcher."
     }

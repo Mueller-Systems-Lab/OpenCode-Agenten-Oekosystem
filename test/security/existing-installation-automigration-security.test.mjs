@@ -30,7 +30,7 @@ async function makeCurrent(t) {
   t.after(() => fs.rm(target, { recursive: true, force: true }))
   const install = spawnSync(process.execPath, [path.join(repoRoot, "scripts/install-governance.mjs"), "--target", target, "--apply", "--json"], {
     cwd: repoRoot,
-    env: { ...process.env, OCAE_BOOTSTRAP_SOURCE_COMMIT: sourceCommit, OCAE_BOOTSTRAP_SOURCE_REPOSITORY: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem" },
+    env: { ...process.env, OCAE_BOOTSTRAP_SOURCE_COMMIT: sourceCommit, OCAE_BOOTSTRAP_SOURCE_REPOSITORY: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem" },
     encoding: "utf8",
   })
   assert.equal(install.status, 0, install.stderr || install.stdout)

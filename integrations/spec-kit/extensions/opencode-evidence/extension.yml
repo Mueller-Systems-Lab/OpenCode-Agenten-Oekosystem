@@ -8,7 +8,7 @@ extension:
   category: "quality"
   effect: "read-write"
   author: "xxammaxx"
-  repository: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+  repository: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
   license: "MIT"
 
 requires:

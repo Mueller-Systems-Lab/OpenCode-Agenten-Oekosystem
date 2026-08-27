@@ -5,8 +5,8 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 const ADAPTER_ID = "ocae-opencode-handoff"
-const CANONICAL_REPOSITORY = "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
-const CANONICAL_URL_RE = /https:\/\/github\.com\/xxammaxx\/OpenCode-Agenten-Oekosystem(?:\.git)?\/?(?=$|[\s"'<>),.!?])/iu
+const CANONICAL_REPOSITORY = "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
+const CANONICAL_URL_RE = /https:\/\/github\.com\/Mueller-Systems-Lab\/OpenCode-Agenten-Oekosystem(?:\.git)?\/?(?=$|[\s"'<>),.!?])/iu
 const RUNTIME_STATE_SCHEMA_VERSION = "ocae-project-runtime-state.1"
 const GOVERNANCE_RUNTIME_VERSION = "governance-v2.runtime.1"
 const TASK_BOOTSTRAP_CONTRACT_VERSION = "governance-v2.task-bootstrap.1"

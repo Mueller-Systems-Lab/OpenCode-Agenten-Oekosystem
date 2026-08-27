@@ -15,7 +15,7 @@ PAYLOAD_ROOT = PACKAGE_ROOT / "_payload"
 ARCHIVE_PATH = PAYLOAD_ROOT / "canonical-runtime.tar.gz"
 MANIFEST_PATH = PAYLOAD_ROOT / "ocae-payload-manifest.json"
 VERSION_PATH = PACKAGE_ROOT / "_version.py"
-CANONICAL_SOURCE_REPOSITORY = "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+CANONICAL_SOURCE_REPOSITORY = "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
 
 RUNTIME_FILES = (
     "scripts/install-governance.mjs",

@@ -2,7 +2,7 @@
 """Canonical Agent Governance — Hermes Runtime Enforcement Plugin.
 
 Entry point for installation via:
-    hermes plugins install https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem
+    hermes plugins install https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem
 
 Registers the pre_tool_call enforcement hook and the /governance-* slash
 commands with the Hermes plugin context.

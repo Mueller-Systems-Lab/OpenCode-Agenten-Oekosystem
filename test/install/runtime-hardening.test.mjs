@@ -18,7 +18,7 @@ function sourceCommit() {
 function installerEnv() {
   return {
     OCAE_BOOTSTRAP_SOURCE_COMMIT: sourceCommit(),
-    OCAE_BOOTSTRAP_SOURCE_REPOSITORY: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+    OCAE_BOOTSTRAP_SOURCE_REPOSITORY: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
   }
 }
 

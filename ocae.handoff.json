@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "product": "OCAE",
-  "canonical_repository": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+  "canonical_repository": "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
   "bare_url_default_intent": "INSTALL_IN_CALLER_WORKSPACE",
   "source_role": "READ_ONLY_DISTRIBUTION_SOURCE",
   "target_resolution": "CALLER_WORKSPACE_AT_HANDOFF",

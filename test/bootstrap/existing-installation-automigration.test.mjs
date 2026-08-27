@@ -113,7 +113,7 @@ test("trusted reconciliation updates the real old fixture and preserves owner fi
         path.join(repoRoot, "scripts/install-governance.mjs"), "--target", target, "--apply", "--json", "--mode", "UPDATE_EXISTING",
       ], {
         cwd: repoRoot,
-        env: { ...process.env, OCAE_BOOTSTRAP_SOURCE_COMMIT: CURRENT_COMMIT, OCAE_BOOTSTRAP_SOURCE_REPOSITORY: TRUSTED_MANIFEST.source_repository || "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem" },
+        env: { ...process.env, OCAE_BOOTSTRAP_SOURCE_COMMIT: CURRENT_COMMIT, OCAE_BOOTSTRAP_SOURCE_REPOSITORY: TRUSTED_MANIFEST.source_repository || "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem" },
         encoding: "utf8",
         maxBuffer: 20 * 1024 * 1024,
       })
@@ -165,7 +165,7 @@ test("current marker is a no-CLI fast path and foreign projects pass through", a
   t.after(() => fs.rm(target, { recursive: true, force: true }))
   const install = spawnSync(process.execPath, [path.join(repoRoot, "scripts/install-governance.mjs"), "--target", target, "--apply", "--json"], {
     cwd: repoRoot,
-    env: { ...process.env, OCAE_BOOTSTRAP_SOURCE_COMMIT: CURRENT_COMMIT, OCAE_BOOTSTRAP_SOURCE_REPOSITORY: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem" },
+    env: { ...process.env, OCAE_BOOTSTRAP_SOURCE_COMMIT: CURRENT_COMMIT, OCAE_BOOTSTRAP_SOURCE_REPOSITORY: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem" },
     encoding: "utf8",
   })
   assert.equal(install.status, 0, install.stderr || install.stdout)

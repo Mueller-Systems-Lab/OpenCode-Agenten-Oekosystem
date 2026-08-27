@@ -33,7 +33,7 @@ Automation should pin the published release and use the same CLI commands as a
 human operator:
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v1.0.7
+uv tool install ocae-cli --from git+https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git@v1.0.7
 ocae doctor "<TARGET_ROOT>"
 ocae install "<TARGET_ROOT>" --dry-run
 ocae install "<TARGET_ROOT>"

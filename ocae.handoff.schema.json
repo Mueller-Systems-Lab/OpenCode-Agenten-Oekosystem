@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem/blob/master/ocae.handoff.schema.json",
+  "$id": "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem/blob/master/ocae.handoff.schema.json",
   "title": "OCAE AI Handoff Contract",
   "type": "object",
   "additionalProperties": false,
@@ -21,7 +21,7 @@
   "properties": {
     "schema_version": { "const": "1.0.0" },
     "product": { "const": "OCAE" },
-    "canonical_repository": { "const": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem" },
+    "canonical_repository": { "const": "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem" },
     "bare_url_default_intent": { "const": "INSTALL_IN_CALLER_WORKSPACE" },
     "source_role": { "const": "READ_ONLY_DISTRIBUTION_SOURCE" },
     "target_resolution": { "const": "CALLER_WORKSPACE_AT_HANDOFF" },

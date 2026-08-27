@@ -2,7 +2,7 @@
   "$schema": "./manifest.schema.json",
   "schema_version": "1",
   "ecosystem": "OpenCode-Agenten-Oekosystem",
-  "repository": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+  "repository": "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
   "bootstrap_protocol": "url-only-v1",
   "entrypoint": "AI-BOOTSTRAP.md",
   "launcher": "bootstrap.mjs",
@@ -19,7 +19,7 @@
   "product_contract": {
     "invariant": "OCAE_IS_AN_OPENCODE_URL_INSTALLABLE_AGENT_ECOSYSTEM",
     "host": "OPENCODE",
-    "source_url": "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+    "source_url": "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
     "artifact_classes": {
       "installable_product_runtime": [".agent-governance/runtime/**"],
       "installable_agent_definitions": [".opencode/agents/**"],

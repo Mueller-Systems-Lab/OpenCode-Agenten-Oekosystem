@@ -85,7 +85,7 @@ test("controller blocks a requested secret read, deduplicates it, recovers, and 
   const controller = await createSecureBootstrapController({
     sourceRoot,
     targetRoot,
-    sourceUrl: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+    sourceUrl: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
     knownSecrets: [sentinel],
   })
 
@@ -147,7 +147,7 @@ test("controller completes apply, verify, idempotence, rollback, re-apply, and f
   const controller = await createSecureBootstrapController({
     sourceRoot,
     targetRoot,
-    sourceUrl: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+    sourceUrl: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
     knownSecrets: [sentinel],
   })
 
@@ -190,7 +190,7 @@ test("authenticated MCP broker exposes only typed tools and returns structured g
   const controller = await createSecureBootstrapController({
     sourceRoot,
     targetRoot,
-    sourceUrl: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+    sourceUrl: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
     knownSecrets: [sentinel],
   })
   const token = crypto.randomBytes(24).toString("hex")
@@ -253,17 +253,17 @@ test("source provenance accepts GitHub HTTPS and SSH remotes that identify the r
   const { targetRoot } = await createTarget()
   t.after(() => fs.rm(targetRoot, { recursive: true, force: true }))
   for (const origin of [
-    "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
-    "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git",
-    "git@github.com:xxammaxx/OpenCode-Agenten-Oekosystem.git",
-    "ssh://git@github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git",
+    "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
+    "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git",
+    "git@github.com:Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git",
+    "ssh://git@github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git",
   ]) {
     const sourceRoot = await createRemoteSource(origin)
     t.after(() => fs.rm(sourceRoot, { recursive: true, force: true }))
     await assert.doesNotReject(createSecureBootstrapController({
       sourceRoot,
       targetRoot,
-      sourceUrl: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+      sourceUrl: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
     }))
   }
 })
@@ -283,7 +283,7 @@ test("source provenance blocks cross-owner, cross-repository, and non-GitHub rem
       createSecureBootstrapController({
         sourceRoot,
         targetRoot,
-        sourceUrl: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem",
+      sourceUrl: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
       }),
       /RED_BLOCK_SOURCE_PROVENANCE_MISMATCH/,
     )

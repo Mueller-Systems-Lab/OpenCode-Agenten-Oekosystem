@@ -37,7 +37,7 @@ TARGET_ROOT_AFTER == TARGET_ROOT_BEFORE
 When this canonical URL is received without an explicit development request:
 
 ```text
-https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem
+https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem
 ```
 
 the OCAE repository is `SOURCE_REPOSITORY`, not `TARGET_ROOT`. The source is

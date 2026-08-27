@@ -6,7 +6,7 @@ preset:
   version: "0.1.0"
   description: "Spec Kit command guidance aligned with the repository Canonical Working Method"
   author: "xxammaxx"
-  repository: "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+  repository: "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
   license: "MIT"
 
 requires:

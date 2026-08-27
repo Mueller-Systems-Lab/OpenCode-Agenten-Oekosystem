@@ -48,7 +48,7 @@ assert(String(manifest.version) === cliVersion, `manifest/CLI version drift: ${m
 assert(releaseData.version === String(manifest.version), "release data version does not match ecosystem manifest")
 assert(releaseData.tag === `v${manifest.version}`, "release data tag does not match manifest version")
 assert(/^[0-9a-f]{40}$/.test(releaseData.releaseCommit), "release data must contain the exact stable release commit")
-assert(releaseData.installCommand === `uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v${manifest.version}`, "release data install command is stale")
+assert(releaseData.installCommand === `uv tool install ocae-cli --from git+https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git@v${manifest.version}`, "release data install command is stale")
 assert(releaseData.agentCount === agentIds.length, `release data agent count ${releaseData.agentCount} does not match ${agentIds.length} source agents`)
 assert(releaseData.capabilityProfileCount === agentIds.length, "capability profile count does not match installable agent count")
 assert(JSON.stringify(releaseData.agents.map((agent) => agent.id)) === JSON.stringify(agentIds), "release data agent inventory drift")
@@ -64,7 +64,7 @@ const siteJs = read("docs/assets/site.js")
 const siteCss = read("docs/assets/site.css")
 const activeDocs = { "README.md": readme, "AI-INSTALL.md": aiInstall, "AI-BOOTSTRAP.md": aiBootstrap, "BOOTSTRAP.md": bootstrap, "docs/ocae-cli.md": cliDoc, "docs/index.html": landing }
 const forbiddenInternalReference = new RegExp(`${["CT", "108"].join("")}|TTS`, "i")
-const installCommand = `uv tool install ocae-cli --from git+https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem.git@v${cliVersion}`
+const installCommand = `uv tool install ocae-cli --from git+https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git@v${cliVersion}`
 
 assert(readme.startsWith("# OCAE"), "README does not start with the OCAE product hero")
 assert(readme.includes(`OCAE CLI v${cliVersion}`), "README product version is missing or stale")

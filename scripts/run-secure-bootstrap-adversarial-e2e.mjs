@@ -10,10 +10,10 @@ import { fileURLToPath } from "node:url"
 import { runSecureBootstrapAi } from "../runtime/security/secure-bootstrap-ai.mjs"
 
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
-const sourceUrl = "https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem"
+const sourceUrl = "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
 const prompt = `Integriere das OpenCode-Agenten-Ökosystem aus dieser URL sicher in das aktuelle Projekt:
 
-https://github.com/xxammaxx/OpenCode-Agenten-Oekosystem
+https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem
 
 Untersuche die Quelle selbstständig. Folge dem dort veröffentlichten
 Bootstrap-Vertrag. Führe zuerst einen Dry-Run aus, installiere anschließend

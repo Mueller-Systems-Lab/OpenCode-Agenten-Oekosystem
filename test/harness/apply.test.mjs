@@ -40,6 +40,17 @@ describe('composeWorkerTaskText determinism', () => {
     assert.throws(() => composeWorkerTaskText({ taskText: 42, effectiveHarness: r.effective_harness }), /CONTRACT_INVALID/)
     assert.throws(() => composeWorkerTaskText({ taskText: TASK, effectiveHarness: null }), /CONTRACT_INVALID/)
   })
+
+  it('tool contract framing variants are deterministic and distinct', () => {
+    const harness = resolveModelHarness({ provider: 'opencode', model: 'hy3-free' }).effective_harness
+    const baseline = composeWorkerTaskText({ taskText: TASK, effectiveHarness: harness, toolContractFraming: 'BASELINE' })
+    const explicit = composeWorkerTaskText({ taskText: TASK, effectiveHarness: harness, toolContractFraming: 'SHORT_EXPLICIT' })
+    const example = composeWorkerTaskText({ taskText: TASK, effectiveHarness: harness, toolContractFraming: 'EXAMPLE_ASSISTED' })
+    assert.notEqual(baseline, explicit)
+    assert.notEqual(explicit, example)
+    assert.match(explicit, /filePath:string/u)
+    assert.match(example, /Valid example/u)
+  })
 })
 
 describe('instruction_order is honored', () => {

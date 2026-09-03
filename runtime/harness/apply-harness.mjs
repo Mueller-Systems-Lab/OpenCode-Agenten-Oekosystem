@@ -37,9 +37,12 @@ const ANCHORING_LINES = Object.freeze({
  * Deterministically compose the worker task text from the task and the
  * effective harness. Same inputs → byte-identical string. Pure function.
  */
-export function composeWorkerTaskText({ taskText, effectiveHarness }) {
+export function composeWorkerTaskText({ taskText, effectiveHarness, toolContractFraming = 'BASELINE' }) {
   if (typeof taskText !== 'string' || !isPlainObject(effectiveHarness)) {
     throw new Error('CONTRACT_INVALID:compose-worker-task-text:expected { taskText: string, effectiveHarness: object }')
+  }
+  if (!['BASELINE', 'SHORT_EXPLICIT', 'EXAMPLE_ASSISTED'].includes(toolContractFraming)) {
+    throw new Error(`CONTRACT_INVALID:compose-worker-task-text:unknown tool contract framing "${String(toolContractFraming)}"`)
   }
   const contextPolicy = isPlainObject(effectiveHarness.context_policy) ? effectiveHarness.context_policy : {}
   const toolPolicy = isPlainObject(effectiveHarness.tool_policy) ? effectiveHarness.tool_policy : {}
@@ -96,6 +99,20 @@ export function composeWorkerTaskText({ taskText, effectiveHarness }) {
   const hints = Array.isArray(contextPolicy.compression_hints) ? contextPolicy.compression_hints.filter((hint) => typeof hint === 'string' && hint) : []
   if (hints.length > 0) {
     blocks.push(['Efficiency:', ...hints.map((hint) => `- ${hint}`)].join('\n'))
+  }
+
+  if (toolContractFraming !== 'BASELINE') {
+    const contractLines = toolContractFraming === 'EXAMPLE_ASSISTED'
+      ? [
+          'Tool contract: read, write, and edit use filePath:string; grep uses pattern:string and path:string; glob uses pattern:string; list uses path:string.',
+          'All paths are relative to the project root; use only the arguments required by the selected tool.',
+          'Valid example: {"filePath":"data/input.txt"}.',
+        ]
+      : [
+          'Tool contract: read, write, and edit use filePath:string; grep uses pattern:string and path:string; glob uses pattern:string; list uses path:string.',
+          'All paths are relative to the project root and must be strings.',
+        ]
+    blocks.push(['Tool contract:', ...contractLines].join('\n'))
   }
 
   const planningGranularity = planningPolicy.emit_directive === false

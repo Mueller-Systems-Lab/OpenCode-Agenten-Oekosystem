@@ -44,6 +44,40 @@ RAW TOOL OBSERVATION
      MODEL next decision
 ```
 
+## Implemented deterministic research path
+
+The first implementation slice is development/evaluation-only and is exposed
+by `runtime/harness/observation-adapter.mjs`. It does not replace the
+canonical runtime or become an OpenCode tool executor.
+
+```mermaid
+flowchart TD
+  U[User Task] --> R[Canonical Runtime]
+  R --> H[Model / Harness Resolution]
+  H --> T[OpenCode Native Tool Surface]
+  T --> C[Tool Call]
+  C --> O[Raw Observation Receipt]
+  O --> V[Evidence / Verifier]
+  O --> A[Deterministic OCAE Observation Adapter]
+  A --> M[Model-Facing Observation]
+  M --> L[LLM]
+  L --> N[Next Action]
+  N --> C
+  O --> X{Workspace Mutation?}
+  X -->|yes| S[Freshness Check: STALE / REVALIDATION_REQUIRED]
+  S -->|critical| C
+  L -->|authorized model switch| Q[Rehydrate from Raw Receipt or Re-observe]
+  Q --> M
+  L -->|host compaction| K[Reinject Constraints + Provenance]
+  K --> M
+```
+
+The raw receipt remains available to verification. A model switch re-renders
+from that receipt when present and otherwise returns `REOBSERVATION_REQUIRED`.
+Compaction is represented by an explicit receipt that is accounted for only
+when hard constraints and observation provenance were both preserved. A stale
+critical observation is not usable without revalidation.
+
 ## Required observation envelope
 
 A normalized model-facing result should expose deterministic metadata where available and useful:

@@ -25,6 +25,11 @@ EFFECTIVE_AGENT_CAPABILITY
 
 `TOOL_OBSERVATION_CAPABILITY` covers result comprehension, failure recognition, call/source correlation, truncation/completeness recognition, grounded next-action selection and grounded final claims.
 
+Implementation status: the deterministic contract and fixture path are now
+implemented in `runtime/harness/observation-adapter.mjs` and
+`runtime/harness/qualification-runner.mjs`. No model-specific profile is
+promoted and no stable runtime authority is changed by this research slice.
+
 `CONTEXT_COMPACTION_COMPATIBILITY` covers whether the model can safely continue after OpenCode host compaction/instruction-epoch transitions with the relevant evidence/constraints preserved or re-established.
 
 ## Observation authority boundary

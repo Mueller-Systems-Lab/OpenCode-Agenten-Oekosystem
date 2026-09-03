@@ -118,6 +118,13 @@ expand only when justified
 
 A small/local model may therefore receive a much narrower search and context surface than a stronger model while both operate on the same OpenCode workspace.
 
+The implemented research policy in
+`runtime/harness/qualification-runner.mjs` records bounded discovery strategies
+over granted native tools. It rejects an ungranted strategy, rejects paths
+outside the authorized scope, and carries an explicit
+`parallel_full_repository_index: false` marker. This is policy over the host;
+it is not a repository index.
+
 ## Empirical optimization targets
 
 The qualification milestone may measure, among other things:

@@ -176,7 +176,7 @@ does not overwrite the earlier live qualification report.
 ```text
 FINAL_CLASSIFICATION=AMBER_OCAE_CAUSAL_EXPERIMENT_BLOCKED_MODEL_UNAVAILABLE
 START_HEAD=f2a380ec2ab35b820d8d870996b4b710682516ea
-FINAL_HEAD=ff6f13f051fb10b4f3ccd94e4b202e76f54b5f35
+FINAL_HEAD=8e9b8c246aef49f5c071524c2bbaec81c5a1eed5
 BRANCH=research/issue-43-empirical-capability-qualification
 ISSUE=43
 PR=44
@@ -255,9 +255,10 @@ GIT_DIFF_CHECK=PASS
 
 - Required model preflight timed out before the first live row; no causal arm
   or holdout evidence exists.
-- GitHub push and external comment actions were blocked by the local bootstrap
-  governance gate because this checkout had no valid Task Capsule. The
-  attempted actions were fail-closed and did not transmit commits.
+- Earlier governed push attempts without a valid Task Capsule were fail-closed
+  and left no remote change. The final explicit push of the reviewed commits
+  and the Issue/PR completion comments succeeded; the remote head is recorded
+  in the GitHub completion comments and final agent handoff.
 
 ## Research findings
 

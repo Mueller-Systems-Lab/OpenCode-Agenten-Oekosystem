@@ -26,6 +26,7 @@ import {
 } from '../../runtime/harness/observation-adapter.mjs'
 import {
   createFixtureQualificationExecutor,
+  createLiveQualificationExecutor,
   acceptDiscoveryResult,
   createDiscoveryPolicy,
   createFrozenQualificationCorpora,
@@ -35,6 +36,7 @@ import {
   evaluateHoldoutConfirmation,
   runQualification,
 } from '../../runtime/harness/qualification-runner.mjs'
+import { createOpenCodeLiveExecutor, parseOpenCodeEvents } from '../../runtime/harness/live-qualification.mjs'
 import { getExplicitLocalRuntime } from '../../runtime/harness/local-runtime.mjs'
 
 const A = 'a'.repeat(64)
@@ -151,6 +153,7 @@ test('qualification runner freezes derivation and independent holdout corpora', 
   const plan = createQualificationPlan({ identity: identity({ qualification_corpus_fingerprint: corpora.derivation.fingerprint, holdout_corpus_fingerprint: corpora.holdout.fingerprint }), corpora, model: { provider: 'fixture', model: 'fixture-model' }, harness_fingerprint: A, verifier_version: 'test-v1', granted_tools: ['read', 'grep'], candidate_fingerprint: A })
   const evidence = await runQualification({ plan, executor: createFixtureQualificationExecutor((row) => ({ verified_success: true, metrics: { tool_selection_correct: true, observation_status_comprehension: true }, exposed_tools: ['read'] })) })
   assert.equal(evidence.records.length, 4)
+  assert.deepEqual(plan.rows.map((row) => row.arm), ['candidate', 'generic', 'generic', 'candidate'])
   assert.equal(evidence.metrics.DERIVATION_CORPUS.sample_count, 2)
   assert.equal(evidence.metrics.CONFIRMATORY_HOLDOUT_CORPUS.sample_count, 2)
   assert.ok(evidence.records.every((record) => record.retained === true))
@@ -189,4 +192,14 @@ test('local qualification is explicit-only and does not scan endpoints', () => {
   assert.equal(getExplicitLocalRuntime({ env: {} }).status, 'NOT_CONFIGURED')
   assert.equal(getExplicitLocalRuntime({ env: { OCAE_LOCAL_OPENAI_BASE_URL: 'http://127.0.0.1:1234/v1', OCAE_LOCAL_OPENAI_MODEL: 'fixture-local' } }).status, 'CONFIGURED')
   assert.equal(getExplicitLocalRuntime({ env: { OCAE_LOCAL_OPENAI_BASE_URL: 'http://192.168.1.2:1234/v1', OCAE_LOCAL_OPENAI_MODEL: 'fixture-local' } }).status, 'INVALID_CONFIGURATION')
+})
+
+test('live qualification requires canonical exact-provider metadata and parses native events', () => {
+  assert.throws(() => createLiveQualificationExecutor({ execute: async () => ({}), metadata: { provider: 'opencode', model: 'm' } }), /canonical runtime\/provider metadata/u)
+  const executor = createOpenCodeLiveExecutor({ provider: 'opencode', model: 'muse-spark-1.2-contributor-free', opencode_bin: 'opencode', timeout_ms: 10 })
+  assert.equal(executor.kind, 'canonical-live')
+  assert.equal(executor.metadata.canonical_runtime_entry, true)
+  assert.equal(executor.metadata.fallback_disabled, true)
+  assert.equal(executor.metadata.model, 'muse-spark-1.2-contributor-free')
+  assert.equal(parseOpenCodeEvents('{"type":"step_finish","part":{"reason":"stop","cost":0}}')[0].part.reason, 'stop')
 })

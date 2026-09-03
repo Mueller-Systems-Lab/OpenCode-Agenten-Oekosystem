@@ -4,6 +4,8 @@ Status: **Research specification**
 Issue: **#43**  
 Product impact: **none until separately promoted by evidence**
 
+Normative host-boundary reference: [`../architecture/opencode-workspace-host-boundary.md`](../architecture/opencode-workspace-host-boundary.md)
+
 ## 1. Purpose
 
 OCAE already has a deterministic hierarchical model harness and a runtime-owned model catalog. Issue #33 proved that the architecture can resolve model-specific profiles, compose task-role overlays, expose tools conservatively, record evidence, and reject candidate profiles that do not prove value.
@@ -16,6 +18,7 @@ The core hypothesis is:
 effective_agent_capability
   = model_interface_capability
   ∩ provider_runtime_capability
+  ∩ opencode_workspace_capability
   ∩ empirical_tool_capability
   ∩ task_complexity_capability
   ∩ session_grant
@@ -43,6 +46,21 @@ A generic harness may therefore hide useful latent capability or overload a weak
 
 All Issue #33 authority boundaries remain binding.
 
+OpenCode is the authoritative workspace host and code-intelligence surface. OCAE must reuse OpenCode-native project/worktree, filesystem, search, LSP/code-intelligence, tool transport and context mechanisms where they are sufficient. OCAE owns policy for how those host capabilities are used; it does not own a parallel full-repository index.
+
+Canonical host boundary:
+
+```text
+OPENCODE_OWNS_WORKSPACE_MECHANICS
+OCAE_OWNS_DISCOVERY_STRATEGY_AND_POLICY
+```
+
+OCAE may decide an allowed discovery sequence, tool exposure, result-count bounds, context shaping, bounded expansion, verification points, and model-specific decomposition. Those decisions can only narrow or reorganize an already-authorized surface.
+
+OCAE must not prescribe the target repository's application folder layout. Its existing lightweight discovery of language/framework/package-manager/test/database/monorepo/project signals remains policy input, not a competing source-code intelligence engine.
+
+A future OCAE-owned source index requires a separately evidenced OpenCode host gap and separate authorization as defined by the normative host-boundary document.
+
 ### Canonical core owns
 
 - security and permissions;
@@ -60,7 +78,7 @@ All Issue #33 authority boundaries remain binding.
 - capability observation and scoring;
 - evidence aggregation;
 - generation of development-only candidate profile data;
-- deterministic recommendations for tool hiding, task decomposition, context shaping, or role scaffolding.
+- deterministic recommendations for tool hiding, OpenCode-native discovery strategy, task decomposition, context shaping, or role scaffolding.
 
 ### Qualification layer must never own
 
@@ -70,9 +88,10 @@ All Issue #33 authority boundaries remain binding.
 - model self-selection;
 - automatic production promotion;
 - autonomous modification of security/governance policy;
-- secret discovery or persistence.
+- secret discovery or persistence;
+- a parallel full-repository index without separately proven host need.
 
-`QUALIFICATION_DATA_IS_NOT_AUTHORITY` is a new explicit invariant.
+`QUALIFICATION_DATA_IS_NOT_AUTHORITY` is an explicit invariant.
 
 ## 4. Capability layers
 
@@ -103,7 +122,21 @@ Describes what the current execution path actually exposes for the model:
 
 The same underlying model served through two runtimes may therefore qualify as two different operational identities.
 
-### 4.3 Empirical tool capability
+### 4.3 OpenCode workspace capability
+
+Describes the relevant host mechanics available for the qualification fixture/task, including where observable:
+
+- project/worktree context;
+- filesystem read/write surface;
+- `glob`/pattern discovery;
+- `grep`/text search;
+- `lsp`/code-intelligence availability for the task language;
+- host tool-contract/version identity;
+- context/session mechanisms relevant to the experiment.
+
+Qualification evidence must not assume that every OpenCode installation has identical code-intelligence availability. Host capability identity should be fingerprinted sufficiently to detect stale or incomparable evidence.
+
+### 4.4 Empirical tool capability
 
 Per tool or normalized tool class, measure at least:
 
@@ -133,7 +166,7 @@ Example conceptual record:
 
 Exact production schema is deferred to implementation, but sample counts must always accompany rates.
 
-### 4.4 Task-complexity capability
+### 4.5 Task-complexity capability
 
 Measure the model under controlled increases in difficulty:
 
@@ -144,11 +177,12 @@ Measure the model under controlled increases in difficulty:
 - branching/recovery requirements;
 - context size;
 - tool-result size;
-- structured-output strictness.
+- structured-output strictness;
+- task-local discovery depth and breadth using OpenCode-native primitives.
 
 The objective is not to assign an intelligence score. It is to find stable operating regions for the harness.
 
-### 4.5 Session capability
+### 4.6 Session capability
 
 The actual session grant is authoritative. Qualification can only remove or reframe tools from the granted set.
 
@@ -158,7 +192,7 @@ candidate_exposed_tools ⊆ granted_tools
 
 Any candidate profile that references an ungranted tool remains a fail-closed security violation.
 
-## 5. Model/runtime identity
+## 5. Model/runtime and host identity
 
 Qualification evidence must bind to a stable non-secret identity containing, where available:
 
@@ -166,7 +200,9 @@ Qualification evidence must bind to a stable non-secret identity containing, whe
 - model identifier;
 - runtime/host class;
 - model endpoint class (`hosted`, `local-openai-compatible`, etc.);
-- relevant host/runtime version;
+- relevant model runtime version;
+- OpenCode version/runtime identity;
+- OpenCode workspace/tool capability fingerprint;
 - qualification corpus fingerprint;
 - harness fingerprint;
 - tool-contract fingerprint;
@@ -203,6 +239,7 @@ Minimum groups:
 6. **Context pressure** — controlled context and tool-result volume increases.
 7. **Role behavior** — PLAN, BUILD, REVIEW, RESEARCH, TOOL_USE overlays.
 8. **Structured output** — exact schema/output compliance where authorized.
+9. **OpenCode-native discovery** — compare bounded discovery strategies such as `glob → grep → read`, `grep → lsp → read`, and other justified combinations without duplicating host indexing.
 
 Tasks must be deterministic or verifier-deterministic wherever possible.
 
@@ -220,6 +257,7 @@ Persist raw counts before derived rates. At minimum:
 - unnecessary tool calls;
 - input context volume;
 - tool-result volume;
+- discovery steps and result counts where applicable;
 - latency/throughput if reliably observable;
 - failure-class distribution.
 
@@ -235,6 +273,7 @@ Permitted candidate adaptations include:
 - shorter or more explicit tool descriptions;
 - explicit tool-call contracts;
 - one-tool-at-a-time scaffolding;
+- bounded OpenCode-native discovery sequences and result counts;
 - bounded task decomposition;
 - role-specific planning granularity;
 - context ordering/compression;
@@ -242,7 +281,7 @@ Permitted candidate adaptations include:
 - known-failure mitigations;
 - verifier-directed retry hints within canonical retry bounds.
 
-A candidate must never alter routing, grants, security, budget, terminal authority, or promotion policy.
+A candidate must never alter routing, grants, security, budget, terminal authority, promotion policy, or target-repository architecture.
 
 ## 10. Task decomposition contract
 
@@ -259,19 +298,27 @@ Required invariants:
 
 ## 11. Causal evaluation
 
-Any candidate claiming value must be compared against `generic.v1` under identical conditions:
+For every candidate with a concrete hypothesis, compare:
 
-- same model/provider/runtime;
-- same task corpus;
-- same permissions;
-- same granted tools before candidate hiding;
-- same verifier;
-- same retry budget;
-- same host constraints where controllable.
+```text
+GENERIC_V1_BASELINE
+vs
+MODEL_SPECIFIC_CANDIDATE
+```
 
-Change one hypothesis family at a time whenever practical.
+Hold constant:
 
-Promotion remains:
+- model/provider/runtime identity;
+- OpenCode host capability identity relevant to the test;
+- task corpus;
+- initial grants;
+- verifier;
+- retry budget;
+- runtime constraints.
+
+Only the intended candidate policy family may differ. Failed runs remain evidence.
+
+Promotion still requires:
 
 ```text
 NO_CORE_REGRESSION
@@ -280,43 +327,46 @@ AND NO_SIGNIFICANT_VERIFIED_SUCCESS_REGRESSION
 AND MEASURABLE_MODEL_SPECIFIC_VALUE
 ```
 
-A neutral or negative result is a valid research result and must be preserved.
+No profile is promoted merely because it reduces context or because a local model is cheaper.
 
-## 12. Proposed outputs
+## 12. Workspace-host invariants
 
-The research implementation should ultimately produce:
+The following are normative for this milestone:
 
-- a versioned empirical capability-record schema;
-- a deterministic qualification runner;
-- frozen qualification corpora;
-- a local OpenAI-compatible runtime probe path;
-- persisted evidence bundles and fingerprints;
-- a candidate-derivation function;
-- per-model qualification summaries;
-- generic-vs-candidate A/B evidence;
-- explicit `PROMOTED`, `REJECTED`, or `NOT_PROMOTED_NO_VALUE` decisions.
+```text
+OPENCODE_OWNS_WORKSPACE_MECHANICS
+OCAE_MUST_REUSE_HOST_CODE_INTELLIGENCE_WHERE_SUFFICIENT
+OCAE_DISCOVERY_STRATEGY_IS_POLICY_NOT_AUTHORITY
+OCAE_DISCOVERY_STRATEGY_CANNOT_EXPAND_SCOPE
+OCAE_MAY_HIDE_BUT_MUST_NOT_GRANT_TOOLS
+TARGET_REPOSITORY_LAYOUT_IS_NOT_PRESCRIBED_BY_OCAE
+NO_PARALLEL_FULL_REPOSITORY_INDEX_WITHOUT_EVIDENCED_HOST_GAP
+HOST_GAP_REQUIRES_SEPARATE_REQUIREMENT_AND_AUTHORIZATION
+```
 
-## 13. Non-goals
+A strategy that assumes unavailable/stale host capabilities must fall back safely or fail closed; it must not silently synthesize a substitute source of truth.
 
-This work does not:
+## 13. Expected research outcomes
 
-- modify model weights;
-- claim access to model training data;
-- implement online reinforcement learning;
-- authorize unrestricted self-modifying prompts;
-- make production policy self-evolving;
-- turn benchmark scores into authority;
-- make a local model production-ready merely because it runs successfully;
-- replace OpenCode as OCAE's host.
+Valid terminal outcomes include:
 
-## 14. Research interpretation
+- measurable model-specific value and a separately reviewable promotion candidate;
+- safe but neutral optimization (`NOT_PROMOTED_NO_VALUE`);
+- correctness regression (`REJECTED_FOR_CORRECTNESS`);
+- security/authority regression (`REJECTED_FOR_SECURITY`);
+- insufficient evidence.
 
-The intended research question is no longer simply:
+A neutral/negative model result can still satisfy the milestone if the qualification system correctly measures and rejects non-value.
 
-> Which model is best?
+## 14. Non-goals
 
-It becomes:
-
-> For a given authorized task and runtime, what is the smallest sufficient model, tool surface, context shape, and task decomposition that maximizes verified success without violating OCAE's authority and security invariants?
-
-That question is compatible with OCAE's free-first and evidence-first architecture and is especially relevant to local and small models.
+- claiming that harnessing changes model weights or training knowledge;
+- replacing OpenCode as the host;
+- replacing OpenCode's workspace, file-search, LSP/code-intelligence, tool transport, or context substrate;
+- prescribing target-project application folder layout;
+- autonomous self-modification of production policy;
+- unrestricted continuous learning;
+- online reinforcement learning as a requirement;
+- benchmarking every provider/model;
+- automatic production promotion;
+- weakening any canonical OCAE security/governance boundary.

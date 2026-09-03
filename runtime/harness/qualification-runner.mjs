@@ -15,13 +15,15 @@ const FORBIDDEN = new Set([
 const METRICS = Object.freeze([
   'tool_selection_correct', 'tool_argument_validity', 'required_tool_used', 'unnecessary_tool_calls',
   'invalid_tool_calls', 'recovery_after_invalid_call', 'recovery_after_tool_failure', 'tool_call_count',
+  'schema_parse_failure', 'wrong_argument_name', 'missing_required_argument', 'invalid_argument_type', 'semantic_argument_error',
   'observation_status_comprehension', 'source_attribution_correct', 'path_line_association_correct',
   'failure_class_comprehension', 'truncation_awareness', 'staleness_awareness', 'grounded_final_claim',
   'fabricated_result_count', 'next_action_correct', 'cross_result_correlation_correct',
   'parallel_call_generation_accuracy', 'parallel_result_correlation_accuracy', 'cross_result_contamination',
   'discovery_steps', 'files_read', 'symbols_read', 'search_result_count', 'irrelevant_context',
   'latency_ms', 'context_volume', 'raw_result_volume', 'adapted_result_volume', 'retry_count',
-  'information_complexity', 'subagent_observation_comprehension', 'post_compaction_success',
+  'information_complexity', 'exposed_tool_count', 'source_count', 'simultaneous_failure_count', 'open_hypothesis_count',
+  'subagent_observation_comprehension', 'post_compaction_success',
   'model_switch_rehydration_success',
 ])
 
@@ -99,7 +101,7 @@ export function createQualificationPlan({ identity, corpora = createFrozenQualif
   if (!isObject(model) || typeof model.provider !== 'string' || typeof model.model !== 'string') fail('model is required')
   if (typeof harness_fingerprint !== 'string' || typeof verifier_version !== 'string') fail('harness_fingerprint and verifier_version are required')
   if (!Array.isArray(granted_tools) || granted_tools.some((tool) => typeof tool !== 'string')) fail('granted_tools must be strings')
-  if (!Array.isArray(arms) || arms.length === 0 || arms.some((arm) => !['generic', 'candidate'].includes(arm))) fail('arms must be generic and/or candidate')
+  if (!Array.isArray(arms) || arms.length === 0 || arms.some((arm) => typeof arm !== 'string' || !/^[A-Za-z][A-Za-z0-9_.-]{0,63}$/u.test(arm))) fail('arms must be non-empty identifier strings')
   if (arms.includes('candidate') && (typeof candidate_fingerprint !== 'string' || !/^(?:sha256:)?[a-f0-9]{64}$/u.test(candidate_fingerprint))) fail('candidate arm requires a frozen candidate_fingerprint')
   if (arms.includes('generic') && candidate_fingerprint && typeof candidate_fingerprint !== 'string') fail('candidate_fingerprint must be a string')
   if (!Number.isInteger(repetitions) || repetitions < 1 || repetitions > 3) fail('repetitions must be 1..3')
@@ -154,6 +156,22 @@ function safeObservationReceipt(receipt) {
   }
 }
 
+function safeObservationInterposition(item) {
+  if (!item || typeof item !== 'object') return null
+  return {
+    raw_observation_fingerprint: typeof item.raw_observation_fingerprint === 'string' ? item.raw_observation_fingerprint : null,
+    model_facing_observation_fingerprint: typeof item.model_facing_observation_fingerprint === 'string' ? item.model_facing_observation_fingerprint : null,
+    adapter_id: typeof item.adapter_id === 'string' ? item.adapter_id : null,
+    adapter_version: typeof item.adapter_version === 'string' ? item.adapter_version : null,
+    lossiness: typeof item.lossiness === 'string' ? item.lossiness : null,
+    truncated: item.truncated === true,
+    source: typeof item.source === 'string' ? item.source : null,
+    provenance: typeof item.provenance === 'string' ? item.provenance : null,
+    tool_call_id: typeof item.tool_call_id === 'string' ? item.tool_call_id : null,
+    interposed_before_model: item.interposed_before_model === true,
+  }
+}
+
 export function createFixtureQualificationExecutor(execute) {
   if (typeof execute !== 'function') fail('fixture executor callback required')
   return freeze({ kind: 'fixture', provenance: 'deterministic-fixture', execute })
@@ -170,13 +188,14 @@ export function createLiveQualificationExecutor({ execute, metadata } = {}) {
   return Object.freeze({ kind: 'canonical-live', provenance: 'canonical-opencode-runtime', metadata: { ...metadata }, execute })
 }
 
-export async function runQualification({ plan, executor, mode = null } = {}) {
+export async function runQualification({ plan, executor, mode = null, concurrency = 1 } = {}) {
   if (!plan || plan.contract !== QUALIFICATION_RUNNER_CONTRACT) fail('qualification plan required')
   if (!executor || !['fixture', 'canonical-live'].includes(executor.kind) || typeof executor.execute !== 'function') fail('fixture or canonical live executor required')
   if (executor.kind === 'canonical-live' && (!executor.metadata || executor.metadata.provider !== plan.model.provider || executor.metadata.model !== plan.model.model)) fail('live executor identity mismatch')
   if (mode && !QUALIFICATION_MODES.includes(mode)) fail('invalid execution mode')
+  if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 2) fail('concurrency must be 1..2')
   const records = []
-  for (const row of plan.rows.filter((item) => !mode || item.mode === mode)) {
+  const executeRow = async (row) => {
     const testCase = [...plan.corpora.derivation.cases, ...plan.corpora.holdout.cases].find((item) => item.case_id === row.case_id)
     let result
     try {
@@ -216,9 +235,11 @@ export async function runQualification({ plan, executor, mode = null } = {}) {
         tool: typeof call.tool === 'string' ? call.tool : null,
         call_id: typeof call.call_id === 'string' ? call.call_id : null,
         argument_valid: call.argument_valid === true,
+        argument_diagnostic: typeof call.argument_diagnostic === 'string' ? call.argument_diagnostic : null,
         status: typeof call.status === 'string' ? call.status : null,
       })) : [],
       observation_receipts: Array.isArray(result.observation_receipts) ? result.observation_receipts.map(safeObservationReceipt) : [],
+      observation_interposition: Array.isArray(result.observation_interposition) ? result.observation_interposition.map(safeObservationInterposition).filter(Boolean) : [],
       model_facing_observation: result.model_facing_observation && typeof result.model_facing_observation === 'object'
         ? { derived: result.model_facing_observation.derived === true, lossiness: result.model_facing_observation.lossiness || null, truncated: result.model_facing_observation.truncated === true, provenance_preserved: result.model_facing_observation.provenance_preserved === true }
         : null,
@@ -232,7 +253,12 @@ export async function runQualification({ plan, executor, mode = null } = {}) {
       retained: true,
       latency_ms: Number.isFinite(result.latency_ms) ? result.latency_ms : null,
     })
-    records.push(record)
+    return record
+  }
+  const rows = plan.rows.filter((item) => !mode || item.mode === mode)
+  for (let index = 0; index < rows.length; index += concurrency) {
+    const batch = await Promise.all(rows.slice(index, index + concurrency).map(executeRow))
+    records.push(...batch)
   }
   return freeze({ contract: QUALIFICATION_RUNNER_CONTRACT, plan: { fingerprint: plan.fingerprint, candidate_fingerprint: plan.candidate_fingerprint, arms: [...plan.arms] }, plan_fingerprint: plan.fingerprint, corpus_fingerprints: { derivation: plan.corpora.derivation.fingerprint, holdout: plan.corpora.holdout.fingerprint }, records, metrics: calculateQualificationMetrics(records) })
 }

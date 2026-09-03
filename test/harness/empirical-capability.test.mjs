@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict'
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
 import test from 'node:test'
 
 import {
@@ -36,7 +39,7 @@ import {
   evaluateHoldoutConfirmation,
   runQualification,
 } from '../../runtime/harness/qualification-runner.mjs'
-import { createOpenCodeLiveExecutor, parseOpenCodeEvents } from '../../runtime/harness/live-qualification.mjs'
+import { createOpenCodeLiveExecutor, invokeOpenCode, parseOpenCodeEvents } from '../../runtime/harness/live-qualification.mjs'
 import { getExplicitLocalRuntime } from '../../runtime/harness/local-runtime.mjs'
 
 const A = 'a'.repeat(64)
@@ -87,6 +90,44 @@ test('raw observation remains available while deterministic adaptation marks los
   assert.equal(truncated.truncated, true)
   assert.equal(truncated.omitted_count_or_range, '10+ chars')
   assert.throws(() => adaptObservation(raw, { max_chars: 10, lossiness: 'NONE' }), /must be marked TRUNCATED/u)
+})
+
+test('qualification plans support frozen factorial arm identifiers', () => {
+  const corpora = createFrozenQualificationCorpora({
+    derivation_cases: [{ case_id: 'derivation', dimension: 'test', tool_class: 'read', task_role: 'TOOL_USE' }],
+    holdout_cases: [{ case_id: 'holdout', dimension: 'test', tool_class: 'read', task_role: 'TOOL_USE' }],
+  })
+  const plan = createQualificationPlan({
+    identity: identity(),
+    corpora,
+    model: { provider: 'fixture', model: 'fixture-model' },
+    harness_fingerprint: A,
+    verifier_version: 'test-v1',
+    arms: ['A', 'B', 'C', 'D'],
+    max_rows: 16,
+  })
+  assert.deepEqual(plan.arms, ['A', 'B', 'C', 'D'])
+  assert.equal(plan.rows.length, 8)
+  assert.throws(() => createQualificationPlan({ identity: identity(), corpora, model: { provider: 'fixture', model: 'fixture-model' }, harness_fingerprint: A, verifier_version: 'test-v1', arms: [''] }), /non-empty identifier/u)
+})
+
+test('qualification concurrency is bounded and preserves frozen record order', async () => {
+  const corpora = createFrozenQualificationCorpora({
+    derivation_cases: [{ case_id: 'derivation', dimension: 'test', tool_class: 'read', task_role: 'TOOL_USE' }],
+    holdout_cases: [{ case_id: 'holdout', dimension: 'test', tool_class: 'read', task_role: 'TOOL_USE' }],
+  })
+  const plan = createQualificationPlan({ identity: identity(), corpora, model: { provider: 'fixture', model: 'fixture-model' }, harness_fingerprint: A, verifier_version: 'test-v1', arms: ['A', 'B'], max_rows: 8 })
+  let active = 0
+  let maximum = 0
+  const evaluation = await runQualification({ plan, concurrency: 2, executor: createFixtureQualificationExecutor(async () => {
+    active += 1
+    maximum = Math.max(maximum, active)
+    await new Promise((resolve) => setTimeout(resolve, 1))
+    active -= 1
+    return { verified_success: true }
+  }) })
+  assert.equal(maximum, 2)
+  assert.deepEqual(evaluation.records.map((record) => record.sequence), [0, 1, 2, 3])
 })
 
 test('adapter cannot turn failure into success and verifier uses raw evidence', () => {
@@ -202,4 +243,18 @@ test('live qualification requires canonical exact-provider metadata and parses n
   assert.equal(executor.metadata.fallback_disabled, true)
   assert.equal(executor.metadata.model, 'muse-spark-1.2-contributor-free')
   assert.equal(parseOpenCodeEvents('{"type":"step_finish","part":{"reason":"stop","cost":0}}')[0].part.reason, 'stop')
+})
+
+test('OpenCode invocation resolves and kills non-cancellable timeout children', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ocae-timeout-test-'))
+  const bin = path.join(root, 'hang.mjs')
+  try {
+    await fs.writeFile(bin, '#!/usr/bin/env node\nsetTimeout(() => {}, 10000)\n', { mode: 0o700 })
+    const started = Date.now()
+    const result = await invokeOpenCode({ opencode_bin: bin, provider: 'fixture', model: 'fixture', root, prompt: 'test', timeout_ms: 10 })
+    assert.equal(result.failure_class, 'TIMEOUT')
+    assert.ok(Date.now() - started < 1000)
+  } finally {
+    await fs.rm(root, { recursive: true, force: true })
+  }
 })

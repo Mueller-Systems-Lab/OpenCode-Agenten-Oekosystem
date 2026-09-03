@@ -106,8 +106,13 @@ export function createQualificationPlan({ identity, corpora = createFrozenQualif
   const rows = []
   for (const mode of QUALIFICATION_MODES) {
     const corpus = mode === 'DERIVATION_CORPUS' ? corpora.derivation : corpora.holdout
-    for (let repetition = 1; repetition <= repetitions; repetition += 1) for (const testCase of corpus.cases) for (const arm of arms) {
-      rows.push({ sequence: rows.length, mode, arm, corpus_fingerprint: corpus.fingerprint, case_id: testCase.case_id, model: { ...model }, repetition, granted_tools: [...granted_tools] })
+    for (let repetition = 1; repetition <= repetitions; repetition += 1) for (const [caseIndex, testCase] of corpus.cases.entries()) {
+      const counterbalancedArms = (caseIndex + repetition + (mode === 'CONFIRMATORY_HOLDOUT_CORPUS' ? 1 : 0)) % 2 === 0
+        ? arms
+        : [...arms].reverse()
+      for (const arm of counterbalancedArms) {
+        rows.push({ sequence: rows.length, mode, arm, corpus_fingerprint: corpus.fingerprint, case_id: testCase.case_id, model: { ...model }, repetition, granted_tools: [...granted_tools] })
+      }
     }
   }
   if (rows.length > max_rows) fail('planned rows exceed bound')
@@ -154,9 +159,21 @@ export function createFixtureQualificationExecutor(execute) {
   return freeze({ kind: 'fixture', provenance: 'deterministic-fixture', execute })
 }
 
+/** Explicit live seam; callers must provide the canonical provider marker. */
+export function createLiveQualificationExecutor({ execute, metadata } = {}) {
+  if (typeof execute !== 'function') fail('live executor callback required')
+  if (!isObject(metadata) || metadata.canonical_runtime_entry !== true
+    || metadata.provider_executor_contract !== 'ecosystem.provider-executor.v1'
+    || typeof metadata.provider !== 'string' || typeof metadata.model !== 'string') {
+    fail('live executor requires canonical runtime/provider metadata')
+  }
+  return Object.freeze({ kind: 'canonical-live', provenance: 'canonical-opencode-runtime', metadata: { ...metadata }, execute })
+}
+
 export async function runQualification({ plan, executor, mode = null } = {}) {
   if (!plan || plan.contract !== QUALIFICATION_RUNNER_CONTRACT) fail('qualification plan required')
-  if (!executor || executor.kind !== 'fixture' || typeof executor.execute !== 'function') fail('fixture executor required')
+  if (!executor || !['fixture', 'canonical-live'].includes(executor.kind) || typeof executor.execute !== 'function') fail('fixture or canonical live executor required')
+  if (executor.kind === 'canonical-live' && (!executor.metadata || executor.metadata.provider !== plan.model.provider || executor.metadata.model !== plan.model.model)) fail('live executor identity mismatch')
   if (mode && !QUALIFICATION_MODES.includes(mode)) fail('invalid execution mode')
   const records = []
   for (const row of plan.rows.filter((item) => !mode || item.mode === mode)) {
@@ -189,6 +206,29 @@ export async function runQualification({ plan, executor, mode = null } = {}) {
       failure_class: result.failure_class || null,
       raw_observation_receipt: safeObservationReceipt(result.raw_observation_receipt),
       canonical_verifier: result.canonical_verifier === true,
+      canonical_runtime_entry: result.canonical_runtime_entry === true,
+      live_model_evidence: result.live_model_evidence === true,
+      paid_calls: Number.isInteger(result.paid_calls) ? result.paid_calls : 0,
+      fallback_used: result.fallback_used === true,
+      profile_id: typeof result.profile_id === 'string' ? result.profile_id : null,
+      harness_fingerprint: typeof result.harness_fingerprint === 'string' ? result.harness_fingerprint : null,
+      tool_calls: Array.isArray(result.tool_calls) ? result.tool_calls.map((call) => ({
+        tool: typeof call.tool === 'string' ? call.tool : null,
+        call_id: typeof call.call_id === 'string' ? call.call_id : null,
+        argument_valid: call.argument_valid === true,
+        status: typeof call.status === 'string' ? call.status : null,
+      })) : [],
+      observation_receipts: Array.isArray(result.observation_receipts) ? result.observation_receipts.map(safeObservationReceipt) : [],
+      model_facing_observation: result.model_facing_observation && typeof result.model_facing_observation === 'object'
+        ? { derived: result.model_facing_observation.derived === true, lossiness: result.model_facing_observation.lossiness || null, truncated: result.model_facing_observation.truncated === true, provenance_preserved: result.model_facing_observation.provenance_preserved === true }
+        : null,
+      verifier_result: result.verifier_result && typeof result.verifier_result === 'object'
+        ? { ok: result.verifier_result.ok === true, code: typeof result.verifier_result.code === 'string' ? result.verifier_result.code : null }
+        : null,
+      context_volume: Number.isFinite(result.context_volume) ? result.context_volume : null,
+      raw_result_volume: Number.isFinite(result.raw_result_volume) ? result.raw_result_volume : null,
+      adapted_result_volume: Number.isFinite(result.adapted_result_volume) ? result.adapted_result_volume : null,
+      retry_count: Number.isInteger(result.retry_count) ? result.retry_count : 0,
       retained: true,
       latency_ms: Number.isFinite(result.latency_ms) ? result.latency_ms : null,
     })

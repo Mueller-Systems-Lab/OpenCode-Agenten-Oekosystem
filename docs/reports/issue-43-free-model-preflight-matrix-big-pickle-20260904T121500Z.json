@@ -1,0 +1,1132 @@
+{
+  "contract": "ecosystem.issue-43-free-model-preflight-matrix.v1",
+  "captured_at": "2026-09-04T12:19:19.892Z",
+  "opencode_version": "1.18.27",
+  "inventory_command": "opencode models --verbose --print-logs --log-level DEBUG",
+  "provider_inventory_command": "opencode providers list --print-logs --log-level DEBUG",
+  "inventory_ordering": "current OpenCode inventory order",
+  "inventory_records": 389,
+  "free_model_candidates_discovered": 41,
+  "free_model_candidates_eligible": 35,
+  "free_model_candidate_list": [
+    {
+      "candidate_index": 1,
+      "provider": "opencode",
+      "model": "big-pickle",
+      "display_name": "Big Pickle",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 200000,
+        "input": 160000,
+        "output": 32000
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "opencode/big-pickle",
+      "preflight_outcome": "PASS"
+    },
+    {
+      "candidate_index": 2,
+      "provider": "opencode",
+      "model": "ling-3.0-flash-fin-free",
+      "display_name": "Ling 3.0 Flash Fin Free",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 262144,
+        "input": null,
+        "output": 32768
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "opencode/ling-3.0-flash-fin-free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 3,
+      "provider": "opencode",
+      "model": "mimo-v2.5-free",
+      "display_name": "MiMo V2.5 Free",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 200000,
+        "input": null,
+        "output": 32000
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "opencode/mimo-v2.5-free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 4,
+      "provider": "opencode",
+      "model": "muse-spark-1.2-contributor-free",
+      "display_name": "Muse Spark 1.2 Free",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1048576,
+        "input": null,
+        "output": 131072
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "opencode/muse-spark-1.2-contributor-free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 5,
+      "provider": "opencode",
+      "model": "muse-spark-1.3-contributor-free",
+      "display_name": "Muse Spark 1.3 Free",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1048576,
+        "input": null,
+        "output": 131072
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "opencode/muse-spark-1.3-contributor-free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 6,
+      "provider": "opencode",
+      "model": "nemotron-3-ultra-free",
+      "display_name": "Nemotron 3 Ultra Free",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1000000,
+        "input": null,
+        "output": 128000
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "opencode/nemotron-3-ultra-free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 7,
+      "provider": "opencode",
+      "model": "nemotron-3.5-lightning-free",
+      "display_name": "Nemotron 3.5 Lightning Free",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 262144,
+        "input": null,
+        "output": 262144
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "opencode/nemotron-3.5-lightning-free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 8,
+      "provider": "openrouter",
+      "model": "cohere/north-mini-code:free",
+      "display_name": "North Mini Code (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 256000,
+        "input": null,
+        "output": 64000
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/cohere/north-mini-code:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 9,
+      "provider": "openrouter",
+      "model": "dots-studio/dots-3-note-preview:free",
+      "display_name": "Dots3-Note Preview (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 512000,
+        "input": null,
+        "output": 460800
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/dots-studio/dots-3-note-preview:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 10,
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it:free",
+      "display_name": "Gemma 4 26B A4B  (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 262144,
+        "input": null,
+        "output": 32768
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/google/gemma-4-26b-a4b-it:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 11,
+      "provider": "openrouter",
+      "model": "google/gemma-4-31b-it:free",
+      "display_name": "Gemma 4 31B (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 262144,
+        "input": null,
+        "output": 32768
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/google/gemma-4-31b-it:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 12,
+      "provider": "openrouter",
+      "model": "google/lyria-3-clip-preview",
+      "display_name": "Lyria 3 Clip Preview",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": false,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1048576,
+        "input": null,
+        "output": 65536
+      },
+      "excluded": true,
+      "exclusion_reason": "KNOWN_NON_TOOL_MODEL",
+      "canonical_provider_path": "openrouter/google/lyria-3-clip-preview",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 13,
+      "provider": "openrouter",
+      "model": "google/lyria-3-pro-preview",
+      "display_name": "Lyria 3 Pro Preview",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": false,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1048576,
+        "input": null,
+        "output": 65536
+      },
+      "excluded": true,
+      "exclusion_reason": "KNOWN_NON_TOOL_MODEL",
+      "canonical_provider_path": "openrouter/google/lyria-3-pro-preview",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 14,
+      "provider": "openrouter",
+      "model": "inclusionai/ling-3.0-flash-fin:free",
+      "display_name": "Ling 3.0 Flash Fin (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 262144,
+        "input": null,
+        "output": 32768
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/inclusionai/ling-3.0-flash-fin:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 15,
+      "provider": "openrouter",
+      "model": "liquid/lfm-2.5-2.6b:free",
+      "display_name": "LFM2.5-2.6B (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 65536,
+        "input": null,
+        "output": 8192
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/liquid/lfm-2.5-2.6b:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 16,
+      "provider": "openrouter",
+      "model": "minimax/minimax-m2.7:free",
+      "display_name": "MiniMax M2.7 (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 196608,
+        "input": null,
+        "output": 176947
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/minimax/minimax-m2.7:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 17,
+      "provider": "openrouter",
+      "model": "minimax/minimax-m3:free",
+      "display_name": "MiniMax M3 (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1048576,
+        "input": null,
+        "output": 943718
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/minimax/minimax-m3:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 18,
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "display_name": "Nemotron 3 Nano Omni (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 256000,
+        "input": null,
+        "output": 65536
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 19,
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3-super-120b-a12b:free",
+      "display_name": "Nemotron 3 Super (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 262144,
+        "input": null,
+        "output": 235929
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 20,
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "display_name": "Nemotron 3 Ultra (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1000000,
+        "input": null,
+        "output": 65536
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 21,
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3.5-content-safety:free",
+      "display_name": "Nemotron 3.5 Content Safety (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": false,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 128000,
+        "input": null,
+        "output": 8192
+      },
+      "excluded": true,
+      "exclusion_reason": "KNOWN_NON_TOOL_MODEL",
+      "canonical_provider_path": "openrouter/nvidia/nemotron-3.5-content-safety:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 22,
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3.5-lightning:free",
+      "display_name": "Nemotron 3.5 Lightning (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1000000,
+        "input": null,
+        "output": 65536
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/nvidia/nemotron-3.5-lightning:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 23,
+      "provider": "openrouter",
+      "model": "openrouter/auto",
+      "display_name": "Auto Router",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 2000000,
+        "input": null,
+        "output": 2000000
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/openrouter/auto",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 24,
+      "provider": "openrouter",
+      "model": "openrouter/bodybuilder",
+      "display_name": "Body Builder (beta)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": false,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 128000,
+        "input": null,
+        "output": 128000
+      },
+      "excluded": true,
+      "exclusion_reason": "KNOWN_NON_TOOL_MODEL",
+      "canonical_provider_path": "openrouter/openrouter/bodybuilder",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 25,
+      "provider": "openrouter",
+      "model": "openrouter/free",
+      "display_name": "Free Models Router",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 200000,
+        "input": 200000,
+        "output": 8000
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/openrouter/free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 26,
+      "provider": "openrouter",
+      "model": "openrouter/fusion",
+      "display_name": "Fusion",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": false,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1000000,
+        "input": null,
+        "output": 128000
+      },
+      "excluded": true,
+      "exclusion_reason": "KNOWN_NON_TOOL_MODEL",
+      "canonical_provider_path": "openrouter/openrouter/fusion",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 27,
+      "provider": "openrouter",
+      "model": "openrouter/pareto-code",
+      "display_name": "Pareto Code Router",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": false,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 2000000,
+        "input": null,
+        "output": 200000
+      },
+      "excluded": true,
+      "exclusion_reason": "KNOWN_NON_TOOL_MODEL",
+      "canonical_provider_path": "openrouter/openrouter/pareto-code",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 28,
+      "provider": "openrouter",
+      "model": "poolside/laguna-s-2.1:free",
+      "display_name": "Laguna S 2.1 (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 262144,
+        "input": null,
+        "output": 32768
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/poolside/laguna-s-2.1:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 29,
+      "provider": "openrouter",
+      "model": "poolside/laguna-xs-2.1:free",
+      "display_name": "Laguna XS 2.1 (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 262144,
+        "input": null,
+        "output": 32768
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/poolside/laguna-xs-2.1:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 30,
+      "provider": "openrouter",
+      "model": "thinkingmachines/inkling-small:free",
+      "display_name": "Inkling Small (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1048576,
+        "input": null,
+        "output": 262144
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/thinkingmachines/inkling-small:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 31,
+      "provider": "openrouter",
+      "model": "thinkingmachines/inkling:free",
+      "display_name": "Inkling (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1048576,
+        "input": null,
+        "output": 262144
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/thinkingmachines/inkling:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 32,
+      "provider": "openrouter",
+      "model": "z-ai/glm-5.2:free",
+      "display_name": "GLM 5.2 (free)",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 256000,
+        "input": null,
+        "output": 230400
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "openrouter/z-ai/glm-5.2:free",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 33,
+      "provider": "zai",
+      "model": "glm-4.5-flash",
+      "display_name": "GLM-4.5-Flash",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 131072,
+        "input": null,
+        "output": 98304
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "zai/glm-4.5-flash",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 34,
+      "provider": "zai",
+      "model": "glm-4.7-flash",
+      "display_name": "GLM-4.7-Flash",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 200000,
+        "input": null,
+        "output": 131072
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "zai/glm-4.7-flash",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 35,
+      "provider": "zai-coding-plan",
+      "model": "glm-4.7",
+      "display_name": "GLM-4.7",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 204800,
+        "input": null,
+        "output": 131072
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "zai-coding-plan/glm-4.7",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 36,
+      "provider": "zai-coding-plan",
+      "model": "glm-5-turbo",
+      "display_name": "GLM-5-Turbo",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 200000,
+        "input": null,
+        "output": 131072
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "zai-coding-plan/glm-5-turbo",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 37,
+      "provider": "zai-coding-plan",
+      "model": "glm-5.2",
+      "display_name": "GLM-5.2",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1000000,
+        "input": null,
+        "output": 131072
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "zai-coding-plan/glm-5.2",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 38,
+      "provider": "zai-coding-plan",
+      "model": "glm-5.2-highspeed",
+      "display_name": "GLM-5.2 Highspeed",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1000000,
+        "input": null,
+        "output": 131072
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "zai-coding-plan/glm-5.2-highspeed",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 39,
+      "provider": "zai-coding-plan",
+      "model": "glm-5.3",
+      "display_name": "GLM-5.3",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1000000,
+        "input": null,
+        "output": 131072
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "zai-coding-plan/glm-5.3",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 40,
+      "provider": "zai-coding-plan",
+      "model": "glm-5.3-flash",
+      "display_name": "GLM-5.3-Flash",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1000000,
+        "input": null,
+        "output": 131072
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "zai-coding-plan/glm-5.3-flash",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    },
+    {
+      "candidate_index": 41,
+      "provider": "zai-coding-plan",
+      "model": "glm-5.3-highspeed",
+      "display_name": "GLM-5.3 Highspeed",
+      "input_cost": 0,
+      "output_cost": 0,
+      "cache_cost": {
+        "read": 0,
+        "write": 0
+      },
+      "free_status_source": "opencode models --verbose --print-logs --log-level DEBUG",
+      "tool_support_metadata": {
+        "toolcall": true,
+        "structured_output": null
+      },
+      "context_metadata": {
+        "context": 1000000,
+        "input": null,
+        "output": 131072
+      },
+      "excluded": false,
+      "exclusion_reason": null,
+      "canonical_provider_path": "zai-coding-plan/glm-5.3-highspeed",
+      "preflight_outcome": "NOT_ATTEMPTED_AFTER_FIRST_SUCCESS"
+    }
+  ],
+  "free_model_candidate_list_fingerprint": "c5ad494ae17617fc3c1adc2546239108695687d7ba6e60da2e61ad997088a7da",
+  "free_model_selection_order_fingerprint": "81f644272ee941463ec7633e14dc6d9bb041264213da2ca8b164a9f8699555d8",
+  "preflight_policy": {
+    "max_primary_preflight_attempts_per_candidate": 1,
+    "sequential": true,
+    "stop_after_first_success": true,
+    "fallback_forbidden": true,
+    "provider_fallback_forbidden": true,
+    "model_switch_forbidden": true
+  },
+  "preflight_attempts": [
+    {
+      "candidate_index": 1,
+      "provider": "opencode",
+      "model": "big-pickle",
+      "attempt_count": 1,
+      "model_reachable": "YES",
+      "expected_provider_match": "YES",
+      "expected_model_match": "YES",
+      "zero_cost_path": "PASS",
+      "canonical_runtime_entry": "PASS",
+      "normal_completion": "PASS",
+      "tool_interaction": "PASS",
+      "tool": "read",
+      "debug_logging_enabled": "YES",
+      "target_model_switch_used": "NO",
+      "target_provider_fallback_used": "NO",
+      "auxiliary_model_used": "NO",
+      "failure_class": "NONE",
+      "evidence": {
+        "observed_model_ids": [
+          "big-pickle"
+        ],
+        "answer_preview": "preflight-tool-marker=ready",
+        "log_fingerprint": "fd52bba57cec4509ce51ffb8dc9b1e504817b32b68879985c39b6a8c1755f36a"
+      }
+    }
+  ],
+  "selected_candidate_index": 1,
+  "selected_provider": "opencode",
+  "selected_model": "big-pickle",
+  "selected_display_name": "Big Pickle",
+  "selected_cost_path": {
+    "input": 0,
+    "output": 0,
+    "cache": {
+      "read": 0,
+      "write": 0
+    }
+  },
+  "selected_inventory_entry_fingerprint": "c81fbf3860567cff076896250d02f60a73a84e8e9c5808c2dbd338034ddbf540",
+  "model_selection_locked": "YES",
+  "first_success_stopped_search": "YES"
+}

@@ -61,6 +61,8 @@
              "test/harness/runtime-wiring.test.mjs"
              ,"test/harness/evaluation.test.mjs"
              ,"test/harness/phase-c-candidate-v2.test.mjs"
+             ,"test/harness/empirical-capability.test.mjs"
+             ,"test/harness/causal-experiment-contract.test.mjs"
         ],
         "contract": [
             "test/contracts/bootstrap-capability-contract.test.mjs",

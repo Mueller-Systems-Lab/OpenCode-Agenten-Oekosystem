@@ -1,0 +1,91 @@
+{
+  "experiment_id": "issue-43-free-model-observation-canary-opencode-big-pickle-20260904T121500Z",
+  "attempt_id": "issue-43-free-model-observation-canary-attempt-20260904T133743Z",
+  "opencode_version": "1.18.27",
+  "selected_identity": {
+    "provider": "opencode",
+    "model": "big-pickle",
+    "model_selection_locked": "YES"
+  },
+  "frozen_contracts_unchanged": true,
+  "root_cause_classification": "STRICT_INIT_TEST_BUG",
+  "root_cause_proven": "YES",
+  "historical_first_failing_condition": "answer.includes(PLUGIN_INIT_OK)",
+  "historical_evidence": {
+    "response_ok": true,
+    "adapter_loaded": true,
+    "answer_text": "UNOBSERVABLE_HISTORICAL_ARTIFACT_ONLY_FINGERPRINT_PERSISTED",
+    "answer_fingerprint": "3cdabc0bf5d0543ace4e1cd9f5e9bae02361eb4403b2ff8c0e0ef12fffc31923"
+  },
+  "actual_opencode_contract": {
+    "plugin_type": "(input: PluginInput, options?) => Promise<Hooks>",
+    "plugin_input_context": "object with client/project/directory/worktree/serverUrl",
+    "before_hook": "tool.execute.before(input, output) -> Promise<void>",
+    "after_hook": "tool.execute.after(input, output) -> Promise<void>",
+    "registration": "project config plugin array with explicit relative module path"
+  },
+  "ocae_expected_contract": {
+    "plugin_export": "named async factory",
+    "plugin_return": ["tool.execute.before", "tool.execute.after"],
+    "registration": "plugin: [./ocae-observation-adapter.js]"
+  },
+  "contract_diff": {
+    "plugin_export_shape": "PASS",
+    "plugin_registration_api": "PASS",
+    "hook_names": "PASS",
+    "hook_signatures": "PASS",
+    "context_shape": "PASS",
+    "async_return": "PASS",
+    "headless_explicit_registration": "PASS",
+    "treatment_semantics": "UNCHANGED"
+  },
+  "probe_evidence": {
+    "plugin_module_load": "PASS",
+    "plugin_export_contract": "PASS",
+    "plugin_register_call": "PASS",
+    "plugin_context_validity": "PASS",
+    "before_hook_registered": "PASS",
+    "after_hook_registered": "PASS",
+    "governance_hook_active": "NOT_REACHED",
+    "init_completion": "PASS"
+  },
+  "security": {
+    "historical_wrapper_classification": "NEEDS_REVIEW_AI_TOOL_RECOVERY",
+    "historical_discrepancy_classification": "INCOMPLETE_EVIDENCE",
+    "current_adversarial_result": "VERIFIED_IN_SCOPE",
+    "current_wrapper_status": "VERIFIED_IN_SCOPE",
+    "security_review": "PASS"
+  },
+  "skip_analysis": [
+    {
+      "test": "real pre-v1.0.2 installation is detected before task bootstrap",
+      "classification": "EXPECTED_PLATFORM_SKIP",
+      "condition": "historical commit 93a779a6fd7da32c937430191570bda2a83ffab4 absent",
+      "intentional": true,
+      "environment_dependent": true
+    },
+    {
+      "test": "trusted reconciliation updates the real old fixture and preserves owner files",
+      "classification": "EXPECTED_PLATFORM_SKIP",
+      "condition": "historical commit 93a779a6fd7da32c937430191570bda2a83ffab4 absent",
+      "intentional": true,
+      "environment_dependent": true
+    }
+  ],
+  "pre_experiment_gate": "PASS",
+  "live_gate": {
+    "control_0_runs": 5,
+    "control_0_verified_success": "3/5",
+    "control_0_failure_class": "VERIFIER_REJECTION",
+    "first_failing_stage": "CONTROL",
+    "identity_runs": 0,
+    "envelope_runs": 0
+  },
+  "debug_logging": {
+    "print_logs_supported": "YES",
+    "debug_level_supported": "YES",
+    "enabled": "YES",
+    "secret_scan": "PASS"
+  },
+  "promoted_profile": "NONE"
+}

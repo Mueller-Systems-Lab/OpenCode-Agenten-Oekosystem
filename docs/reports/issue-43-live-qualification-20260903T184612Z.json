@@ -1,0 +1,3988 @@
+{
+  "contract": "ecosystem.issue-43-live-qualification.v1",
+  "experiment_id": "issue-43-20260903T184613Z",
+  "timestamp": "2026-09-03T18:51:53.496Z",
+  "provider": "opencode",
+  "model": "muse-spark-1.2-contributor-free",
+  "runtime_identity": "opencode-cli-free-transport",
+  "opencode_version": "1.18.25",
+  "selection": {
+    "catalog_entry": {
+      "provider": "opencode",
+      "model": "muse-spark-1.2-contributor-free",
+      "enabled": true,
+      "availability": "configured",
+      "tool_support": true,
+      "mcp_support": false,
+      "vision_support": false,
+      "structured_output": "STANDARD",
+      "cost_tier": "LOW",
+      "quality_tier": "LOW",
+      "context_tier": "MEDIUM",
+      "default_primary": false,
+      "capabilities": [
+        "tools",
+        "structured_output"
+      ]
+    },
+    "eligible": true,
+    "reason": "freshly reachable and existing muse.v1 deterministic candidate"
+  },
+  "preflight": {
+    "model_reachable": true,
+    "canonical_runtime_entry": true,
+    "expected_provider_match": true,
+    "expected_model_match": true,
+    "live_model_evidence": true,
+    "paid_calls": 0,
+    "fallback_used": false,
+    "latency_ms": null,
+    "failure_class": null,
+    "reported_cost": 0
+  },
+  "controls": {
+    "model_switching_primary_ab": "DISABLED",
+    "provider_fallback": "DISABLED",
+    "retry_budget": 0,
+    "timeout_ms": 90000,
+    "granted_tools": [
+      "read",
+      "write",
+      "edit",
+      "list",
+      "glob"
+    ],
+    "execution_order": [
+      {
+        "sequence": 0,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "arm": "candidate"
+      },
+      {
+        "sequence": 1,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "arm": "generic"
+      },
+      {
+        "sequence": 2,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "arm": "generic"
+      },
+      {
+        "sequence": 3,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "arm": "candidate"
+      },
+      {
+        "sequence": 4,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "arm": "candidate"
+      },
+      {
+        "sequence": 5,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "arm": "generic"
+      },
+      {
+        "sequence": 6,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "arm": "generic"
+      },
+      {
+        "sequence": 7,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "arm": "candidate"
+      },
+      {
+        "sequence": 8,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "arm": "candidate"
+      },
+      {
+        "sequence": 9,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "arm": "generic"
+      },
+      {
+        "sequence": 10,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "arm": "generic"
+      },
+      {
+        "sequence": 11,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "arm": "candidate"
+      },
+      {
+        "sequence": 12,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "arm": "generic"
+      },
+      {
+        "sequence": 13,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "arm": "candidate"
+      },
+      {
+        "sequence": 14,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "arm": "candidate"
+      },
+      {
+        "sequence": 15,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "arm": "generic"
+      },
+      {
+        "sequence": 16,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "arm": "generic"
+      },
+      {
+        "sequence": 17,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "arm": "candidate"
+      },
+      {
+        "sequence": 18,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "arm": "candidate"
+      },
+      {
+        "sequence": 19,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "arm": "generic"
+      }
+    ]
+  },
+  "fingerprints": {
+    "derivation_corpus": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+    "holdout_corpus": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+    "full_corpus": "2639f76eb526fca3c42b5b4ec6d5a70cc24df617251b299842ba61e5c39bffb9",
+    "generic_harness": "ccbfe49d4e6f860dc1718aa3dd15102d3c742132f93ea93641a1b06d65a4f034",
+    "candidate_harness": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+    "verifier": "issue-43-live-verifier.v1",
+    "tool_contract": "f07a572fc8c847fc8292a21c49fb2baae39f74ce6b18a653df80c028459b6a7d",
+    "observation_contract": "35602a159fd2946214d8a084ebedc6e6f6f9888d3d96696382bc755bf7634d74",
+    "plan": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61"
+  },
+  "candidate_lock": {
+    "profile_id": "muse.v1",
+    "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+    "source": "existing deterministic candidate; no post-observation tuning"
+  },
+  "derivation": {
+    "generic": {
+      "runs": 6,
+      "verified_success": {
+        "success": 6,
+        "samples": 6
+      },
+      "metrics": {
+        "tool_selection_correct": {
+          "success": 3,
+          "samples": 6,
+          "rate": 0.5
+        },
+        "tool_argument_validity": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "required_tool_used": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "observation_status_comprehension": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "source_attribution_correct": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "failure_class_comprehension": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "truncation_awareness": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "staleness_awareness": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "grounded_final_claim": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "next_action_correct": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "parallel_result_correlation_accuracy": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        }
+      },
+      "unnecessary_tool_calls": {
+        "total": 5,
+        "samples": 6,
+        "average": 0.8333333333333334
+      },
+      "invalid_tool_calls": {
+        "total": 0,
+        "samples": 6,
+        "average": 0
+      },
+      "fabricated_result_count": {
+        "total": 0,
+        "samples": 6
+      },
+      "tool_calls": {
+        "total": 23,
+        "average": 3.8333333333333335
+      },
+      "context_volume": {
+        "total": 1699,
+        "average": 283.1666666666667
+      },
+      "tool_result_volume": {
+        "total": 5618,
+        "average": 936.3333333333334
+      },
+      "adapted_result_volume": {
+        "total": 6661,
+        "average": 1110.1666666666667
+      },
+      "retries": {
+        "total": 0,
+        "samples": 6
+      },
+      "latency_ms": {
+        "average": 15565
+      },
+      "failure_classes": {},
+      "observation_receipts": 23,
+      "tool_call_records": [
+        {
+          "tool": "read",
+          "call_id": "call_01a0689822d67290b157105ed71f7e85",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689826b57f30a123a7e63c4522c5",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a068982bd176c2b09105f4a9f2965e",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "grep",
+          "call_id": "call_01a0689835827680bf20a08b7bfb0a3a",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689855d87a819505b9d58c06408c",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a068985b4c7a83adc1f46d7e1dc72d",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689861367bf09a06bd1fc31726de",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "bash",
+          "call_id": "call_01a06898735f7953a67079d75c753811",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "write",
+          "call_id": "call_01a068987a927282a56e1b7aae92fd9b",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "bash",
+          "call_id": "call_01a0689881597b92aeabf1fab6e141ec",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a06899a7227a41a1bec85dd1370a39",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a06899ad927fb19c33478251c9fcd7",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a06899b3987c41bd6687ee23a2d0f8",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "edit",
+          "call_id": "call_01a06899b9ca7f73857cdfc1f79a27a1",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "bash",
+          "call_id": "call_01a06899bde3728197cac815f16b18b0",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a06899c3947901a782e92e1d194604",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a06899e5167872873270d4c6c5523b",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a06899e9527492974ecdcc75fbe735",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "glob",
+          "call_id": "call_01a0689a59ec7492a17eb5fba530f580",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689a63ef7ab0a0fac65f76faf356",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689a87477233a6dad28a0d6058c9",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689ab15e7c60bbc59432a5ab5fd6",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689ab7c475e29ecf836a099154ac",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        }
+      ],
+      "lower_is_better_metrics": {
+        "unnecessary_tool_calls": {
+          "success": 2,
+          "samples": 6,
+          "rate": 0.3333333333333333
+        },
+        "invalid_tool_calls": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "fabricated_result_count": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "cross_result_contamination": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        }
+      }
+    },
+    "candidate": {
+      "runs": 6,
+      "verified_success": {
+        "success": 6,
+        "samples": 6
+      },
+      "metrics": {
+        "tool_selection_correct": {
+          "success": 5,
+          "samples": 6,
+          "rate": 0.8333333333333334
+        },
+        "tool_argument_validity": {
+          "success": 5,
+          "samples": 6,
+          "rate": 0.8333333333333334
+        },
+        "required_tool_used": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "observation_status_comprehension": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "source_attribution_correct": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "failure_class_comprehension": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "truncation_awareness": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "staleness_awareness": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "grounded_final_claim": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "next_action_correct": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "parallel_result_correlation_accuracy": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        }
+      },
+      "unnecessary_tool_calls": {
+        "total": 5,
+        "samples": 6,
+        "average": 0.8333333333333334
+      },
+      "invalid_tool_calls": {
+        "total": 1,
+        "samples": 6,
+        "average": 0.16666666666666666
+      },
+      "fabricated_result_count": {
+        "total": 0,
+        "samples": 6
+      },
+      "tool_calls": {
+        "total": 20,
+        "average": 3.3333333333333335
+      },
+      "context_volume": {
+        "total": 4021,
+        "average": 670.1666666666666
+      },
+      "tool_result_volume": {
+        "total": 5817,
+        "average": 969.5
+      },
+      "adapted_result_volume": {
+        "total": 6709,
+        "average": 1118.1666666666667
+      },
+      "retries": {
+        "total": 0,
+        "samples": 6
+      },
+      "latency_ms": {
+        "average": 19323.166666666668
+      },
+      "failure_classes": {},
+      "observation_receipts": 20,
+      "tool_call_records": [
+        {
+          "tool": "read",
+          "call_id": "call_01a06897f77475d2a5f779880206a465",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a06897fdbb7850b1e1a366e22089eb",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689801767501be085fb690f4d2c1",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a06898a68f7662a90e0282b386275b",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "write",
+          "call_id": "call_01a06898b3e87d62ad61dab28fab67cb",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a06898b8b47ad1a60116b5cf7ae174",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a06898e22077b3809cd0b7ebc5a986",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a06898f3d671819fbe5bde54c201a5",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689909907b329e2a8a07cfcec86b",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689915cd7892918f3e2c7869cf17",
+          "argument_valid": false,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "bash",
+          "call_id": "call_01a068996de179c0bbd626e5de4df6d3",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "bash",
+          "call_id": "call_01a06899786778f0bda19521812b6d0b",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "edit",
+          "call_id": "call_01a068997e4e7d42b03b6a945f88eed1",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a06899829075d1ae511aa6e935d2a6",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "bash",
+          "call_id": "call_01a0689985b577f1811326bb2083affe",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "glob",
+          "call_id": "call_01a0689a0db57932b60417956a0a281d",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689a13547960bcf5c66dd79932c4",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "glob",
+          "call_id": "call_01a0689a366974d09392e1746183fec3",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689a3abc73f1abfc42c138be3a4d",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689af9f07ea284b82cabd4997535",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        }
+      ],
+      "lower_is_better_metrics": {
+        "unnecessary_tool_calls": {
+          "success": 3,
+          "samples": 6,
+          "rate": 0.5
+        },
+        "invalid_tool_calls": {
+          "success": 5,
+          "samples": 6,
+          "rate": 0.8333333333333334
+        },
+        "fabricated_result_count": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        },
+        "cross_result_contamination": {
+          "success": 6,
+          "samples": 6,
+          "rate": 1
+        }
+      }
+    },
+    "records": [
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+        "mode": "DERIVATION_CORPUS",
+        "sequence": 0,
+        "case_id": "grep-observation",
+        "repetition": 1,
+        "arm": "candidate",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 0,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 3,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 3,
+          "files_read": 3,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 10184,
+          "context_volume": 704,
+          "raw_result_volume": 361,
+          "adapted_result_volume": 487,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "muse",
+        "harness_fingerprint": "1749a4ce29d1ba749baf7a716a82204602d8b000cfbd3cc44076fd86eff26036",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a06897f77475d2a5f779880206a465",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a06897fdbb7850b1e1a366e22089eb",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689801767501be085fb690f4d2c1",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-0-1",
+            "tool_call_id": "call_01a06897f77475d2a5f779880206a465",
+            "raw_fingerprint": "57bb33bca40d840ec180e1ee6afbcbb3160fb32936a0fc9a0c317a26d5fe1ca4",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-0-2",
+            "tool_call_id": "call_01a06897fdbb7850b1e1a366e22089eb",
+            "raw_fingerprint": "eb733481fffe62260ef460764c6442150a2f1277822e3cf78cb5e5dda0c9888b",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-0-3",
+            "tool_call_id": "call_01a0689801767501be085fb690f4d2c1",
+            "raw_fingerprint": "fec4f0e57ab89a52bcfd293ed703bc79b4a06ea0df51639a738f405e33d722f2",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 704,
+        "raw_result_volume": 361,
+        "adapted_result_volume": 487,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+        "mode": "DERIVATION_CORPUS",
+        "sequence": 1,
+        "case_id": "grep-observation",
+        "repetition": 1,
+        "arm": "generic",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": false,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 1,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 4,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 4,
+          "files_read": 3,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 13498,
+          "context_volume": 317,
+          "raw_result_volume": 441,
+          "adapted_result_volume": 598,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "generic",
+        "harness_fingerprint": "a4e3370a595fa6d0d71a962d260e46289ec34201d1fb1c692df39661267666de",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a0689822d67290b157105ed71f7e85",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689826b57f30a123a7e63c4522c5",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a068982bd176c2b09105f4a9f2965e",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "grep",
+            "call_id": "call_01a0689835827680bf20a08b7bfb0a3a",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-1-1",
+            "tool_call_id": "call_01a0689822d67290b157105ed71f7e85",
+            "raw_fingerprint": "e3c8430d0ad5577191219da1835cf16bc9a8813cf8e0d645b3910c87f77c1e40",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-1-2",
+            "tool_call_id": "call_01a0689826b57f30a123a7e63c4522c5",
+            "raw_fingerprint": "ccb984d61ae2f857d36645185de810a6d76262d81a3da2774be770a9f3f537e4",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-1-3",
+            "tool_call_id": "call_01a068982bd176c2b09105f4a9f2965e",
+            "raw_fingerprint": "90bcfc96041ae32699576be274af9c9f412c02c349ee343ed569c8fdba7790e3",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-1-4",
+            "tool_call_id": "call_01a0689835827680bf20a08b7bfb0a3a",
+            "raw_fingerprint": "19c7346951bd33c1e50e0d15f7253f0e53a2f9185067aa890e46c5be17ab1908",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 317,
+        "raw_result_volume": 441,
+        "adapted_result_volume": 598,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+        "mode": "DERIVATION_CORPUS",
+        "sequence": 2,
+        "case_id": "read-observation",
+        "repetition": 1,
+        "arm": "generic",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": false,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 2,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 6,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 6,
+          "files_read": 3,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 20304,
+          "context_volume": 274,
+          "raw_result_volume": 761,
+          "adapted_result_volume": 907,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "generic",
+        "harness_fingerprint": "a4e3370a595fa6d0d71a962d260e46289ec34201d1fb1c692df39661267666de",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a0689855d87a819505b9d58c06408c",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a068985b4c7a83adc1f46d7e1dc72d",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689861367bf09a06bd1fc31726de",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "bash",
+            "call_id": "call_01a06898735f7953a67079d75c753811",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "write",
+            "call_id": "call_01a068987a927282a56e1b7aae92fd9b",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "bash",
+            "call_id": "call_01a0689881597b92aeabf1fab6e141ec",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-2-1",
+            "tool_call_id": "call_01a0689855d87a819505b9d58c06408c",
+            "raw_fingerprint": "d4192c3ace48872a5b2817e2e33331c278eca068481225326517effa6367e790",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-2-2",
+            "tool_call_id": "call_01a068985b4c7a83adc1f46d7e1dc72d",
+            "raw_fingerprint": "04a174b79cc5fc75ff6e9ed3fb62ac7fe597ea5a348098191a99add369e7541c",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-2-3",
+            "tool_call_id": "call_01a0689861367bf09a06bd1fc31726de",
+            "raw_fingerprint": "807c498f6abe14d6b263fbec2082f0bad9295012421cd069f7f89fa7a3ce2ec4",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-2-4",
+            "tool_call_id": "call_01a06898735f7953a67079d75c753811",
+            "raw_fingerprint": "6b5f1807126e9039a836d5160114d8cf78a00e0c16bb9a18bfedc873de27f964",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-2-5",
+            "tool_call_id": "call_01a068987a927282a56e1b7aae92fd9b",
+            "raw_fingerprint": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-2-6",
+            "tool_call_id": "call_01a0689881597b92aeabf1fab6e141ec",
+            "raw_fingerprint": "8cad5cfd91f5277cb67ebbb6b6be50485da75ba1c09c06e8c9167f35403e9b71",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 274,
+        "raw_result_volume": 761,
+        "adapted_result_volume": 907,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+        "mode": "DERIVATION_CORPUS",
+        "sequence": 3,
+        "case_id": "read-observation",
+        "repetition": 1,
+        "arm": "candidate",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 0,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 3,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 3,
+          "files_read": 2,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 15558,
+          "context_volume": 661,
+          "raw_result_volume": 321,
+          "adapted_result_volume": 402,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "muse",
+        "harness_fingerprint": "1749a4ce29d1ba749baf7a716a82204602d8b000cfbd3cc44076fd86eff26036",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a06898a68f7662a90e0282b386275b",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "write",
+            "call_id": "call_01a06898b3e87d62ad61dab28fab67cb",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a06898b8b47ad1a60116b5cf7ae174",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-3-1",
+            "tool_call_id": "call_01a06898a68f7662a90e0282b386275b",
+            "raw_fingerprint": "021107b2f97ed144beb8f4ded602c213337d907dd1390fe5000db94f1f1452dc",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-3-2",
+            "tool_call_id": "call_01a06898b3e87d62ad61dab28fab67cb",
+            "raw_fingerprint": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-3-3",
+            "tool_call_id": "call_01a06898b8b47ad1a60116b5cf7ae174",
+            "raw_fingerprint": "0398ce74e205f616c63a15e8739688e577a653e6a2e7b290ceabee4fcd1bc1d1",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 661,
+        "raw_result_volume": 321,
+        "adapted_result_volume": 402,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+        "mode": "DERIVATION_CORPUS",
+        "sequence": 4,
+        "case_id": "compiler-failure",
+        "repetition": 1,
+        "arm": "candidate",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": false,
+          "tool_argument_validity": false,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 3,
+          "invalid_tool_calls": 1,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 9,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 9,
+          "files_read": 5,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 51096,
+          "context_volume": 647,
+          "raw_result_volume": 1709,
+          "adapted_result_volume": 1960,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "muse",
+        "harness_fingerprint": "d58d59684a97f9a7a29cb6391da11a93d0971394a6f2584ba17fa5f6f738deab",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a06898e22077b3809cd0b7ebc5a986",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a06898f3d671819fbe5bde54c201a5",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689909907b329e2a8a07cfcec86b",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689915cd7892918f3e2c7869cf17",
+            "argument_valid": false,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "bash",
+            "call_id": "call_01a068996de179c0bbd626e5de4df6d3",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "bash",
+            "call_id": "call_01a06899786778f0bda19521812b6d0b",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "edit",
+            "call_id": "call_01a068997e4e7d42b03b6a945f88eed1",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a06899829075d1ae511aa6e935d2a6",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "bash",
+            "call_id": "call_01a0689985b577f1811326bb2083affe",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-4-1",
+            "tool_call_id": "call_01a06898e22077b3809cd0b7ebc5a986",
+            "raw_fingerprint": "222f65281e5e3c6a17d630caa23c0bf25c21266095b9cc65c7801b63dc604730",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-4-2",
+            "tool_call_id": "call_01a06898f3d671819fbe5bde54c201a5",
+            "raw_fingerprint": "296c32cc05b4ba0caf18c65ddd11b2f51658d6f140077c0d81d6d70aa85a1aa0",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-4-3",
+            "tool_call_id": "call_01a0689909907b329e2a8a07cfcec86b",
+            "raw_fingerprint": "f21aa0ec93f0b74d110c95985b1d1079eb02d0fb34975a84e7e6a70305d563cd",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-4-4",
+            "tool_call_id": "call_01a0689915cd7892918f3e2c7869cf17",
+            "raw_fingerprint": "99ea74a73526dcc4523677d198e78eef7fd9154f6f25454ef4fa9871ba0a9e0b",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-4-5",
+            "tool_call_id": "call_01a068996de179c0bbd626e5de4df6d3",
+            "raw_fingerprint": "6b758151445cf8727ff8bc33f9259dc5af8ec7aecaf392098b35fc6320d063bf",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-4-6",
+            "tool_call_id": "call_01a06899786778f0bda19521812b6d0b",
+            "raw_fingerprint": "35c08cfc2b48ce169bec6b6193714e14cbe8214995b3f4937d436006b7ebcf81",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-4-7",
+            "tool_call_id": "call_01a068997e4e7d42b03b6a945f88eed1",
+            "raw_fingerprint": "3b12079eaaccd1b05deaef2a8b693ded1c9a5c7c13f74597f617b8320b5d74ff",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-4-8",
+            "tool_call_id": "call_01a06899829075d1ae511aa6e935d2a6",
+            "raw_fingerprint": "4ea6ab10dd10b44e70eaa0dc296cdb7521a239150e3cea45bbe781a98683b26b",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-4-9",
+            "tool_call_id": "call_01a0689985b577f1811326bb2083affe",
+            "raw_fingerprint": "39813f94da613554179478d4ccc6fcbb51a35fbedd823dee07aafe22457b5fb6",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 647,
+        "raw_result_volume": 1709,
+        "adapted_result_volume": 1960,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+        "mode": "DERIVATION_CORPUS",
+        "sequence": 5,
+        "case_id": "compiler-failure",
+        "repetition": 1,
+        "arm": "generic",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": false,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 1,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 6,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 6,
+          "files_read": 4,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 15147,
+          "context_volume": 260,
+          "raw_result_volume": 707,
+          "adapted_result_volume": 879,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "generic",
+        "harness_fingerprint": "5ec04e1d551c94bdcdc31ca281fe074e14e24b4e5aea2db2bbd402bc3a473e66",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a06899a7227a41a1bec85dd1370a39",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a06899ad927fb19c33478251c9fcd7",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a06899b3987c41bd6687ee23a2d0f8",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "edit",
+            "call_id": "call_01a06899b9ca7f73857cdfc1f79a27a1",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "bash",
+            "call_id": "call_01a06899bde3728197cac815f16b18b0",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a06899c3947901a782e92e1d194604",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-5-1",
+            "tool_call_id": "call_01a06899a7227a41a1bec85dd1370a39",
+            "raw_fingerprint": "a56f9e483f57327df4f5f3134036cd4074c8cd732e3e4059714f2c8671ebee12",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-5-2",
+            "tool_call_id": "call_01a06899ad927fb19c33478251c9fcd7",
+            "raw_fingerprint": "b1b7f62f5f1609e904bc47d50bce869e21291caf00984578e71f06b13c76e45a",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-5-3",
+            "tool_call_id": "call_01a06899b3987c41bd6687ee23a2d0f8",
+            "raw_fingerprint": "1e13eb95e2d8c9950153862226076ff34609ccc26492b2d616e5d6c584f33d80",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-5-4",
+            "tool_call_id": "call_01a06899b9ca7f73857cdfc1f79a27a1",
+            "raw_fingerprint": "3b12079eaaccd1b05deaef2a8b693ded1c9a5c7c13f74597f617b8320b5d74ff",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-5-5",
+            "tool_call_id": "call_01a06899bde3728197cac815f16b18b0",
+            "raw_fingerprint": "4979b9bba8a1c3a20caf364204ce5a61fd54852928cfe00ad569022e835920c9",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-5-6",
+            "tool_call_id": "call_01a06899c3947901a782e92e1d194604",
+            "raw_fingerprint": "c850df812c0a5988ad01d55ceef83d18f3903545a7527855890dbec969ff32b5",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 260,
+        "raw_result_volume": 707,
+        "adapted_result_volume": 879,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+        "mode": "DERIVATION_CORPUS",
+        "sequence": 6,
+        "case_id": "permission-denial",
+        "repetition": 1,
+        "arm": "generic",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 0,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 2,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 2,
+          "files_read": 2,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 9858,
+          "context_volume": 269,
+          "raw_result_volume": 256,
+          "adapted_result_volume": 350,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "generic",
+        "harness_fingerprint": "5ec04e1d551c94bdcdc31ca281fe074e14e24b4e5aea2db2bbd402bc3a473e66",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a06899e5167872873270d4c6c5523b",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a06899e9527492974ecdcc75fbe735",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-6-1",
+            "tool_call_id": "call_01a06899e5167872873270d4c6c5523b",
+            "raw_fingerprint": "47f5b82192ade58b6f861437091dc516b516093b9505230460a785d76682dda4",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-6-2",
+            "tool_call_id": "call_01a06899e9527492974ecdcc75fbe735",
+            "raw_fingerprint": "8f5b741db73b3ccf25277ea7ce3cdb4308f92ce8d8078690edebea64be4bf6d3",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 269,
+        "raw_result_volume": 256,
+        "adapted_result_volume": 350,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+        "mode": "DERIVATION_CORPUS",
+        "sequence": 7,
+        "case_id": "permission-denial",
+        "repetition": 1,
+        "arm": "candidate",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 1,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 2,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 2,
+          "files_read": 1,
+          "symbols_read": null,
+          "search_result_count": 1,
+          "irrelevant_context": null,
+          "latency_ms": 11556,
+          "context_volume": 656,
+          "raw_result_volume": 186,
+          "adapted_result_volume": 231,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "muse",
+        "harness_fingerprint": "d58d59684a97f9a7a29cb6391da11a93d0971394a6f2584ba17fa5f6f738deab",
+        "tool_calls": [
+          {
+            "tool": "glob",
+            "call_id": "call_01a0689a0db57932b60417956a0a281d",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689a13547960bcf5c66dd79932c4",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-7-1",
+            "tool_call_id": "call_01a0689a0db57932b60417956a0a281d",
+            "raw_fingerprint": "45507fbe60e67dc84988ea12c65f7a2dccbf3f2e467051f07ab80a746eab4855",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-7-2",
+            "tool_call_id": "call_01a0689a13547960bcf5c66dd79932c4",
+            "raw_fingerprint": "4f246674507836091db85c929beb23dc3e8e2f0ddc3acf6bfdcc2d31355cab15",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "NONE",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 656,
+        "raw_result_volume": 186,
+        "adapted_result_volume": 231,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+        "mode": "DERIVATION_CORPUS",
+        "sequence": 8,
+        "case_id": "timeout",
+        "repetition": 1,
+        "arm": "candidate",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 1,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 2,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 2,
+          "files_read": 1,
+          "symbols_read": null,
+          "search_result_count": 1,
+          "irrelevant_context": null,
+          "latency_ms": 8681,
+          "context_volume": 672,
+          "raw_result_volume": 197,
+          "adapted_result_volume": 247,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "muse",
+        "harness_fingerprint": "3e6545587e3aa059c56b95da5530f3f66e0556b72a2483be6fc38a6f3aa55d62",
+        "tool_calls": [
+          {
+            "tool": "glob",
+            "call_id": "call_01a0689a366974d09392e1746183fec3",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689a3abc73f1abfc42c138be3a4d",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-8-1",
+            "tool_call_id": "call_01a0689a366974d09392e1746183fec3",
+            "raw_fingerprint": "4453f27f70809c9d91682362fcee9eb262afd2e47018398e3bacde0f4ce74784",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-8-2",
+            "tool_call_id": "call_01a0689a3abc73f1abfc42c138be3a4d",
+            "raw_fingerprint": "5b489c184d1d613a89b4bf4e801d0049dba0b3c21deab02ba95ad2b0a10b020f",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "NONE",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 672,
+        "raw_result_volume": 197,
+        "adapted_result_volume": 247,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+        "mode": "DERIVATION_CORPUS",
+        "sequence": 9,
+        "case_id": "timeout",
+        "repetition": 1,
+        "arm": "generic",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 1,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 2,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 2,
+          "files_read": 1,
+          "symbols_read": null,
+          "search_result_count": 1,
+          "irrelevant_context": null,
+          "latency_ms": 11364,
+          "context_volume": 285,
+          "raw_result_volume": 197,
+          "adapted_result_volume": 247,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "generic",
+        "harness_fingerprint": "655d2f1c75828ca6fe97d196d5b39f67e0ae967d6158d9b19c927beab044fb88",
+        "tool_calls": [
+          {
+            "tool": "glob",
+            "call_id": "call_01a0689a59ec7492a17eb5fba530f580",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689a63ef7ab0a0fac65f76faf356",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-9-1",
+            "tool_call_id": "call_01a0689a59ec7492a17eb5fba530f580",
+            "raw_fingerprint": "6b50bb5c90acfbba18bcc34e2197b4f37d05d2a685bec6bd7a781b7ac25da2e2",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-9-2",
+            "tool_call_id": "call_01a0689a63ef7ab0a0fac65f76faf356",
+            "raw_fingerprint": "88ee0298f194c87224b7a1845b860ec2b7997855e19441160d59b8ab9937bcb3",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "NONE",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 285,
+        "raw_result_volume": 197,
+        "adapted_result_volume": 247,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+        "mode": "DERIVATION_CORPUS",
+        "sequence": 10,
+        "case_id": "partial-truncation",
+        "repetition": 1,
+        "arm": "generic",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 0,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 3,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 3,
+          "files_read": 3,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 23219,
+          "context_volume": 294,
+          "raw_result_volume": 3256,
+          "adapted_result_volume": 3680,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "generic",
+        "harness_fingerprint": "a4e3370a595fa6d0d71a962d260e46289ec34201d1fb1c692df39661267666de",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a0689a87477233a6dad28a0d6058c9",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689ab15e7c60bbc59432a5ab5fd6",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689ab7c475e29ecf836a099154ac",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-10-1",
+            "tool_call_id": "call_01a0689a87477233a6dad28a0d6058c9",
+            "raw_fingerprint": "2fe7b3f65f7b41765da4c80ea9413fa8baece7cf10f93133d525cded87467260",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-10-2",
+            "tool_call_id": "call_01a0689ab15e7c60bbc59432a5ab5fd6",
+            "raw_fingerprint": "ad05b5fea93be719d628b21fb8899621fcab85e1e6c97b9cd68e3df998a8952a",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-10-3",
+            "tool_call_id": "call_01a0689ab7c475e29ecf836a099154ac",
+            "raw_fingerprint": "3acbaef0520de33dbc6a3582e0a36313281f22e60690094360704baca0ba3805",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 294,
+        "raw_result_volume": 3256,
+        "adapted_result_volume": 3680,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+        "mode": "DERIVATION_CORPUS",
+        "sequence": 11,
+        "case_id": "partial-truncation",
+        "repetition": 1,
+        "arm": "candidate",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 0,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 1,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 1,
+          "files_read": 1,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 18864,
+          "context_volume": 681,
+          "raw_result_volume": 3043,
+          "adapted_result_volume": 3382,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "muse",
+        "harness_fingerprint": "1749a4ce29d1ba749baf7a716a82204602d8b000cfbd3cc44076fd86eff26036",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a0689af9f07ea284b82cabd4997535",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-11-1",
+            "tool_call_id": "call_01a0689af9f07ea284b82cabd4997535",
+            "raw_fingerprint": "8c34ab54bc145e3cce8f41606c072e0fcec714beb4b8e0ad463493ed40d3b601",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 681,
+        "raw_result_volume": 3043,
+        "adapted_result_volume": 3382,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      }
+    ]
+  },
+  "holdout": {
+    "generic": {
+      "runs": 4,
+      "verified_success": {
+        "success": 3,
+        "samples": 4
+      },
+      "metrics": {
+        "tool_selection_correct": {
+          "success": 2,
+          "samples": 4,
+          "rate": 0.5
+        },
+        "tool_argument_validity": {
+          "success": 1,
+          "samples": 4,
+          "rate": 0.25
+        },
+        "required_tool_used": {
+          "success": 4,
+          "samples": 4,
+          "rate": 1
+        },
+        "observation_status_comprehension": {
+          "success": 3,
+          "samples": 4,
+          "rate": 0.75
+        },
+        "source_attribution_correct": {
+          "success": 4,
+          "samples": 4,
+          "rate": 1
+        },
+        "failure_class_comprehension": {
+          "success": 3,
+          "samples": 4,
+          "rate": 0.75
+        },
+        "truncation_awareness": {
+          "success": 4,
+          "samples": 4,
+          "rate": 1
+        },
+        "staleness_awareness": {
+          "success": 4,
+          "samples": 4,
+          "rate": 1
+        },
+        "grounded_final_claim": {
+          "success": 3,
+          "samples": 4,
+          "rate": 0.75
+        },
+        "next_action_correct": {
+          "success": 3,
+          "samples": 4,
+          "rate": 0.75
+        },
+        "parallel_result_correlation_accuracy": {
+          "success": 3,
+          "samples": 4,
+          "rate": 0.75
+        }
+      },
+      "unnecessary_tool_calls": {
+        "total": 6,
+        "samples": 4,
+        "average": 1.5
+      },
+      "invalid_tool_calls": {
+        "total": 3,
+        "samples": 4,
+        "average": 0.75
+      },
+      "fabricated_result_count": {
+        "total": 0,
+        "samples": 4
+      },
+      "tool_calls": {
+        "total": 16,
+        "average": 4
+      },
+      "context_volume": {
+        "total": 1246,
+        "average": 311.5
+      },
+      "tool_result_volume": {
+        "total": 9146,
+        "average": 2286.5
+      },
+      "adapted_result_volume": {
+        "total": 9754,
+        "average": 2438.5
+      },
+      "retries": {
+        "total": 0,
+        "samples": 4
+      },
+      "latency_ms": {
+        "average": 17108.25
+      },
+      "failure_classes": {
+        "VERIFIER_REJECTION": 1
+      },
+      "observation_receipts": 16,
+      "tool_call_records": [
+        {
+          "tool": "read",
+          "call_id": "call_01a0689b2a487450a6cfd98cc7d67f38",
+          "argument_valid": false,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "bash",
+          "call_id": "call_01a0689b310f76c0825240ebc6ba886c",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689b49e87802a1046696bac147dc",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "bash",
+          "call_id": "call_01a0689b53bd7691b3c8475a2b52f16b",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689c04437a62b84277b0095e6b5c",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689c0a4b72b2a5d9f5a32709de70",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689c10ea7dd299bdeaa6284ee94f",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "write",
+          "call_id": "call_01a0689c17eb7ca083bf4b6bc41a4101",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689c1d0f74509442859b3ed4558f",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "bash",
+          "call_id": "call_01a0689c28377263bc95d7f6a1c38abf",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689c4833706284c555ccaa5628fe",
+          "argument_valid": false,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689c4d507ac2a19173ae34b120e3",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "glob",
+          "call_id": "call_01a0689cd3d67e3298f1297fbb4aee52",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689cd36d79c387eec370e1f784ca",
+          "argument_valid": false,
+          "status": "ERROR"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689cd2f874d09fd8898574a09f97",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689cdff47f3388a37de32b31c0b4",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        }
+      ],
+      "lower_is_better_metrics": {
+        "unnecessary_tool_calls": {
+          "success": 0,
+          "samples": 4,
+          "rate": 0
+        },
+        "invalid_tool_calls": {
+          "success": 1,
+          "samples": 4,
+          "rate": 0.25
+        },
+        "fabricated_result_count": {
+          "success": 4,
+          "samples": 4,
+          "rate": 1
+        },
+        "cross_result_contamination": {
+          "success": 4,
+          "samples": 4,
+          "rate": 1
+        }
+      }
+    },
+    "candidate": {
+      "runs": 4,
+      "verified_success": {
+        "success": 3,
+        "samples": 4
+      },
+      "metrics": {
+        "tool_selection_correct": {
+          "success": 3,
+          "samples": 4,
+          "rate": 0.75
+        },
+        "tool_argument_validity": {
+          "success": 3,
+          "samples": 4,
+          "rate": 0.75
+        },
+        "required_tool_used": {
+          "success": 4,
+          "samples": 4,
+          "rate": 1
+        },
+        "observation_status_comprehension": {
+          "success": 2,
+          "samples": 4,
+          "rate": 0.5
+        },
+        "source_attribution_correct": {
+          "success": 4,
+          "samples": 4,
+          "rate": 1
+        },
+        "failure_class_comprehension": {
+          "success": 3,
+          "samples": 4,
+          "rate": 0.75
+        },
+        "truncation_awareness": {
+          "success": 4,
+          "samples": 4,
+          "rate": 1
+        },
+        "staleness_awareness": {
+          "success": 4,
+          "samples": 4,
+          "rate": 1
+        },
+        "grounded_final_claim": {
+          "success": 3,
+          "samples": 4,
+          "rate": 0.75
+        },
+        "next_action_correct": {
+          "success": 3,
+          "samples": 4,
+          "rate": 0.75
+        },
+        "parallel_result_correlation_accuracy": {
+          "success": 3,
+          "samples": 4,
+          "rate": 0.75
+        }
+      },
+      "unnecessary_tool_calls": {
+        "total": 1,
+        "samples": 4,
+        "average": 0.25
+      },
+      "invalid_tool_calls": {
+        "total": 1,
+        "samples": 4,
+        "average": 0.25
+      },
+      "fabricated_result_count": {
+        "total": 0,
+        "samples": 4
+      },
+      "tool_calls": {
+        "total": 11,
+        "average": 2.75
+      },
+      "context_volume": {
+        "total": 2794,
+        "average": 698.5
+      },
+      "tool_result_volume": {
+        "total": 1441,
+        "average": 360.25
+      },
+      "adapted_result_volume": {
+        "total": 1861,
+        "average": 465.25
+      },
+      "retries": {
+        "total": 0,
+        "samples": 4
+      },
+      "latency_ms": {
+        "average": 14015.75
+      },
+      "failure_classes": {
+        "VERIFIER_REJECTION": 1
+      },
+      "observation_receipts": 11,
+      "tool_call_records": [
+        {
+          "tool": "read",
+          "call_id": "call_01a0689b7a7d7443b0b059eac41c7bea",
+          "argument_valid": false,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689b7e9d777096dd0668830fcdfb",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689b87347c53b12692ba4026ee7f",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689baf3372d09efc3b55e6b7753b",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689bb3ee7ac0ab374731da6d8b98",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689bba9a77238c8e6216d7e651c9",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "write",
+          "call_id": "call_01a0689bc19f7f5184234d3c2d98e8d9",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689bc63971c29f6c3904e88843a3",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "bash",
+          "call_id": "call_01a0689bd4f0705292bd97e30385bc24",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689c9c7b7010890d7a9e65f22e16",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "read",
+          "call_id": "call_01a0689ca56a7e91bd548bec2c73f55c",
+          "argument_valid": true,
+          "status": "COMPLETED"
+        }
+      ],
+      "lower_is_better_metrics": {
+        "unnecessary_tool_calls": {
+          "success": 3,
+          "samples": 4,
+          "rate": 0.75
+        },
+        "invalid_tool_calls": {
+          "success": 3,
+          "samples": 4,
+          "rate": 0.75
+        },
+        "fabricated_result_count": {
+          "success": 4,
+          "samples": 4,
+          "rate": 1
+        },
+        "cross_result_contamination": {
+          "success": 4,
+          "samples": 4,
+          "rate": 1
+        }
+      }
+    },
+    "confirmation": {
+      "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+      "holdout_corpus_fingerprint": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+      "holdout_sample_count": 4,
+      "holdout_verified_success_count": 3,
+      "generic_verified_success_count": 3,
+      "candidate_wins": 0,
+      "candidate_losses": 0,
+      "complete_pairs": true,
+      "holdout_confirmation_pass": true,
+      "security_regression": false,
+      "core_regression": false
+    },
+    "records": [
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "sequence": 12,
+        "case_id": "stale-read",
+        "repetition": 1,
+        "arm": "generic",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": false,
+          "tool_argument_validity": false,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 2,
+          "invalid_tool_calls": 1,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 4,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 4,
+          "files_read": 2,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 20939,
+          "context_volume": 230,
+          "raw_result_volume": 7815,
+          "adapted_result_volume": 8037,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "generic",
+        "harness_fingerprint": "5ec04e1d551c94bdcdc31ca281fe074e14e24b4e5aea2db2bbd402bc3a473e66",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a0689b2a487450a6cfd98cc7d67f38",
+            "argument_valid": false,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "bash",
+            "call_id": "call_01a0689b310f76c0825240ebc6ba886c",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689b49e87802a1046696bac147dc",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "bash",
+            "call_id": "call_01a0689b53bd7691b3c8475a2b52f16b",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-12-1",
+            "tool_call_id": "call_01a0689b2a487450a6cfd98cc7d67f38",
+            "raw_fingerprint": "99ea74a73526dcc4523677d198e78eef7fd9154f6f25454ef4fa9871ba0a9e0b",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-12-2",
+            "tool_call_id": "call_01a0689b310f76c0825240ebc6ba886c",
+            "raw_fingerprint": "bdf55399c8738a7ab79855031f3bc97d15b681a6013f84319108becd73304b4f",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-12-3",
+            "tool_call_id": "call_01a0689b49e87802a1046696bac147dc",
+            "raw_fingerprint": "16403ad8eed0348bf9d60e54df51a430db564e98460fb5d4eb25602e65b94322",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-12-4",
+            "tool_call_id": "call_01a0689b53bd7691b3c8475a2b52f16b",
+            "raw_fingerprint": "f14ef502974ae88c5790332152528e1870d6723bfc5b7c75736ea615126016ae",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 230,
+        "raw_result_volume": 7815,
+        "adapted_result_volume": 8037,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "sequence": 13,
+        "case_id": "stale-read",
+        "repetition": 1,
+        "arm": "candidate",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": true,
+          "tool_argument_validity": false,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 0,
+          "invalid_tool_calls": 1,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 3,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 3,
+          "files_read": 3,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 11162,
+          "context_volume": 617,
+          "raw_result_volume": 536,
+          "adapted_result_volume": 688,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "muse",
+        "harness_fingerprint": "d58d59684a97f9a7a29cb6391da11a93d0971394a6f2584ba17fa5f6f738deab",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a0689b7a7d7443b0b059eac41c7bea",
+            "argument_valid": false,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689b7e9d777096dd0668830fcdfb",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689b87347c53b12692ba4026ee7f",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-13-1",
+            "tool_call_id": "call_01a0689b7a7d7443b0b059eac41c7bea",
+            "raw_fingerprint": "99ea74a73526dcc4523677d198e78eef7fd9154f6f25454ef4fa9871ba0a9e0b",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-13-2",
+            "tool_call_id": "call_01a0689b7e9d777096dd0668830fcdfb",
+            "raw_fingerprint": "5bd9f61c018c57d3a2b12edcd3b06ae470ab68f5d3a5d52e1cb3e4047d3395b7",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-13-3",
+            "tool_call_id": "call_01a0689b87347c53b12692ba4026ee7f",
+            "raw_fingerprint": "089d8c32f980a3f3c8172c3766b4c37988ebdbd54bc0b0dae92665edf5da50e1",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 617,
+        "raw_result_volume": 536,
+        "adapted_result_volume": 688,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "sequence": 14,
+        "case_id": "parallel-correlation",
+        "repetition": 1,
+        "arm": "candidate",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": false,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 1,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 6,
+          "observation_status_comprehension": false,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": false,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": false,
+          "fabricated_result_count": 0,
+          "next_action_correct": false,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": false,
+          "cross_result_contamination": 0,
+          "discovery_steps": 6,
+          "files_read": 4,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 21042,
+          "context_volume": 684,
+          "raw_result_volume": 644,
+          "adapted_result_volume": 819,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": false,
+        "functional_correctness": false,
+        "failure_class": "VERIFIER_REJECTION",
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "muse",
+        "harness_fingerprint": "1749a4ce29d1ba749baf7a716a82204602d8b000cfbd3cc44076fd86eff26036",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a0689baf3372d09efc3b55e6b7753b",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689bb3ee7ac0ab374731da6d8b98",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689bba9a77238c8e6216d7e651c9",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "write",
+            "call_id": "call_01a0689bc19f7f5184234d3c2d98e8d9",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689bc63971c29f6c3904e88843a3",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "bash",
+            "call_id": "call_01a0689bd4f0705292bd97e30385bc24",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-14-1",
+            "tool_call_id": "call_01a0689baf3372d09efc3b55e6b7753b",
+            "raw_fingerprint": "0f95c42c2ea1b3d4ec2cf4f582bcf85ef8b43ab28007b9296cdadceb282c0ce9",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-14-2",
+            "tool_call_id": "call_01a0689bb3ee7ac0ab374731da6d8b98",
+            "raw_fingerprint": "69c49611203febc9ee55322e6b54786fb119d999af04a71176e2106fdf726696",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-14-3",
+            "tool_call_id": "call_01a0689bba9a77238c8e6216d7e651c9",
+            "raw_fingerprint": "f02250440cf0185ab778f1966f49f095e5b5e0293f15f7d6728b6368464082df",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-14-4",
+            "tool_call_id": "call_01a0689bc19f7f5184234d3c2d98e8d9",
+            "raw_fingerprint": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-14-5",
+            "tool_call_id": "call_01a0689bc63971c29f6c3904e88843a3",
+            "raw_fingerprint": "e154771b5748562ed1850b02009fde21596c01dc731982d96cccbb9a3cafbda7",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-14-6",
+            "tool_call_id": "call_01a0689bd4f0705292bd97e30385bc24",
+            "raw_fingerprint": "c366671cc0ea21149b5903b28c842be64f52ce7e39b0cc6e05984077487c9473",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": false,
+          "code": "LIVE_FIXTURE_VERIFIER_FAIL"
+        },
+        "context_volume": 684,
+        "raw_result_volume": 644,
+        "adapted_result_volume": 819,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "sequence": 15,
+        "case_id": "parallel-correlation",
+        "repetition": 1,
+        "arm": "generic",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": false,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 1,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 6,
+          "observation_status_comprehension": false,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": false,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": false,
+          "fabricated_result_count": 0,
+          "next_action_correct": false,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": false,
+          "cross_result_contamination": 0,
+          "discovery_steps": 6,
+          "files_read": 4,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 20117,
+          "context_volume": 297,
+          "raw_result_volume": 640,
+          "adapted_result_volume": 816,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": false,
+        "functional_correctness": false,
+        "failure_class": "VERIFIER_REJECTION",
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "generic",
+        "harness_fingerprint": "a4e3370a595fa6d0d71a962d260e46289ec34201d1fb1c692df39661267666de",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a0689c04437a62b84277b0095e6b5c",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689c0a4b72b2a5d9f5a32709de70",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689c10ea7dd299bdeaa6284ee94f",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "write",
+            "call_id": "call_01a0689c17eb7ca083bf4b6bc41a4101",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689c1d0f74509442859b3ed4558f",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "bash",
+            "call_id": "call_01a0689c28377263bc95d7f6a1c38abf",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-15-1",
+            "tool_call_id": "call_01a0689c04437a62b84277b0095e6b5c",
+            "raw_fingerprint": "3bd4d4d86ec6b8934854868af42bbe2f85c2a574b6f1916c5dba1e65982554c4",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-15-2",
+            "tool_call_id": "call_01a0689c0a4b72b2a5d9f5a32709de70",
+            "raw_fingerprint": "709360f812d8b4e03c02b4d334e6a33c49a06ff949d38538040fff90537cb8d8",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-15-3",
+            "tool_call_id": "call_01a0689c10ea7dd299bdeaa6284ee94f",
+            "raw_fingerprint": "29d8349891f1054a2c7decda874b5cc039a1dbeabc6335b6754bd28fcf081559",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-15-4",
+            "tool_call_id": "call_01a0689c17eb7ca083bf4b6bc41a4101",
+            "raw_fingerprint": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-15-5",
+            "tool_call_id": "call_01a0689c1d0f74509442859b3ed4558f",
+            "raw_fingerprint": "da96dd9c1f5bf9d4dab7b2508cdcab3c1ecf3a8f76fcf3d625687e5370358281",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-15-6",
+            "tool_call_id": "call_01a0689c28377263bc95d7f6a1c38abf",
+            "raw_fingerprint": "213ca069b58972ce9fec563b6707a22ebfdbbc3b48e80d3dcdff51849e0dade8",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": false,
+          "code": "LIVE_FIXTURE_VERIFIER_FAIL"
+        },
+        "context_volume": 297,
+        "raw_result_volume": 640,
+        "adapted_result_volume": 816,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "sequence": 16,
+        "case_id": "unknown-mcp",
+        "repetition": 1,
+        "arm": "generic",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": true,
+          "tool_argument_validity": false,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 2,
+          "invalid_tool_calls": 1,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 2,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 2,
+          "files_read": 2,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 11573,
+          "context_volume": 311,
+          "raw_result_volume": 391,
+          "adapted_result_volume": 502,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "generic",
+        "harness_fingerprint": "655d2f1c75828ca6fe97d196d5b39f67e0ae967d6158d9b19c927beab044fb88",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a0689c4833706284c555ccaa5628fe",
+            "argument_valid": false,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689c4d507ac2a19173ae34b120e3",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-16-1",
+            "tool_call_id": "call_01a0689c4833706284c555ccaa5628fe",
+            "raw_fingerprint": "99ea74a73526dcc4523677d198e78eef7fd9154f6f25454ef4fa9871ba0a9e0b",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-16-2",
+            "tool_call_id": "call_01a0689c4d507ac2a19173ae34b120e3",
+            "raw_fingerprint": "febe0dfbc6778f7b27a111ef81d81142aa407e44f2c137c34ed7a684d5fa950b",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 311,
+        "raw_result_volume": 391,
+        "adapted_result_volume": 502,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "sequence": 17,
+        "case_id": "unknown-mcp",
+        "repetition": 1,
+        "arm": "candidate",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 0,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 0,
+          "observation_status_comprehension": false,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 0,
+          "files_read": 0,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 10267,
+          "context_volume": 698,
+          "raw_result_volume": 0,
+          "adapted_result_volume": 0,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "muse",
+        "harness_fingerprint": "3e6545587e3aa059c56b95da5530f3f66e0556b72a2483be6fc38a6f3aa55d62",
+        "tool_calls": [],
+        "observation_receipts": [],
+        "model_facing_observation": {
+          "derived": false,
+          "lossiness": null,
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 698,
+        "raw_result_volume": 0,
+        "adapted_result_volume": 0,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "sequence": 18,
+        "case_id": "subagent-result",
+        "repetition": 1,
+        "arm": "candidate",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 0,
+          "invalid_tool_calls": 0,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 2,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 2,
+          "files_read": 2,
+          "symbols_read": null,
+          "search_result_count": 0,
+          "irrelevant_context": null,
+          "latency_ms": 13592,
+          "context_volume": 795,
+          "raw_result_volume": 261,
+          "adapted_result_volume": 354,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "muse",
+        "harness_fingerprint": "c2ab163730b2ff1f63a087ea9f4daa6d85a52a664cd693dd96b442d63e896095",
+        "tool_calls": [
+          {
+            "tool": "read",
+            "call_id": "call_01a0689c9c7b7010890d7a9e65f22e16",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689ca56a7e91bd548bec2c73f55c",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-18-1",
+            "tool_call_id": "call_01a0689c9c7b7010890d7a9e65f22e16",
+            "raw_fingerprint": "1f18848281d14004070c7139600a58697d2d3272cd8a4050db7ddbddd333eae4",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-18-2",
+            "tool_call_id": "call_01a0689ca56a7e91bd548bec2c73f55c",
+            "raw_fingerprint": "f01703672f20c21c9228d522c837cc80029d200847afb8fe4166e550dbfee3d7",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "STRUCTURED_TRANSFORM",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 795,
+        "raw_result_volume": 261,
+        "adapted_result_volume": 354,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      },
+      {
+        "contract": "ecosystem.empirical-qualification-runner.v1",
+        "plan_fingerprint": "ad3b759c1a0d6ab4f787117a535b40d8dfa81167d71ba564a2e9799c3a081a61",
+        "corpus_fingerprint": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "sequence": 19,
+        "case_id": "subagent-result",
+        "repetition": 1,
+        "arm": "generic",
+        "candidate_fingerprint": "08437194efd028fffa0ba33400d96f5395906e3485275f6a5223d75185913fbf",
+        "provider": "opencode",
+        "model": "muse-spark-1.2-contributor-free",
+        "granted_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "exposed_tools": [
+          "read",
+          "write",
+          "edit",
+          "list",
+          "glob"
+        ],
+        "metrics": {
+          "tool_selection_correct": true,
+          "tool_argument_validity": false,
+          "required_tool_used": true,
+          "unnecessary_tool_calls": 1,
+          "invalid_tool_calls": 1,
+          "recovery_after_invalid_call": null,
+          "recovery_after_tool_failure": null,
+          "tool_call_count": 4,
+          "observation_status_comprehension": true,
+          "source_attribution_correct": true,
+          "path_line_association_correct": null,
+          "failure_class_comprehension": true,
+          "truncation_awareness": true,
+          "staleness_awareness": true,
+          "grounded_final_claim": true,
+          "fabricated_result_count": 0,
+          "next_action_correct": true,
+          "cross_result_correlation_correct": null,
+          "parallel_call_generation_accuracy": null,
+          "parallel_result_correlation_accuracy": true,
+          "cross_result_contamination": 0,
+          "discovery_steps": 4,
+          "files_read": 3,
+          "symbols_read": null,
+          "search_result_count": 1,
+          "irrelevant_context": null,
+          "latency_ms": 15804,
+          "context_volume": 408,
+          "raw_result_volume": 300,
+          "adapted_result_volume": 399,
+          "retry_count": 0,
+          "information_complexity": null,
+          "subagent_observation_comprehension": true,
+          "post_compaction_success": null,
+          "model_switch_rehydration_success": null
+        },
+        "verified_success": true,
+        "functional_correctness": true,
+        "failure_class": null,
+        "raw_observation_receipt": null,
+        "canonical_verifier": true,
+        "canonical_runtime_entry": true,
+        "live_model_evidence": true,
+        "paid_calls": 0,
+        "fallback_used": false,
+        "profile_id": "generic",
+        "harness_fingerprint": "bcac8b4e60d2ffac2a9840d534f46857ec80ad51f3d053236f5d0a585627adb5",
+        "tool_calls": [
+          {
+            "tool": "glob",
+            "call_id": "call_01a0689cd3d67e3298f1297fbb4aee52",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689cd36d79c387eec370e1f784ca",
+            "argument_valid": false,
+            "status": "ERROR"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689cd2f874d09fd8898574a09f97",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          },
+          {
+            "tool": "read",
+            "call_id": "call_01a0689cdff47f3388a37de32b31c0b4",
+            "argument_valid": true,
+            "status": "COMPLETED"
+          }
+        ],
+        "observation_receipts": [
+          {
+            "observation_id": "obs-19-1",
+            "tool_call_id": "call_01a0689cd3d67e3298f1297fbb4aee52",
+            "raw_fingerprint": "66763af2593d3f3a96107f64e9d293d8aaee903df6f9e95e7be98bccc4a348fb",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-19-2",
+            "tool_call_id": "call_01a0689cd36d79c387eec370e1f784ca",
+            "raw_fingerprint": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "status": "FAILURE",
+            "failure_class": "TOOL_EXECUTION_FAILURE"
+          },
+          {
+            "observation_id": "obs-19-3",
+            "tool_call_id": "call_01a0689cd2f874d09fd8898574a09f97",
+            "raw_fingerprint": "5782d9cf825310a6106417388f9cadfc1fb55d0de8bff666aa2f8879c2645338",
+            "status": "SUCCESS",
+            "failure_class": null
+          },
+          {
+            "observation_id": "obs-19-4",
+            "tool_call_id": "call_01a0689cdff47f3388a37de32b31c0b4",
+            "raw_fingerprint": "6c7c3353f5fe27ae6b7b13d0cd07dffc183a1b7f7d29b552254220f46457401b",
+            "status": "SUCCESS",
+            "failure_class": null
+          }
+        ],
+        "model_facing_observation": {
+          "derived": true,
+          "lossiness": "NONE",
+          "truncated": false,
+          "provenance_preserved": true
+        },
+        "verifier_result": {
+          "ok": true,
+          "code": "LIVE_FIXTURE_VERIFIER_PASS"
+        },
+        "context_volume": 408,
+        "raw_result_volume": 300,
+        "adapted_result_volume": 399,
+        "retry_count": 0,
+        "retained": true,
+        "latency_ms": null
+      }
+    ]
+  },
+  "comparison": {
+    "metric_differences": {
+      "verified_success_rate": 0,
+      "observation_comprehension_rate": -0.25,
+      "fabricated_result_count": 0,
+      "average_tool_calls": -1.25,
+      "average_context_volume": 387,
+      "average_tool_result_volume": -1926.25,
+      "average_latency_ms": -3092.5
+    },
+    "correctness_regression": false,
+    "security_regression": false,
+    "measurable_value_observed": true
+  },
+  "observation_validation": {
+    "raw_observation_available": true,
+    "model_facing_observation_derived": true,
+    "lossiness_explicit": true,
+    "truncation_explicit": true,
+    "provenance_preserved": true,
+    "verifier_uses_authoritative_evidence": true
+  },
+  "deterministic_controls": {
+    "prompt_injection_containment": "PASS via existing observation-adapter contract test",
+    "model_switch_rehydration": "PASS via existing observation-adapter contract test",
+    "compaction_awareness": "PASS via existing observation-adapter contract test"
+  },
+  "paid_calls": 0,
+  "fallback_used": false,
+  "model_switching_primary_ab": "DISABLED",
+  "promotion_decision": "INSUFFICIENT_LIVE_EVIDENCE",
+  "promoted_profile": "NONE",
+  "live_status": "LIVE_ATTEMPTED"
+}

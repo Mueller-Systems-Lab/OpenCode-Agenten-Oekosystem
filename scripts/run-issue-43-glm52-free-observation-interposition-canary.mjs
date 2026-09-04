@@ -20,6 +20,7 @@ import {
 } from '../runtime/harness/live-qualification.mjs'
 import { OBSERVATION_CONTRACT, OBSERVATION_CONTRACT_VERSION, createToolContractFingerprint, observationFingerprint } from '../runtime/harness/observation-adapter.mjs'
 import { fingerprint } from '../runtime/harness/empirical-capability-contract.mjs'
+import { classifyCanaryGateState, classifyModelUsage, rateLimitClassification, rateLimitResetEvidence } from '../runtime/harness/canary-reporting.mjs'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const reportRoot = path.join(repoRoot, 'docs', 'reports')
@@ -31,11 +32,12 @@ const timeoutMs = Number(process.env.OCAE_CANARY_TIMEOUT_MS || 90_000)
 const controlRepetitions = 5
 const identityRepetitions = 5
 const envelopeRepetitions = 10
-const experimentId = `issue-43-glm52-free-observation-canary-${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/u, 'Z')}`
+const experimentId = process.env.OCAE_EXPERIMENT_ID || 'issue-43-glm52-free-observation-canary-20260904T103234Z'
+const attemptId = `issue-43-glm52-free-observation-canary-attempt-${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/u, 'Z')}`
 const outputPath = process.env.OCAE_CANARY_OUTPUT_PATH
   ? path.resolve(repoRoot, process.env.OCAE_CANARY_OUTPUT_PATH)
-  : path.join(reportRoot, `${experimentId}.json`)
-const freezePath = path.join(reportRoot, `${experimentId}-freeze.json`)
+  : path.join(reportRoot, `${attemptId}.json`)
+const freezePath = path.join(reportRoot, `${attemptId}-freeze.json`)
 if (!outputPath.startsWith(`${reportRoot}${path.sep}`)) throw new Error('CONTRACT_INVALID:canary:evidence must remain under docs/reports')
 
 function average(values) {
@@ -127,7 +129,7 @@ async function pluginInitializationProbe() {
     const trace = await readJsonLines(tracePath)
     const events = parseOpenCodeEvents(response.stdout)
     const answer = events.filter((event) => event.type === 'text').map((event) => event.part?.text || '').join('')
-    const observedIds = observedModelIds(response.debug_log_excerpt)
+    const usage = classifyModelUsage({ debugLog: response.debug_log_excerpt, targetProvider: provider, targetModel: model })
     return {
       pass: response.ok && answer.includes('PLUGIN_INIT_OK') && trace.some((event) => event.type === 'adapter_loaded'),
       response_ok: response.ok,
@@ -140,8 +142,15 @@ async function pluginInitializationProbe() {
       debug_lifecycle_events: response.debug_lifecycle_events || [],
       debug_log_excerpt: response.debug_log_excerpt || '',
       debug_log_fingerprint: response.debug_log_fingerprint || null,
-      observed_model_ids: observedIds,
-      model_switch_used: observedIds.some((id) => id !== model && id !== `${provider}/${model}`),
+      observed_model_ids: usage.observed_model_ids,
+      model_switch_used: usage.target_model_switch_used,
+      target_model_switch_used: usage.target_model_switch_used,
+      target_model_fallback_used: usage.target_model_fallback_used,
+      target_provider_fallback_used: usage.target_provider_fallback_used,
+      auxiliary_model_used: usage.auxiliary_model_used,
+      auxiliary_model_provider: usage.auxiliary_model_provider,
+      auxiliary_model: usage.auxiliary_model,
+      auxiliary_model_purpose: usage.auxiliary_model_purpose,
       failure_class: response.failure_class,
     }
   } finally {
@@ -158,6 +167,7 @@ async function preflight() {
     })
     const events = parseOpenCodeEvents(response.stdout)
     const answer = events.filter((event) => event.type === 'text').map((event) => event.part?.text || '').join('')
+    const usage = classifyModelUsage({ debugLog: response.debug_log_excerpt, targetProvider: provider, targetModel: model })
     return {
       live_model_reachable: response.ok && answer.includes('PREFLIGHT_OK'),
       expected_provider_match: provider === 'openrouter',
@@ -166,8 +176,15 @@ async function preflight() {
       normal_completion: response.ok && answer.includes('PREFLIGHT_OK'),
       paid_calls: response.cost > 0 ? 1 : 0,
       fallback_used: false,
-      observed_model_ids: observedModelIds(response.debug_log_excerpt),
-      model_switch_used: observedModelIds(response.debug_log_excerpt).some((id) => id !== model && id !== `${provider}/${model}`),
+      observed_model_ids: usage.observed_model_ids,
+      model_switch_used: usage.target_model_switch_used,
+      target_model_switch_used: usage.target_model_switch_used,
+      target_model_fallback_used: usage.target_model_fallback_used,
+      target_provider_fallback_used: usage.target_provider_fallback_used,
+      auxiliary_model_used: usage.auxiliary_model_used,
+      auxiliary_model_provider: usage.auxiliary_model_provider,
+      auxiliary_model: usage.auxiliary_model,
+      auxiliary_model_purpose: usage.auxiliary_model_purpose,
       debug_logging_enabled: response.debug_logging_enabled === true,
       debug_lifecycle_events: response.debug_lifecycle_events || [],
       debug_log_excerpt: response.debug_log_excerpt || '',
@@ -312,7 +329,7 @@ function firstRun(runs, predicate) { return runs.find(predicate) || runs[0] || n
 async function main() {
   const inventory = modelInventory()
   const preflightResult = inventory.free_model_path ? await preflight() : { live_model_reachable: false, failure_class: 'MODEL_UNAVAILABLE', paid_calls: 0, fallback_used: false, model_switch_used: false, debug_logging_enabled: inventory.debug_logging_enabled }
-  const pluginProbe = inventory.free_model_path && preflightResult.live_model_reachable ? await pluginInitializationProbe() : { pass: false, failure_class: 'MODEL_UNAVAILABLE', paid_calls: 0, fallback_used: false, debug_logging_enabled: false, trace_types: [] }
+  const pluginProbe = inventory.free_model_path && preflightResult.live_model_reachable ? await pluginInitializationProbe() : { pass: false, status: 'NOT_RUN', failure_class: 'MODEL_UNAVAILABLE', paid_calls: 0, fallback_used: false, debug_logging_enabled: false, trace_types: [], debug_log_excerpt: '' }
   const contracts = {
     tool_contract_fingerprint: toolContractFingerprint(),
     observation_contract_fingerprint: observationContractFingerprint(),
@@ -329,11 +346,12 @@ async function main() {
   const freeze = {
     contract: 'ecosystem.issue-43-glm52-free-observation-canary-freeze.v1',
     experiment_id: experimentId,
+    attempt_id: attemptId,
     target: { ui_label: 'GLM 5.2 (free)', provider, model, provider_runtime_path: `${provider}/${model}`, zero_cost_required: true, fallback_forbidden: true, model_switch_forbidden: true, provider_fallback_forbidden: true },
     opencode_version: hostVersion,
     runtime_identity: { runtime_class: LIVE_RUNTIME_ID, opencode_host_version: hostVersion, tool_contract_fingerprint: contracts.tool_contract_fingerprint, observation_contract_fingerprint: contracts.observation_contract_fingerprint },
     contracts,
-    preflight: { inventory_free_path: inventory.free_model_path, live_model_reachable: preflightResult.live_model_reachable, plugin_initialization: pluginProbe.pass },
+    preflight: { inventory_free_path: inventory.free_model_path, live_model_reachable: preflightResult.live_model_reachable, plugin_initialization: preflightResult.live_model_reachable ? (pluginProbe.pass ? 'PASS' : 'FAIL') : 'NOT_RUN' },
   }
   await fs.mkdir(reportRoot, { recursive: true })
   await fs.writeFile(freezePath, `${JSON.stringify(freeze, null, 2)}\n`, { mode: 0o600 })
@@ -341,6 +359,7 @@ async function main() {
   const output = {
     contract: 'ecosystem.issue-43-glm52-free-observation-canary.v1',
     experiment_id: experimentId,
+    attempt_id: attemptId,
     timestamp: new Date().toISOString(),
     provider,
     model,
@@ -350,19 +369,43 @@ async function main() {
     inventory: { provider_id: inventory.provider_id, model_id: inventory.model_id, display_name: inventory.display_name, status: inventory.status, costs: inventory.costs, free_model_path: inventory.free_model_path, inventory_entry_fingerprint: inventory.inventory_entry_fingerprint, debug_log_excerpt: inventory.debug_log_excerpt, debug_log_fingerprint: inventory.debug_log_fingerprint },
     preflight: preflightResult,
     plugin_initialization: pluginProbe,
+    plugin_initialization_status: preflightResult.live_model_reachable ? (pluginProbe.pass ? 'PASS' : 'FAIL') : 'NOT_RUN',
     registration_path: 'explicit-project-config-plugin',
     freeze_path: path.relative(repoRoot, freezePath),
     contracts,
     canaries: [],
     paid_calls: (preflightResult.paid_calls || 0) + (pluginProbe.paid_calls || 0),
     fallback_used: false,
+    target_model_provider: provider,
+    target_model: model,
+    target_model_switch_used: false,
+    target_model_fallback_used: false,
+    target_provider_fallback_used: false,
+    auxiliary_model_used: false,
+    auxiliary_model_provider: null,
+    auxiliary_model: null,
+    auxiliary_model_purpose: null,
     model_switch_used: false,
   }
 
   output.observed_model_ids = [...new Set([...(preflightResult.observed_model_ids || []), ...(pluginProbe.observed_model_ids || [])])]
-  output.model_switch_used = output.model_switch_used || output.observed_model_ids.some((id) => id !== model && id !== `${provider}/${model}`)
+  const preflightUsage = classifyModelUsage({ debugLog: preflightResult.debug_log_excerpt, targetProvider: provider, targetModel: model })
+  const pluginUsage = classifyModelUsage({ debugLog: pluginProbe.debug_log_excerpt, targetProvider: provider, targetModel: model })
+  output.target_model_switch_used = preflightUsage.target_model_switch_used || pluginUsage.target_model_switch_used
+  output.target_model_fallback_used = preflightUsage.target_model_fallback_used || pluginUsage.target_model_fallback_used
+  output.target_provider_fallback_used = preflightUsage.target_provider_fallback_used || pluginUsage.target_provider_fallback_used
+  const auxiliaryUsage = [preflightUsage, pluginUsage].find((usage) => usage.auxiliary_model_used)
+  output.auxiliary_model_used = Boolean(auxiliaryUsage)
+  output.auxiliary_model_provider = auxiliaryUsage?.auxiliary_model_provider || null
+  output.auxiliary_model = auxiliaryUsage?.auxiliary_model || null
+  output.auxiliary_model_purpose = auxiliaryUsage?.auxiliary_model_purpose || null
+  output.model_switch_used = output.target_model_switch_used
   output.fallback_used = preflightResult.fallback_used === true || pluginProbe.fallback_used === true
   output.infrastructure_blocker = preflightResult.failure_class === 'RATE_LIMITED' ? 'RATE_LIMIT' : preflightResult.failure_class || null
+  output.rate_limit_class = output.infrastructure_blocker === 'RATE_LIMIT' ? rateLimitClassification({ failureClass: preflightResult.failure_class, debugLog: preflightResult.debug_log_excerpt }) : 'NONE'
+  output.rate_limit_reset_evidence = output.infrastructure_blocker === 'RATE_LIMIT' ? rateLimitResetEvidence(preflightResult.debug_log_excerpt) : null
+  output.preflight_result = inventory.free_model_path && preflightResult.live_model_reachable ? 'PASS' : 'BLOCKED'
+  output.free_model_path = inventory.free_model_path ? 'PASS' : 'FAIL'
   const infrastructureReady = inventory.free_model_path && preflightResult.live_model_reachable && preflightResult.paid_calls === 0 && pluginProbe.pass && pluginProbe.paid_calls === 0 && !output.model_switch_used
   if (infrastructureReady) {
     const layers = [
@@ -389,9 +432,11 @@ async function main() {
   const control = output.canaries.find((layer) => layer.layer === 'CONTROL_0')
   const identity = output.canaries.find((layer) => layer.layer === 'CANARY_1_IDENTITY')
   const envelope = output.canaries.find((layer) => layer.layer === 'CANARY_2_ENVELOPE')
-  output.first_failing_layer = !control || control.verified_success < control.runs ? 'CONTROL' : !identity || identity.verified_success < identity.runs ? 'IDENTITY' : envelope && envelope.verified_success < envelope.runs ? 'ENVELOPE' : 'NONE'
+  const gateState = classifyCanaryGateState({ preflight: preflightResult, plugin: pluginProbe, canaries: output.canaries })
+  output.first_failing_stage = gateState.first_failing_stage
+  output.gate_status = gateState.gates
   output.message_role_preserved = 'UNOBSERVABLE'
-  output.message_order_preserved = output.canaries.length > 0 && output.canaries.every((layer) => layer.runs_detail.every((run) => run.message_sequence.includes('tool_use') ? run.message_sequence.indexOf('tool_use') >= 0 : true)) ? 'PASS' : 'UNOBSERVABLE'
+  output.message_order_preserved = output.canaries.length === 0 ? 'NOT_RUN' : output.canaries.every((layer) => layer.runs_detail.every((run) => run.message_sequence.includes('tool_use') ? run.message_sequence.indexOf('tool_use') >= 0 : true)) ? 'PASS' : 'UNOBSERVABLE'
   const interposedRuns = output.canaries.filter((layer) => layer.layer !== 'CONTROL_0').flatMap((layer) => layer.runs_detail)
   output.latency_decomposition = {
     tool_execution_latency_ms: average(interposedRuns.map((run) => run.timing.tool_execution_latency_ms)),
@@ -402,17 +447,17 @@ async function main() {
     total_latency_ms: average(output.canaries.flatMap((layer) => layer.runs_detail.map((run) => run.timing.total_latency_ms))),
   }
   const allRuns = output.canaries.flatMap((layer) => layer.runs_detail)
-  output.timeout_class = [...new Set(allRuns.map((run) => run.timeout_class).filter(Boolean))].join(',') || (output.infrastructure_blocker || 'NONE')
+  output.timeout_class = [...new Set(allRuns.map((run) => run.timeout_class).filter(Boolean))].join(',') || (output.infrastructure_blocker === 'RATE_LIMIT' ? 'RATE_LIMIT' : 'NONE')
   output.debug_log_traces = Object.fromEntries(['CONTROL_0', 'CANARY_1_IDENTITY', 'CANARY_2_ENVELOPE'].map((name) => {
     const layer = output.canaries.find((item) => item.layer === name)
     return [name, layer ? { captured: layer.runs_detail.every((run) => run.debug_logging_enabled === true), run_count: layer.runs_detail.length, log_fingerprints: layer.runs_detail.map((run) => run.debug_log_fingerprint) } : { captured: false, run_count: 0, log_fingerprints: [] }]
   }))
   output.receipt_authority = {
-    raw_observation_fingerprinting: output.canaries.length > 0 && output.canaries.every((layer) => layer.raw_observation_fingerprinting),
-    model_facing_observation_fingerprinting: output.canaries.some((layer) => layer.layer !== 'CONTROL_0') && output.canaries.filter((layer) => layer.layer !== 'CONTROL_0').every((layer) => layer.model_facing_observation_fingerprinting),
-    call_result_correlation: output.canaries.length > 0 && output.canaries.every((layer) => layer.call_result_correlation),
-    raw_receipt_propagation: output.canaries.some((layer) => layer.layer !== 'CONTROL_0') && output.canaries.filter((layer) => layer.layer !== 'CONTROL_0').every((layer) => layer.raw_receipt_propagation),
-    verifier_raw_authority: output.canaries.length > 0 && output.canaries.every((layer) => layer.verifier_raw_authority),
+    raw_observation_fingerprinting: output.canaries.length === 0 ? 'NOT_RUN' : output.canaries.every((layer) => layer.raw_observation_fingerprinting) ? 'PASS' : 'FAIL',
+    model_facing_observation_fingerprinting: output.canaries.filter((layer) => layer.layer !== 'CONTROL_0').length === 0 ? 'NOT_RUN' : output.canaries.filter((layer) => layer.layer !== 'CONTROL_0').every((layer) => layer.model_facing_observation_fingerprinting) ? 'PASS' : 'FAIL',
+    call_result_correlation: output.canaries.length === 0 ? 'NOT_RUN' : output.canaries.every((layer) => layer.call_result_correlation) ? 'PASS' : 'FAIL',
+    raw_receipt_propagation: output.canaries.filter((layer) => layer.layer !== 'CONTROL_0').length === 0 ? 'NOT_RUN' : output.canaries.filter((layer) => layer.layer !== 'CONTROL_0').every((layer) => layer.raw_receipt_propagation) ? 'PASS' : 'FAIL',
+    verifier_raw_authority: output.canaries.length === 0 ? 'NOT_RUN' : output.canaries.every((layer) => layer.verifier_raw_authority) ? 'PASS' : 'FAIL',
   }
   const identityRun = identity ? firstRun(identity.runs_detail, (run) => run.verified_success) : null
   const envelopeRun = envelope ? firstRun(envelope.runs_detail, (run) => !run.verified_success) || firstRun(envelope.runs_detail, () => true) : null
@@ -424,10 +469,10 @@ async function main() {
     changed_dimensions: ['prefix/schema wrapper', 'key names', 'key ordering', 'JSON escaping/quoting', 'status/tool repetition', 'length'],
   }
   output.serialization_micro_ladder_run = false
-  output.first_harmful_serialization_change = output.first_failing_layer === 'ENVELOPE' ? 'exact prior JSON envelope: status/tool/content/complete wrapper' : 'NONE'
-  output.envelope_regression_replicated = output.first_failing_layer === 'ENVELOPE' && Boolean(envelope?.failures?.length)
+  output.first_harmful_serialization_change = output.first_failing_stage === 'ENVELOPE' ? 'exact prior JSON envelope: status/tool/content/complete wrapper' : 'NONE'
+  output.envelope_regression_replicated = output.first_failing_stage === 'ENVELOPE' && Boolean(envelope?.failures?.length)
   output.root_cause_generalization = output.envelope_regression_replicated ? 'CROSS_RUNTIME_FORMAT_SENSITIVITY' : 'INSUFFICIENT'
-  output.final_classification = !inventory.free_model_path || !preflightResult.live_model_reachable || output.model_switch_used ? 'AMBER_OCAE_GLM52_FREE_OBSERVATION_DIAGNOSIS_BLOCKED_MODEL_UNAVAILABLE' : output.first_failing_layer === 'ENVELOPE' ? 'GREEN_OCAE_GLM52_FREE_ENVELOPE_REGRESSION_REPLICATED' : output.first_failing_layer === 'IDENTITY' || output.first_failing_layer === 'CONTROL' ? 'AMBER_OCAE_GLM52_FREE_OBSERVATION_EVIDENCE_INSUFFICIENT' : 'GREEN_OCAE_GLM52_FREE_ENVELOPE_REGRESSION_NOT_REPLICATED'
+  output.final_classification = !inventory.free_model_path || !preflightResult.live_model_reachable || output.target_model_switch_used ? 'AMBER_OCAE_GLM52_FREE_OBSERVATION_DIAGNOSIS_BLOCKED_MODEL_UNAVAILABLE' : output.first_failing_stage === 'ENVELOPE' ? 'GREEN_OCAE_GLM52_FREE_ENVELOPE_REGRESSION_REPLICATED' : output.first_failing_stage === 'IDENTITY' || output.first_failing_stage === 'CONTROL' ? 'AMBER_OCAE_GLM52_FREE_OBSERVATION_EVIDENCE_INSUFFICIENT' : 'GREEN_OCAE_GLM52_FREE_ENVELOPE_REGRESSION_NOT_REPLICATED'
   output.promoted_profile = 'NONE'
   await fs.writeFile(outputPath, `${JSON.stringify(output, null, 2)}\n`, { mode: 0o600 })
 
@@ -444,7 +489,7 @@ async function main() {
   }
   differential.push('## Differential interpretation', '', `- CONTROL_0: ${control ? 'captured' : 'not captured'}`, `- IDENTITY: ${identity ? 'captured' : 'not captured'}`, `- ENVELOPE: ${envelope ? 'captured' : 'not captured'}`, '- Exact OpenCode internal message roles and provider request payload ordering are not exposed by this CLI surface; message role is therefore UNOBSERVABLE.', '- The observable CLI event order and adapter trace order are retained in the evidence JSON; any provider-side resume ordering beyond that boundary is not inferred.')
   await fs.writeFile(path.join(reportRoot, 'issue-43-glm52-free-debug-log-differential.md'), `${differential.join('\n')}\n`, { mode: 0o600 })
-  console.log(JSON.stringify({ output_path: path.relative(repoRoot, outputPath), freeze_path: path.relative(repoRoot, freezePath), experiment_id: experimentId, provider, model, opencode_version: hostVersion, final_classification: output.final_classification, first_failing_layer: output.first_failing_layer, canaries: output.canaries.map((layer) => ({ layer: layer.layer, verified_success: `${layer.verified_success}/${layer.runs}`, latency_avg_ms: layer.latency_avg_ms })) }, null, 2))
+  console.log(JSON.stringify({ output_path: path.relative(repoRoot, outputPath), freeze_path: path.relative(repoRoot, freezePath), experiment_id: experimentId, attempt_id: attemptId, provider, model, opencode_version: hostVersion, final_classification: output.final_classification, first_failing_stage: output.first_failing_stage, canaries: output.canaries.map((layer) => ({ layer: layer.layer, verified_success: `${layer.verified_success}/${layer.runs}`, latency_avg_ms: layer.latency_avg_ms })) }, null, 2))
 }
 
 await main()

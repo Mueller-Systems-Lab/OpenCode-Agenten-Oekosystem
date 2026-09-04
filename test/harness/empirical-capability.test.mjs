@@ -41,6 +41,7 @@ import {
 } from '../../runtime/harness/qualification-runner.mjs'
 import { createLiveProjectConfig, createObservationAdapterPluginSource, createOpenCodeLiveExecutor, invokeOpenCode, OBSERVATION_ADAPTER_MODES, OPENCODE_DEBUG_ARGS, parseOpenCodeEvents, sanitizeDebugLog } from '../../runtime/harness/live-qualification.mjs'
 import { getExplicitLocalRuntime } from '../../runtime/harness/local-runtime.mjs'
+import { classifyCanaryGateState, classifyModelUsage } from '../../runtime/harness/canary-reporting.mjs'
 
 const A = 'a'.repeat(64)
 const B = 'b'.repeat(64)
@@ -51,6 +52,32 @@ const identity = (overrides = {}) => createQualificationIdentity({
   qualification_corpus_fingerprint: A, holdout_corpus_fingerprint: B,
   harness_fingerprint: A, verifier_version: 'test-v1',
   ...overrides,
+})
+
+test('preflight block is NOT_RUN and auxiliary title generation is not target switching', () => {
+  const gateState = classifyCanaryGateState({
+    preflight: { live_model_reachable: false, failure_class: 'RATE_LIMITED' },
+    plugin: { pass: false },
+    canaries: [],
+  })
+  assert.equal(gateState.first_failing_stage, 'PRE_FLIGHT')
+  assert.deepEqual(gateState.gates, {
+    CONTROL_0: 'NOT_RUN',
+    IDENTITY: 'NOT_RUN',
+    ENVELOPE: 'NOT_RUN',
+  })
+  assert.equal(gateState.observation_layer_failure, false)
+
+  const usage = classifyModelUsage({
+    debugLog: 'stream providerID=openrouter modelID=google/gemini-3.8-flash small=true agent=title\nstream providerID=openrouter modelID=z-ai/glm-5.2:free small=false agent=build',
+    targetProvider: 'openrouter',
+    targetModel: 'z-ai/glm-5.2:free',
+  })
+  assert.equal(usage.target_model_switch_used, false)
+  assert.equal(usage.auxiliary_model_used, true)
+  assert.equal(usage.auxiliary_model_provider, 'openrouter')
+  assert.equal(usage.auxiliary_model, 'google/gemini-3.8-flash')
+  assert.equal(usage.auxiliary_model_purpose, 'TITLE_GENERATION')
 })
 
 test('capability metric has raw counts and zero samples cannot claim capability', () => {

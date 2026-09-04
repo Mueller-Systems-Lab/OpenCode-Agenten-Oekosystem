@@ -17,6 +17,40 @@ export const LIVE_RUNTIME_ID = 'opencode-cli-free-transport'
 export const LIVE_TOOL_SET = Object.freeze(['read', 'write', 'edit', 'list', 'glob', 'grep', 'bash'])
 const LIVE_PERMISSION_KEYS = Object.freeze(['read', 'write', 'edit', 'list', 'glob', 'grep', 'bash', 'task', 'skill', 'webfetch', 'websearch', 'codesearch', 'todoread', 'todowrite', 'question', 'external_directory'])
 
+export const OPENCODE_DEBUG_ARGS = Object.freeze(['--print-logs', '--log-level', 'DEBUG'])
+
+/** Return bounded diagnostics safe for evidence artifacts and reports. */
+export function sanitizeDebugLog(value, maxChars = 16000) {
+  let text = String(value || '')
+    .replace(/(Authorization\s*[:=]\s*)(Bearer\s+)?[^\s,"'}]+/giu, '$1[REDACTED]')
+    .replace(/(api[_-]?key|token|secret|password|cookie|set-cookie)(["']?\s*[:=]\s*["']?)([^\s,"'}]+)/giu, '$1$2[REDACTED]')
+    .replace(/\b(Bearer\s+)([A-Za-z0-9._~+/=-]+)/giu, '$1[REDACTED]')
+    .replace(/\b(?:sk-[A-Za-z0-9_-]+|sk-or-v1-[A-Za-z0-9_-]+|ghp_[A-Za-z0-9]+|github_pat_[A-Za-z0-9_]+)\b/gu, '[REDACTED]')
+    .replace(/\/(?:home|Users)\/[^\s"']+/gu, '[PATH_REDACTED]')
+    .replace(/\/tmp\/[^\s"']+/gu, '[TMP_PATH_REDACTED]')
+  if (text.length > maxChars) text = `${text.slice(0, maxChars)}\n[DEBUG_LOG_TRUNCATED]`
+  return text
+}
+
+function debugLifecycleEvents(value) {
+  const text = String(value || '')
+  const categories = [
+    ['plugin_discovery', /plugin.*(discover|load)|discover.*plugin/iu],
+    ['plugin_initialization', /plugin.*(init|initial)|initial.*plugin|adapter_loaded/iu],
+    ['provider_resolution', /provider.*(resolv|select)|resolv.*provider/iu],
+    ['model_resolution', /model.*(resolv|select)|resolv.*model/iu],
+    ['session_creation', /session.*(creat|start)|creat.*session/iu],
+    ['tool_call', /tool.*(call|execute|use)/iu],
+    ['tool_result', /tool.*(result|finish|complete)/iu],
+    ['tool_execute_after', /tool\.execute\.after/iu],
+    ['model_resume', /(resume|continuation|continue)/iu],
+    ['session_state', /session.*state|state.*session/iu],
+    ['provider_error', /provider.*(error|fail)|error.*provider/iu],
+    ['timeout', /timeout|timed out/iu],
+  ]
+  return [...new Set(text.split(/\r?\n/u).flatMap((line) => categories.filter(([, pattern]) => pattern.test(line)).map(([name]) => name)))]
+}
+
 function safeRelative(root, value) {
   if (typeof value !== 'string' || !value) return false
   const candidate = path.resolve(root, value)
@@ -258,9 +292,17 @@ export const OCAEObservationAdapter = async () => {
         adapter_mode: ADAPTER_MODE,
         output_before: before,
         output_after: after,
+        model_facing_serialization: String(modelFacing),
         protocol_preserved: before.title === after.title && before.metadata.hash === after.metadata.hash,
         tool_execution_latency_ms: beforeByCall.has(raw.tool_call_id) ? hookStarted - beforeByCall.get(raw.tool_call_id) : null,
         adapter_latency_ms: Date.now() - hookStarted,
+        hook_latency_ms: Date.now() - hookStarted,
+      })
+      await trace({
+        type: 'tool_execute_after_return',
+        tool_call_id: raw.tool_call_id,
+        adapter_mode: ADAPTER_MODE,
+        model_facing_output_hash: after.output_hash,
         hook_latency_ms: Date.now() - hookStarted,
       })
     },
@@ -350,7 +392,7 @@ export function createOpenCodeLiveExecutor({ provider, model, opencode_bin = 'op
             observation_id: `obs-${row.sequence}-${index + 1}`,
             tool_call_id: call.call_id || `call-${row.sequence}-${index + 1}`,
             tool_name: call.tool || 'unknown',
-            tool_contract_fingerprint: createToolContractFingerprint({ tool_name: call.tool || 'unknown', result_contract: 'opencode-json-event.v1', version: '1.18.25' }),
+            tool_contract_fingerprint: createToolContractFingerprint({ tool_name: call.tool || 'unknown', result_contract: 'opencode-json-event.v1', version: host_version }),
             status: call.status === 'COMPLETED' ? 'SUCCESS' : 'FAILURE',
             failure_class: call.status === 'COMPLETED' ? null : 'TOOL_EXECUTION_FAILURE',
             raw_payload: call.output,
@@ -387,6 +429,7 @@ export function createOpenCodeLiveExecutor({ provider, model, opencode_bin = 'op
           exposed_tools: exposure.exposed_tools,
           tool_calls: calls,
           message_sequence: events.map((event) => event.type || null),
+          observation_trace_types: trace.map((item) => item.type),
           observation_receipts: rawObservations,
           observation_interposition: interposition,
           model_facing_observation: {
@@ -451,6 +494,10 @@ export function createOpenCodeLiveExecutor({ provider, model, opencode_bin = 'op
             first_event_latency_ms: response.first_event_latency_ms ?? null,
             event_timings: response.event_timings || [],
           },
+          debug_logging_enabled: response.debug_logging_enabled === true,
+          debug_lifecycle_events: response.debug_lifecycle_events || [],
+          debug_log_fingerprint: response.debug_log_fingerprint || null,
+          debug_log_excerpt: response.debug_log_excerpt || '',
         }
       } finally {
         await fs.rm(root, { recursive: true, force: true })
@@ -461,7 +508,7 @@ export function createOpenCodeLiveExecutor({ provider, model, opencode_bin = 'op
 
 export function invokeOpenCode({ opencode_bin, provider, model, root, prompt, timeout_ms = 90000, signal, use_plugins = false, config_dir = null } = {}) {
   return new Promise((resolve) => {
-    const args = ['run', ...(use_plugins ? [] : ['--pure']), '--model', `${provider}/${model}`, '--format', 'json', '--dir', root, '--auto', prompt]
+    const args = ['run', ...OPENCODE_DEBUG_ARGS, ...(use_plugins ? [] : ['--pure']), '--model', `${provider}/${model}`, '--format', 'json', '--dir', root, '--auto', prompt]
     const child = spawn(opencode_bin, args, {
       cwd: root, env: { ...process.env, ...(config_dir ? { OPENCODE_CONFIG_DIR: config_dir } : {}) }, stdio: ['ignore', 'pipe', 'pipe'], detached: true,
     })
@@ -478,7 +525,21 @@ export function invokeOpenCode({ opencode_bin, provider, model, root, prompt, ti
       timedOut = true
       kill()
       try { child.kill('SIGKILL') } catch {}
-      finish({ ok: false, failure_class: 'TIMEOUT', stdout, stderr: 'TIMEOUT', cost: costFromEvents(parseEvents(stdout)) ?? 0, process_latency_ms: Date.now() - started, first_event_latency_ms: eventTimings[0]?.latency_ms ?? null, event_timings: eventTimings })
+      const safeStderr = sanitizeDebugLog(stderr)
+      finish({
+        ok: false,
+        failure_class: 'TIMEOUT',
+        stdout,
+        stderr: 'TIMEOUT',
+        cost: costFromEvents(parseEvents(stdout)) ?? 0,
+        process_latency_ms: Date.now() - started,
+        first_event_latency_ms: eventTimings[0]?.latency_ms ?? null,
+        event_timings: eventTimings,
+        debug_logging_enabled: OPENCODE_DEBUG_ARGS.every((arg) => args.includes(arg)) && /(?:level=DEBUG|level[=: ]+DEBUG)/iu.test(stderr),
+        debug_lifecycle_events: debugLifecycleEvents(stderr),
+        debug_log_fingerprint: fingerprint(safeStderr),
+        debug_log_excerpt: safeStderr,
+      })
     }, timeout_ms)
     const abort = () => { timedOut = true; kill() }
     signal?.addEventListener('abort', abort, { once: true })
@@ -496,15 +557,35 @@ export function invokeOpenCode({ opencode_bin, provider, model, root, prompt, ti
       }
     })
     child.stderr.on('data', (chunk) => { stderr += chunk.toString('utf8') })
-    child.on('error', (error) => finish({ ok: false, failure_class: error.code || 'PROVIDER_FAILURE', stdout: '', stderr: error.message, cost: 0 }))
+    child.on('error', (error) => {
+      const safeError = sanitizeDebugLog(error.message)
+      finish({
+        ok: false,
+        failure_class: error.code || 'PROVIDER_FAILURE',
+        stdout: '',
+        stderr: safeError,
+        cost: 0,
+        debug_logging_enabled: OPENCODE_DEBUG_ARGS.every((arg) => args.includes(arg)),
+        debug_lifecycle_events: [],
+        debug_log_fingerprint: fingerprint(safeError),
+        debug_log_excerpt: safeError,
+      })
+    })
     child.on('close', (code) => {
       clearTimeout(timer)
       signal?.removeEventListener('abort', abort)
       const events = parseEvents(stdout)
       const cost = costFromEvents(events)
-      if (timedOut) return finish({ ok: false, failure_class: 'TIMEOUT', stdout, stderr: 'TIMEOUT', cost: cost ?? 0, process_latency_ms: Date.now() - started, first_event_latency_ms: eventTimings[0]?.latency_ms ?? null, event_timings: eventTimings })
-      if (code !== 0) return finish({ ok: false, failure_class: /rate.?limit|429/iu.test(`${stderr}\n${stdout}`) ? 'RATE_LIMITED' : 'PROVIDER_FAILURE', stdout, stderr, cost: cost ?? 0, process_latency_ms: Date.now() - started, first_event_latency_ms: eventTimings[0]?.latency_ms ?? null, event_timings: eventTimings })
-      finish({ ok: true, failure_class: null, stdout, stderr, cost: cost ?? 0, process_latency_ms: Date.now() - started, first_event_latency_ms: eventTimings[0]?.latency_ms ?? null, event_timings: eventTimings })
+      const safeStderr = sanitizeDebugLog(stderr)
+      const debug = {
+        debug_logging_enabled: OPENCODE_DEBUG_ARGS.every((arg) => args.includes(arg)) && /(?:level=DEBUG|level[=: ]+DEBUG)/iu.test(stderr),
+        debug_lifecycle_events: debugLifecycleEvents(stderr),
+        debug_log_fingerprint: fingerprint(safeStderr),
+        debug_log_excerpt: safeStderr,
+      }
+      if (timedOut) return finish({ ok: false, failure_class: 'TIMEOUT', stdout, stderr: 'TIMEOUT', cost: cost ?? 0, process_latency_ms: Date.now() - started, first_event_latency_ms: eventTimings[0]?.latency_ms ?? null, event_timings: eventTimings, ...debug })
+      if (code !== 0) return finish({ ok: false, failure_class: /rate.?limit|429/iu.test(`${stderr}\n${stdout}`) ? 'RATE_LIMITED' : 'PROVIDER_FAILURE', stdout, stderr: safeStderr, cost: cost ?? 0, process_latency_ms: Date.now() - started, first_event_latency_ms: eventTimings[0]?.latency_ms ?? null, event_timings: eventTimings, ...debug })
+      finish({ ok: true, failure_class: null, stdout, stderr: safeStderr, cost: cost ?? 0, process_latency_ms: Date.now() - started, first_event_latency_ms: eventTimings[0]?.latency_ms ?? null, event_timings: eventTimings, ...debug })
     })
   })
 }

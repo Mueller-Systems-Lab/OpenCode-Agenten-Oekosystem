@@ -65,6 +65,7 @@ function sanitizeResult(result) {
     protocol_preserved: item.protocol_preserved,
     output_before: item.output_before,
     output_after: item.output_after,
+    model_facing_serialization: item.model_facing_serialization,
     tool_execution_latency_ms: item.tool_execution_latency_ms,
     adapter_latency_ms: item.adapter_latency_ms,
     hook_latency_ms: item.hook_latency_ms,
@@ -120,6 +121,10 @@ function sanitizeResult(result) {
       ...eventSequenceTiming(result),
       model_latency_ms: result.timing?.first_event_latency_ms ?? null,
     },
+    debug_logging_enabled: result.debug_logging_enabled,
+    debug_lifecycle_events: result.debug_lifecycle_events,
+    debug_log_fingerprint: result.debug_log_fingerprint,
+    debug_log_excerpt: result.debug_log_excerpt,
   }
 }
 

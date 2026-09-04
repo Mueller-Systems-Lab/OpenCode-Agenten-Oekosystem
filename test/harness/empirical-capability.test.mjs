@@ -39,7 +39,7 @@ import {
   evaluateHoldoutConfirmation,
   runQualification,
 } from '../../runtime/harness/qualification-runner.mjs'
-import { createLiveProjectConfig, createObservationAdapterPluginSource, createOpenCodeLiveExecutor, invokeOpenCode, OBSERVATION_ADAPTER_MODES, parseOpenCodeEvents } from '../../runtime/harness/live-qualification.mjs'
+import { createLiveProjectConfig, createObservationAdapterPluginSource, createOpenCodeLiveExecutor, invokeOpenCode, OBSERVATION_ADAPTER_MODES, OPENCODE_DEBUG_ARGS, parseOpenCodeEvents, sanitizeDebugLog } from '../../runtime/harness/live-qualification.mjs'
 import { getExplicitLocalRuntime } from '../../runtime/harness/local-runtime.mjs'
 
 const A = 'a'.repeat(64)
@@ -289,4 +289,11 @@ test('OpenCode invocation resolves and kills non-cancellable timeout children', 
   } finally {
     await fs.rm(root, { recursive: true, force: true })
   }
+})
+
+test('live OpenCode invocation always carries mandatory DEBUG logging and redacts credentials', () => {
+  assert.deepEqual(OPENCODE_DEBUG_ARGS, ['--print-logs', '--log-level', 'DEBUG'])
+  const safe = sanitizeDebugLog(`level=DEBUG Authorization: Bearer secret-value token=abc123 ${'/home' + '/private/file'}`)
+  assert.match(safe, /level=DEBUG/u)
+  assert.doesNotMatch(safe, /secret-value|abc123|\/home\/private\/file/u)
 })

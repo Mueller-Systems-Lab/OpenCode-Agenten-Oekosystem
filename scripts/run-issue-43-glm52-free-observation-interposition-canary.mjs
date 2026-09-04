@@ -16,6 +16,7 @@ import {
   LIVE_VERIFIER_VERSION,
   OPENCODE_DEBUG_ARGS,
   parseOpenCodeEvents,
+  pluginInitializationReady,
   sanitizeDebugLog,
 } from '../runtime/harness/live-qualification.mjs'
 import { OBSERVATION_CONTRACT, OBSERVATION_CONTRACT_VERSION, createToolContractFingerprint, observationFingerprint } from '../runtime/harness/observation-adapter.mjs'
@@ -134,13 +135,31 @@ async function pluginInitializationProbe() {
     const trace = await readJsonLines(tracePath)
     const events = parseOpenCodeEvents(response.stdout)
     const answer = events.filter((event) => event.type === 'text').map((event) => event.part?.text || '').join('')
+    const registration = trace.find((event) => event.type === 'plugin_register_call') || null
+    const hooks = trace.find((event) => event.type === 'hooks_registered') || null
+    const evidence = {
+      plugin_module_load: trace.some((event) => event.type === 'adapter_loaded') ? 'PASS' : 'FAIL',
+      plugin_export_contract: hooks ? 'PASS' : 'FAIL',
+      plugin_register_call: registration ? 'PASS' : 'FAIL',
+      plugin_context_validity: registration?.context_valid === true ? 'PASS' : registration ? 'FAIL' : 'NOT_REACHED',
+      before_hook_registered: hooks?.before_hook_registered === true ? 'PASS' : hooks ? 'FAIL' : 'NOT_REACHED',
+      after_hook_registered: hooks?.after_hook_registered === true ? 'PASS' : hooks ? 'FAIL' : 'NOT_REACHED',
+      governance_hook_active: 'NOT_REACHED',
+      init_completion: response.ok ? 'PASS' : 'FAIL',
+    }
     const usage = classifyModelUsage({ debugLog: response.debug_log_excerpt, targetProvider: provider, targetModel: model })
     return {
-      pass: response.ok && answer.includes('PLUGIN_INIT_OK') && trace.some((event) => event.type === 'adapter_loaded'),
+      // Plugin readiness is established by the host calling the exported
+      // factory and receiving both required hooks. The model's exact text is
+      // a separate normal-completion diagnostic; it cannot authorize plugin
+      // initialization because model instruction-following is nondeterministic.
+      pass: pluginInitializationReady({ responseOk: response.ok, evidence }),
       response_ok: response.ok,
+      answer_matches_exact: answer === 'PLUGIN_INIT_OK',
       answer_fingerprint: fingerprint(answer),
       adapter_loaded: trace.some((event) => event.type === 'adapter_loaded'),
       trace_types: trace.map((event) => event.type),
+      evidence,
       paid_calls: response.cost > 0 ? 1 : 0,
       fallback_used: false,
       debug_logging_enabled: response.debug_logging_enabled === true,

@@ -1,0 +1,2298 @@
+{
+  "contract": "ecosystem.issue-43-causal-factor-freeze.v1",
+  "status": "FROZEN_BEFORE_LIVE_RUNS",
+  "frozen": {
+    "experiment_id": "issue-43-glm53-causal-factor-isolation-20260903T235910Z",
+    "model": {
+      "provider": "zai-coding-plan",
+      "model": "glm-5.3",
+      "runtime": "opencode-cli-free-transport",
+      "opencode_version": "1.18.25"
+    },
+    "repository_fixture_fingerprint": "12272215e468a47112cef98f0062e357b065f1124e39ae96716305f556d88395",
+    "derivation_corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+    "holdout_corpus_fingerprint": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+    "tool_contract_fingerprint": "ee57effac5f6c2b15dcd431e1b50d1bb82d4dcda23e4602403a9951c34a704de",
+    "observation_contract_fingerprint": "936593a4920bf93bc51ddd4780775075adfa1a4d88cfbbaceb99dc8ab58f1b91",
+    "verifier_version": "issue-43-live-verifier.v1",
+    "primary_repetitions": 4,
+    "contract_repetitions": 4,
+    "planned_primary_derivation_per_arm": 24,
+    "planned_primary_holdout_per_arm": 16,
+    "planned_contract_derivation_per_variant": 24,
+    "timeout_ms": 90000,
+    "retry_budget": 0,
+    "arm_definitions": {
+      "A": {
+        "tool_exposure": "FULL_GENERIC",
+        "observation_adaptation": false,
+        "contract_framing": "BASELINE"
+      },
+      "B": {
+        "tool_exposure": "TASK_MINIMAL",
+        "observation_adaptation": false,
+        "contract_framing": "BASELINE"
+      },
+      "C": {
+        "tool_exposure": "FULL_GENERIC",
+        "observation_adaptation": true,
+        "contract_framing": "BASELINE"
+      },
+      "D": {
+        "tool_exposure": "TASK_MINIMAL",
+        "observation_adaptation": true,
+        "contract_framing": "BASELINE"
+      }
+    },
+    "contract_definitions": {
+      "CONTRACT_A_BASELINE": "BASELINE",
+      "CONTRACT_B_SHORT_EXPLICIT": "SHORT_EXPLICIT",
+      "CONTRACT_C_EXAMPLE_ASSISTED": "EXAMPLE_ASSISTED"
+    },
+    "execution_order": [
+      {
+        "sequence": 0,
+        "plan_sequence": 0,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 1,
+        "arm": "D"
+      },
+      {
+        "sequence": 1,
+        "plan_sequence": 1,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 1,
+        "arm": "C"
+      },
+      {
+        "sequence": 2,
+        "plan_sequence": 2,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 1,
+        "arm": "B"
+      },
+      {
+        "sequence": 3,
+        "plan_sequence": 3,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 1,
+        "arm": "A"
+      },
+      {
+        "sequence": 4,
+        "plan_sequence": 4,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 1,
+        "arm": "A"
+      },
+      {
+        "sequence": 5,
+        "plan_sequence": 5,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 1,
+        "arm": "B"
+      },
+      {
+        "sequence": 6,
+        "plan_sequence": 6,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 1,
+        "arm": "C"
+      },
+      {
+        "sequence": 7,
+        "plan_sequence": 7,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 1,
+        "arm": "D"
+      },
+      {
+        "sequence": 8,
+        "plan_sequence": 8,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 1,
+        "arm": "D"
+      },
+      {
+        "sequence": 9,
+        "plan_sequence": 9,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 1,
+        "arm": "C"
+      },
+      {
+        "sequence": 10,
+        "plan_sequence": 10,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 1,
+        "arm": "B"
+      },
+      {
+        "sequence": 11,
+        "plan_sequence": 11,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 1,
+        "arm": "A"
+      },
+      {
+        "sequence": 12,
+        "plan_sequence": 12,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 1,
+        "arm": "A"
+      },
+      {
+        "sequence": 13,
+        "plan_sequence": 13,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 1,
+        "arm": "B"
+      },
+      {
+        "sequence": 14,
+        "plan_sequence": 14,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 1,
+        "arm": "C"
+      },
+      {
+        "sequence": 15,
+        "plan_sequence": 15,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 1,
+        "arm": "D"
+      },
+      {
+        "sequence": 16,
+        "plan_sequence": 16,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 1,
+        "arm": "D"
+      },
+      {
+        "sequence": 17,
+        "plan_sequence": 17,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 1,
+        "arm": "C"
+      },
+      {
+        "sequence": 18,
+        "plan_sequence": 18,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 1,
+        "arm": "B"
+      },
+      {
+        "sequence": 19,
+        "plan_sequence": 19,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 1,
+        "arm": "A"
+      },
+      {
+        "sequence": 20,
+        "plan_sequence": 20,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 1,
+        "arm": "A"
+      },
+      {
+        "sequence": 21,
+        "plan_sequence": 21,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 1,
+        "arm": "B"
+      },
+      {
+        "sequence": 22,
+        "plan_sequence": 22,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 1,
+        "arm": "C"
+      },
+      {
+        "sequence": 23,
+        "plan_sequence": 23,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 1,
+        "arm": "D"
+      },
+      {
+        "sequence": 24,
+        "plan_sequence": 24,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 2,
+        "arm": "A"
+      },
+      {
+        "sequence": 25,
+        "plan_sequence": 25,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 2,
+        "arm": "B"
+      },
+      {
+        "sequence": 26,
+        "plan_sequence": 26,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 2,
+        "arm": "C"
+      },
+      {
+        "sequence": 27,
+        "plan_sequence": 27,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 2,
+        "arm": "D"
+      },
+      {
+        "sequence": 28,
+        "plan_sequence": 28,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 2,
+        "arm": "D"
+      },
+      {
+        "sequence": 29,
+        "plan_sequence": 29,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 2,
+        "arm": "C"
+      },
+      {
+        "sequence": 30,
+        "plan_sequence": 30,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 2,
+        "arm": "B"
+      },
+      {
+        "sequence": 31,
+        "plan_sequence": 31,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 2,
+        "arm": "A"
+      },
+      {
+        "sequence": 32,
+        "plan_sequence": 32,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 2,
+        "arm": "A"
+      },
+      {
+        "sequence": 33,
+        "plan_sequence": 33,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 2,
+        "arm": "B"
+      },
+      {
+        "sequence": 34,
+        "plan_sequence": 34,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 2,
+        "arm": "C"
+      },
+      {
+        "sequence": 35,
+        "plan_sequence": 35,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 2,
+        "arm": "D"
+      },
+      {
+        "sequence": 36,
+        "plan_sequence": 36,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 2,
+        "arm": "D"
+      },
+      {
+        "sequence": 37,
+        "plan_sequence": 37,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 2,
+        "arm": "C"
+      },
+      {
+        "sequence": 38,
+        "plan_sequence": 38,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 2,
+        "arm": "B"
+      },
+      {
+        "sequence": 39,
+        "plan_sequence": 39,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 2,
+        "arm": "A"
+      },
+      {
+        "sequence": 40,
+        "plan_sequence": 40,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 2,
+        "arm": "A"
+      },
+      {
+        "sequence": 41,
+        "plan_sequence": 41,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 2,
+        "arm": "B"
+      },
+      {
+        "sequence": 42,
+        "plan_sequence": 42,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 2,
+        "arm": "C"
+      },
+      {
+        "sequence": 43,
+        "plan_sequence": 43,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 2,
+        "arm": "D"
+      },
+      {
+        "sequence": 44,
+        "plan_sequence": 44,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 2,
+        "arm": "D"
+      },
+      {
+        "sequence": 45,
+        "plan_sequence": 45,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 2,
+        "arm": "C"
+      },
+      {
+        "sequence": 46,
+        "plan_sequence": 46,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 2,
+        "arm": "B"
+      },
+      {
+        "sequence": 47,
+        "plan_sequence": 47,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 2,
+        "arm": "A"
+      },
+      {
+        "sequence": 48,
+        "plan_sequence": 48,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 3,
+        "arm": "D"
+      },
+      {
+        "sequence": 49,
+        "plan_sequence": 49,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 3,
+        "arm": "C"
+      },
+      {
+        "sequence": 50,
+        "plan_sequence": 50,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 3,
+        "arm": "B"
+      },
+      {
+        "sequence": 51,
+        "plan_sequence": 51,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 3,
+        "arm": "A"
+      },
+      {
+        "sequence": 52,
+        "plan_sequence": 52,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 3,
+        "arm": "A"
+      },
+      {
+        "sequence": 53,
+        "plan_sequence": 53,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 3,
+        "arm": "B"
+      },
+      {
+        "sequence": 54,
+        "plan_sequence": 54,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 3,
+        "arm": "C"
+      },
+      {
+        "sequence": 55,
+        "plan_sequence": 55,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 3,
+        "arm": "D"
+      },
+      {
+        "sequence": 56,
+        "plan_sequence": 56,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 3,
+        "arm": "D"
+      },
+      {
+        "sequence": 57,
+        "plan_sequence": 57,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 3,
+        "arm": "C"
+      },
+      {
+        "sequence": 58,
+        "plan_sequence": 58,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 3,
+        "arm": "B"
+      },
+      {
+        "sequence": 59,
+        "plan_sequence": 59,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 3,
+        "arm": "A"
+      },
+      {
+        "sequence": 60,
+        "plan_sequence": 60,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 3,
+        "arm": "A"
+      },
+      {
+        "sequence": 61,
+        "plan_sequence": 61,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 3,
+        "arm": "B"
+      },
+      {
+        "sequence": 62,
+        "plan_sequence": 62,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 3,
+        "arm": "C"
+      },
+      {
+        "sequence": 63,
+        "plan_sequence": 63,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 3,
+        "arm": "D"
+      },
+      {
+        "sequence": 64,
+        "plan_sequence": 64,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 3,
+        "arm": "D"
+      },
+      {
+        "sequence": 65,
+        "plan_sequence": 65,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 3,
+        "arm": "C"
+      },
+      {
+        "sequence": 66,
+        "plan_sequence": 66,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 3,
+        "arm": "B"
+      },
+      {
+        "sequence": 67,
+        "plan_sequence": 67,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 3,
+        "arm": "A"
+      },
+      {
+        "sequence": 68,
+        "plan_sequence": 68,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 3,
+        "arm": "A"
+      },
+      {
+        "sequence": 69,
+        "plan_sequence": 69,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 3,
+        "arm": "B"
+      },
+      {
+        "sequence": 70,
+        "plan_sequence": 70,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 3,
+        "arm": "C"
+      },
+      {
+        "sequence": 71,
+        "plan_sequence": 71,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 3,
+        "arm": "D"
+      },
+      {
+        "sequence": 72,
+        "plan_sequence": 72,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 4,
+        "arm": "A"
+      },
+      {
+        "sequence": 73,
+        "plan_sequence": 73,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 4,
+        "arm": "B"
+      },
+      {
+        "sequence": 74,
+        "plan_sequence": 74,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 4,
+        "arm": "C"
+      },
+      {
+        "sequence": 75,
+        "plan_sequence": 75,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 4,
+        "arm": "D"
+      },
+      {
+        "sequence": 76,
+        "plan_sequence": 76,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 4,
+        "arm": "D"
+      },
+      {
+        "sequence": 77,
+        "plan_sequence": 77,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 4,
+        "arm": "C"
+      },
+      {
+        "sequence": 78,
+        "plan_sequence": 78,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 4,
+        "arm": "B"
+      },
+      {
+        "sequence": 79,
+        "plan_sequence": 79,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 4,
+        "arm": "A"
+      },
+      {
+        "sequence": 80,
+        "plan_sequence": 80,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 4,
+        "arm": "A"
+      },
+      {
+        "sequence": 81,
+        "plan_sequence": 81,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 4,
+        "arm": "B"
+      },
+      {
+        "sequence": 82,
+        "plan_sequence": 82,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 4,
+        "arm": "C"
+      },
+      {
+        "sequence": 83,
+        "plan_sequence": 83,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 4,
+        "arm": "D"
+      },
+      {
+        "sequence": 84,
+        "plan_sequence": 84,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 4,
+        "arm": "D"
+      },
+      {
+        "sequence": 85,
+        "plan_sequence": 85,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 4,
+        "arm": "C"
+      },
+      {
+        "sequence": 86,
+        "plan_sequence": 86,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 4,
+        "arm": "B"
+      },
+      {
+        "sequence": 87,
+        "plan_sequence": 87,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 4,
+        "arm": "A"
+      },
+      {
+        "sequence": 88,
+        "plan_sequence": 88,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 4,
+        "arm": "A"
+      },
+      {
+        "sequence": 89,
+        "plan_sequence": 89,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 4,
+        "arm": "B"
+      },
+      {
+        "sequence": 90,
+        "plan_sequence": 90,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 4,
+        "arm": "C"
+      },
+      {
+        "sequence": 91,
+        "plan_sequence": 91,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 4,
+        "arm": "D"
+      },
+      {
+        "sequence": 92,
+        "plan_sequence": 92,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 4,
+        "arm": "D"
+      },
+      {
+        "sequence": 93,
+        "plan_sequence": 93,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 4,
+        "arm": "C"
+      },
+      {
+        "sequence": 94,
+        "plan_sequence": 94,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 4,
+        "arm": "B"
+      },
+      {
+        "sequence": 95,
+        "plan_sequence": 95,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 4,
+        "arm": "A"
+      },
+      {
+        "sequence": 96,
+        "plan_sequence": 96,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 1,
+        "arm": "A"
+      },
+      {
+        "sequence": 97,
+        "plan_sequence": 97,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 1,
+        "arm": "B"
+      },
+      {
+        "sequence": 98,
+        "plan_sequence": 98,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 1,
+        "arm": "C"
+      },
+      {
+        "sequence": 99,
+        "plan_sequence": 99,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 1,
+        "arm": "D"
+      },
+      {
+        "sequence": 100,
+        "plan_sequence": 100,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 1,
+        "arm": "D"
+      },
+      {
+        "sequence": 101,
+        "plan_sequence": 101,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 1,
+        "arm": "C"
+      },
+      {
+        "sequence": 102,
+        "plan_sequence": 102,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 1,
+        "arm": "B"
+      },
+      {
+        "sequence": 103,
+        "plan_sequence": 103,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 1,
+        "arm": "A"
+      },
+      {
+        "sequence": 104,
+        "plan_sequence": 104,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 1,
+        "arm": "A"
+      },
+      {
+        "sequence": 105,
+        "plan_sequence": 105,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 1,
+        "arm": "B"
+      },
+      {
+        "sequence": 106,
+        "plan_sequence": 106,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 1,
+        "arm": "C"
+      },
+      {
+        "sequence": 107,
+        "plan_sequence": 107,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 1,
+        "arm": "D"
+      },
+      {
+        "sequence": 108,
+        "plan_sequence": 108,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 1,
+        "arm": "D"
+      },
+      {
+        "sequence": 109,
+        "plan_sequence": 109,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 1,
+        "arm": "C"
+      },
+      {
+        "sequence": 110,
+        "plan_sequence": 110,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 1,
+        "arm": "B"
+      },
+      {
+        "sequence": 111,
+        "plan_sequence": 111,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 1,
+        "arm": "A"
+      },
+      {
+        "sequence": 112,
+        "plan_sequence": 112,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 2,
+        "arm": "D"
+      },
+      {
+        "sequence": 113,
+        "plan_sequence": 113,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 2,
+        "arm": "C"
+      },
+      {
+        "sequence": 114,
+        "plan_sequence": 114,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 2,
+        "arm": "B"
+      },
+      {
+        "sequence": 115,
+        "plan_sequence": 115,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 2,
+        "arm": "A"
+      },
+      {
+        "sequence": 116,
+        "plan_sequence": 116,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 2,
+        "arm": "A"
+      },
+      {
+        "sequence": 117,
+        "plan_sequence": 117,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 2,
+        "arm": "B"
+      },
+      {
+        "sequence": 118,
+        "plan_sequence": 118,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 2,
+        "arm": "C"
+      },
+      {
+        "sequence": 119,
+        "plan_sequence": 119,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 2,
+        "arm": "D"
+      },
+      {
+        "sequence": 120,
+        "plan_sequence": 120,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 2,
+        "arm": "D"
+      },
+      {
+        "sequence": 121,
+        "plan_sequence": 121,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 2,
+        "arm": "C"
+      },
+      {
+        "sequence": 122,
+        "plan_sequence": 122,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 2,
+        "arm": "B"
+      },
+      {
+        "sequence": 123,
+        "plan_sequence": 123,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 2,
+        "arm": "A"
+      },
+      {
+        "sequence": 124,
+        "plan_sequence": 124,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 2,
+        "arm": "A"
+      },
+      {
+        "sequence": 125,
+        "plan_sequence": 125,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 2,
+        "arm": "B"
+      },
+      {
+        "sequence": 126,
+        "plan_sequence": 126,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 2,
+        "arm": "C"
+      },
+      {
+        "sequence": 127,
+        "plan_sequence": 127,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 2,
+        "arm": "D"
+      },
+      {
+        "sequence": 128,
+        "plan_sequence": 128,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 3,
+        "arm": "A"
+      },
+      {
+        "sequence": 129,
+        "plan_sequence": 129,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 3,
+        "arm": "B"
+      },
+      {
+        "sequence": 130,
+        "plan_sequence": 130,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 3,
+        "arm": "C"
+      },
+      {
+        "sequence": 131,
+        "plan_sequence": 131,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 3,
+        "arm": "D"
+      },
+      {
+        "sequence": 132,
+        "plan_sequence": 132,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 3,
+        "arm": "D"
+      },
+      {
+        "sequence": 133,
+        "plan_sequence": 133,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 3,
+        "arm": "C"
+      },
+      {
+        "sequence": 134,
+        "plan_sequence": 134,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 3,
+        "arm": "B"
+      },
+      {
+        "sequence": 135,
+        "plan_sequence": 135,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 3,
+        "arm": "A"
+      },
+      {
+        "sequence": 136,
+        "plan_sequence": 136,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 3,
+        "arm": "A"
+      },
+      {
+        "sequence": 137,
+        "plan_sequence": 137,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 3,
+        "arm": "B"
+      },
+      {
+        "sequence": 138,
+        "plan_sequence": 138,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 3,
+        "arm": "C"
+      },
+      {
+        "sequence": 139,
+        "plan_sequence": 139,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 3,
+        "arm": "D"
+      },
+      {
+        "sequence": 140,
+        "plan_sequence": 140,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 3,
+        "arm": "D"
+      },
+      {
+        "sequence": 141,
+        "plan_sequence": 141,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 3,
+        "arm": "C"
+      },
+      {
+        "sequence": 142,
+        "plan_sequence": 142,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 3,
+        "arm": "B"
+      },
+      {
+        "sequence": 143,
+        "plan_sequence": 143,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 3,
+        "arm": "A"
+      },
+      {
+        "sequence": 144,
+        "plan_sequence": 144,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 4,
+        "arm": "D"
+      },
+      {
+        "sequence": 145,
+        "plan_sequence": 145,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 4,
+        "arm": "C"
+      },
+      {
+        "sequence": 146,
+        "plan_sequence": 146,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 4,
+        "arm": "B"
+      },
+      {
+        "sequence": 147,
+        "plan_sequence": 147,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 4,
+        "arm": "A"
+      },
+      {
+        "sequence": 148,
+        "plan_sequence": 148,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 4,
+        "arm": "A"
+      },
+      {
+        "sequence": 149,
+        "plan_sequence": 149,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 4,
+        "arm": "B"
+      },
+      {
+        "sequence": 150,
+        "plan_sequence": 150,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 4,
+        "arm": "C"
+      },
+      {
+        "sequence": 151,
+        "plan_sequence": 151,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 4,
+        "arm": "D"
+      },
+      {
+        "sequence": 152,
+        "plan_sequence": 152,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 4,
+        "arm": "D"
+      },
+      {
+        "sequence": 153,
+        "plan_sequence": 153,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 4,
+        "arm": "C"
+      },
+      {
+        "sequence": 154,
+        "plan_sequence": 154,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 4,
+        "arm": "B"
+      },
+      {
+        "sequence": 155,
+        "plan_sequence": 155,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 4,
+        "arm": "A"
+      },
+      {
+        "sequence": 156,
+        "plan_sequence": 156,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 4,
+        "arm": "A"
+      },
+      {
+        "sequence": 157,
+        "plan_sequence": 157,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 4,
+        "arm": "B"
+      },
+      {
+        "sequence": 158,
+        "plan_sequence": 158,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 4,
+        "arm": "C"
+      },
+      {
+        "sequence": 159,
+        "plan_sequence": 159,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 4,
+        "arm": "D"
+      },
+      {
+        "sequence": 160,
+        "plan_sequence": 0,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 1,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 161,
+        "plan_sequence": 1,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 1,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 162,
+        "plan_sequence": 2,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 1,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 163,
+        "plan_sequence": 3,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 1,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 164,
+        "plan_sequence": 4,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 1,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 165,
+        "plan_sequence": 5,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 1,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 166,
+        "plan_sequence": 6,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 1,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 167,
+        "plan_sequence": 7,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 1,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 168,
+        "plan_sequence": 8,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 1,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 169,
+        "plan_sequence": 9,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 1,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 170,
+        "plan_sequence": 10,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 1,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 171,
+        "plan_sequence": 11,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 1,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 172,
+        "plan_sequence": 12,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 1,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 173,
+        "plan_sequence": 13,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 1,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 174,
+        "plan_sequence": 14,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 1,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 175,
+        "plan_sequence": 15,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 1,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 176,
+        "plan_sequence": 16,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 1,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 177,
+        "plan_sequence": 17,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 1,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 178,
+        "plan_sequence": 18,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 2,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 179,
+        "plan_sequence": 19,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 2,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 180,
+        "plan_sequence": 20,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 2,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 181,
+        "plan_sequence": 21,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 2,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 182,
+        "plan_sequence": 22,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 2,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 183,
+        "plan_sequence": 23,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 2,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 184,
+        "plan_sequence": 24,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 2,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 185,
+        "plan_sequence": 25,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 2,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 186,
+        "plan_sequence": 26,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 2,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 187,
+        "plan_sequence": 27,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 2,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 188,
+        "plan_sequence": 28,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 2,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 189,
+        "plan_sequence": 29,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 2,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 190,
+        "plan_sequence": 30,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 2,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 191,
+        "plan_sequence": 31,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 2,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 192,
+        "plan_sequence": 32,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 2,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 193,
+        "plan_sequence": 33,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 2,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 194,
+        "plan_sequence": 34,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 2,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 195,
+        "plan_sequence": 35,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 2,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 196,
+        "plan_sequence": 36,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 3,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 197,
+        "plan_sequence": 37,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 3,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 198,
+        "plan_sequence": 38,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 3,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 199,
+        "plan_sequence": 39,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 3,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 200,
+        "plan_sequence": 40,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 3,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 201,
+        "plan_sequence": 41,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 3,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 202,
+        "plan_sequence": 42,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 3,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 203,
+        "plan_sequence": 43,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 3,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 204,
+        "plan_sequence": 44,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 3,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 205,
+        "plan_sequence": 45,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 3,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 206,
+        "plan_sequence": 46,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 3,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 207,
+        "plan_sequence": 47,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 3,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 208,
+        "plan_sequence": 48,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 3,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 209,
+        "plan_sequence": 49,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 3,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 210,
+        "plan_sequence": 50,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 3,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 211,
+        "plan_sequence": 51,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 3,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 212,
+        "plan_sequence": 52,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 3,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 213,
+        "plan_sequence": 53,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 3,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 214,
+        "plan_sequence": 54,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 4,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 215,
+        "plan_sequence": 55,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 4,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 216,
+        "plan_sequence": 56,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "grep-observation",
+        "repetition": 4,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 217,
+        "plan_sequence": 57,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 4,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 218,
+        "plan_sequence": 58,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 4,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 219,
+        "plan_sequence": 59,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "read-observation",
+        "repetition": 4,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 220,
+        "plan_sequence": 60,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 4,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 221,
+        "plan_sequence": 61,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 4,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 222,
+        "plan_sequence": 62,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "compiler-failure",
+        "repetition": 4,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 223,
+        "plan_sequence": 63,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 4,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 224,
+        "plan_sequence": 64,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 4,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 225,
+        "plan_sequence": 65,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "permission-denial",
+        "repetition": 4,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 226,
+        "plan_sequence": 66,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 4,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 227,
+        "plan_sequence": 67,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 4,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 228,
+        "plan_sequence": 68,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "timeout",
+        "repetition": 4,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 229,
+        "plan_sequence": 69,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 4,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 230,
+        "plan_sequence": 70,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 4,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 231,
+        "plan_sequence": 71,
+        "mode": "DERIVATION_CORPUS",
+        "case_id": "partial-truncation",
+        "repetition": 4,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 232,
+        "plan_sequence": 72,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 1,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 233,
+        "plan_sequence": 73,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 1,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 234,
+        "plan_sequence": 74,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 1,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 235,
+        "plan_sequence": 75,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 1,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 236,
+        "plan_sequence": 76,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 1,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 237,
+        "plan_sequence": 77,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 1,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 238,
+        "plan_sequence": 78,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 1,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 239,
+        "plan_sequence": 79,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 1,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 240,
+        "plan_sequence": 80,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 1,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 241,
+        "plan_sequence": 81,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 1,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 242,
+        "plan_sequence": 82,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 1,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 243,
+        "plan_sequence": 83,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 1,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 244,
+        "plan_sequence": 84,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 2,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 245,
+        "plan_sequence": 85,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 2,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 246,
+        "plan_sequence": 86,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 2,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 247,
+        "plan_sequence": 87,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 2,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 248,
+        "plan_sequence": 88,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 2,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 249,
+        "plan_sequence": 89,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 2,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 250,
+        "plan_sequence": 90,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 2,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 251,
+        "plan_sequence": 91,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 2,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 252,
+        "plan_sequence": 92,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 2,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 253,
+        "plan_sequence": 93,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 2,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 254,
+        "plan_sequence": 94,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 2,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 255,
+        "plan_sequence": 95,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 2,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 256,
+        "plan_sequence": 96,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 3,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 257,
+        "plan_sequence": 97,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 3,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 258,
+        "plan_sequence": 98,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 3,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 259,
+        "plan_sequence": 99,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 3,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 260,
+        "plan_sequence": 100,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 3,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 261,
+        "plan_sequence": 101,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 3,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 262,
+        "plan_sequence": 102,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 3,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 263,
+        "plan_sequence": 103,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 3,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 264,
+        "plan_sequence": 104,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 3,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 265,
+        "plan_sequence": 105,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 3,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 266,
+        "plan_sequence": 106,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 3,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 267,
+        "plan_sequence": 107,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 3,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 268,
+        "plan_sequence": 108,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 4,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 269,
+        "plan_sequence": 109,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 4,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 270,
+        "plan_sequence": 110,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "stale-read",
+        "repetition": 4,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 271,
+        "plan_sequence": 111,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 4,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 272,
+        "plan_sequence": 112,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 4,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 273,
+        "plan_sequence": 113,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "parallel-correlation",
+        "repetition": 4,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 274,
+        "plan_sequence": 114,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 4,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      },
+      {
+        "sequence": 275,
+        "plan_sequence": 115,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 4,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 276,
+        "plan_sequence": 116,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "unknown-mcp",
+        "repetition": 4,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 277,
+        "plan_sequence": 117,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 4,
+        "arm": "CONTRACT_A_BASELINE"
+      },
+      {
+        "sequence": 278,
+        "plan_sequence": 118,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 4,
+        "arm": "CONTRACT_B_SHORT_EXPLICIT"
+      },
+      {
+        "sequence": 279,
+        "plan_sequence": 119,
+        "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+        "case_id": "subagent-result",
+        "repetition": 4,
+        "arm": "CONTRACT_C_EXAMPLE_ASSISTED"
+      }
+    ],
+    "execution_order_fingerprint": "b4bdb56f8ecd59a19b93359c6c56b7f6c931cb38afd975836b95ee57146095d2",
+    "primary_plan_fingerprint": "0d9661c954131096332b67363fde7e4fc7bc125233e151cdba4073930aca553c",
+    "contract_plan_fingerprint": "ca0ba2b3bcd4c94790490118438b57b7e1daf37c93f20e82d0ef21102513d4ef"
+  }
+}

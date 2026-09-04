@@ -14,13 +14,13 @@ import { createOpenCodeLiveExecutor, invokeOpenCode, LIVE_RUNTIME_ID, LIVE_TOOL_
 import { DEFAULT_MODEL_HARNESS_PROFILES } from '../runtime/harness/model-harness-profiles.mjs'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const provider = 'opencode'
-const model = 'muse-spark-1.2-contributor-free'
+const provider = 'zai-coding-plan'
+const model = 'glm-5.3'
 const opencodeBin = process.env.OCAE_OPENCODE_BIN || 'opencode'
 const timeoutMs = 90_000
-const repetitions = 3
-const contractRepetitions = 2
-const experimentId = 'issue-43-causal-factor-isolation-20260903T215623Z'
+const repetitions = 4
+const contractRepetitions = 4
+const experimentId = `issue-43-glm53-causal-factor-isolation-${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/u, 'Z')}`
 const outputPath = path.join(repoRoot, 'docs', 'reports', `${experimentId}.json`)
 const freezePath = path.join(repoRoot, 'docs', 'reports', `${experimentId}-freeze.json`)
 const armDefinitions = Object.freeze({
@@ -127,7 +127,20 @@ async function preflight() {
     const response = await invokeOpenCode({ opencode_bin: opencodeBin, provider, model, root, prompt: 'Reply with exactly PREFLIGHT_OK and nothing else. Do not use tools.', timeout_ms: timeoutMs })
     const events = parseOpenCodeEvents(response.stdout)
     const answer = events.filter((event) => event.type === 'text').map((event) => event.part?.text || '').join('')
-    return { model_reachable: response.ok && answer.includes('PREFLIGHT_OK'), live_model_evidence: response.ok && events.some((event) => event.type === 'step_finish'), paid_calls: response.cost > 0 ? 1 : 0, fallback_used: false, failure_class: response.failure_class, reported_cost: response.cost }
+    return {
+      model_reachable: response.ok && answer.includes('PREFLIGHT_OK'),
+      canonical_runtime_entry: true,
+      expected_provider_match: provider === 'zai-coding-plan',
+      expected_model_match: model === 'glm-5.3',
+      live_model_evidence: response.ok && events.some((event) => event.type === 'step_finish'),
+      paid_calls: response.cost > 0 ? 1 : 0,
+      fallback_used: false,
+      model_switch_used: false,
+      failure_class: response.failure_class,
+      reported_cost: response.cost,
+      cost_path: 'EXISTING_AUTHORIZED_PLAN',
+      metered_paid_fallback_used: false,
+    }
   } finally {
     await fs.rm(root, { recursive: true, force: true })
   }
@@ -148,26 +161,26 @@ const identity = createQualificationIdentity({
   qualification_corpus_fingerprint: corpora.derivation.fingerprint, holdout_corpus_fingerprint: corpora.holdout.fingerprint,
   harness_fingerprint: harnessFingerprint, verifier_version: LIVE_VERIFIER_VERSION,
 })
-const primaryPlan = createQualificationPlan({ identity, corpora, model: { provider, model }, harness_fingerprint: harnessFingerprint, verifier_version: LIVE_VERIFIER_VERSION, granted_tools: [...LIVE_TOOL_SET], repetitions, max_rows: 128, arms: Object.keys(armDefinitions) })
-const contractPlan = createQualificationPlan({ identity, corpora, model: { provider, model }, harness_fingerprint: harnessFingerprint, verifier_version: LIVE_VERIFIER_VERSION, granted_tools: [...LIVE_TOOL_SET], repetitions: contractRepetitions, max_rows: 128, arms: Object.keys(contractDefinitions) })
-const executionOrder = [...primaryPlan.rows, ...contractPlan.rows].map((row) => ({ sequence: row.sequence, mode: row.mode, case_id: row.case_id, repetition: row.repetition, arm: row.arm }))
+const primaryPlan = createQualificationPlan({ identity, corpora, model: { provider, model }, harness_fingerprint: harnessFingerprint, verifier_version: LIVE_VERIFIER_VERSION, granted_tools: [...LIVE_TOOL_SET], repetitions, max_rows: 192, arms: Object.keys(armDefinitions) })
+const contractPlan = createQualificationPlan({ identity, corpora, model: { provider, model }, harness_fingerprint: harnessFingerprint, verifier_version: LIVE_VERIFIER_VERSION, granted_tools: [...LIVE_TOOL_SET], repetitions: contractRepetitions, max_rows: 192, arms: Object.keys(contractDefinitions) })
+const executionOrder = [...primaryPlan.rows, ...contractPlan.rows].map((row, sequence) => ({ sequence, plan_sequence: row.sequence, mode: row.mode, case_id: row.case_id, repetition: row.repetition, arm: row.arm }))
 const frozen = {
   experiment_id: experimentId, model: { provider, model, runtime: LIVE_RUNTIME_ID, opencode_version: hostVersion },
   repository_fixture_fingerprint: repositoryFixtureFingerprint, derivation_corpus_fingerprint: corpora.derivation.fingerprint, holdout_corpus_fingerprint: corpora.holdout.fingerprint,
   tool_contract_fingerprint: toolContractFingerprint, observation_contract_fingerprint: observationContractFingerprint, verifier_version: LIVE_VERIFIER_VERSION,
-  primary_repetitions: repetitions, contract_repetitions: contractRepetitions, timeout_ms: timeoutMs, retry_budget: 0,
+  primary_repetitions: repetitions, contract_repetitions: contractRepetitions, planned_primary_derivation_per_arm: corpora.derivation.cases.length * repetitions, planned_primary_holdout_per_arm: corpora.holdout.cases.length * repetitions, planned_contract_derivation_per_variant: corpora.derivation.cases.length * contractRepetitions, timeout_ms: timeoutMs, retry_budget: 0,
   arm_definitions: armDefinitions, contract_definitions: contractDefinitions, execution_order: executionOrder, execution_order_fingerprint: fingerprint(executionOrder),
   primary_plan_fingerprint: primaryPlan.fingerprint, contract_plan_fingerprint: contractPlan.fingerprint,
 }
 
-await fs.writeFile(freezePath, `${JSON.stringify({ contract: 'ecosystem.issue-43-causal-factor-freeze.v1', status: 'FROZEN_BEFORE_LIVE_RUNS', frozen }, null, 2)}\n`, { mode: 0o600 })
 const probe = await preflight()
 const baseReport = { contract: 'ecosystem.issue-43-causal-factor-experiment.v1', experiment_id: experimentId, frozen, preflight: { ...probe, paid_calls_allowed: 0, fallback_disabled: true }, paid_calls: probe.paid_calls, fallback_used: probe.fallback_used, promoted_profile: 'NONE', promotion_decision: 'NONE' }
-if (!probe.model_reachable || probe.paid_calls !== 0 || probe.fallback_used) {
+if (!probe.model_reachable || !probe.canonical_runtime_entry || !probe.expected_provider_match || !probe.expected_model_match || !probe.live_model_evidence || probe.paid_calls !== 0 || probe.fallback_used || probe.model_switch_used) {
   await fs.writeFile(outputPath, `${JSON.stringify({ ...baseReport, status: 'AMBER_OCAE_CAUSAL_EXPERIMENT_BLOCKED_MODEL_UNAVAILABLE' }, null, 2)}\n`, { mode: 0o600 })
   console.log(JSON.stringify({ output_path: path.relative(repoRoot, outputPath), ...baseReport, status: 'AMBER_OCAE_CAUSAL_EXPERIMENT_BLOCKED_MODEL_UNAVAILABLE' }, null, 2))
   process.exitCode = 2
 } else {
+  await fs.writeFile(freezePath, `${JSON.stringify({ contract: 'ecosystem.issue-43-causal-factor-freeze.v1', status: 'FROZEN_BEFORE_LIVE_RUNS', frozen }, null, 2)}\n`, { mode: 0o600 })
   const primaryExecutor = createOpenCodeLiveExecutor({ provider, model, opencode_bin: opencodeBin, timeout_ms: timeoutMs, repo_root: repoRoot, host_version: hostVersion, resolve_treatment: ({ row, scenario, default_profile }) => {
     const definition = armDefinitions[row.arm]
     const minimal = definition.tool_exposure === 'TASK_MINIMAL'

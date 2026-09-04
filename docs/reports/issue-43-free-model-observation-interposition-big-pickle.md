@@ -147,3 +147,28 @@ GIT_DIFF_CHECK=PASS
 Diagnose the explicit plugin-init contract with a new experiment identity or a
 separately authorized harness probe. Do not continue this frozen experiment,
 switch the target model, promote a profile, or retry the failed measured run.
+
+## Repair attempt and frozen-track outcome
+
+The frozen experiment identity and all three treatment fingerprints were
+preserved. The new immutable attempt is recorded in
+`issue-43-free-model-observation-canary-attempt-20260904T133743Z.json`.
+
+The plugin-init root cause is proven as `STRICT_INIT_TEST_BUG`: the historical
+predicate coupled host/plugin readiness to exact model text even though the
+historical response and adapter load succeeded. OpenCode 1.18.27 contract
+comparison found no plugin API drift. Host-owned module, context, factory, and
+before/after-hook evidence now passes; the full analysis is in
+`issue-43-big-pickle-plugin-initialization-root-cause.md`.
+
+The locked Big Pickle security reproduction is `VERIFIED_IN_SCOPE`; the prior
+wrapper review state is classified as incomplete recovery evidence, not a
+security-authority failure. The canonical current suite is `100/100` files,
+`1335/1335` tests, zero failures, and zero skips.
+
+After the repaired pre-experiment gates passed, CONTROL ran for five runs and
+produced `3/5` verified successes. The two failures were
+`VERIFIER_REJECTION`; the required stop rule therefore set
+`FIRST_FAILING_STAGE=CONTROL`, and Identity/Envelope were not run. The current
+classification is `AMBER_OCAE_BIG_PICKLE_CONTROL_UNSTABLE` and no profile was
+promoted.

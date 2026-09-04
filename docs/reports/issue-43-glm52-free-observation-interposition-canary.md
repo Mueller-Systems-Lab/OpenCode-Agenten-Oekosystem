@@ -86,3 +86,63 @@ No measured run produced a tool receipt. The implementation still preserves the 
 ## Next step
 
 Repeat this frozen identity after the OpenRouter free-model daily limit is cleared, first requiring a normal target completion and a clean explicit-plugin initialization probe. Do not use the paid GLM-5.2 entry, a fallback model/provider, or a different GLM variant.
+
+## Controlled continuation attempt
+
+Date: 2026-09-04
+
+The frozen experiment specification remained intact. The continuation therefore
+keeps the original `EXPERIMENT_ID` and records a new immutable attempt:
+
+- `EXPERIMENT_ID=issue-43-glm52-free-observation-canary-20260904T103234Z`
+- `ATTEMPT_ID=issue-43-glm52-free-observation-canary-attempt-20260904T112939Z`
+- `TARGET_MODEL_PROVIDER=openrouter`
+- `TARGET_MODEL=z-ai/glm-5.2:free`
+- `TARGET_MODEL_REACHABLE=NO`
+- `FREE_MODEL_PATH=PASS`
+- `PAID_CALLS=0`
+- `TARGET_MODEL_SWITCH_USED=NO`
+- `TARGET_MODEL_FALLBACK_USED=NO`
+- `TARGET_PROVIDER_FALLBACK_USED=NO`
+- `AUXILIARY_MODEL_USED=YES`
+- `AUXILIARY_MODEL_PROVIDER=openrouter`
+- `AUXILIARY_MODEL=google/gemini-3.8-flash`
+- `AUXILIARY_MODEL_PURPOSE=TITLE_GENERATION`
+
+The target preflight again returned `free-models-per-day`. This is classified as
+`RATE_LIMIT_CLASS=DAILY_FREE_QUOTA_EXHAUSTED`; no Retry-After or reset value was
+exposed. The run stopped before plugin initialization and before CONTROL_0:
+
+- `PREFLIGHT_RESULT=BLOCKED`
+- `FIRST_FAILING_STAGE=PRE_FLIGHT`
+- `PLUGIN_INITIALIZATION=NOT_RUN`
+- `CONTROL_0=NOT_RUN`
+- `IDENTITY=NOT_RUN`
+- `ENVELOPE=NOT_RUN`
+- `RAW_OBSERVATION_FINGERPRINTING=NOT_RUN`
+- `MODEL_FACING_OBSERVATION_FINGERPRINTING=NOT_RUN`
+- `CALL_RESULT_CORRELATION=NOT_RUN`
+- `RAW_RECEIPT_PROPAGATION=NOT_RUN`
+- `VERIFIER_RAW_AUTHORITY=NOT_RUN`
+
+This corrects reporting semantics only. The prior blocked artifact's derived
+`first_failing_layer=CONTROL` wording was not an executed control failure; the
+new canonical field is `FIRST_FAILING_STAGE=PRE_FLIGHT`, with all observation
+gates `NOT_RUN`. Likewise, the target/auxiliary distinction is now explicit:
+the adjacent `llm.model` title lifecycle line is attributed to auxiliary title
+generation, not target-model switching. The raw sanitized DEBUG trace is
+unchanged, and the corrected interpretation is recorded in the attempt artifact.
+
+The required fingerprints remain unchanged:
+
+- `TOOL_CONTRACT_FINGERPRINT=e6c9f7f9aa095578c0138f69c73076a4af7583ed7c8409dc1bb14f0fcd5cd33c`
+- `OBSERVATION_CONTRACT_FINGERPRINT=638a4d824837ef4d97d1ade5fe59b80b39984e025e01c4e0126b2a7810d5b73d`
+- `EXECUTION_ORDER_FINGERPRINT=503ffbe04835c26752a392659e5051744f91a51ca203daa87877fdd9b6dfecc5`
+- `FROZEN_EXPERIMENT_INTEGRITY=PASS`
+
+Artifacts: [attempt evidence JSON](./issue-43-glm52-free-observation-canary-attempt-20260904T112939Z.json), [attempt freeze JSON](./issue-43-glm52-free-observation-canary-attempt-20260904T112939Z-freeze.json), and [updated DEBUG differential](./issue-43-glm52-free-debug-log-differential.md).
+
+No Envelope conclusion is possible. `ENVELOPE_REGRESSION_REPLICATED=INSUFFICIENT`,
+`ROOT_CAUSE_GENERALIZATION=INSUFFICIENT`, and `PROMOTED_PROFILE=NONE` remain in
+force. No paid fallback, provider fallback, model substitution, or production
+routing change occurred.

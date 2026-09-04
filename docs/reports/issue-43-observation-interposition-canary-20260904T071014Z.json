@@ -1,0 +1,1680 @@
+{
+  "contract": "ecosystem.issue-43-observation-interposition-canary.v1",
+  "timestamp": "2026-09-04T07:10:23.144Z",
+  "provider": "zai-coding-plan",
+  "model": "glm-5.3",
+  "opencode_version": "1.18.25",
+  "timeout_ms": 90000,
+  "repetitions": 3,
+  "preflight": {
+    "reachable": true,
+    "failure_class": null,
+    "latency_ms": 7277,
+    "paid_calls": 0
+  },
+  "registration_path": "explicit-project-config-plugin",
+  "stopped_after_first_regression": true,
+  "canaries": [
+    {
+      "layer": "CONTROL",
+      "runs": 3,
+      "verified_success": 3,
+      "failures": [],
+      "average_latency_ms": 32124.666666666668,
+      "timing_averages": {
+        "tool_execution_latency_ms": null,
+        "adapter_latency_ms": null,
+        "hook_latency_ms": null,
+        "provider_resume_latency_ms": 6057.777777777778,
+        "model_latency_ms": 8299.666666666666
+      },
+      "preservation": {
+        "tool_call_id": false,
+        "tool_identity": true,
+        "result_status": true,
+        "call_result_correlation": true,
+        "raw_receipt_propagation": null
+      },
+      "metadata_diff": {
+        "output_content_equal": true,
+        "result_metadata_equal": true,
+        "protocol_preserved": true
+      },
+      "run_records": [
+        {
+          "repetition": 1,
+          "verified_success": true,
+          "failure_class": null,
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "canonical_verifier": true,
+          "verifier_raw_authority": true,
+          "tool_calls": [
+            {
+              "tool_call_id": "call_cab70934e2744f00a061bd7e",
+              "tool_name": "read",
+              "tool_args_fingerprint": "885feb5b11075d83da3e976356b83f5d00b51ec38855275246758c2a292ddaea",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_89222c0ab91246d38f0a5b5b",
+              "tool_name": "write",
+              "tool_args_fingerprint": "ac43b63da98bb07552b345b14f14c3606880dfee9f9bf63c9f87c1d8e3acb695",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_fb92a2f02bbb467396d7b598",
+              "tool_name": "read",
+              "tool_args_fingerprint": "6eccf90b62c0c60b5548b7aab9ccbf263b95206b8468992c1922dce7f2779aa8",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_9fae6a59908247c1a2ad8852",
+              "tool_name": "bash",
+              "tool_args_fingerprint": "82bfcdb213dd3c68d6623ea7793b5afaeaf88252b726021188634cc799df0aed",
+              "status": "COMPLETED",
+              "argument_valid": true
+            }
+          ],
+          "observation_receipt_count": 4,
+          "observation_interposition_count": 0,
+          "interposition": [],
+          "message_sequence": [
+            "step_start",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "step_finish"
+          ],
+          "metadata_diff": {
+            "output_content_equal": true,
+            "result_metadata_equal": true,
+            "protocol_preserved": true
+          },
+          "preservation": {
+            "tool_call_id": false,
+            "tool_identity": true,
+            "result_status": true,
+            "call_result_correlation": true,
+            "raw_receipt_propagation": false
+          },
+          "timing": {
+            "total_latency_ms": 37864,
+            "process_latency_ms": 37858,
+            "first_event_latency_ms": 7502,
+            "tool_execution_latency_ms": null,
+            "adapter_latency_ms": null,
+            "hook_latency_ms": null,
+            "provider_resume_latency_ms": 6571,
+            "resume_gap_samples": 4,
+            "model_latency_ms": 7502
+          }
+        },
+        {
+          "repetition": 2,
+          "verified_success": true,
+          "failure_class": null,
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "canonical_verifier": true,
+          "verifier_raw_authority": true,
+          "tool_calls": [
+            {
+              "tool_call_id": "call_0ebecc6709fe4966882a18a3",
+              "tool_name": "read",
+              "tool_args_fingerprint": "7b74e685d8764afa532ed9a51e542f0d40564517e9451982ce69018afdab2995",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_ebf4c49cd0064d2e900bc146",
+              "tool_name": "write",
+              "tool_args_fingerprint": "3fa7d1b6127b279d078c026ffb2f4901a837eaf6945921c429116bb774406c13",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_6b6073393fee425b99cfe8aa",
+              "tool_name": "read",
+              "tool_args_fingerprint": "8738b295cd9604199c1b71646aad9fa47478a82d8f4b5566deb7020cee60c136",
+              "status": "COMPLETED",
+              "argument_valid": true
+            }
+          ],
+          "observation_receipt_count": 3,
+          "observation_interposition_count": 0,
+          "interposition": [],
+          "message_sequence": [
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "step_finish"
+          ],
+          "metadata_diff": {
+            "output_content_equal": true,
+            "result_metadata_equal": true,
+            "protocol_preserved": true
+          },
+          "preservation": {
+            "tool_call_id": false,
+            "tool_identity": true,
+            "result_status": true,
+            "call_result_correlation": true,
+            "raw_receipt_propagation": false
+          },
+          "timing": {
+            "total_latency_ms": 25974,
+            "process_latency_ms": 25971,
+            "first_event_latency_ms": 8435,
+            "tool_execution_latency_ms": null,
+            "adapter_latency_ms": null,
+            "hook_latency_ms": null,
+            "provider_resume_latency_ms": 4468.666666666667,
+            "resume_gap_samples": 3,
+            "model_latency_ms": 8435
+          }
+        },
+        {
+          "repetition": 3,
+          "verified_success": true,
+          "failure_class": null,
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "canonical_verifier": true,
+          "verifier_raw_authority": true,
+          "tool_calls": [
+            {
+              "tool_call_id": "call_ed5f707c5aa44b4ebdbb71db",
+              "tool_name": "read",
+              "tool_args_fingerprint": "5023f8dc0897152a273ccda9961d89ce73a19e4c415a5fd50d048786ed0a3d97",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_ce4eeb2b353d4507bb2ba726",
+              "tool_name": "write",
+              "tool_args_fingerprint": "f3982907747fabc8ff6c8a5b8c43a58c7f8b5f04d8ef9707d61fe08607ce01bc",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_ab73c0570ce840c388cce160",
+              "tool_name": "read",
+              "tool_args_fingerprint": "534d80a0f1e0817be13413a154ec01a6b5cf3e2b6bcbd76d799e72b0094fb015",
+              "status": "COMPLETED",
+              "argument_valid": true
+            }
+          ],
+          "observation_receipt_count": 3,
+          "observation_interposition_count": 0,
+          "interposition": [],
+          "message_sequence": [
+            "step_start",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "step_finish"
+          ],
+          "metadata_diff": {
+            "output_content_equal": true,
+            "result_metadata_equal": true,
+            "protocol_preserved": true
+          },
+          "preservation": {
+            "tool_call_id": false,
+            "tool_identity": true,
+            "result_status": true,
+            "call_result_correlation": true,
+            "raw_receipt_propagation": false
+          },
+          "timing": {
+            "total_latency_ms": 32536,
+            "process_latency_ms": 32528,
+            "first_event_latency_ms": 8962,
+            "tool_execution_latency_ms": null,
+            "adapter_latency_ms": null,
+            "hook_latency_ms": null,
+            "provider_resume_latency_ms": 7133.666666666667,
+            "resume_gap_samples": 3,
+            "model_latency_ms": 8962
+          }
+        }
+      ]
+    },
+    {
+      "layer": "IDENTITY",
+      "runs": 3,
+      "verified_success": 3,
+      "failures": [],
+      "average_latency_ms": 31522,
+      "timing_averages": {
+        "tool_execution_latency_ms": 36.94444444444445,
+        "adapter_latency_ms": 0.4166666666666667,
+        "hook_latency_ms": 0.4166666666666667,
+        "provider_resume_latency_ms": 5165.25,
+        "model_latency_ms": 9865.666666666666
+      },
+      "preservation": {
+        "tool_call_id": true,
+        "tool_identity": true,
+        "result_status": true,
+        "call_result_correlation": true,
+        "raw_receipt_propagation": true
+      },
+      "metadata_diff": {
+        "output_content_equal": true,
+        "result_metadata_equal": true,
+        "protocol_preserved": true
+      },
+      "run_records": [
+        {
+          "repetition": 1,
+          "verified_success": true,
+          "failure_class": null,
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "canonical_verifier": true,
+          "verifier_raw_authority": true,
+          "tool_calls": [
+            {
+              "tool_call_id": "call_f8cd134674e04ac98ef5cc3b",
+              "tool_name": "read",
+              "tool_args_fingerprint": "0be01a54350232e8ace38d9bd386a01699eb610f4505ebfea2510c2e6fc7eb9a",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_42f74ca791954224ab960f12",
+              "tool_name": "write",
+              "tool_args_fingerprint": "8e5100a9eb0efde497fb0b4be8a0bbbcf3380f6edeb0740c50ce34506b75094d",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_4a66b26e3a3d40aea689bf7a",
+              "tool_name": "read",
+              "tool_args_fingerprint": "b284efd812185848597eaa3738d4a1d81ef1925e5148a295d92d6ce28f827e32",
+              "status": "COMPLETED",
+              "argument_valid": true
+            }
+          ],
+          "observation_receipt_count": 3,
+          "observation_interposition_count": 3,
+          "interposition": [
+            {
+              "tool_call_id": "call_f8cd134674e04ac98ef5cc3b",
+              "adapter_mode": "IDENTITY",
+              "raw_observation_fingerprint": "d340540c845157390bb64f353fa90cc66f190f003f8faad4c41a8050166a8756",
+              "model_facing_observation_fingerprint": "d340540c845157390bb64f353fa90cc66f190f003f8faad4c41a8050166a8756",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-SjAEJS/data/input.txt",
+                "output_hash": "d340540c845157390bb64f353fa90cc66f190f003f8faad4c41a8050166a8756",
+                "output_length": 148,
+                "metadata": {
+                  "hash": "0c09a97326e1a50b7ba39199d656c9f9dc5bfac67e6da29eb8e335f06927f897",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-SjAEJS/data/input.txt",
+                "output_hash": "d340540c845157390bb64f353fa90cc66f190f003f8faad4c41a8050166a8756",
+                "output_length": 148,
+                "metadata": {
+                  "hash": "0c09a97326e1a50b7ba39199d656c9f9dc5bfac67e6da29eb8e335f06927f897",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 31,
+              "adapter_latency_ms": 1,
+              "hook_latency_ms": 1
+            },
+            {
+              "tool_call_id": "call_42f74ca791954224ab960f12",
+              "adapter_mode": "IDENTITY",
+              "raw_observation_fingerprint": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+              "model_facing_observation_fingerprint": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-SjAEJS/data/output.txt",
+                "output_hash": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+                "output_length": 24,
+                "metadata": {
+                  "hash": "b34a272b2cf853202b45b0d46097992779f3d52eed630d95b3deb4a06c8e38bb",
+                  "keys": [
+                    "diagnostics",
+                    "exists",
+                    "filepath",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-SjAEJS/data/output.txt",
+                "output_hash": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+                "output_length": 24,
+                "metadata": {
+                  "hash": "b34a272b2cf853202b45b0d46097992779f3d52eed630d95b3deb4a06c8e38bb",
+                  "keys": [
+                    "diagnostics",
+                    "exists",
+                    "filepath",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 32,
+              "adapter_latency_ms": 0,
+              "hook_latency_ms": 0
+            },
+            {
+              "tool_call_id": "call_4a66b26e3a3d40aea689bf7a",
+              "adapter_mode": "IDENTITY",
+              "raw_observation_fingerprint": "bf0ee1e7941e8df8931484eceb681c5fedc86780140db549d750b83973fc8d60",
+              "model_facing_observation_fingerprint": "bf0ee1e7941e8df8931484eceb681c5fedc86780140db549d750b83973fc8d60",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-SjAEJS/data/output.txt",
+                "output_hash": "bf0ee1e7941e8df8931484eceb681c5fedc86780140db549d750b83973fc8d60",
+                "output_length": 149,
+                "metadata": {
+                  "hash": "5e3de401f5201749f77b5328ccafa62ea4de3f76bb46b48b95c8b0c3a0aab072",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-SjAEJS/data/output.txt",
+                "output_hash": "bf0ee1e7941e8df8931484eceb681c5fedc86780140db549d750b83973fc8d60",
+                "output_length": 149,
+                "metadata": {
+                  "hash": "5e3de401f5201749f77b5328ccafa62ea4de3f76bb46b48b95c8b0c3a0aab072",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 23,
+              "adapter_latency_ms": 0,
+              "hook_latency_ms": 0
+            }
+          ],
+          "message_sequence": [
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "step_finish"
+          ],
+          "metadata_diff": {
+            "output_content_equal": true,
+            "result_metadata_equal": true,
+            "protocol_preserved": true
+          },
+          "preservation": {
+            "tool_call_id": true,
+            "tool_identity": true,
+            "result_status": true,
+            "call_result_correlation": true,
+            "raw_receipt_propagation": true
+          },
+          "timing": {
+            "total_latency_ms": 34351,
+            "process_latency_ms": 34340,
+            "first_event_latency_ms": 14131,
+            "tool_execution_latency_ms": 28.666666666666668,
+            "adapter_latency_ms": 0.3333333333333333,
+            "hook_latency_ms": 0.3333333333333333,
+            "provider_resume_latency_ms": 5667,
+            "resume_gap_samples": 3,
+            "model_latency_ms": 14131
+          }
+        },
+        {
+          "repetition": 2,
+          "verified_success": true,
+          "failure_class": null,
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "canonical_verifier": true,
+          "verifier_raw_authority": true,
+          "tool_calls": [
+            {
+              "tool_call_id": "call_109a883d7f4e434a90ccb55c",
+              "tool_name": "read",
+              "tool_args_fingerprint": "85ff712c7c586bbc7b78ea1770a6cb1239d51194615ef7fde8778b88c49d0e08",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_9208c3218ce14c08855b2894",
+              "tool_name": "write",
+              "tool_args_fingerprint": "1af6f562bfadebe6d69d41b7a521928200bc3a6aee1d67de21cea3fac0c30b48",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_cb9c8af45c9f483286a150b3",
+              "tool_name": "read",
+              "tool_args_fingerprint": "20d572582300a2d8012a512d29b0a6e7980fe053fe8540f01c26739690bf55f7",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_b45d48bcbb3c486a957e8429",
+              "tool_name": "bash",
+              "tool_args_fingerprint": "04b31b2c8cb98b2d99b5ee159243abe0de25c80827be0ffe7191938507330c18",
+              "status": "COMPLETED",
+              "argument_valid": true
+            }
+          ],
+          "observation_receipt_count": 4,
+          "observation_interposition_count": 4,
+          "interposition": [
+            {
+              "tool_call_id": "call_109a883d7f4e434a90ccb55c",
+              "adapter_mode": "IDENTITY",
+              "raw_observation_fingerprint": "0d69f531b199c8016c212ccf72d9bf59643296f0f1668aa962baf99a33e46d92",
+              "model_facing_observation_fingerprint": "0d69f531b199c8016c212ccf72d9bf59643296f0f1668aa962baf99a33e46d92",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-wxqzJ3/data/input.txt",
+                "output_hash": "0d69f531b199c8016c212ccf72d9bf59643296f0f1668aa962baf99a33e46d92",
+                "output_length": 148,
+                "metadata": {
+                  "hash": "c9e066c08ed6be7e2b4838fb85849793d6588f7599a0be0b900ef108a9d55007",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-wxqzJ3/data/input.txt",
+                "output_hash": "0d69f531b199c8016c212ccf72d9bf59643296f0f1668aa962baf99a33e46d92",
+                "output_length": 148,
+                "metadata": {
+                  "hash": "c9e066c08ed6be7e2b4838fb85849793d6588f7599a0be0b900ef108a9d55007",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 29,
+              "adapter_latency_ms": 0,
+              "hook_latency_ms": 0
+            },
+            {
+              "tool_call_id": "call_9208c3218ce14c08855b2894",
+              "adapter_mode": "IDENTITY",
+              "raw_observation_fingerprint": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+              "model_facing_observation_fingerprint": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-wxqzJ3/data/output.txt",
+                "output_hash": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+                "output_length": 24,
+                "metadata": {
+                  "hash": "100ea57f532892b40e376ff6edf448f404dee9147cd4c7e7c14fa40b16e526f7",
+                  "keys": [
+                    "diagnostics",
+                    "exists",
+                    "filepath",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-wxqzJ3/data/output.txt",
+                "output_hash": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+                "output_length": 24,
+                "metadata": {
+                  "hash": "100ea57f532892b40e376ff6edf448f404dee9147cd4c7e7c14fa40b16e526f7",
+                  "keys": [
+                    "diagnostics",
+                    "exists",
+                    "filepath",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 21,
+              "adapter_latency_ms": 0,
+              "hook_latency_ms": 0
+            },
+            {
+              "tool_call_id": "call_cb9c8af45c9f483286a150b3",
+              "adapter_mode": "IDENTITY",
+              "raw_observation_fingerprint": "b0b0bc18e78e62cb6ad78f8970c2d47e3de550371cd91c072576a714f62b20b7",
+              "model_facing_observation_fingerprint": "b0b0bc18e78e62cb6ad78f8970c2d47e3de550371cd91c072576a714f62b20b7",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-wxqzJ3/data/output.txt",
+                "output_hash": "b0b0bc18e78e62cb6ad78f8970c2d47e3de550371cd91c072576a714f62b20b7",
+                "output_length": 149,
+                "metadata": {
+                  "hash": "5ddf8463e3d989764d14531851cf0c75dd6fd46402709872e507c3f35c83d689",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-wxqzJ3/data/output.txt",
+                "output_hash": "b0b0bc18e78e62cb6ad78f8970c2d47e3de550371cd91c072576a714f62b20b7",
+                "output_length": 149,
+                "metadata": {
+                  "hash": "5ddf8463e3d989764d14531851cf0c75dd6fd46402709872e507c3f35c83d689",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 30,
+              "adapter_latency_ms": 0,
+              "hook_latency_ms": 0
+            },
+            {
+              "tool_call_id": "call_b45d48bcbb3c486a957e8429",
+              "adapter_mode": "IDENTITY",
+              "raw_observation_fingerprint": "dc51604abc56d5c4de44f3a48371a1aa1b5b7352249049e290de8a3bbc2c7a4d",
+              "model_facing_observation_fingerprint": "dc51604abc56d5c4de44f3a48371a1aa1b5b7352249049e290de8a3bbc2c7a4d",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "cmp /tmp/ocae-live-case-wxqzJ3/data/input.txt /tmp/ocae-live-case-wxqzJ3/data/output.txt && echo IDENTICAL",
+                "output_hash": "dc51604abc56d5c4de44f3a48371a1aa1b5b7352249049e290de8a3bbc2c7a4d",
+                "output_length": 10,
+                "metadata": {
+                  "hash": "946bdacfb5af80a7d48c08e656d5fd024e1f989b4f4bc02a7b41705241014aec",
+                  "keys": [
+                    "exit",
+                    "output",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "cmp /tmp/ocae-live-case-wxqzJ3/data/input.txt /tmp/ocae-live-case-wxqzJ3/data/output.txt && echo IDENTICAL",
+                "output_hash": "dc51604abc56d5c4de44f3a48371a1aa1b5b7352249049e290de8a3bbc2c7a4d",
+                "output_length": 10,
+                "metadata": {
+                  "hash": "946bdacfb5af80a7d48c08e656d5fd024e1f989b4f4bc02a7b41705241014aec",
+                  "keys": [
+                    "exit",
+                    "output",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 150,
+              "adapter_latency_ms": 1,
+              "hook_latency_ms": 1
+            }
+          ],
+          "message_sequence": [
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "tool_use",
+            "text",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "step_finish"
+          ],
+          "metadata_diff": {
+            "output_content_equal": true,
+            "result_metadata_equal": true,
+            "protocol_preserved": true
+          },
+          "preservation": {
+            "tool_call_id": true,
+            "tool_identity": true,
+            "result_status": true,
+            "call_result_correlation": true,
+            "raw_receipt_propagation": true
+          },
+          "timing": {
+            "total_latency_ms": 33218,
+            "process_latency_ms": 33215,
+            "first_event_latency_ms": 7808,
+            "tool_execution_latency_ms": 57.5,
+            "adapter_latency_ms": 0.25,
+            "hook_latency_ms": 0.25,
+            "provider_resume_latency_ms": 4297.75,
+            "resume_gap_samples": 4,
+            "model_latency_ms": 7808
+          }
+        },
+        {
+          "repetition": 3,
+          "verified_success": true,
+          "failure_class": null,
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "canonical_verifier": true,
+          "verifier_raw_authority": true,
+          "tool_calls": [
+            {
+              "tool_call_id": "call_d458aebd306e434e80448a79",
+              "tool_name": "read",
+              "tool_args_fingerprint": "b2df39811fdc52e969407b9efcfc40d17341581419644faecd399848d44565bf",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_d42f6d7075764fb6ac3e78f9",
+              "tool_name": "write",
+              "tool_args_fingerprint": "a92ea1753023f91344428d3ab412b218e1c4c1a9f38d2ebc9e547910da92471c",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_92566edbd95640c8b7dcda90",
+              "tool_name": "read",
+              "tool_args_fingerprint": "5b373570052620ab737e6da15eeb9195c27469068ac4bd7e61798221b2d454fb",
+              "status": "COMPLETED",
+              "argument_valid": true
+            }
+          ],
+          "observation_receipt_count": 3,
+          "observation_interposition_count": 3,
+          "interposition": [
+            {
+              "tool_call_id": "call_d458aebd306e434e80448a79",
+              "adapter_mode": "IDENTITY",
+              "raw_observation_fingerprint": "849c57ca021890de3ba58b08b4e111e3d55c270e2f6b92c3f8ed54f21c7fcf2c",
+              "model_facing_observation_fingerprint": "849c57ca021890de3ba58b08b4e111e3d55c270e2f6b92c3f8ed54f21c7fcf2c",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-0AZw9K/data/input.txt",
+                "output_hash": "849c57ca021890de3ba58b08b4e111e3d55c270e2f6b92c3f8ed54f21c7fcf2c",
+                "output_length": 148,
+                "metadata": {
+                  "hash": "03ef12655b6c3dcd6331f9854b43898d2dc1f89a0de6e2d0a7c017c8807c9c27",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-0AZw9K/data/input.txt",
+                "output_hash": "849c57ca021890de3ba58b08b4e111e3d55c270e2f6b92c3f8ed54f21c7fcf2c",
+                "output_length": 148,
+                "metadata": {
+                  "hash": "03ef12655b6c3dcd6331f9854b43898d2dc1f89a0de6e2d0a7c017c8807c9c27",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 28,
+              "adapter_latency_ms": 1,
+              "hook_latency_ms": 1
+            },
+            {
+              "tool_call_id": "call_d42f6d7075764fb6ac3e78f9",
+              "adapter_mode": "IDENTITY",
+              "raw_observation_fingerprint": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+              "model_facing_observation_fingerprint": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-0AZw9K/data/output.txt",
+                "output_hash": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+                "output_length": 24,
+                "metadata": {
+                  "hash": "5ccdc398601e3896b68380736a0a9809ff0d7fd878add1489cf7f26381a91d5b",
+                  "keys": [
+                    "diagnostics",
+                    "exists",
+                    "filepath",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-0AZw9K/data/output.txt",
+                "output_hash": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+                "output_length": 24,
+                "metadata": {
+                  "hash": "5ccdc398601e3896b68380736a0a9809ff0d7fd878add1489cf7f26381a91d5b",
+                  "keys": [
+                    "diagnostics",
+                    "exists",
+                    "filepath",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 19,
+              "adapter_latency_ms": 1,
+              "hook_latency_ms": 1
+            },
+            {
+              "tool_call_id": "call_92566edbd95640c8b7dcda90",
+              "adapter_mode": "IDENTITY",
+              "raw_observation_fingerprint": "9323b10a949500f2bc29826db0eda41d71c4f09d6357971c1b9d0c5ebbaf637c",
+              "model_facing_observation_fingerprint": "9323b10a949500f2bc29826db0eda41d71c4f09d6357971c1b9d0c5ebbaf637c",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-0AZw9K/data/output.txt",
+                "output_hash": "9323b10a949500f2bc29826db0eda41d71c4f09d6357971c1b9d0c5ebbaf637c",
+                "output_length": 149,
+                "metadata": {
+                  "hash": "92299b9d91234745b88fb3b2a0bf3c07958873ae791856c58ad73b17d3d79bec",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-0AZw9K/data/output.txt",
+                "output_hash": "9323b10a949500f2bc29826db0eda41d71c4f09d6357971c1b9d0c5ebbaf637c",
+                "output_length": 149,
+                "metadata": {
+                  "hash": "92299b9d91234745b88fb3b2a0bf3c07958873ae791856c58ad73b17d3d79bec",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 27,
+              "adapter_latency_ms": 0,
+              "hook_latency_ms": 0
+            }
+          ],
+          "message_sequence": [
+            "step_start",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "step_finish"
+          ],
+          "metadata_diff": {
+            "output_content_equal": true,
+            "result_metadata_equal": true,
+            "protocol_preserved": true
+          },
+          "preservation": {
+            "tool_call_id": true,
+            "tool_identity": true,
+            "result_status": true,
+            "call_result_correlation": true,
+            "raw_receipt_propagation": true
+          },
+          "timing": {
+            "total_latency_ms": 26997,
+            "process_latency_ms": 26994,
+            "first_event_latency_ms": 7658,
+            "tool_execution_latency_ms": 24.666666666666668,
+            "adapter_latency_ms": 0.6666666666666666,
+            "hook_latency_ms": 0.6666666666666666,
+            "provider_resume_latency_ms": 5531,
+            "resume_gap_samples": 3,
+            "model_latency_ms": 7658
+          }
+        }
+      ]
+    },
+    {
+      "layer": "ENVELOPE_ONLY",
+      "runs": 3,
+      "verified_success": 2,
+      "failures": [
+        "VERIFIER_REJECTION"
+      ],
+      "average_latency_ms": 31832.666666666668,
+      "timing_averages": {
+        "tool_execution_latency_ms": 48.47222222222223,
+        "adapter_latency_ms": 0.4444444444444444,
+        "hook_latency_ms": 0.4444444444444444,
+        "provider_resume_latency_ms": 4615.722222222222,
+        "model_latency_ms": 9391.666666666666
+      },
+      "preservation": {
+        "tool_call_id": true,
+        "tool_identity": true,
+        "result_status": true,
+        "call_result_correlation": true,
+        "raw_receipt_propagation": true
+      },
+      "metadata_diff": {
+        "output_content_equal": true,
+        "result_metadata_equal": true,
+        "protocol_preserved": true
+      },
+      "run_records": [
+        {
+          "repetition": 1,
+          "verified_success": false,
+          "failure_class": "VERIFIER_REJECTION",
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "canonical_verifier": true,
+          "verifier_raw_authority": true,
+          "tool_calls": [
+            {
+              "tool_call_id": "call_2e4d6bf561394211be663f4e",
+              "tool_name": "read",
+              "tool_args_fingerprint": "ea05e656326939d267d55fa024da94e6d1e89b8c5045ebb1d1af34ed11ec3a6d",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_666327eebea0448bbd33ec58",
+              "tool_name": "write",
+              "tool_args_fingerprint": "6c35bbf83c6ce32341e1a11cd64a4a18039b32b15e6adfa7867a209a6a6393dd",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_540f8c2c45804fe2b4ed0c12",
+              "tool_name": "read",
+              "tool_args_fingerprint": "e04b5562064433e00e89bc101bcb5f9a14d2f8e5b337ff3309328ae415698d52",
+              "status": "COMPLETED",
+              "argument_valid": true
+            }
+          ],
+          "observation_receipt_count": 3,
+          "observation_interposition_count": 3,
+          "interposition": [
+            {
+              "tool_call_id": "call_2e4d6bf561394211be663f4e",
+              "adapter_mode": "ENVELOPE_ONLY",
+              "raw_observation_fingerprint": "4bad4451f4ae4d865893eb891161ad8bc5fa90992c55d11528b1959eb931216d",
+              "model_facing_observation_fingerprint": "e016c6a5fa50a73dd8b7c91b58ecaec244de1211bab98de44ae899feaec4010f",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-RLg1tY/data/input.txt",
+                "output_hash": "4bad4451f4ae4d865893eb891161ad8bc5fa90992c55d11528b1959eb931216d",
+                "output_length": 148,
+                "metadata": {
+                  "hash": "c3d72958d6a79cd78db88d9d2a290c0b946ed9c9c1952197063941f5aa135797",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-RLg1tY/data/input.txt",
+                "output_hash": "e016c6a5fa50a73dd8b7c91b58ecaec244de1211bab98de44ae899feaec4010f",
+                "output_length": 217,
+                "metadata": {
+                  "hash": "c3d72958d6a79cd78db88d9d2a290c0b946ed9c9c1952197063941f5aa135797",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 30,
+              "adapter_latency_ms": 1,
+              "hook_latency_ms": 1
+            },
+            {
+              "tool_call_id": "call_666327eebea0448bbd33ec58",
+              "adapter_mode": "ENVELOPE_ONLY",
+              "raw_observation_fingerprint": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+              "model_facing_observation_fingerprint": "6aa9f65960b336d09f22e2dbd3bdec6a670e6fd2b6cc941674e374918227859b",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-RLg1tY/data/output.txt",
+                "output_hash": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+                "output_length": 24,
+                "metadata": {
+                  "hash": "c223f284f0168bce7c5e1c0d93e17059cf39ac648ce7fb23e4dcb03d9447d729",
+                  "keys": [
+                    "diagnostics",
+                    "exists",
+                    "filepath",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-RLg1tY/data/output.txt",
+                "output_hash": "6aa9f65960b336d09f22e2dbd3bdec6a670e6fd2b6cc941674e374918227859b",
+                "output_length": 88,
+                "metadata": {
+                  "hash": "c223f284f0168bce7c5e1c0d93e17059cf39ac648ce7fb23e4dcb03d9447d729",
+                  "keys": [
+                    "diagnostics",
+                    "exists",
+                    "filepath",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 29,
+              "adapter_latency_ms": 0,
+              "hook_latency_ms": 0
+            },
+            {
+              "tool_call_id": "call_540f8c2c45804fe2b4ed0c12",
+              "adapter_mode": "ENVELOPE_ONLY",
+              "raw_observation_fingerprint": "df7a1d870922cedeabfb5328da2210a6b0addfecbf6f60ffa841f26b55b7f91a",
+              "model_facing_observation_fingerprint": "781efc7da37729d0c2258dbe81faf65259287962014e05aee527836abe31043b",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-RLg1tY/data/output.txt",
+                "output_hash": "df7a1d870922cedeabfb5328da2210a6b0addfecbf6f60ffa841f26b55b7f91a",
+                "output_length": 149,
+                "metadata": {
+                  "hash": "d46dc2f58de61ab0626f7117379d78634a7de7e2378c3bc01c648bf476091665",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-RLg1tY/data/output.txt",
+                "output_hash": "781efc7da37729d0c2258dbe81faf65259287962014e05aee527836abe31043b",
+                "output_length": 218,
+                "metadata": {
+                  "hash": "d46dc2f58de61ab0626f7117379d78634a7de7e2378c3bc01c648bf476091665",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 27,
+              "adapter_latency_ms": 0,
+              "hook_latency_ms": 0
+            }
+          ],
+          "message_sequence": [
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "step_finish"
+          ],
+          "metadata_diff": {
+            "output_content_equal": true,
+            "result_metadata_equal": true,
+            "protocol_preserved": true
+          },
+          "preservation": {
+            "tool_call_id": true,
+            "tool_identity": true,
+            "result_status": true,
+            "call_result_correlation": true,
+            "raw_receipt_propagation": true
+          },
+          "timing": {
+            "total_latency_ms": 25490,
+            "process_latency_ms": 25486,
+            "first_event_latency_ms": 8842,
+            "tool_execution_latency_ms": 28.666666666666668,
+            "adapter_latency_ms": 0.3333333333333333,
+            "hook_latency_ms": 0.3333333333333333,
+            "provider_resume_latency_ms": 4056.6666666666665,
+            "resume_gap_samples": 3,
+            "model_latency_ms": 8842
+          }
+        },
+        {
+          "repetition": 2,
+          "verified_success": true,
+          "failure_class": null,
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "canonical_verifier": true,
+          "verifier_raw_authority": true,
+          "tool_calls": [
+            {
+              "tool_call_id": "call_46f76aea7d854157958b05ab",
+              "tool_name": "read",
+              "tool_args_fingerprint": "0518326fc58fb158c62118c179655a1ed182ac91a99bff137cb33f0accd3da2e",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_24f89efdeebd4bce8b51ab4e",
+              "tool_name": "write",
+              "tool_args_fingerprint": "97d0a441bda41d78c9e8258116d75fd19e3091cc4d938d5b7ff047f138cd7199",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_e46e78a4b4754d4b9102dfbc",
+              "tool_name": "read",
+              "tool_args_fingerprint": "790dd62dde55e3dbcbba1bc0d17c0c50c62eb72d0e31ad80115e9f2ece0a52c8",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_57a02d268bfb4c8a87d9c21d",
+              "tool_name": "bash",
+              "tool_args_fingerprint": "60d103fc6ff1e0d61857b2991f980a738fb2ce87f7d0d52afa1394a2037e5879",
+              "status": "COMPLETED",
+              "argument_valid": true
+            }
+          ],
+          "observation_receipt_count": 4,
+          "observation_interposition_count": 4,
+          "interposition": [
+            {
+              "tool_call_id": "call_46f76aea7d854157958b05ab",
+              "adapter_mode": "ENVELOPE_ONLY",
+              "raw_observation_fingerprint": "6665601ee46e323cddaa722f09501fd16e5468ac07c90f8f1b1c199c92dba66b",
+              "model_facing_observation_fingerprint": "038cfe8d8f1c82a84a2ca578a93037466e582d609ebfb191bdbe8ff3ca52367f",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-WXqtm4/data/input.txt",
+                "output_hash": "6665601ee46e323cddaa722f09501fd16e5468ac07c90f8f1b1c199c92dba66b",
+                "output_length": 148,
+                "metadata": {
+                  "hash": "803c4b186aca32252f0045e081eb034583c7dd6e475ebb7d8ca057156cfdb0c5",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-WXqtm4/data/input.txt",
+                "output_hash": "038cfe8d8f1c82a84a2ca578a93037466e582d609ebfb191bdbe8ff3ca52367f",
+                "output_length": 217,
+                "metadata": {
+                  "hash": "803c4b186aca32252f0045e081eb034583c7dd6e475ebb7d8ca057156cfdb0c5",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 29,
+              "adapter_latency_ms": 1,
+              "hook_latency_ms": 1
+            },
+            {
+              "tool_call_id": "call_24f89efdeebd4bce8b51ab4e",
+              "adapter_mode": "ENVELOPE_ONLY",
+              "raw_observation_fingerprint": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+              "model_facing_observation_fingerprint": "6aa9f65960b336d09f22e2dbd3bdec6a670e6fd2b6cc941674e374918227859b",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-WXqtm4/data/output.txt",
+                "output_hash": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+                "output_length": 24,
+                "metadata": {
+                  "hash": "e1c4098b476566e5b18d9bf1bc6726ddf565235bb9e9b2deda93241fe5d6f24c",
+                  "keys": [
+                    "diagnostics",
+                    "exists",
+                    "filepath",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-WXqtm4/data/output.txt",
+                "output_hash": "6aa9f65960b336d09f22e2dbd3bdec6a670e6fd2b6cc941674e374918227859b",
+                "output_length": 88,
+                "metadata": {
+                  "hash": "e1c4098b476566e5b18d9bf1bc6726ddf565235bb9e9b2deda93241fe5d6f24c",
+                  "keys": [
+                    "diagnostics",
+                    "exists",
+                    "filepath",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 32,
+              "adapter_latency_ms": 0,
+              "hook_latency_ms": 0
+            },
+            {
+              "tool_call_id": "call_e46e78a4b4754d4b9102dfbc",
+              "adapter_mode": "ENVELOPE_ONLY",
+              "raw_observation_fingerprint": "05f81d435828edff8194660a2481c2e584597d8f2897c576fe1d42a257270509",
+              "model_facing_observation_fingerprint": "008e18bb34800e7ee51525c5fdf09c0c95622cfa1d23bf7259d2a4d431e93b52",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-WXqtm4/data/output.txt",
+                "output_hash": "05f81d435828edff8194660a2481c2e584597d8f2897c576fe1d42a257270509",
+                "output_length": 149,
+                "metadata": {
+                  "hash": "6452db4e5463d5395e05391398debba2fc7a89dd8f126a27d122e707132c321c",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-WXqtm4/data/output.txt",
+                "output_hash": "008e18bb34800e7ee51525c5fdf09c0c95622cfa1d23bf7259d2a4d431e93b52",
+                "output_length": 218,
+                "metadata": {
+                  "hash": "6452db4e5463d5395e05391398debba2fc7a89dd8f126a27d122e707132c321c",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 22,
+              "adapter_latency_ms": 0,
+              "hook_latency_ms": 0
+            },
+            {
+              "tool_call_id": "call_57a02d268bfb4c8a87d9c21d",
+              "adapter_mode": "ENVELOPE_ONLY",
+              "raw_observation_fingerprint": "dc51604abc56d5c4de44f3a48371a1aa1b5b7352249049e290de8a3bbc2c7a4d",
+              "model_facing_observation_fingerprint": "02a7d16e28585261743f5cde8a49b03dc40caf4a97c8cb76b389da74dbee96bb",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "cmp data/input.txt data/output.txt && echo IDENTICAL",
+                "output_hash": "dc51604abc56d5c4de44f3a48371a1aa1b5b7352249049e290de8a3bbc2c7a4d",
+                "output_length": 10,
+                "metadata": {
+                  "hash": "946bdacfb5af80a7d48c08e656d5fd024e1f989b4f4bc02a7b41705241014aec",
+                  "keys": [
+                    "exit",
+                    "output",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "cmp data/input.txt data/output.txt && echo IDENTICAL",
+                "output_hash": "02a7d16e28585261743f5cde8a49b03dc40caf4a97c8cb76b389da74dbee96bb",
+                "output_length": 74,
+                "metadata": {
+                  "hash": "946bdacfb5af80a7d48c08e656d5fd024e1f989b4f4bc02a7b41705241014aec",
+                  "keys": [
+                    "exit",
+                    "output",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 154,
+              "adapter_latency_ms": 1,
+              "hook_latency_ms": 1
+            }
+          ],
+          "message_sequence": [
+            "step_start",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "step_finish"
+          ],
+          "metadata_diff": {
+            "output_content_equal": true,
+            "result_metadata_equal": true,
+            "protocol_preserved": true
+          },
+          "preservation": {
+            "tool_call_id": true,
+            "tool_identity": true,
+            "result_status": true,
+            "call_result_correlation": true,
+            "raw_receipt_propagation": true
+          },
+          "timing": {
+            "total_latency_ms": 35173,
+            "process_latency_ms": 35170,
+            "first_event_latency_ms": 8226,
+            "tool_execution_latency_ms": 59.25,
+            "adapter_latency_ms": 0.5,
+            "hook_latency_ms": 0.5,
+            "provider_resume_latency_ms": 5613.25,
+            "resume_gap_samples": 4,
+            "model_latency_ms": 8226
+          }
+        },
+        {
+          "repetition": 3,
+          "verified_success": true,
+          "failure_class": null,
+          "tool_selection_correct": true,
+          "tool_argument_validity": true,
+          "canonical_verifier": true,
+          "verifier_raw_authority": true,
+          "tool_calls": [
+            {
+              "tool_call_id": "call_784642a914db454b8ce8d838",
+              "tool_name": "read",
+              "tool_args_fingerprint": "f0e020f23b6849fb891c01371616b67ea64e4041df05051b222574c96750263a",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_23dca9d28b4b4960954cea60",
+              "tool_name": "write",
+              "tool_args_fingerprint": "bf6d891fb178de55d104d93511d7dbd14f086ad44dbc56b309a5ca97e3c69740",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_7f06256e8b82453291f0b0a6",
+              "tool_name": "read",
+              "tool_args_fingerprint": "2da1be0df24c3dfdd94c307d374ff427c137a529775e5d95e02a3202c037fa84",
+              "status": "COMPLETED",
+              "argument_valid": true
+            },
+            {
+              "tool_call_id": "call_1d60a042348b4f78a46ff9f5",
+              "tool_name": "bash",
+              "tool_args_fingerprint": "2eb64d6f5ca23364c71513cf55c493249cd237ed501b14383ca4bb13e823ab71",
+              "status": "COMPLETED",
+              "argument_valid": true
+            }
+          ],
+          "observation_receipt_count": 4,
+          "observation_interposition_count": 4,
+          "interposition": [
+            {
+              "tool_call_id": "call_784642a914db454b8ce8d838",
+              "adapter_mode": "ENVELOPE_ONLY",
+              "raw_observation_fingerprint": "391675c75073d941066c4def52f684971b5629dd4449ce01bcc25a5dedc960ae",
+              "model_facing_observation_fingerprint": "5fa0794860733e809ea5afdf9c5e4794f34ace466e0a5fd7de3d7c2c3d2208a1",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-5H50ao/data/input.txt",
+                "output_hash": "391675c75073d941066c4def52f684971b5629dd4449ce01bcc25a5dedc960ae",
+                "output_length": 148,
+                "metadata": {
+                  "hash": "deed949d3eb97520def1f775e9efdaf5ece612b2f991b245ee4776b9eea11288",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-5H50ao/data/input.txt",
+                "output_hash": "5fa0794860733e809ea5afdf9c5e4794f34ace466e0a5fd7de3d7c2c3d2208a1",
+                "output_length": 217,
+                "metadata": {
+                  "hash": "deed949d3eb97520def1f775e9efdaf5ece612b2f991b245ee4776b9eea11288",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 21,
+              "adapter_latency_ms": 1,
+              "hook_latency_ms": 1
+            },
+            {
+              "tool_call_id": "call_23dca9d28b4b4960954cea60",
+              "adapter_mode": "ENVELOPE_ONLY",
+              "raw_observation_fingerprint": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+              "model_facing_observation_fingerprint": "6aa9f65960b336d09f22e2dbd3bdec6a670e6fd2b6cc941674e374918227859b",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-5H50ao/data/output.txt",
+                "output_hash": "f6d25e99280ae0c016fe07c9a4302545dc158cfb6b1eb5368278aca06a7c02b8",
+                "output_length": 24,
+                "metadata": {
+                  "hash": "8bcbec95797d57b3185e851304cd6ca1f1d216c576b2562f93b5dde19047345b",
+                  "keys": [
+                    "diagnostics",
+                    "exists",
+                    "filepath",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-5H50ao/data/output.txt",
+                "output_hash": "6aa9f65960b336d09f22e2dbd3bdec6a670e6fd2b6cc941674e374918227859b",
+                "output_length": 88,
+                "metadata": {
+                  "hash": "8bcbec95797d57b3185e851304cd6ca1f1d216c576b2562f93b5dde19047345b",
+                  "keys": [
+                    "diagnostics",
+                    "exists",
+                    "filepath",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 24,
+              "adapter_latency_ms": 0,
+              "hook_latency_ms": 0
+            },
+            {
+              "tool_call_id": "call_7f06256e8b82453291f0b0a6",
+              "adapter_mode": "ENVELOPE_ONLY",
+              "raw_observation_fingerprint": "e392598c3fc31c7887dfcdc18db812b17c3ea115c155d39d529063ebf1c80d55",
+              "model_facing_observation_fingerprint": "2ebff08ed56497d45469dff6435e6a6746705a05b0e58ad2be71b675e9f2e628",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "tmp/ocae-live-case-5H50ao/data/output.txt",
+                "output_hash": "e392598c3fc31c7887dfcdc18db812b17c3ea115c155d39d529063ebf1c80d55",
+                "output_length": 149,
+                "metadata": {
+                  "hash": "ff954ac1ff6025bc3d78ed1b0439bde966e262fc4611f5e430ef9fcf46d11de9",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "tmp/ocae-live-case-5H50ao/data/output.txt",
+                "output_hash": "2ebff08ed56497d45469dff6435e6a6746705a05b0e58ad2be71b675e9f2e628",
+                "output_length": 218,
+                "metadata": {
+                  "hash": "ff954ac1ff6025bc3d78ed1b0439bde966e262fc4611f5e430ef9fcf46d11de9",
+                  "keys": [
+                    "display",
+                    "loaded",
+                    "preview",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 25,
+              "adapter_latency_ms": 1,
+              "hook_latency_ms": 1
+            },
+            {
+              "tool_call_id": "call_1d60a042348b4f78a46ff9f5",
+              "adapter_mode": "ENVELOPE_ONLY",
+              "raw_observation_fingerprint": "dc51604abc56d5c4de44f3a48371a1aa1b5b7352249049e290de8a3bbc2c7a4d",
+              "model_facing_observation_fingerprint": "02a7d16e28585261743f5cde8a49b03dc40caf4a97c8cb76b389da74dbee96bb",
+              "adapter_id": "ocae.identity",
+              "lossiness": "NONE",
+              "truncated": false,
+              "protocol_preserved": true,
+              "output_before": {
+                "title": "cmp data/input.txt data/output.txt && echo IDENTICAL",
+                "output_hash": "dc51604abc56d5c4de44f3a48371a1aa1b5b7352249049e290de8a3bbc2c7a4d",
+                "output_length": 10,
+                "metadata": {
+                  "hash": "946bdacfb5af80a7d48c08e656d5fd024e1f989b4f4bc02a7b41705241014aec",
+                  "keys": [
+                    "exit",
+                    "output",
+                    "truncated"
+                  ]
+                }
+              },
+              "output_after": {
+                "title": "cmp data/input.txt data/output.txt && echo IDENTICAL",
+                "output_hash": "02a7d16e28585261743f5cde8a49b03dc40caf4a97c8cb76b389da74dbee96bb",
+                "output_length": 74,
+                "metadata": {
+                  "hash": "946bdacfb5af80a7d48c08e656d5fd024e1f989b4f4bc02a7b41705241014aec",
+                  "keys": [
+                    "exit",
+                    "output",
+                    "truncated"
+                  ]
+                }
+              },
+              "tool_execution_latency_ms": 160,
+              "adapter_latency_ms": 0,
+              "hook_latency_ms": 0
+            }
+          ],
+          "message_sequence": [
+            "step_start",
+            "tool_use",
+            "text",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "tool_use",
+            "step_finish",
+            "step_start",
+            "text",
+            "step_finish"
+          ],
+          "metadata_diff": {
+            "output_content_equal": true,
+            "result_metadata_equal": true,
+            "protocol_preserved": true
+          },
+          "preservation": {
+            "tool_call_id": true,
+            "tool_identity": true,
+            "result_status": true,
+            "call_result_correlation": true,
+            "raw_receipt_propagation": true
+          },
+          "timing": {
+            "total_latency_ms": 34835,
+            "process_latency_ms": 34833,
+            "first_event_latency_ms": 11107,
+            "tool_execution_latency_ms": 57.5,
+            "adapter_latency_ms": 0.5,
+            "hook_latency_ms": 0.5,
+            "provider_resume_latency_ms": 4177.25,
+            "resume_gap_samples": 4,
+            "model_latency_ms": 11107
+          }
+        }
+      ]
+    }
+  ],
+  "live_model_reachable": true,
+  "first_failing_layer": "ENVELOPE_ONLY"
+}

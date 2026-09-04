@@ -39,7 +39,7 @@ import {
   evaluateHoldoutConfirmation,
   runQualification,
 } from '../../runtime/harness/qualification-runner.mjs'
-import { createOpenCodeLiveExecutor, invokeOpenCode, parseOpenCodeEvents } from '../../runtime/harness/live-qualification.mjs'
+import { createLiveProjectConfig, createObservationAdapterPluginSource, createOpenCodeLiveExecutor, invokeOpenCode, OBSERVATION_ADAPTER_MODES, parseOpenCodeEvents } from '../../runtime/harness/live-qualification.mjs'
 import { getExplicitLocalRuntime } from '../../runtime/harness/local-runtime.mjs'
 
 const A = 'a'.repeat(64)
@@ -259,6 +259,22 @@ test('live qualification requires canonical exact-provider metadata and parses n
   assert.equal(executor.metadata.fallback_disabled, true)
   assert.equal(executor.metadata.model, 'muse-spark-1.2-contributor-free')
   assert.equal(parseOpenCodeEvents('{"type":"step_finish","part":{"reason":"stop","cost":0}}')[0].part.reason, 'stop')
+})
+
+test('live observation canaries use explicit project plugin registration', () => {
+  assert.deepEqual(createLiveProjectConfig(['read'], './ocae-observation-adapter.js').plugin, ['./ocae-observation-adapter.js'])
+  assert.equal(Object.hasOwn(createLiveProjectConfig(['read']), 'plugin'), false)
+  for (const adapterMode of OBSERVATION_ADAPTER_MODES) {
+    const source = createObservationAdapterPluginSource({
+      adapterModuleUrl: 'file:///tmp/observation-adapter.mjs', tracePath: '/tmp/trace.jsonl',
+      modelProfileId: 'test-profile', workspaceFingerprint: A, hostVersion: '1.18.25', adapterMode,
+    })
+    assert.match(source, new RegExp(`const ADAPTER_MODE = ${JSON.stringify(adapterMode)}`))
+  }
+  assert.throws(() => createObservationAdapterPluginSource({
+    adapterModuleUrl: 'file:///tmp/observation-adapter.mjs', tracePath: '/tmp/trace.jsonl',
+    modelProfileId: 'test-profile', workspaceFingerprint: A, hostVersion: '1.18.25', adapterMode: 'UNKNOWN',
+  }), /unknown adapter mode/u)
 })
 
 test('OpenCode invocation resolves and kills non-cancellable timeout children', async () => {

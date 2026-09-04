@@ -169,6 +169,29 @@ function safeObservationInterposition(item) {
     provenance: typeof item.provenance === 'string' ? item.provenance : null,
     tool_call_id: typeof item.tool_call_id === 'string' ? item.tool_call_id : null,
     interposed_before_model: item.interposed_before_model === true,
+    adapter_mode: typeof item.adapter_mode === 'string' ? item.adapter_mode : null,
+    protocol_preserved: item.protocol_preserved === true,
+    output_before: item.output_before && typeof item.output_before === 'object' ? {
+      title: typeof item.output_before.title === 'string' ? item.output_before.title : null,
+      output_hash: typeof item.output_before.output_hash === 'string' ? item.output_before.output_hash : null,
+      output_length: Number.isFinite(item.output_before.output_length) ? item.output_before.output_length : null,
+      metadata: item.output_before.metadata && typeof item.output_before.metadata === 'object' ? {
+        hash: typeof item.output_before.metadata.hash === 'string' ? item.output_before.metadata.hash : null,
+        keys: Array.isArray(item.output_before.metadata.keys) ? item.output_before.metadata.keys.filter((key) => typeof key === 'string') : [],
+      } : null,
+    } : null,
+    output_after: item.output_after && typeof item.output_after === 'object' ? {
+      title: typeof item.output_after.title === 'string' ? item.output_after.title : null,
+      output_hash: typeof item.output_after.output_hash === 'string' ? item.output_after.output_hash : null,
+      output_length: Number.isFinite(item.output_after.output_length) ? item.output_after.output_length : null,
+      metadata: item.output_after.metadata && typeof item.output_after.metadata === 'object' ? {
+        hash: typeof item.output_after.metadata.hash === 'string' ? item.output_after.metadata.hash : null,
+        keys: Array.isArray(item.output_after.metadata.keys) ? item.output_after.metadata.keys.filter((key) => typeof key === 'string') : [],
+      } : null,
+    } : null,
+    tool_execution_latency_ms: Number.isFinite(item.tool_execution_latency_ms) ? item.tool_execution_latency_ms : null,
+    adapter_latency_ms: Number.isFinite(item.adapter_latency_ms) ? item.adapter_latency_ms : null,
+    hook_latency_ms: Number.isFinite(item.hook_latency_ms) ? item.hook_latency_ms : null,
   }
 }
 

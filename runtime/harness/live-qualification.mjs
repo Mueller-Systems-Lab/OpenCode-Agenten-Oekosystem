@@ -90,10 +90,14 @@ async function writeFiles(root, files) {
   }
 }
 
-async function writePermissionConfig(root, exposedTools) {
+export function createLiveProjectConfig(exposedTools, pluginSpecifier = null) {
   const permission = Object.fromEntries(LIVE_PERMISSION_KEYS.map((tool) => [tool, exposedTools.includes(tool) ? 'allow' : 'deny']))
   const tools = Object.fromEntries(LIVE_PERMISSION_KEYS.map((tool) => [tool, exposedTools.includes(tool)]))
-  await fs.writeFile(path.join(root, 'opencode.jsonc'), `${JSON.stringify({ permission, tools }, null, 2)}\n`, { mode: 0o600 })
+  return { permission, tools, ...(pluginSpecifier ? { plugin: [pluginSpecifier] } : {}) }
+}
+
+async function writePermissionConfig(root, exposedTools, pluginSpecifier = null) {
+  await fs.writeFile(path.join(root, 'opencode.jsonc'), `${JSON.stringify(createLiveProjectConfig(exposedTools, pluginSpecifier), null, 2)}\n`, { mode: 0o600 })
 }
 
 async function readText(root, relativePath) {
@@ -158,7 +162,10 @@ export async function scenarioFor(testCase) {
   return scenario
 }
 
-export function createObservationAdapterPluginSource({ adapterModuleUrl, tracePath, modelProfileId, workspaceFingerprint, hostVersion }) {
+export const OBSERVATION_ADAPTER_MODES = Object.freeze(['IDENTITY', 'ENVELOPE_ONLY', 'STRUCTURED_TRANSFORM', 'TRUNCATED'])
+
+export function createObservationAdapterPluginSource({ adapterModuleUrl, tracePath, modelProfileId, workspaceFingerprint, hostVersion, adapterMode = 'STRUCTURED_TRANSFORM' }) {
+  if (!OBSERVATION_ADAPTER_MODES.includes(adapterMode)) throw new Error(`CONTRACT_INVALID:live-qualification:unknown adapter mode ${adapterMode}`)
   return `import { appendFile } from 'node:fs/promises'
 import { adaptObservation, createRawObservation, createToolContractFingerprint, observationFingerprint } from ${JSON.stringify(adapterModuleUrl)}
 
@@ -166,6 +173,23 @@ const TRACE_PATH = ${JSON.stringify(tracePath)}
 const MODEL_PROFILE_ID = ${JSON.stringify(modelProfileId)}
 const WORKSPACE_FINGERPRINT = ${JSON.stringify(workspaceFingerprint)}
 const HOST_VERSION = ${JSON.stringify(hostVersion)}
+const ADAPTER_MODE = ${JSON.stringify(adapterMode)}
+const beforeByCall = new Map()
+
+const hash = (value) => observationFingerprint(value ?? null)
+const metadataSummary = (metadata) => ({
+  hash: hash(metadata),
+  keys: metadata && typeof metadata === 'object' ? Object.keys(metadata).sort() : [],
+})
+const outputSummary = (output) => ({
+  title: output?.title ?? null,
+  output_hash: hash(output?.output),
+  output_length: String(output?.output ?? '').length,
+  metadata: metadataSummary(output?.metadata),
+})
+async function trace(event) {
+  await appendFile(TRACE_PATH, JSON.stringify({ timestamp_ms: Date.now(), ...event }) + '\\n')
+}
 
 function sourceReference(args) {
   if (!args || typeof args !== 'object') return null
@@ -174,10 +198,19 @@ function sourceReference(args) {
 }
 
 export const OCAEObservationAdapter = async () => {
-  await appendFile(TRACE_PATH, JSON.stringify({ type: 'adapter_loaded', adapter_id: 'ocae.live.tool-execute-after', adapter_version: '1.0.0' }) + '\\n')
+  await trace({ type: 'adapter_loaded', adapter_id: 'ocae.live.tool-execute-after', adapter_version: '1.0.0', adapter_mode: ADAPTER_MODE })
   return {
+    'tool.execute.before': async (input, output) => {
+      beforeByCall.set(String(input.callID), Date.now())
+      await trace({ type: 'tool_before', tool_call_id: String(input.callID), tool: String(input.tool), args_hash: hash(output?.args) })
+    },
     'tool.execute.after': async (input, output) => {
-      if (!output || typeof output.output !== 'string') return
+      const hookStarted = Date.now()
+      if (!output || typeof output.output !== 'string') {
+        await trace({ type: 'adapter_failure', tool_call_id: String(input.callID), tool: String(input.tool), reason: 'OUTPUT_STRING_MISSING', hook_started_ms: hookStarted })
+        return
+      }
+      const before = outputSummary(output)
       const raw = createRawObservation({
         observation_id: 'live-' + String(input.callID),
         tool_call_id: String(input.callID),
@@ -189,48 +222,66 @@ export const OCAEObservationAdapter = async () => {
         workspace_fingerprint: WORKSPACE_FINGERPRINT,
         freshness_state: 'FRESH',
       })
-      const view = adaptObservation(raw, { model_profile_id: MODEL_PROFILE_ID })
-      const modelFacing = {
-        status: view.status,
-        tool: view.tool_name,
-        source: view.source_reference,
-        failure_class: view.failure_class,
-        complete: view.completeness === 'COMPLETE',
-        truncated: view.truncated,
-        payload: view.structured_payload,
+      let view = null
+      let modelFacing = output.output
+      if (ADAPTER_MODE === 'ENVELOPE_ONLY') {
+        modelFacing = JSON.stringify({ status: raw.status, tool: raw.tool_name, content: raw.raw_payload, complete: true })
+      } else if (ADAPTER_MODE === 'STRUCTURED_TRANSFORM' || ADAPTER_MODE === 'TRUNCATED') {
+        view = adaptObservation(raw, { model_profile_id: MODEL_PROFILE_ID, ...(ADAPTER_MODE === 'TRUNCATED' ? { max_chars: 80 } : {}) })
+        modelFacing = JSON.stringify({
+          status: view.status,
+          tool: view.tool_name,
+          source: view.source_reference,
+          failure_class: view.failure_class,
+          complete: view.completeness === 'COMPLETE',
+          truncated: view.truncated,
+          omitted_count_or_range: view.omitted_count_or_range,
+          payload: view.structured_payload,
+        })
       }
-      output.output = JSON.stringify(modelFacing)
-      await appendFile(TRACE_PATH, JSON.stringify({
+      if (ADAPTER_MODE !== 'IDENTITY') output.output = modelFacing
+      const after = outputSummary(output)
+      await trace({
         type: 'observation',
         raw_observation: raw,
-        model_facing_observation: modelFacing,
+        model_facing_observation: ADAPTER_MODE === 'IDENTITY' ? { status: raw.status, tool: raw.tool_name, content: raw.raw_payload, complete: true } : modelFacing,
         raw_observation_fingerprint: raw.raw_fingerprint,
         model_facing_observation_fingerprint: observationFingerprint(modelFacing),
-        adapter_id: view.adapter_id,
-        adapter_version: view.adapter_version,
-        lossiness: view.lossiness,
-        truncated: view.truncated,
+        adapter_id: view?.adapter_id || 'ocae.identity',
+        adapter_version: view?.adapter_version || '1.0.0',
+        lossiness: view?.lossiness || 'NONE',
+        truncated: view?.truncated === true,
         source: 'OpenCode tool.execute.after',
         provenance: 'canonical-opencode-runtime',
         tool_call_id: raw.tool_call_id,
         interposed_before_model: true,
-      }) + '\\n')
+        adapter_mode: ADAPTER_MODE,
+        output_before: before,
+        output_after: after,
+        protocol_preserved: before.title === after.title && before.metadata.hash === after.metadata.hash,
+        tool_execution_latency_ms: beforeByCall.has(raw.tool_call_id) ? hookStarted - beforeByCall.get(raw.tool_call_id) : null,
+        adapter_latency_ms: Date.now() - hookStarted,
+        hook_latency_ms: Date.now() - hookStarted,
+      })
     },
   }
 }
 `
 }
 
-async function writeObservationAdapterPlugin({ root, repoRoot, tracePath, modelProfileId, workspaceFingerprint, hostVersion }) {
-  const pluginDir = path.join(root, '.opencode', 'plugins')
-  await fs.mkdir(pluginDir, { recursive: true })
-  await fs.mkdir(path.join(root, '.ocae-config'), { recursive: true })
-  const adapterRuntimePath = path.join(pluginDir, 'ocae-observation-adapter-runtime.mjs')
+async function writeObservationAdapterPlugin({ root, repoRoot, tracePath, modelProfileId, workspaceFingerprint, hostVersion, adapterMode }) {
+  // OpenCode 1.18.25 stalls during startup when this harness relies on the
+  // auto-discovered .opencode/plugins directory. Register a file plugin
+  // explicitly in the project config instead; this is the host-supported
+  // path validated by the interposition canary.
+  const adapterRuntimePath = path.join(root, 'ocae-observation-adapter-runtime.mjs')
   await fs.copyFile(path.join(repoRoot, 'runtime', 'harness', 'observation-adapter.mjs'), adapterRuntimePath)
-  await fs.writeFile(path.join(pluginDir, 'ocae-observation-adapter.js'), createObservationAdapterPluginSource({
+  const adapterPluginPath = path.join(root, 'ocae-observation-adapter.js')
+  await fs.writeFile(adapterPluginPath, createObservationAdapterPluginSource({
     adapterModuleUrl: pathToFileURL(adapterRuntimePath).href,
-    tracePath, modelProfileId, workspaceFingerprint, hostVersion,
+    tracePath, modelProfileId, workspaceFingerprint, hostVersion, adapterMode,
   }), { mode: 0o600 })
+  return './ocae-observation-adapter.js'
 }
 
 async function readObservationTrace(tracePath) {
@@ -276,13 +327,14 @@ export function createOpenCodeLiveExecutor({ provider, model, opencode_bin = 'op
         const profile = treatment.profile || defaultProfile
         const toolPolicy = treatment.tool_policy || profile.effective_harness.tool_policy
         const exposure = applyToolExposure({ grantedTools: LIVE_TOOL_SET, toolPolicy })
-        await writePermissionConfig(root, exposure.exposed_tools)
+        const adapterMode = treatment.observation_mode || (treatment.observation_adaptation === true ? 'STRUCTURED_TRANSFORM' : null)
+        const pluginSpecifier = adapterMode ? await writeObservationAdapterPlugin({ root, repoRoot: repo_root, tracePath: path.join(root, 'observation-trace.jsonl'), modelProfileId: profile.profile_id, workspaceFingerprint: workspaceFingerprint(scenario.files), hostVersion: host_version, adapterMode }) : null
+        await writePermissionConfig(root, exposure.exposed_tools, pluginSpecifier)
         const taskText = composeWorkerTaskText({ taskText: scenario.task, effectiveHarness: treatment.effective_harness || profile.effective_harness, toolContractFraming: treatment.tool_contract_framing || 'BASELINE' })
         const tracePath = path.join(root, 'observation-trace.jsonl')
         const workspace = workspaceFingerprint(scenario.files)
-        if (treatment.observation_adaptation === true) await writeObservationAdapterPlugin({ root, repoRoot: repo_root, tracePath, modelProfileId: profile.profile_id, workspaceFingerprint: workspace, hostVersion: host_version })
         const started = Date.now()
-        const response = await invokeOpenCode({ opencode_bin, provider, model, root, prompt: taskText, timeout_ms, use_plugins: treatment.observation_adaptation === true, config_dir: treatment.observation_adaptation === true ? path.join(root, '.ocae-config') : null })
+        const response = await invokeOpenCode({ opencode_bin, provider, model, root, prompt: taskText, timeout_ms, use_plugins: Boolean(adapterMode) })
         const events = parseEvents(response.stdout)
         const answer = textFromEvents(events)
         const calls = toolCallsFromEvents(events, root)
@@ -317,7 +369,7 @@ export function createOpenCodeLiveExecutor({ provider, model, opencode_bin = 'op
         const argumentValidity = calls.every((call) => call.argument_valid)
         const rawResultVolume = rawObservations.reduce((sum, observation) => sum + String(observation?.raw_payload ?? '').length, 0)
         const adaptedResultVolume = adaptedObservations.reduce((sum, observation) => sum + JSON.stringify(observation ?? null).length, 0)
-        const adaptationMissing = treatment.observation_adaptation === true && calls.length > 0 && traceObservations.length !== calls.length
+        const adaptationMissing = Boolean(adapterMode) && calls.length > 0 && traceObservations.length !== calls.length
         const failureClass = adaptationMissing ? 'OBSERVATION_ADAPTER_FAILURE' : response.ok ? (verified ? null : 'VERIFIER_REJECTION') : response.failure_class
         const diagnosticCounts = Object.fromEntries(['schema_parse_failure', 'wrong_argument_name', 'missing_required_argument', 'invalid_argument_type', 'semantic_argument_error'].map((name) => [name, calls.filter((call) => call.argument_diagnostic === name).length]))
         const interposition = traceObservations.map((item) => ({ ...item, interposed_before_model: item.interposed_before_model === true }))
@@ -334,15 +386,19 @@ export function createOpenCodeLiveExecutor({ provider, model, opencode_bin = 'op
           harness_fingerprint: treatment.harness_fingerprint || profile.fingerprint,
           exposed_tools: exposure.exposed_tools,
           tool_calls: calls,
+          message_sequence: events.map((event) => event.type || null),
           observation_receipts: rawObservations,
           observation_interposition: interposition,
           model_facing_observation: {
-            derived: treatment.observation_adaptation === true && traceObservations.length > 0,
+            derived: Boolean(adapterMode) && adapterMode !== 'IDENTITY' && traceObservations.length > 0,
             lossiness: traceObservations[0]?.lossiness || null,
             truncated: traceObservations.some((observation) => observation.truncated === true),
             provenance_preserved: traceObservations.length > 0 && traceObservations.every((observation) => observation.raw_observation_fingerprint === observation.raw_observation?.raw_fingerprint),
           },
           verifier_result: { ok: verified && !adaptationMissing, code: verified && !adaptationMissing ? 'LIVE_FIXTURE_VERIFIER_PASS' : 'LIVE_FIXTURE_VERIFIER_FAIL' },
+          answer_fingerprint: fingerprint(answer),
+          answer_length: answer.length,
+          answer_preview: answer.slice(0, 240),
           context_volume: taskText.length,
           raw_result_volume: rawResultVolume,
           adapted_result_volume: adaptedResultVolume,
@@ -385,6 +441,15 @@ export function createOpenCodeLiveExecutor({ provider, model, opencode_bin = 'op
             source_count: new Set(calls.flatMap((call) => call.input_paths || [])).size,
             simultaneous_failure_count: calls.filter((call) => call.status === 'ERROR').length,
             open_hypothesis_count: 1,
+            tool_execution_latency_ms: traceObservations.reduce((sum, observation) => sum + (observation.tool_execution_latency_ms || 0), 0) || null,
+            adapter_latency_ms: traceObservations.reduce((sum, observation) => sum + (observation.adapter_latency_ms || 0), 0) || null,
+            hook_latency_ms: traceObservations.reduce((sum, observation) => sum + (observation.hook_latency_ms || 0), 0) || null,
+          },
+          timing: {
+            total_latency_ms: Date.now() - started,
+            process_latency_ms: response.process_latency_ms ?? null,
+            first_event_latency_ms: response.first_event_latency_ms ?? null,
+            event_timings: response.event_timings || [],
           },
         }
       } finally {
@@ -402,19 +467,34 @@ export function invokeOpenCode({ opencode_bin, provider, model, root, prompt, ti
     })
     let stdout = ''
     let stderr = ''
+    let lineBuffer = ''
+    const eventTimings = []
     let settled = false
     let timedOut = false
     const finish = (value) => { if (!settled) { settled = true; resolve(value) } }
     const kill = () => { try { process.kill(-child.pid, 'SIGTERM') } catch {} }
+    const started = Date.now()
     const timer = setTimeout(() => {
       timedOut = true
       kill()
       try { child.kill('SIGKILL') } catch {}
-      finish({ ok: false, failure_class: 'TIMEOUT', stdout, stderr: 'TIMEOUT', cost: costFromEvents(parseEvents(stdout)) ?? 0 })
+      finish({ ok: false, failure_class: 'TIMEOUT', stdout, stderr: 'TIMEOUT', cost: costFromEvents(parseEvents(stdout)) ?? 0, process_latency_ms: Date.now() - started, first_event_latency_ms: eventTimings[0]?.latency_ms ?? null, event_timings: eventTimings })
     }, timeout_ms)
     const abort = () => { timedOut = true; kill() }
     signal?.addEventListener('abort', abort, { once: true })
-    child.stdout.on('data', (chunk) => { stdout += chunk.toString('utf8') })
+    child.stdout.on('data', (chunk) => {
+      const text = chunk.toString('utf8')
+      stdout += text
+      lineBuffer += text
+      const lines = lineBuffer.split(/\r?\n/u)
+      lineBuffer = lines.pop() || ''
+      for (const line of lines) {
+        try {
+          const event = JSON.parse(line)
+          if (event && typeof event === 'object') eventTimings.push({ type: event.type || null, latency_ms: Date.now() - started })
+        } catch { /* diagnostics are not JSON events */ }
+      }
+    })
     child.stderr.on('data', (chunk) => { stderr += chunk.toString('utf8') })
     child.on('error', (error) => finish({ ok: false, failure_class: error.code || 'PROVIDER_FAILURE', stdout: '', stderr: error.message, cost: 0 }))
     child.on('close', (code) => {
@@ -422,9 +502,9 @@ export function invokeOpenCode({ opencode_bin, provider, model, root, prompt, ti
       signal?.removeEventListener('abort', abort)
       const events = parseEvents(stdout)
       const cost = costFromEvents(events)
-      if (timedOut) return finish({ ok: false, failure_class: 'TIMEOUT', stdout, stderr: 'TIMEOUT', cost: cost ?? 0 })
-      if (code !== 0) return finish({ ok: false, failure_class: /rate.?limit|429/iu.test(`${stderr}\n${stdout}`) ? 'RATE_LIMITED' : 'PROVIDER_FAILURE', stdout, stderr, cost: cost ?? 0 })
-      finish({ ok: true, failure_class: null, stdout, stderr, cost: cost ?? 0 })
+      if (timedOut) return finish({ ok: false, failure_class: 'TIMEOUT', stdout, stderr: 'TIMEOUT', cost: cost ?? 0, process_latency_ms: Date.now() - started, first_event_latency_ms: eventTimings[0]?.latency_ms ?? null, event_timings: eventTimings })
+      if (code !== 0) return finish({ ok: false, failure_class: /rate.?limit|429/iu.test(`${stderr}\n${stdout}`) ? 'RATE_LIMITED' : 'PROVIDER_FAILURE', stdout, stderr, cost: cost ?? 0, process_latency_ms: Date.now() - started, first_event_latency_ms: eventTimings[0]?.latency_ms ?? null, event_timings: eventTimings })
+      finish({ ok: true, failure_class: null, stdout, stderr, cost: cost ?? 0, process_latency_ms: Date.now() - started, first_event_latency_ms: eventTimings[0]?.latency_ms ?? null, event_timings: eventTimings })
     })
   })
 }

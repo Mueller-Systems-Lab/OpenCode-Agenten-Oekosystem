@@ -29,7 +29,7 @@
         "model_latency_ms": 8299.666666666666
       },
       "preservation": {
-        "tool_call_id": false,
+        "tool_call_id": true,
         "tool_identity": true,
         "result_status": true,
         "call_result_correlation": true,
@@ -107,7 +107,7 @@
             "protocol_preserved": true
           },
           "preservation": {
-            "tool_call_id": false,
+            "tool_call_id": true,
             "tool_identity": true,
             "result_status": true,
             "call_result_correlation": true,
@@ -182,7 +182,7 @@
             "protocol_preserved": true
           },
           "preservation": {
-            "tool_call_id": false,
+            "tool_call_id": true,
             "tool_identity": true,
             "result_status": true,
             "call_result_correlation": true,
@@ -255,7 +255,7 @@
             "protocol_preserved": true
           },
           "preservation": {
-            "tool_call_id": false,
+            "tool_call_id": true,
             "tool_identity": true,
             "result_status": true,
             "call_result_correlation": true,

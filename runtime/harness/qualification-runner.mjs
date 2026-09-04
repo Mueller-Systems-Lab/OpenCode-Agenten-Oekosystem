@@ -104,7 +104,7 @@ export function createQualificationPlan({ identity, corpora = createFrozenQualif
   if (!Array.isArray(arms) || arms.length === 0 || arms.some((arm) => typeof arm !== 'string' || !/^[A-Za-z][A-Za-z0-9_.-]{0,63}$/u.test(arm))) fail('arms must be non-empty identifier strings')
   if (arms.includes('candidate') && (typeof candidate_fingerprint !== 'string' || !/^(?:sha256:)?[a-f0-9]{64}$/u.test(candidate_fingerprint))) fail('candidate arm requires a frozen candidate_fingerprint')
   if (arms.includes('generic') && candidate_fingerprint && typeof candidate_fingerprint !== 'string') fail('candidate_fingerprint must be a string')
-  if (!Number.isInteger(repetitions) || repetitions < 1 || repetitions > 3) fail('repetitions must be 1..3')
+  if (!Number.isInteger(repetitions) || repetitions < 1 || repetitions > 20) fail('repetitions must be 1..20')
   const rows = []
   for (const mode of QUALIFICATION_MODES) {
     const corpus = mode === 'DERIVATION_CORPUS' ? corpora.derivation : corpora.holdout

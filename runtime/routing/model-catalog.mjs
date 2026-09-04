@@ -34,6 +34,7 @@ export function tierRank(tier, tiers) {
 /**
  * REAL provider inventory (non-secret identifiers only).
  * deepseek: API-key authenticated. openai: OAuth authenticated.
+ * zai-coding-plan: existing Z.AI Coding Plan credential through OpenCode.
  * Both were verified reachable via real model calls in this milestone.
  * opencode: free-tier models via the OpenCode free transport. The transport
  * is callable without a credential in this environment; reachability is still
@@ -43,6 +44,7 @@ export const PROVIDER_INVENTORY = Object.freeze([
   { provider: 'deepseek', authenticated: true, reachable: true, auth_type: 'api_key' },
   { provider: 'openai', authenticated: true, reachable: true, auth_type: 'oauth' },
   { provider: 'opencode', authenticated: false, reachable: true, auth_type: 'opencode_free_transport' },
+  { provider: 'zai-coding-plan', authenticated: true, reachable: true, auth_type: 'opencode_zai_coding_plan' },
 ])
 
 export const DEFAULT_MODEL_CATALOG = Object.freeze([
@@ -290,6 +292,22 @@ export const DEFAULT_MODEL_CATALOG = Object.freeze([
     cost_tier: 'LOW',
     quality_tier: 'LOW',
     context_tier: 'MEDIUM',
+    default_primary: false,
+    capabilities: ['tools', 'structured_output'],
+  },
+  // --- zai-coding-plan (existing authorized plan; fresh GLM-5.3 probe) -----
+  {
+    provider: 'zai-coding-plan',
+    model: 'glm-5.3',
+    enabled: true,
+    availability: 'reachable',
+    tool_support: true,
+    mcp_support: false,
+    vision_support: false,
+    structured_output: 'STANDARD',
+    cost_tier: 'LOW',
+    quality_tier: 'HIGH',
+    context_tier: 'HIGH',
     default_primary: false,
     capabilities: ['tools', 'structured_output'],
   },

@@ -111,6 +111,22 @@ test('qualification plans support frozen factorial arm identifiers', () => {
   assert.throws(() => createQualificationPlan({ identity: identity(), corpora, model: { provider: 'fixture', model: 'fixture-model' }, harness_fingerprint: A, verifier_version: 'test-v1', arms: [''] }), /non-empty identifier/u)
 })
 
+test('qualification plans support the causal experiment sample floor', () => {
+  const corpora = createFrozenQualificationCorpora({
+    derivation_cases: Array.from({ length: 6 }, (_, index) => ({ case_id: `derivation-${index}`, dimension: 'test', tool_class: 'read', task_role: 'TOOL_USE' })),
+    holdout_cases: Array.from({ length: 4 }, (_, index) => ({ case_id: `holdout-${index}`, dimension: 'test', tool_class: 'read', task_role: 'TOOL_USE' })),
+  })
+  const plan = createQualificationPlan({
+    identity: identity(), corpora, model: { provider: 'fixture', model: 'fixture-model' },
+    harness_fingerprint: A, verifier_version: 'test-v1', arms: ['A', 'B', 'C', 'D'], repetitions: 4, max_rows: 192,
+  })
+  for (const arm of plan.arms) {
+    assert.equal(plan.rows.filter((row) => row.mode === 'DERIVATION_CORPUS' && row.arm === arm).length, 24)
+    assert.equal(plan.rows.filter((row) => row.mode === 'CONFIRMATORY_HOLDOUT_CORPUS' && row.arm === arm).length, 16)
+  }
+  assert.throws(() => createQualificationPlan({ identity: identity(), corpora, model: { provider: 'fixture', model: 'fixture-model' }, harness_fingerprint: A, verifier_version: 'test-v1', arms: ['probe'], repetitions: 21 }), /1\.\.20/u)
+})
+
 test('qualification concurrency is bounded and preserves frozen record order', async () => {
   const corpora = createFrozenQualificationCorpora({
     derivation_cases: [{ case_id: 'derivation', dimension: 'test', tool_class: 'read', task_role: 'TOOL_USE' }],

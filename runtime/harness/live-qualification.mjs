@@ -198,6 +198,15 @@ export async function scenarioFor(testCase) {
 
 export const OBSERVATION_ADAPTER_MODES = Object.freeze(['IDENTITY', 'ENVELOPE_ONLY', 'STRUCTURED_TRANSFORM', 'TRUNCATED'])
 
+export function pluginInitializationReady({ responseOk, evidence } = {}) {
+  return responseOk === true && evidence?.plugin_module_load === 'PASS'
+    && evidence?.plugin_export_contract === 'PASS'
+    && evidence?.plugin_register_call === 'PASS'
+    && evidence?.plugin_context_validity === 'PASS'
+    && evidence?.before_hook_registered === 'PASS'
+    && evidence?.after_hook_registered === 'PASS'
+}
+
 export function createObservationAdapterPluginSource({ adapterModuleUrl, tracePath, modelProfileId, workspaceFingerprint, hostVersion, adapterMode = 'STRUCTURED_TRANSFORM' }) {
   if (!OBSERVATION_ADAPTER_MODES.includes(adapterMode)) throw new Error(`CONTRACT_INVALID:live-qualification:unknown adapter mode ${adapterMode}`)
   return `import { appendFile } from 'node:fs/promises'
@@ -231,9 +240,15 @@ function sourceReference(args) {
   return null
 }
 
-export const OCAEObservationAdapter = async () => {
+export const OCAEObservationAdapter = async (context = {}) => {
   await trace({ type: 'adapter_loaded', adapter_id: 'ocae.live.tool-execute-after', adapter_version: '1.0.0', adapter_mode: ADAPTER_MODE })
-  return {
+  const contextKeys = context && typeof context === 'object' ? Object.keys(context).sort() : []
+  await trace({
+    type: 'plugin_register_call',
+    context_valid: context && typeof context === 'object',
+    context_keys: contextKeys,
+  })
+  const hooks = {
     'tool.execute.before': async (input, output) => {
       beforeByCall.set(String(input.callID), Date.now())
       await trace({ type: 'tool_before', tool_call_id: String(input.callID), tool: String(input.tool), args_hash: hash(output?.args) })
@@ -307,6 +322,12 @@ export const OCAEObservationAdapter = async () => {
       })
     },
   }
+  await trace({
+    type: 'hooks_registered',
+    before_hook_registered: typeof hooks['tool.execute.before'] === 'function',
+    after_hook_registered: typeof hooks['tool.execute.after'] === 'function',
+  })
+  return hooks
 }
 `
 }

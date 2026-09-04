@@ -41,7 +41,7 @@ import {
   evaluateHoldoutConfirmation,
   runQualification,
 } from '../../runtime/harness/qualification-runner.mjs'
-import { createLiveProjectConfig, createObservationAdapterPluginSource, createOpenCodeLiveExecutor, invokeOpenCode, OBSERVATION_ADAPTER_MODES, OPENCODE_DEBUG_ARGS, parseOpenCodeEvents, sanitizeDebugLog } from '../../runtime/harness/live-qualification.mjs'
+import { createLiveProjectConfig, createObservationAdapterPluginSource, createOpenCodeLiveExecutor, invokeOpenCode, OBSERVATION_ADAPTER_MODES, OPENCODE_DEBUG_ARGS, parseOpenCodeEvents, pluginInitializationReady, sanitizeDebugLog } from '../../runtime/harness/live-qualification.mjs'
 import { getExplicitLocalRuntime } from '../../runtime/harness/local-runtime.mjs'
 import { classifyCanaryGateState, classifyModelUsage } from '../../runtime/harness/canary-reporting.mjs'
 
@@ -304,6 +304,30 @@ test('live observation canaries use explicit project plugin registration', () =>
     adapterModuleUrl: 'file:///tmp/observation-adapter.mjs', tracePath: '/tmp/trace.jsonl',
     modelProfileId: 'test-profile', workspaceFingerprint: A, hostVersion: '1.18.25', adapterMode: 'UNKNOWN',
   }), /unknown adapter mode/u)
+})
+
+test('plugin initialization evidence is host-owned and does not depend on model text', () => {
+  const source = createObservationAdapterPluginSource({
+    adapterModuleUrl: 'file:///tmp/observation-adapter.mjs', tracePath: '/tmp/trace.jsonl',
+    modelProfileId: 'test-profile', workspaceFingerprint: A, hostVersion: '1.18.27', adapterMode: 'IDENTITY',
+  })
+  assert.match(source, /type: 'plugin_register_call'/u)
+  assert.match(source, /type: 'hooks_registered'/u)
+  assert.match(source, /before_hook_registered/u)
+  assert.match(source, /after_hook_registered/u)
+  assert.equal(pluginInitializationReady({ responseOk: true, evidence: {
+    plugin_module_load: 'PASS', plugin_export_contract: 'PASS', plugin_register_call: 'PASS',
+    plugin_context_validity: 'PASS', before_hook_registered: 'PASS', after_hook_registered: 'PASS',
+  }}), true)
+  assert.equal(pluginInitializationReady({ responseOk: true, answerMatchesExact: false, evidence: {
+    plugin_module_load: 'PASS', plugin_export_contract: 'PASS', plugin_register_call: 'PASS',
+    plugin_context_validity: 'PASS', before_hook_registered: 'PASS', after_hook_registered: 'PASS',
+  }}), true)
+})
+
+test('security OpenCode rounds carry mandatory DEBUG diagnostics', async () => {
+  const { OPENCODE_DEBUG_ARGS } = await import('../../runtime/security/secure-bootstrap-ai.mjs')
+  assert.deepEqual(OPENCODE_DEBUG_ARGS, ['--print-logs', '--log-level', 'DEBUG'])
 })
 
 test('selected free-model evidence freezes inventory order and stops after first success', async () => {

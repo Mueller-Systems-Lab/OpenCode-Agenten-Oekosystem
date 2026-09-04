@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MIT
-/** Fixed diagnostic ladder for GLM 5.2 (free) through OpenRouter. */
+/** Fixed diagnostic ladder for one deterministically selected free OpenCode model. */
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
@@ -25,20 +25,25 @@ import { classifyCanaryGateState, classifyModelUsage, rateLimitClassification, r
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const reportRoot = path.join(repoRoot, 'docs', 'reports')
 const opencodeBin = process.env.OCAE_OPENCODE_BIN || 'opencode'
-const provider = 'openrouter'
-const model = 'z-ai/glm-5.2:free'
+const provider = process.env.OCAE_TARGET_PROVIDER || 'openrouter'
+const model = process.env.OCAE_TARGET_MODEL || 'z-ai/glm-5.2:free'
+const uiLabel = process.env.OCAE_TARGET_DISPLAY_NAME || `${provider}/${model}`
 const hostVersion = String(spawnSync(opencodeBin, ['--version'], { encoding: 'utf8' }).stdout || '').trim()
 const timeoutMs = Number(process.env.OCAE_CANARY_TIMEOUT_MS || 90_000)
 const controlRepetitions = 5
 const identityRepetitions = 5
 const envelopeRepetitions = 10
-const experimentId = process.env.OCAE_EXPERIMENT_ID || 'issue-43-glm52-free-observation-canary-20260904T103234Z'
-const attemptId = `issue-43-glm52-free-observation-canary-attempt-${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/u, 'Z')}`
+const experimentId = process.env.OCAE_EXPERIMENT_ID || `issue-43-free-model-observation-canary-${provider}-${model.replace(/[^a-z0-9]+/giu, '-')}-${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/u, 'Z')}`
+const attemptId = `issue-43-free-model-observation-canary-attempt-${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/u, 'Z')}`
 const outputPath = process.env.OCAE_CANARY_OUTPUT_PATH
   ? path.resolve(repoRoot, process.env.OCAE_CANARY_OUTPUT_PATH)
   : path.join(reportRoot, `${attemptId}.json`)
-const freezePath = path.join(reportRoot, `${attemptId}-freeze.json`)
+const freezePath = process.env.OCAE_CANARY_FREEZE_PATH
+  ? path.resolve(repoRoot, process.env.OCAE_CANARY_FREEZE_PATH)
+  : path.join(reportRoot, `${attemptId}-freeze.json`)
 if (!outputPath.startsWith(`${reportRoot}${path.sep}`)) throw new Error('CONTRACT_INVALID:canary:evidence must remain under docs/reports')
+if (!freezePath.startsWith(`${reportRoot}${path.sep}`)) throw new Error('CONTRACT_INVALID:canary:freeze evidence must remain under docs/reports')
+const preflightOverride = process.env.OCAE_PREFLIGHT_RESULT_JSON ? JSON.parse(process.env.OCAE_PREFLIGHT_RESULT_JSON) : null
 
 function average(values) {
   const finite = values.filter((value) => Number.isFinite(value))
@@ -76,7 +81,7 @@ function modelInventory() {
   })
   const stdout = String(result.stdout || '')
   const stderr = sanitizeDebugLog(result.stderr || '')
-  const entry = parseJsonBlock(stdout, 'openrouter/z-ai/glm-5.2:free')
+  const entry = parseJsonBlock(stdout, `${provider}/${model}`)
   const freeCosts = entry?.cost && entry.cost.input === 0 && entry.cost.output === 0
     && entry.cost.cache?.read === 0 && entry.cost.cache?.write === 0
   return {
@@ -170,8 +175,8 @@ async function preflight() {
     const usage = classifyModelUsage({ debugLog: response.debug_log_excerpt, targetProvider: provider, targetModel: model })
     return {
       live_model_reachable: response.ok && answer.includes('PREFLIGHT_OK'),
-      expected_provider_match: provider === 'openrouter',
-      expected_model_match: model === 'z-ai/glm-5.2:free',
+      expected_provider_match: !usage.target_provider_fallback_used,
+      expected_model_match: !usage.target_model_switch_used,
       canonical_runtime_entry: true,
       normal_completion: response.ok && answer.includes('PREFLIGHT_OK'),
       paid_calls: response.cost > 0 ? 1 : 0,
@@ -328,7 +333,7 @@ function firstRun(runs, predicate) { return runs.find(predicate) || runs[0] || n
 
 async function main() {
   const inventory = modelInventory()
-  const preflightResult = inventory.free_model_path ? await preflight() : { live_model_reachable: false, failure_class: 'MODEL_UNAVAILABLE', paid_calls: 0, fallback_used: false, model_switch_used: false, debug_logging_enabled: inventory.debug_logging_enabled }
+  const preflightResult = preflightOverride || (inventory.free_model_path ? await preflight() : { live_model_reachable: false, failure_class: 'MODEL_UNAVAILABLE', paid_calls: 0, fallback_used: false, model_switch_used: false, debug_logging_enabled: inventory.debug_logging_enabled })
   const pluginProbe = inventory.free_model_path && preflightResult.live_model_reachable ? await pluginInitializationProbe() : { pass: false, status: 'NOT_RUN', failure_class: 'MODEL_UNAVAILABLE', paid_calls: 0, fallback_used: false, debug_logging_enabled: false, trace_types: [], debug_log_excerpt: '' }
   const contracts = {
     tool_contract_fingerprint: toolContractFingerprint(),
@@ -344,10 +349,10 @@ async function main() {
     logging: { opencode_print_logs: true, opencode_log_level: 'DEBUG', cli_args: [...OPENCODE_DEBUG_ARGS] },
   }
   const freeze = {
-    contract: 'ecosystem.issue-43-glm52-free-observation-canary-freeze.v1',
+    contract: 'ecosystem.issue-43-free-model-observation-canary-freeze.v1',
     experiment_id: experimentId,
     attempt_id: attemptId,
-    target: { ui_label: 'GLM 5.2 (free)', provider, model, provider_runtime_path: `${provider}/${model}`, zero_cost_required: true, fallback_forbidden: true, model_switch_forbidden: true, provider_fallback_forbidden: true },
+    target: { ui_label: uiLabel, provider, model, provider_runtime_path: `${provider}/${model}`, zero_cost_required: true, fallback_forbidden: true, model_switch_forbidden: true, provider_fallback_forbidden: true },
     opencode_version: hostVersion,
     runtime_identity: { runtime_class: LIVE_RUNTIME_ID, opencode_host_version: hostVersion, tool_contract_fingerprint: contracts.tool_contract_fingerprint, observation_contract_fingerprint: contracts.observation_contract_fingerprint },
     contracts,
@@ -357,13 +362,13 @@ async function main() {
   await fs.writeFile(freezePath, `${JSON.stringify(freeze, null, 2)}\n`, { mode: 0o600 })
 
   const output = {
-    contract: 'ecosystem.issue-43-glm52-free-observation-canary.v1',
+    contract: 'ecosystem.issue-43-free-model-observation-canary.v1',
     experiment_id: experimentId,
     attempt_id: attemptId,
     timestamp: new Date().toISOString(),
     provider,
     model,
-    ui_label: 'GLM 5.2 (free)',
+    ui_label: uiLabel,
     opencode_version: hostVersion,
     debug_logging: { required: true, args: [...OPENCODE_DEBUG_ARGS], inventory: inventory.debug_logging_enabled, preflight: preflightResult.debug_logging_enabled === true, plugin_initialization: pluginProbe.debug_logging_enabled === true },
     inventory: { provider_id: inventory.provider_id, model_id: inventory.model_id, display_name: inventory.display_name, status: inventory.status, costs: inventory.costs, free_model_path: inventory.free_model_path, inventory_entry_fingerprint: inventory.inventory_entry_fingerprint, debug_log_excerpt: inventory.debug_log_excerpt, debug_log_fingerprint: inventory.debug_log_fingerprint },
@@ -472,7 +477,7 @@ async function main() {
   output.first_harmful_serialization_change = output.first_failing_stage === 'ENVELOPE' ? 'exact prior JSON envelope: status/tool/content/complete wrapper' : 'NONE'
   output.envelope_regression_replicated = output.first_failing_stage === 'ENVELOPE' && Boolean(envelope?.failures?.length)
   output.root_cause_generalization = output.envelope_regression_replicated ? 'CROSS_RUNTIME_FORMAT_SENSITIVITY' : 'INSUFFICIENT'
-  output.final_classification = !inventory.free_model_path || !preflightResult.live_model_reachable || output.target_model_switch_used ? 'AMBER_OCAE_GLM52_FREE_OBSERVATION_DIAGNOSIS_BLOCKED_MODEL_UNAVAILABLE' : output.first_failing_stage === 'ENVELOPE' ? 'GREEN_OCAE_GLM52_FREE_ENVELOPE_REGRESSION_REPLICATED' : output.first_failing_stage === 'IDENTITY' || output.first_failing_stage === 'CONTROL' ? 'AMBER_OCAE_GLM52_FREE_OBSERVATION_EVIDENCE_INSUFFICIENT' : 'GREEN_OCAE_GLM52_FREE_ENVELOPE_REGRESSION_NOT_REPLICATED'
+  output.final_classification = !inventory.free_model_path || !preflightResult.live_model_reachable || output.target_model_switch_used ? 'AMBER_OCAE_SELECTED_FREE_MODEL_CONTROL_UNSTABLE' : output.first_failing_stage === 'PLUGIN_INIT' || output.first_failing_stage === 'IDENTITY' || output.first_failing_stage === 'CONTROL' ? 'AMBER_OCAE_FREE_MODEL_OBSERVATION_EVIDENCE_INSUFFICIENT' : output.first_failing_stage === 'ENVELOPE' ? 'GREEN_OCAE_FREE_MODEL_ENVELOPE_REGRESSION_REPLICATED' : 'GREEN_OCAE_FREE_MODEL_ENVELOPE_REGRESSION_NOT_REPLICATED'
   output.promoted_profile = 'NONE'
   await fs.writeFile(outputPath, `${JSON.stringify(output, null, 2)}\n`, { mode: 0o600 })
 
@@ -482,13 +487,13 @@ async function main() {
     ['ENVELOPE healthy', envelope?.runs_detail.find((run) => run.verified_success)],
     ['ENVELOPE failing', envelope?.runs_detail.find((run) => !run.verified_success)],
   ]
-  const differential = [`# Issue #43 GLM-5.2 free DEBUG log differential`, '', `Experiment: \`${experimentId}\``, `Target: \`${provider}/${model}\``, `OpenCode: \`${hostVersion}\``, '', 'The traces below are sanitized extracts. Timestamps, request IDs, and temporary paths are omitted or normalized where present.', '']
+  const differential = [`# Issue #43 free-model DEBUG log differential`, '', `Experiment: \`${experimentId}\``, `Target: \`${provider}/${model}\``, `OpenCode: \`${hostVersion}\``, '', 'The traces below are sanitized extracts. Timestamps, request IDs, and temporary paths are omitted or normalized where present.', '']
   for (const [label, run] of representatives) {
     if (!run) continue
     differential.push(`## ${label}`, '', `- verified_success: \`${run.verified_success}\``, `- failure_class: \`${run.failure_class || 'NONE'}\``, `- timeout_class: \`${run.timeout_class || 'NONE'}\``, `- message_sequence: \`${run.message_sequence.join(' → ')}\``, `- observation_trace: \`${run.observation_trace_types.join(' → ')}\``, `- debug_lifecycle_events: \`${run.debug_lifecycle_events.join(' → ') || 'NONE_OBSERVED'}\``, '', '```text', sanitizeDebugLog(run.debug_log_excerpt, 6000).replace(/\d{4}-\d{2}-\d{2}T[^ ]+/gu, '[TIMESTAMP]'), '```', '')
   }
   differential.push('## Differential interpretation', '', `- CONTROL_0: ${control ? 'captured' : 'not captured'}`, `- IDENTITY: ${identity ? 'captured' : 'not captured'}`, `- ENVELOPE: ${envelope ? 'captured' : 'not captured'}`, '- Exact OpenCode internal message roles and provider request payload ordering are not exposed by this CLI surface; message role is therefore UNOBSERVABLE.', '- The observable CLI event order and adapter trace order are retained in the evidence JSON; any provider-side resume ordering beyond that boundary is not inferred.')
-  await fs.writeFile(path.join(reportRoot, 'issue-43-glm52-free-debug-log-differential.md'), `${differential.join('\n')}\n`, { mode: 0o600 })
+  await fs.writeFile(path.join(reportRoot, 'issue-43-free-model-debug-log-differential.md'), `${differential.join('\n')}\n`, { mode: 0o600 })
   console.log(JSON.stringify({ output_path: path.relative(repoRoot, outputPath), freeze_path: path.relative(repoRoot, freezePath), experiment_id: experimentId, attempt_id: attemptId, provider, model, opencode_version: hostVersion, final_classification: output.final_classification, first_failing_stage: output.first_failing_stage, canaries: output.canaries.map((layer) => ({ layer: layer.layer, verified_success: `${layer.verified_success}/${layer.runs}`, latency_avg_ms: layer.latency_avg_ms })) }, null, 2))
 }
 

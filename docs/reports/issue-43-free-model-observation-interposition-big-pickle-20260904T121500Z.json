@@ -1,0 +1,209 @@
+{
+  "contract": "ecosystem.issue-43-free-model-observation-canary.v1",
+  "experiment_id": "issue-43-free-model-observation-canary-opencode-big-pickle-20260904T121500Z",
+  "attempt_id": "issue-43-free-model-observation-canary-attempt-20260904T121552Z",
+  "timestamp": "2026-09-04T12:16:05.017Z",
+  "provider": "opencode",
+  "model": "big-pickle",
+  "ui_label": "Big Pickle",
+  "opencode_version": "1.18.27",
+  "debug_logging": {
+    "required": true,
+    "args": [
+      "--print-logs",
+      "--log-level",
+      "DEBUG"
+    ],
+    "inventory": true,
+    "preflight": true,
+    "plugin_initialization": true
+  },
+  "inventory": {
+    "provider_id": "opencode",
+    "model_id": "big-pickle",
+    "display_name": "Big Pickle",
+    "status": "active",
+    "costs": {
+      "input": 0,
+      "output": 0,
+      "cache": {
+        "read": 0,
+        "write": 0
+      }
+    },
+    "free_model_path": true,
+    "inventory_entry_fingerprint": "c81fbf3860567cff076896250d02f60a73a84e8e9c5808c2dbd338034ddbf540",
+    "debug_log_excerpt": "timestamp=2026-09-04T12:15:53.990Z level=INFO run=77d6cf86 message=\"creating instance\" directory=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:53.993Z level=INFO run=77d6cf86 message=fromDirectory directory=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:54.069Z level=INFO run=77d6cf86 message=bootstrapping directory=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:54.080Z level=INFO run=77d6cf86 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:54.091Z level=INFO run=77d6cf86 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:54.091Z level=INFO run=77d6cf86 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:54.105Z level=INFO run=77d6cf86 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:54.173Z level=DEBUG run=77d6cf86 message=\"loading config from [PATH_REDACTED]\"\ntimestamp=2026-09-04T12:15:54.173Z level=INFO run=77d6cf86 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:54.173Z level=DEBUG run=77d6cf86 message=\"loading config from [PATH_REDACTED]\"\ntimestamp=2026-09-04T12:15:54.173Z level=INFO run=77d6cf86 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:54.225Z level=DEBUG run=77d6cf86 message=\"loading config from [PATH_REDACTED]\"\ntimestamp=2026-09-04T12:15:54.225Z level=INFO run=77d6cf86 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:54.226Z level=DEBUG run=77d6cf86 message=\"loading config from [PATH_REDACTED]\"\ntimestamp=2026-09-04T12:15:54.226Z level=INFO run=77d6cf86 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:54.347Z level=INFO run=77d6cf86 message=\"all LSPs are disabled\"\ntimestamp=2026-09-04T12:15:54.349Z level=INFO run=77d6cf86 message=init\ntimestamp=2026-09-04T12:15:55.121Z level=INFO run=77d6cf86 message=\"disposing instance\" directory=[PATH_REDACTED]\n",
+    "debug_log_fingerprint": "11240c10764d7d1aa46744b9beebb8fe27d807076160a39e8a0e5be1aaaf32bb"
+  },
+  "preflight": {
+    "live_model_reachable": true,
+    "expected_provider_match": true,
+    "expected_model_match": true,
+    "canonical_runtime_entry": true,
+    "normal_completion": true,
+    "paid_calls": 0,
+    "fallback_used": false,
+    "observed_model_ids": [
+      "big-pickle"
+    ],
+    "model_switch_used": false,
+    "target_model_switch_used": false,
+    "target_model_fallback_used": false,
+    "target_provider_fallback_used": false,
+    "auxiliary_model_used": false,
+    "auxiliary_model_provider": null,
+    "auxiliary_model": null,
+    "auxiliary_model_purpose": null,
+    "debug_logging_enabled": true,
+    "debug_lifecycle_events": [
+      "session_creation"
+    ],
+    "debug_log_fingerprint": "fd52bba57cec4509ce51ffb8dc9b1e504817b32b68879985c39b6a8c1755f36a",
+    "failure_class": null,
+    "latency_ms": 18800
+  },
+  "plugin_initialization": {
+    "pass": false,
+    "response_ok": true,
+    "answer_fingerprint": "3cdabc0bf5d0543ace4e1cd9f5e9bae02361eb4403b2ff8c0e0ef12fffc31923",
+    "adapter_loaded": true,
+    "trace_types": [
+      "adapter_loaded"
+    ],
+    "paid_calls": 0,
+    "fallback_used": false,
+    "debug_logging_enabled": true,
+    "debug_lifecycle_events": [
+      "session_creation"
+    ],
+    "debug_log_excerpt": "timestamp=2026-09-04T12:15:56.571Z level=INFO run=43634142 message=\"creating instance\" directory=[TMP_PATH_REDACTED]\ntimestamp=2026-09-04T12:15:56.576Z level=INFO run=43634142 message=fromDirectory directory=[TMP_PATH_REDACTED]\ntimestamp=2026-09-04T12:15:56.637Z level=INFO run=43634142 message=bootstrapping directory=[TMP_PATH_REDACTED]\ntimestamp=2026-09-04T12:15:56.654Z level=INFO run=43634142 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:56.656Z level=INFO run=43634142 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:56.656Z level=INFO run=43634142 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:56.669Z level=INFO run=43634142 message=loading path=[TMP_PATH_REDACTED]\ntimestamp=2026-09-04T12:15:56.725Z level=DEBUG run=43634142 message=\"loading config from [PATH_REDACTED]\"\ntimestamp=2026-09-04T12:15:56.725Z level=INFO run=43634142 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:56.725Z level=DEBUG run=43634142 message=\"loading config from [PATH_REDACTED]\"\ntimestamp=2026-09-04T12:15:56.725Z level=INFO run=43634142 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T12:15:56.913Z level=INFO run=43634142 message=\"all LSPs are disabled\"\ntimestamp=2026-09-04T12:15:56.918Z level=INFO run=43634142 message=\"all formatters are disabled\"\ntimestamp=2026-09-04T12:15:56.918Z level=INFO run=43634142 message=init\ntimestamp=2026-09-04T12:15:57.204Z level=INFO run=43634142 message=created id=ses_f93a726ebffeKn5XoL3boWX2cs slug=lucky-circuit version=1.18.27 projectID=global directory=[TMP_PATH_REDACTED] path=tmp/ocae-issue-43-glm52-plugin-probe-S1VRci workspaceID=undefined parentID=undefined title=\"New session - 2026-09-04T12:15:57.204Z\" agent=undefined model=undefined metadata=undefined permission=\"[{\\\"permission\\\":\\\"question\\\",\\\"pattern\\\":\\\"*\\\",\\\"action\\\":\\\"deny\\\"},{\\\"permission\\\":\\\"plan_enter\\\",\\\"pattern\\\":\\\"*\\\",\\\"action\\\":\\\"deny\\\"},{\\\"permission\\\":\\\"plan_exit\\\",\\\"pattern\\\":\\\"*\\\",\\\"action\\\":\\\"deny\\\"}]\" cost=0 tokens.input=0 tokens.output=0 tokens.reasoning=0 tokens.cache.read=0 tokens.cache.write=0 time.created=1788524157204 time.updated=1788524157204\ntimestamp=2026-09-04T12:15:57.229Z level=INFO run=43634142 message=\"event connected\"\ntimestamp=2026-09-04T12:15:58.129Z level=INFO run=43634142 message=loop session.id=ses_f93a726ebffeKn5XoL3boWX2cs step=0\ntimestamp=2026-09-04T12:15:58.150Z level=INFO run=43634142 message=\"shell tool using shell\" shell=/bin/bash\ntimestamp=2026-09-04T12:15:58.205Z level=INFO run=43634142 message=stream providerID=opencode modelID=big-pickle session.id=ses_f93a726ebffeKn5XoL3boWX2cs small=true agent=title mode=primary\ntimestamp=2026-09-04T12:15:58.230Z level=INFO run=43634142 message=\"llm runtime selected\" llm.runtime=ai-sdk llm.provider=opencode llm.model=big-pickle\ntimestamp=2026-09-04T12:15:58.334Z level=INFO run=43634142 message=\"watcher backend\" directory=[TMP_PATH_REDACTED] platform=linux backend=inotify\ntimestamp=2026-09-04T12:15:58.352Z level=INFO run=43634142 message=\"project copy refresh started\" projectID=global\ntimestamp=2026-09-04T12:15:58.354Z level=INFO run=43634142 message=\"project copy refresh done\" projectID=global updated=[] removed=[]\ntimestamp=2026-09-04T12:15:58.430Z level=INFO run=43634142 message=\"booting location services\" directory=[TMP_PATH_REDACTED] workspaceID=undefined\ntimestamp=2026-09-04T12:15:59.054Z level=INFO run=43634142 message=process session.id=ses_f93a726ebffeKn5XoL3boWX2cs messageID=msg_06c58dcb6001plKMhtaGmTJ6EI\ntimestamp=2026-09-04T12:15:59.056Z level=INFO run=43634142 message=stream providerID=opencode modelID=big-pickle session.id=ses_f93a726ebffeKn5XoL3boWX2cs small=false agent=build mode=primary\ntimestamp=2026-09-04T12:15:59.067Z level=INFO run=43634142 message=\"llm runtime selected\" llm.runtime=ai-sdk llm.provider=opencode llm.model=big-pickle\ntimestamp=2026-09-04T12:16:04.870Z level=INFO run=43634142 message=loop session.id=ses_f93a726ebffeKn5XoL3boWX2cs step=1\ntimestamp=2026-09-04T12:16:04.872Z level=INFO run=43634142 message=\"exiting loop\" session.id=ses_f93a726ebffeKn5XoL3boWX2cs\ntimestamp=2026-09-04T12:16:04.879Z level=INFO run=43634142 message=\"disposing instance\" directory=[TMP_PATH_REDACTED]\n",
+    "debug_log_fingerprint": "beb7d38b4f341b74fc3f2cf017ac2b02999916d28200425bec456e3abf86021f",
+    "observed_model_ids": [
+      "big-pickle"
+    ],
+    "model_switch_used": false,
+    "target_model_switch_used": false,
+    "target_model_fallback_used": false,
+    "target_provider_fallback_used": false,
+    "auxiliary_model_used": false,
+    "auxiliary_model_provider": null,
+    "auxiliary_model": null,
+    "auxiliary_model_purpose": null,
+    "failure_class": null
+  },
+  "plugin_initialization_status": "FAIL",
+  "registration_path": "explicit-project-config-plugin",
+  "freeze_path": "docs/reports/issue-43-free-model-observation-canary-attempt-20260904T121552Z-freeze.json",
+  "contracts": {
+    "tool_contract_fingerprint": "e6c9f7f9aa095578c0138f69c73076a4af7583ed7c8409dc1bb14f0fcd5cd33c",
+    "observation_contract_fingerprint": "638a4d824837ef4d97d1ade5fe59b80b39984e025e01c4e0126b2a7810d5b73d",
+    "adapter_version": "ocae.live.tool-execute-after@1.0.0",
+    "verifier_version": "issue-43-live-verifier.v1",
+    "fixture_identity": "issue-43-read-observation.v1",
+    "canary_definitions": [
+      "CONTROL_0:NO_OBSERVATION_INTERPOSITION",
+      "CANARY_1:IDENTITY_ADAPTER",
+      "CANARY_2:ENVELOPE_ONLY"
+    ],
+    "execution_order": [
+      "CONTROL_0",
+      "CANARY_1_IDENTITY",
+      "CANARY_2_ENVELOPE"
+    ],
+    "execution_order_fingerprint": "503ffbe04835c26752a392659e5051744f91a51ca203daa87877fdd9b6dfecc5",
+    "timeout_ms": 90000,
+    "retry_budget": 0,
+    "logging": {
+      "opencode_print_logs": true,
+      "opencode_log_level": "DEBUG",
+      "cli_args": [
+        "--print-logs",
+        "--log-level",
+        "DEBUG"
+      ]
+    }
+  },
+  "canaries": [],
+  "paid_calls": 0,
+  "fallback_used": false,
+  "target_model_provider": "opencode",
+  "target_model": "big-pickle",
+  "target_model_switch_used": false,
+  "target_model_fallback_used": false,
+  "target_provider_fallback_used": false,
+  "auxiliary_model_used": false,
+  "auxiliary_model_provider": null,
+  "auxiliary_model": null,
+  "auxiliary_model_purpose": null,
+  "model_switch_used": false,
+  "observed_model_ids": [
+    "big-pickle"
+  ],
+  "infrastructure_blocker": null,
+  "rate_limit_class": "NONE",
+  "rate_limit_reset_evidence": null,
+  "preflight_result": "PASS",
+  "free_model_path": "PASS",
+  "first_failing_stage": "PLUGIN_INIT",
+  "gate_status": {
+    "CONTROL_0": "NOT_RUN",
+    "IDENTITY": "NOT_RUN",
+    "ENVELOPE": "NOT_RUN"
+  },
+  "message_role_preserved": "UNOBSERVABLE",
+  "message_order_preserved": "NOT_RUN",
+  "latency_decomposition": {
+    "tool_execution_latency_ms": null,
+    "adapter_latency_ms": null,
+    "hook_latency_ms": null,
+    "provider_resume_latency_ms": null,
+    "model_latency_ms": null,
+    "total_latency_ms": null
+  },
+  "timeout_class": "NONE",
+  "debug_log_traces": {
+    "CONTROL_0": {
+      "captured": false,
+      "run_count": 0,
+      "log_fingerprints": []
+    },
+    "CANARY_1_IDENTITY": {
+      "captured": false,
+      "run_count": 0,
+      "log_fingerprints": []
+    },
+    "CANARY_2_ENVELOPE": {
+      "captured": false,
+      "run_count": 0,
+      "log_fingerprints": []
+    }
+  },
+  "receipt_authority": {
+    "raw_observation_fingerprinting": "NOT_RUN",
+    "model_facing_observation_fingerprinting": "NOT_RUN",
+    "call_result_correlation": "NOT_RUN",
+    "raw_receipt_propagation": "NOT_RUN",
+    "verifier_raw_authority": "NOT_RUN"
+  },
+  "serialization_diff": {
+    "identity": null,
+    "envelope": null,
+    "identity_fingerprint": null,
+    "envelope_fingerprint": null,
+    "changed_dimensions": [
+      "prefix/schema wrapper",
+      "key names",
+      "key ordering",
+      "JSON escaping/quoting",
+      "status/tool repetition",
+      "length"
+    ]
+  },
+  "serialization_micro_ladder_run": false,
+  "first_harmful_serialization_change": "NONE",
+  "envelope_regression_replicated": false,
+  "root_cause_generalization": "INSUFFICIENT",
+  "final_classification": "AMBER_OCAE_FREE_MODEL_OBSERVATION_EVIDENCE_INSUFFICIENT",
+  "promoted_profile": "NONE"
+}

@@ -4,6 +4,8 @@ import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
 
+const repoRoot = path.resolve(import.meta.dirname, '../..')
+
 import {
   CAPABILITY_FAMILIES,
   createCapabilityMetric,
@@ -302,6 +304,24 @@ test('live observation canaries use explicit project plugin registration', () =>
     adapterModuleUrl: 'file:///tmp/observation-adapter.mjs', tracePath: '/tmp/trace.jsonl',
     modelProfileId: 'test-profile', workspaceFingerprint: A, hostVersion: '1.18.25', adapterMode: 'UNKNOWN',
   }), /unknown adapter mode/u)
+})
+
+test('selected free-model evidence freezes inventory order and stops after first success', async () => {
+  const matrixPath = path.join(repoRoot, 'docs/reports/issue-43-free-model-preflight-matrix-big-pickle-20260904T121500Z.json')
+  const matrix = JSON.parse(await fs.readFile(matrixPath, 'utf8'))
+  assert.equal(matrix.inventory_ordering, 'current OpenCode inventory order')
+  assert.equal(matrix.free_model_candidates_discovered, 41)
+  assert.equal(matrix.free_model_candidates_eligible, 35)
+  assert.equal(matrix.preflight_attempts.length, 1)
+  assert.equal(matrix.preflight_attempts[0].zero_cost_path, 'PASS')
+  assert.equal(matrix.preflight_attempts[0].tool_interaction, 'PASS')
+  assert.equal(matrix.selected_candidate_index, 1)
+  assert.equal(matrix.selected_provider, 'opencode')
+  assert.equal(matrix.selected_model, 'big-pickle')
+  assert.equal(matrix.model_selection_locked, 'YES')
+  assert.equal(matrix.first_success_stopped_search, 'YES')
+  assert.equal(matrix.free_model_candidate_list.some((candidate) => candidate.exclusion_reason === 'DEEPSEEK_EXCLUDED' && !candidate.excluded), false)
+  assert.equal(matrix.free_model_candidate_list.slice(1).every((candidate) => candidate.preflight_outcome === 'NOT_ATTEMPTED_AFTER_FIRST_SUCCESS'), true)
 })
 
 test('OpenCode invocation resolves and kills non-cancellable timeout children', async () => {

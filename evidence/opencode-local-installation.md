@@ -1,0 +1,100 @@
+# Global OpenCode installation evidence
+
+Date: 2026-09-12
+
+```text
+SOURCE_REPOSITORY=/home/xxammaxx/Schreibtisch/OpenCode-Agenten-Oekosystem
+SOURCE_HEAD=a568490e8b68ee3984feebda36c28c5b89a461f2
+OPENCODE_BINARY=/home/xxammaxx/.opencode/bin/opencode
+OPENCODE_VERSION=1.18.30
+GLOBAL_CONFIG_DIR=/home/xxammaxx/.config/opencode
+
+INSTALL_METHOD=adapters/opencode/install.py --global
+SKILL_INSTALL_PATH=/home/xxammaxx/.config/opencode/skills/coordinate-blackboard-swarm
+AGENT_INSTALL_PATH=/home/xxammaxx/.config/opencode/agents/swarm.md
+SUBAGENT_INSTALL_PATH=/home/xxammaxx/.config/opencode/agents/swarm-worker.md
+TOOL_INSTALL_PATH=/home/xxammaxx/.config/opencode/tools/swarm.ts
+PLUGIN_INSTALL_PATH=/home/xxammaxx/.config/opencode/plugins/blackboard-ui
+
+INSTALL_RUN_1=PASS
+INSTALL_RUN_2=PASS
+SECOND_RUN_SEMANTIC_DIFF=0
+INSTALL_MANIFEST=PASS
+UNINSTALL_SCOPE_SAFE=PASS
+INSTALLED_FILE_HASHES=PASS
+STALE_MANAGED_FILES=0
+UNEXPECTED_MANAGED_FILES=0
+
+GLOBAL_SKILL_DISCOVERED=PASS
+GLOBAL_AGENT_DISCOVERED=PASS
+GLOBAL_TOOL_DISCOVERED=PASS
+GLOBAL_PLUGIN_DISCOVERED=PASS
+NORMAL_OPENCODE_GLOBAL_DISCOVERY=PASS
+GLOBAL_DISCOVERY_ACTUALLY_USED=YES
+
+TEST_PROJECT=/tmp/opencode-agent-ecosystem-e2e-20260912T102122Z-494796
+TEST_PROJECT_LOCAL_EXTENSION_COPIES=0
+TEST_MODEL=zai-coding-plan/glm-4.7
+TEST_MODEL_MODE=FREE_REMOTE
+TEST_MODEL_COST=FREE
+TARGET_TASK_EXECUTOR=OPENCODE_SWARM
+REAL_PRIMARY_SESSION_ID=ses_f691fb28effeDGZibCk8borSo0
+REAL_CHILD_SESSION_ID=ses_f691eef2cffeEoWrJDij0fdlhi
+REAL_BLACKBOARD_WORKER_ID=ses_f691eef2cffeEoWrJDij0fdlhi
+SESSION_IDENTITY_MATCH=PASS
+TASK_ID=T1,T2,T5
+TASK_CLAIMED=PASS
+TASK_RUNNING=PASS
+TASK_DONE=PASS
+BLACKBOARD_VISIBILITY=live watch fallback; screenshot captured during RUNNING
+SWARM_PRIMARY_INSTALLED=PASS
+SWARM_PRIMARY_DISCOVERED=PASS
+ACTIVE_PRIMARY_AGENT=swarm
+SWARM_PRIMARY_VISIBLE_IN_AGENT_SELECTOR=PASS
+
+SCREENSHOT_AGENT_SELECTOR=/home/xxammaxx/Schreibtisch/OpenCode-Agenten-Oekosystem/evidence/screenshots/opencode-swarm-agent-visible.png
+SCREENSHOT_AGENT_SELECTOR_SHA256=463f7ffc872e918dafe05a15706dd1b3b256abb704369aac213b8c7d9c9b18d1
+SCREENSHOT_AGENT_SELECTOR_EXISTS=YES
+SCREENSHOT_AGENT_SELECTOR_SELF_INSPECTED=YES
+BUILD_VISIBLE=PASS
+PLAN_VISIBLE=PASS
+SWARM_VISIBLE=PASS
+SCREENSHOT_PATH=/home/xxammaxx/Schreibtisch/OpenCode-Agenten-Oekosystem/evidence/screenshots/opencode-real-swarm-running.png
+SCREENSHOT_SHA256=14b2d10d49b2dcf6af5bffb61b8c283d2ff1b0cd31c70dc343225eb007c53598
+SCREENSHOT_SELF_INSPECTED=YES
+OPENCODE_VISIBLE=PASS
+BLACKBOARD_VISIBLE=PASS
+ACTIVE_WORKER_VISIBLE=PASS
+TASK_VISIBLE=PASS
+RUNNING_STATE_VISIBLE=PASS
+SESSION_CORRELATION_VISIBLE=PASS
+SCREENSHOT_SECRET_EXPOSURE=NO
+VISUAL_E2E_REQUIRED=YES
+
+PROJECT_LOCAL_SKILL_COPY=NO
+PROJECT_LOCAL_AGENT_COPY=NO
+PROJECT_LOCAL_TOOL_COPY=NO
+PROJECT_LOCAL_PLUGIN_COPY=NO
+UI_WRITES_BLACKBOARD=NO
+SECRETS_EXPOSED=NO
+UNRELATED_USER_WORK_DAMAGED=NO
+
+PREVIOUS_VISUAL_ACCEPTANCE=INVALIDATED
+REASON=SWARM_PRIMARY_NOT_VISIBLE_IN_AGENT_SELECTOR
+FINAL_CLASSIFICATION=RED_USER_VISIBLE_SWARM_MISSING
+FINAL_ZIP_SHA256=51f6ed3df7a1e22f1d51faa2002d68380d3d37bfc81490adc353c82308be9eb9
+
+CANONICAL_GITHUB_REPOSITORY=https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem
+GITHUB_REMOTE_PERSISTENCE=NOT_YET_VERIFIED
+PR_EXISTS=NOT_YET_VERIFIED
+PR_MERGED=NOT_YET_VERIFIED
+```
+
+The previous visual acceptance was invalidated because the original agent
+selector showed only the built-in agents. The global primary `swarm` is now
+visible in the selector alongside `build` and `plan`, and the selected TUI
+shows `Swarm`. The real follow-up run used the zero-cost authenticated model
+`zai-coding-plan/glm-4.7`; no Ollama runtime was used. OpenCode created a real
+worker with ID `ses_f691eef2cffeEoWrJDij0fdlhi`, which is the same ID recorded
+by Blackboard. The selector and RUNNING screenshots were opened and inspected
+directly.

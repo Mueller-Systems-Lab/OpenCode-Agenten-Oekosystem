@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# coordinate-blackboard-swarm: managed launcher
+set -euo pipefail
+repo="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+runtime="$repo/.opencode-runtime"
+opencode_bin="$(command -v opencode)"
+mkdir -p "$runtime/home/.local/share/opencode" "$runtime/config" "$runtime/state" "$runtime/cache"
+if [[ -f "$HOME/.local/share/opencode/auth.json" && ! -e "$runtime/home/.local/share/opencode/auth.json" ]]; then
+  ln -s "$HOME/.local/share/opencode/auth.json" "$runtime/home/.local/share/opencode/auth.json"
+fi
+export HOME="$runtime/home" XDG_STATE_HOME="$runtime/state" XDG_CACHE_HOME="$runtime/cache"
+rm -rf "$runtime/config/agents" "$runtime/config/tools" "$runtime/config/plugins"
+mkdir -p "$runtime/config/agents" "$runtime/config/tools" "$runtime/config/plugins/blackboard-ui"
+ln -s "$repo/.opencode/agents/swarm-worker.md" "$runtime/config/agents/swarm-worker.md"
+ln -s "$repo/.opencode/tools/swarm.ts" "$runtime/config/tools/swarm.ts"
+ln -s "$repo/.opencode/plugins/blackboard-ui/index.ts" "$runtime/config/plugins/blackboard-ui/index.ts"
+ln -s "$repo/.opencode/plugins/blackboard-ui/tui.ts" "$runtime/config/plugins/blackboard-ui/tui.ts"
+export OPENCODE_CONFIG_DIR="$runtime/config"
+export OPENCODE_CONFIG_CONTENT='{"$schema":"https://opencode.ai/config.json","autoupdate":false,"share":"disabled"}'
+export OPENCODE_DISABLE_DEFAULT_PLUGINS=1 OPENCODE_DISABLE_CLAUDE_CODE=1 OPENCODE_DISABLE_PROJECT_CONFIG=1 OPENCODE_DISABLE_MODELS_FETCH=1
+unset OPENCODE_DISABLE_EXTERNAL_SKILLS
+exec "$opencode_bin" "$@"

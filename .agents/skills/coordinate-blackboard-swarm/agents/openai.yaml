@@ -1,0 +1,4 @@
+interface:
+  display_name: "Minimal Blackboard Swarm"
+  short_description: "Coordinate agents with SQLite and a live view"
+  default_prompt: "Use $coordinate-blackboard-swarm to coordinate this work with minimal shared state, evidence-gated completion, and a visible live blackboard."

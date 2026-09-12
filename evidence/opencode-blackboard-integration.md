@@ -1,9 +1,9 @@
 # OpenCode + Blackboard Integration Evidence
 
 Date: 2026-09-12
-Repository: `/home/xxammaxx/Schreibtisch/OpenCode-Agenten-Oekosystem`
+Repository: canonical repository root
 OpenCode: `1.18.30`
-Binary: `/home/xxammaxx/.opencode/bin/opencode`
+Binary: installed OpenCode binary
 
 ## Repository and preflight
 
@@ -11,8 +11,8 @@ Binary: `/home/xxammaxx/.opencode/bin/opencode`
 REPOSITORY_FOUND=YES
 ZIP_FOUND=YES
 PREFLIGHT=PASS
-START_HEAD=a568490e8b68ee3984feebda36c28c5b89a461f2
-FINAL_HEAD=a568490e8b68ee3984feebda36c28c5b89a461f2
+START_HEAD=3c0818047a14b8e2a7efec1c5bdc0ee08baa7890
+FINAL_HEAD=674a37e220c292909955a5d2fde46cc6ff65b8d4
 GITHUB_CLI_AUTH=INVALID
 GITHUB_AUTH_REQUIRED_FOR_LOCAL_INSTALL=NO
 AUTH_PRESENT=YES
@@ -114,7 +114,7 @@ SECRETS_EXPOSED=NO
 ```text
 PREVIOUS_VISUAL_ACCEPTANCE=INVALIDATED
 REASON=SWARM_PRIMARY_NOT_VISIBLE_IN_AGENT_SELECTOR
-FINAL_CLASSIFICATION=RED_USER_VISIBLE_SWARM_MISSING
+FINAL_CLASSIFICATION=RED_PENDING_GITHUB_AND_CI
 ```
 
 The implementation is installed and locally validated, but a persistent visual

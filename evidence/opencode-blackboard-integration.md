@@ -1,0 +1,122 @@
+# OpenCode + Blackboard Integration Evidence
+
+Date: 2026-09-12
+Repository: `/home/xxammaxx/Schreibtisch/OpenCode-Agenten-Oekosystem`
+OpenCode: `1.18.30`
+Binary: `/home/xxammaxx/.opencode/bin/opencode`
+
+## Repository and preflight
+
+```text
+REPOSITORY_FOUND=YES
+ZIP_FOUND=YES
+PREFLIGHT=PASS
+START_HEAD=a568490e8b68ee3984feebda36c28c5b89a461f2
+FINAL_HEAD=a568490e8b68ee3984feebda36c28c5b89a461f2
+GITHUB_CLI_AUTH=INVALID
+GITHUB_AUTH_REQUIRED_FOR_LOCAL_INSTALL=NO
+AUTH_PRESENT=YES
+UNRELATED_USER_WORK_DAMAGED=NO
+```
+
+The pre-existing repository changes were not reset, deleted, overwritten, or quarantined.
+
+## Effective extension inventory
+
+The clean profile uses `HOME`, XDG state/cache paths, `OPENCODE_CONFIG_DIR`,
+`OPENCODE_DISABLE_PROJECT_CONFIG=1`, `OPENCODE_DISABLE_EXTERNAL_SKILLS=1`
+for the baseline, and `OPENCODE_DISABLE_CLAUDE_CODE=1`.
+
+```text
+AFTER_CLEAN:
+EFFECTIVE_CUSTOM_SKILLS=0
+EFFECTIVE_CUSTOM_AGENTS=0
+EFFECTIVE_CUSTOM_TOOLS=0
+EFFECTIVE_CUSTOM_PLUGINS=0
+EFFECTIVE_CUSTOM_COMMANDS=0
+EFFECTIVE_CUSTOM_MCP=0
+OPENCODE_CLEAN_BASELINE=PASS
+
+AFTER_INSTALL:
+CUSTOM_SKILLS=1  coordinate-blackboard-swarm
+CUSTOM_PRIMARY_AGENTS=1  swarm
+CUSTOM_SUBAGENTS=1  swarm-worker
+CUSTOM_TOOLS=1   swarm
+CUSTOM_PLUGINS=1 coordinate-blackboard-swarm.ui
+CUSTOM_COMMANDS=0
+CUSTOM_MCP=0
+CUSTOM_UNRELATED_EXTENSIONS=0
+```
+
+## Blackboard and adapter
+
+```text
+BLACKBOARD_SKILL_INSTALLED=PASS
+VISIBLE_BLACKBOARD_SKILL_COPIES=1
+BLACKBOARD_ENGINE_COUNT=1
+BLACKBOARD_DATABASE_COUNT=1 (during disposable canary; persistent repo DB absent)
+PYTHON_SYNTAX=PASS
+WATCH_FALLBACK=PASS
+UI_SNAPSHOT=PASS
+UI_WRITES_BLACKBOARD=NO
+```
+
+The TypeScript adapter invokes only `scripts/blackboard.py`; it does not contain
+SQLite schema or transition logic. `snapshot` is a read-only JSON command used by
+the observer.
+
+## Canary and idempotence
+
+```text
+INSTALL_RUN_1=PASS
+INSTALL_RUN_2=PASS
+SECOND_RUN_SEMANTIC_DIFF=0
+CREATE_TASK=PASS
+CLAIM_TASK=PASS
+FACT=PASS
+RESULT=PASS
+DONE_GATE=PASS
+LEASE_RECOVERY=PASS
+SESSION_ID_BRIDGE=PASS (real child ses_f691eef2cffeEoWrJDij0fdlhi)
+OPENCODE_STARTUP_PROBE=PASS (debug startup and isolated discovery)
+SKILL_DISCOVERED=PASS
+SWARM_PRIMARY_DISCOVERED=PASS
+SWARM_WORKER_DISCOVERED=PASS
+SWARM_UI_DISCOVERED=PASS
+LIVE_VISIBILITY=PASS
+AGENT_SELECTOR_SCREENSHOT=PASS
+AGENT_SELECTOR_SCREENSHOT_SHA256=463f7ffc872e918dafe05a15706dd1b3b256abb704369aac213b8c7d9c9b18d1
+RUNNING_SWARM_SCREENSHOT=PASS
+RUNNING_SWARM_SCREENSHOT_SHA256=14b2d10d49b2dcf6af5bffb61b8c283d2ff1b0cd31c70dc343225eb007c53598
+```
+
+The disposable Blackboard state is outside the source repository. The selector
+screenshot visibly contains build, plan, and swarm. The RUNNING screenshot was
+captured with a real swarm-worker claim and the read-only watch observer; the
+worker session ID is retained in the local installation report.
+
+## ZIP
+
+```text
+ZIP_READABLE=PASS
+ZIP_INTEGRITY=PASS
+ZIP_REBUILT=PASS
+ZIP_VALIDATED=PASS
+ADAPTER_PRESENT=PASS
+NO_DUPLICATE_FILES=PASS
+NO_UNEXPECTED_RUNTIME_DEPENDENCIES=PASS
+FINAL_ZIP_SHA256=51f6ed3df7a1e22f1d51faa2002d68380d3d37bfc81490adc353c82308be9eb9
+SECRETS_EXPOSED=NO
+```
+
+## Classification
+
+```text
+PREVIOUS_VISUAL_ACCEPTANCE=INVALIDATED
+REASON=SWARM_PRIMARY_NOT_VISIBLE_IN_AGENT_SELECTOR
+FINAL_CLASSIFICATION=RED_USER_VISIBLE_SWARM_MISSING
+```
+
+The implementation is installed and locally validated, but a persistent visual
+TUI observation and a real child-session invocation were not proven in this
+non-interactive canary. No GREEN classification is asserted without that evidence.

@@ -1,0 +1,14 @@
+OCAE product-consolidation run — PREFLIGHT
+captured_at=2026-09-13T21:15Z
+repository_root=<redacted:repo-root>
+branch=feat/ocae-product-consolidation
+base_head=87bc6265d1d1409099673ceff480064b3ef3a577
+remote_default=origin/master (87bc6265, in sync at branch creation)
+open_issues=0 open_prs=0 (all prior merged/closed)
+node=v24.11.1 python=3.12.3 opencode=1.18.30 playwright=1.63.0
+manifest_version=1.0.7 latest_tag=v1.0.7
+board=.agent/board.sqlite (migrated in place, history preserved: 4 DONE + 1 stale-BLOCKED T5)
+unrelated_work=none (all working-tree changes are in-scope biological-swarm WIP, stashed+restored)
+topology=Governance V2 authority / Blackboard coordination / GitHub published reality
+verification_contract=evidence/biological-swarm-preflight.txt + canonical suite twice + fresh-clone x2 + fresh-install E2E + visual reality + secret/absolute-path scans
+PREFLIGHT=PASS

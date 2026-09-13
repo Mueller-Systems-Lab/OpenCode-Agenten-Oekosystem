@@ -19,24 +19,32 @@ test("URL-only apply installs runtime-discoverable ecosystem agents into a fresh
     .filter((name) => name.endsWith(".md"))
     .sort()
     .map((name) => name.slice(0, -3))
+  const sourceAgentIds = [...expected]
+  // The installer also materializes the mechanically derived Blackboard swarm
+  // runtime agents into the target (derivation exactness is guarded by
+  // test/install/swarm-packaging-drift.test.mjs).
+  expected.push("swarm", "swarm-worker")
+  expected.sort()
 
   const installedAgentsDir = path.join(target, ".opencode", "agents")
   assert.ok(await fs.stat(installedAgentsDir), "fresh apply must create .opencode/agents")
   const installed = (await fs.readdir(installedAgentsDir))
     .filter((name) => name.endsWith(".md"))
-    .sort()
     .map((name) => name.slice(0, -3))
+    .sort()
   assert.deepEqual(installed, expected)
   assert.ok(await fs.stat(path.join(target, "opencode.jsonc")), "fresh apply must create OpenCode config")
 
   const installation = JSON.parse(await fs.readFile(path.join(target, ".opencode", "ecosystem-installation.json"), "utf8"))
-  assert.deepEqual(installation.installed_agents, expected)
+  // installed_agents inventories the governed source agent catalog; the derived
+  // swarm runtime agents materialized above are payload, guarded by the drift test.
+  assert.deepEqual([...installation.installed_agents].sort(), sourceAgentIds)
   assert.equal(installation.capability_profile_bindings["review-agent"].mode, "subagent")
   assert.equal(installation.capability_profile_bindings["issue-orchestrator"].mode, "primary")
 
   const lock = JSON.parse(await fs.readFile(path.join(target, ".agent-governance", "source-lock.json"), "utf8"))
   const agentLocks = lock.files.filter((entry) => entry.kind === "agent_definition")
-  assert.equal(agentLocks.length, expected.length)
+  assert.equal(agentLocks.length, sourceAgentIds.length)
   assert.ok(agentLocks.every((entry) => entry.installed_path && entry.sha256.startsWith("sha256:") && entry.installed_sha256.startsWith("sha256:")))
 })
 

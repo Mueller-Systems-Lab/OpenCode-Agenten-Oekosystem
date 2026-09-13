@@ -17,15 +17,17 @@ const BWRAP = "bwrap"
 // written by the apply is a real out-of-scope write.
 const MANAGED_PREFIXES = [
   ".agent-governance",
+  ".agents/skills/coordinate-blackboard-swarm",
   ".opencode/ecosystem-installation.json",
   ".opencode/backups",
   ".opencode/agents",
   ".opencode/skills",
   ".opencode/policies",
   ".opencode/plugins",
+  ".opencode/tools",
   ".hermes/governance",
 ]
-const MANAGED_EXACT_PATHS = new Set([".opencode", "opencode.jsonc", "opencode.json"])
+const MANAGED_EXACT_PATHS = new Set([".opencode", "opencode.jsonc", "opencode.json", ".agents", ".agents/skills"])
 
 function normalizeRelative(relativePath) {
   return relativePath.split(path.sep).join("/")

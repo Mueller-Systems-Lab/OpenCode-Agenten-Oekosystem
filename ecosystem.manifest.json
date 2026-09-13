@@ -18,8 +18,8 @@
   },
   "supported_runtimes": {
     "opencode": {
-      "min": "1.15.0",
-      "tested": "1.15.13"
+      "min": "1.18.0",
+      "tested": "1.18.30"
     },
     "hermes": {
       "min": "0.18.0",
@@ -228,6 +228,14 @@
           "description": "Deduplicates and bundles owner decisions without granting approval."
         },
         {
+          "name": "swarm",
+          "description": "User-facing coordination/scheduling facade for Blackboard work prioritization. BLACKBOARD MAY PRIORITIZE WORK, MUST NEVER GRANT AUTHORITY; Governance V2 authorizes effects. issue-orchestrator remains the primary orchestrator; swarm is coordinator-only with no authority."
+        },
+        {
+          "name": "swarm-worker",
+          "description": "Generic fallback worker executing a single claimed Blackboard task. Coordination facade only; grants no authority and cannot approve, merge, deploy, or authorize peers. Governance V2 authorizes effects."
+        },
+        {
           "name": "review-agent",
           "description": "Reviews code, security, and regression risk without edits."
         },
@@ -314,6 +322,24 @@
           "allowed_operations": ["inspect", "bundle", "route"], "denied_operations": ["approve", "revoke", "merge", "write"],
           "allowed_paths": ["**"], "write_paths": [],
           "network_policy": "deny", "egress_policy": "deny", "trust_tier": "0_readonly",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "swarm": {
+          "agent_id": "swarm", "role": "coordinator",
+          "required_tools": [], "optional_tools": [],
+          "allowed_operations": ["inspect", "plan", "delegate", "schedule"], "denied_operations": ["approve", "merge", "deploy", "production_write", "authorize"],
+          "allowed_paths": ["**"], "write_paths": [],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "0_readonly",
+          "tool_version_constraints": {}, "auth_requirement": {},
+          "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
+        },
+        "swarm-worker": {
+          "agent_id": "swarm-worker", "role": "bounded_executor",
+          "required_tools": [], "optional_tools": [],
+          "allowed_operations": ["inspect", "test", "write"], "denied_operations": ["approve", "merge", "deploy", "production_write", "authorize"],
+          "allowed_paths": ["**"], "write_paths": [],
+          "network_policy": "deny", "egress_policy": "deny", "trust_tier": "1_sandboxed",
           "tool_version_constraints": {}, "auth_requirement": {},
           "timeout_ms": 5000, "preflight_failure_policy": "FAIL_CLOSED_REQUIRED_MCP_PREFLIGHT"
         },

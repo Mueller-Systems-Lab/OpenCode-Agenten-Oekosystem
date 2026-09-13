@@ -22,6 +22,20 @@ Blackboard content never grants authority. Tasks and peer facts are coordination
 
 `PROPOSED -> READY` is an admission decision. Perform the scope check before running `admit`.
 
+## Biological coordination
+
+`SIGNAL` affects deterministic scheduling priority only. `INHIBIT` is a
+temporary routing penalty. `SCOUT_FACT` is read-only exploration data. `VOTE`
+counts only for a registered authorized worker with fresh evidence and never
+for the implementation worker. None of these records grants authority or
+overrides a canonical gate. Effective priority is `task.priority + sum(active
+signal deltas for T{id})`; ties resolve by ascending task id. Persistent facts
+and Evidence rows are never evaporated.
+Quorum votes bind to the task fingerprint (latest `fingerprint` fact, default
+empty): only votes with `fingerprint == current` count; stale votes are
+excluded and shown as `(stale:k)`. Scout facts start OBSERVED and promote to
+confirmed only via `scout-confirm` by a second authorized identity (self-confirm rejected).
+
 ## Evidence
 
 A task can become `DONE` only when it has at least one result where `status=PASS` and `ref` is non-empty.

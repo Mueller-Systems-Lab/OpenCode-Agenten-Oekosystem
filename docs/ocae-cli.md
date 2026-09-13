@@ -124,7 +124,9 @@ package install does not claim runtime execution when OpenCode is unavailable.
 - Python >= 3.11
 - `uv`
 - Node.js for the canonical installer payload
-- OpenCode for runtime discovery and governed agent execution
+- OpenCode >= 1.18.0 for runtime discovery and governed agent execution
+  (verified against 1.18.30; matches `supported_runtimes.opencode` in
+  `ecosystem.manifest.json`)
 - write access to the target project; root/sudo is not required
 
 ## Classifications and exit codes

@@ -8,7 +8,7 @@ import { spawn } from "node:child_process"
 import { fileURLToPath } from "node:url"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
-const requiredGroups = ["unit", "contract", "integration", "bootstrap", "governance", "e2e", "provider_optional"]
+const requiredGroups = ["unit", "swarm", "contract", "integration", "bootstrap", "governance", "e2e", "provider_optional"]
 const defaultTimeoutMs = 300_000
 const timeoutGraceMs = 2_000
 const diagnosticMaxBytes = 16 * 1024

@@ -63,7 +63,17 @@ Its main components are:
 - `adapters/opencode/swarm.md` — visible OpenCode `swarm` primary agent
 - `adapters/opencode/swarm-worker.md` — disposable worker subagent
 - `adapters/opencode/swarm.ts` — native OpenCode Blackboard tool
+- `adapters/opencode/install.py` — project-local swarm tool installer
 - `adapters/opencode/swarm-ui/` — read-only live Blackboard observer
+- `references/protocol.md` — coordination protocol reference
+- `agents/openai.yaml` — reference worker profile
+
+The swarm also provides small deterministic, animal-inspired primitives:
+stigmergy through shared SQLite state, scheduling signals with TTL evaporation,
+independent quorum, bounded read-only scouts, recruitment through admission,
+temporary inhibition, and capability-based worker matching. These are routing
+and evidence mechanisms—not a biological simulation. The Blackboard may
+prioritize work but never grants authority; Governance V2 authorizes effects.
 
 Runtime model:
 

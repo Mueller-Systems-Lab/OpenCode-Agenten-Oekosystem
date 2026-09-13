@@ -62,3 +62,4 @@ evidence/real-worker-soak/sessions/*/fixture/
 evidence/real-worker-soak-repeat/sessions/*/fixture/
 .opencode-runtime/
 .agent/board.sqlite*
+.agent-governance/evidence/action-audit.jsonl

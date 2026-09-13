@@ -1,0 +1,14 @@
+PREFLIGHT=PASS_LOCAL_SCOPE
+captured_at=2026-09-13
+repository_root=<redacted:repo-root>
+branch=docs/root-readme-blackboard
+remote_default_branch=origin/master
+working_tree_untracked_preserved=.agent-governance/evidence/action-audit.jsonl,evidence/github-final/
+blackboard_engine=.agents/skills/coordinate-blackboard-swarm/scripts/blackboard.py
+blackboard_storage=project-local-single-sqlite
+node=v24.11.1
+python=3.12.3
+opencode=1.18.30
+github_api=TOOL_GAP_INVALID_AUTH_OR_NETWORK
+headed_browser=TOOL_GAP_NO_CHROME_PROVIDER
+external_release_gate=BLOCKED_PENDING_GITHUB_AND_HEADED_BROWSER

@@ -47,6 +47,36 @@ The stable release is `v1.0.7`, published from commit
 that release tag; the repository `master` branch may contain documentation
 and publication updates after the product release baseline.
 
+## Blackboard Swarm
+
+OCAE includes the **Minimal Blackboard Swarm**, a token-efficient multi-agent
+coordination layer based on one persistent SQLite blackboard.
+
+Canonical source:
+
+[`.agents/skills/coordinate-blackboard-swarm/`](.agents/skills/coordinate-blackboard-swarm/)
+
+Its main components are:
+
+- `SKILL.md` — portable swarm coordination contract
+- `scripts/blackboard.py` — canonical SQLite task/claim/evidence engine
+- `adapters/opencode/swarm.md` — visible OpenCode `swarm` primary agent
+- `adapters/opencode/swarm-worker.md` — disposable worker subagent
+- `adapters/opencode/swarm.ts` — native OpenCode Blackboard tool
+- `adapters/opencode/swarm-ui/` — read-only live Blackboard observer
+
+Runtime model:
+
+```text
+OpenCode swarm primary
+        ↓
+project-local .agent/board.sqlite
+        ↓
+swarm-worker child sessions
+        ↓
+Evidence-gated DONE
+```
+
 ## Repository protection and delivery flow
 
 `master` is protected: changes land through pull requests, direct pushes,

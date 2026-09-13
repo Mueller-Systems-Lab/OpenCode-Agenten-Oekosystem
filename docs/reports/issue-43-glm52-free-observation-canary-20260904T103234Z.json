@@ -1,0 +1,165 @@
+{
+  "contract": "ecosystem.issue-43-glm52-free-observation-canary.v1",
+  "experiment_id": "issue-43-glm52-free-observation-canary-20260904T103234Z",
+  "timestamp": "2026-09-04T10:33:49.890Z",
+  "provider": "openrouter",
+  "model": "z-ai/glm-5.2:free",
+  "ui_label": "GLM 5.2 (free)",
+  "opencode_version": "1.18.27",
+  "debug_logging": {
+    "required": true,
+    "args": [
+      "--print-logs",
+      "--log-level",
+      "DEBUG"
+    ],
+    "inventory": true,
+    "preflight": true,
+    "plugin_initialization": false
+  },
+  "inventory": {
+    "provider_id": "openrouter",
+    "model_id": "z-ai/glm-5.2:free",
+    "display_name": "GLM 5.2 (free)",
+    "status": "active",
+    "costs": {
+      "input": 0,
+      "output": 0,
+      "cache": {
+        "read": 0,
+        "write": 0
+      }
+    },
+    "free_model_path": true,
+    "inventory_entry_fingerprint": "ad1f92d0bf8713a23777af1b37b2c9b1a0ad67f1793c86cb85045dc9564dbf69",
+    "debug_log_excerpt": "timestamp=2026-09-04T10:32:35.752Z level=INFO run=43c181b1 message=\"creating instance\" directory=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:35.757Z level=INFO run=43c181b1 message=fromDirectory directory=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:35.866Z level=INFO run=43c181b1 message=bootstrapping directory=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:35.883Z level=INFO run=43c181b1 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:35.885Z level=INFO run=43c181b1 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:35.885Z level=INFO run=43c181b1 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:35.898Z level=INFO run=43c181b1 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:35.961Z level=DEBUG run=43c181b1 message=\"loading config from [PATH_REDACTED]\"\ntimestamp=2026-09-04T10:32:35.961Z level=INFO run=43c181b1 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:35.967Z level=DEBUG run=43c181b1 message=\"loading config from [PATH_REDACTED]\"\ntimestamp=2026-09-04T10:32:35.967Z level=INFO run=43c181b1 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:36.011Z level=DEBUG run=43c181b1 message=\"loading config from [PATH_REDACTED]\"\ntimestamp=2026-09-04T10:32:36.011Z level=INFO run=43c181b1 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:36.015Z level=DEBUG run=43c181b1 message=\"loading config from [PATH_REDACTED]\"\ntimestamp=2026-09-04T10:32:36.016Z level=INFO run=43c181b1 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:36.142Z level=INFO run=43c181b1 message=\"all LSPs are disabled\"\ntimestamp=2026-09-04T10:32:36.145Z level=INFO run=43c181b1 message=init\ntimestamp=2026-09-04T10:32:36.890Z level=INFO run=43c181b1 message=\"disposing instance\" directory=[PATH_REDACTED]\n",
+    "debug_log_fingerprint": "6a50d85034492e9b7aab51f935f4b98799aa17cedb567d7fc7197debb674eb94"
+  },
+  "preflight": {
+    "live_model_reachable": false,
+    "expected_provider_match": true,
+    "expected_model_match": true,
+    "canonical_runtime_entry": true,
+    "normal_completion": false,
+    "paid_calls": 0,
+    "fallback_used": false,
+    "model_switch_used": true,
+    "observed_model_ids": [
+      "google/gemini-3.8-flash",
+      "z-ai/glm-5.2:free"
+    ],
+    "debug_logging_enabled": true,
+    "debug_lifecycle_events": [
+      "session_creation",
+      "provider_error"
+    ],
+    "debug_log_excerpt": "timestamp=2026-09-04T10:32:38.409Z level=INFO run=d9ee8f46 message=\"creating instance\" directory=[TMP_PATH_REDACTED]\ntimestamp=2026-09-04T10:32:38.411Z level=INFO run=d9ee8f46 message=fromDirectory directory=[TMP_PATH_REDACTED]\ntimestamp=2026-09-04T10:32:38.442Z level=INFO run=d9ee8f46 message=bootstrapping directory=[TMP_PATH_REDACTED]\ntimestamp=2026-09-04T10:32:38.462Z level=INFO run=d9ee8f46 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:38.463Z level=INFO run=d9ee8f46 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:38.464Z level=INFO run=d9ee8f46 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:38.507Z level=DEBUG run=d9ee8f46 message=\"loading config from [PATH_REDACTED]\"\ntimestamp=2026-09-04T10:32:38.508Z level=INFO run=d9ee8f46 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:38.514Z level=DEBUG run=d9ee8f46 message=\"loading config from [PATH_REDACTED]\"\ntimestamp=2026-09-04T10:32:38.514Z level=INFO run=d9ee8f46 message=loading path=[PATH_REDACTED]\ntimestamp=2026-09-04T10:32:38.631Z level=INFO run=d9ee8f46 message=\"all LSPs are disabled\"\ntimestamp=2026-09-04T10:32:38.633Z level=INFO run=d9ee8f46 message=\"all formatters are disabled\"\ntimestamp=2026-09-04T10:32:38.633Z level=INFO run=d9ee8f46 message=init\ntimestamp=2026-09-04T10:32:38.937Z level=INFO run=d9ee8f46 message=created id=ses_f9405bae6ffep3DRi1CWL9OU46 slug=proud-circuit version=1.18.27 projectID=global directory=[TMP_PATH_REDACTED] path=tmp/ocae-issue-43-glm52-preflight-2H0uDG workspaceID=undefined parentID=undefined title=\"New session - 2026-09-04T10:32:38.937Z\" agent=undefined model=undefined metadata=undefined permission=\"[{\\\"permission\\\":\\\"question\\\",\\\"pattern\\\":\\\"*\\\",\\\"action\\\":\\\"deny\\\"},{\\\"permission\\\":\\\"plan_enter\\\",\\\"pattern\\\":\\\"*\\\",\\\"action\\\":\\\"deny\\\"},{\\\"permission\\\":\\\"plan_exit\\\",\\\"pattern\\\":\\\"*\\\",\\\"action\\\":\\\"deny\\\"}]\" cost=0 tokens.input=0 tokens.output=0 tokens.reasoning=0 tokens.cache.read=0 tokens.cache.write=0 time.created=1788517958937 time.updated=1788517958937\ntimestamp=2026-09-04T10:32:38.962Z level=INFO run=d9ee8f46 message=\"event connected\"\ntimestamp=2026-09-04T10:32:39.883Z level=INFO run=d9ee8f46 message=loop session.id=ses_f9405bae6ffep3DRi1CWL9OU46 step=0\ntimestamp=2026-09-04T10:32:39.909Z level=INFO run=d9ee8f46 message=\"shell tool using shell\" shell=/bin/bash\ntimestamp=2026-09-04T10:32:39.944Z level=INFO run=d9ee8f46 message=init count=5\ntimestamp=2026-09-04T10:32:39.986Z level=INFO run=d9ee8f46 message=stream providerID=openrouter modelID=google/gemini-3.8-flash session.id=ses_f9405bae6ffep3DRi1CWL9OU46 small=true agent=title mode=primary\ntimestamp=2026-09-04T10:32:40.024Z level=INFO run=d9ee8f46 message=\"llm runtime selected\" llm.runtime=ai-sdk llm.provider=openrouter llm.model=google/gemini-3.8-flash\ntimestamp=2026-09-04T10:32:40.122Z level=INFO run=d9ee8f46 message=\"watcher backend\" directory=[TMP_PATH_REDACTED] platform=linux backend=inotify\ntimestamp=2026-09-04T10:32:40.127Z level=INFO run=d9ee8f46 message=\"project copy refresh started\" projectID=global\ntimestamp=2026-09-04T10:32:40.129Z level=INFO run=d9ee8f46 message=\"project copy refresh done\" projectID=global updated=[] removed=[]\ntimestamp=2026-09-04T10:32:40.216Z level=INFO run=d9ee8f46 message=\"booting location services\" directory=[TMP_PATH_REDACTED] workspaceID=undefined\ntimestamp=2026-09-04T10:32:40.569Z level=ERROR run=d9ee8f46 message=\"stream error\" providerID=openrouter modelID=google/gemini-3.8-flash session.id=ses_f9405bae6ffep3DRi1CWL9OU46 small=true agent=title mode=primary error.error=\"AI_APICallError: This request requires more credits, or fewer max_tokens. You requested up to 32000 tokens, but can only afford 1927. To increase, visit https://openrouter.ai/settings/credits and upgrade to a paid account\"\ntimestamp=2026-09-04T10:32:40.821Z level=INFO run=d9ee8f46 message=process session.id=ses_f9405bae6ffep3DRi1CWL9OU46 messageID=msg_06bfa48d1001I06vW6frcDc0gw\ntimestamp=2026-09-04T10:32:40.823Z level=INFO run=d9ee8f46 message=stream providerID=openrouter modelID=z-ai/glm-5.2:free session.id=ses_f9405bae6ffep3DRi1CWL9OU46 small=false agent=build mode=primary\ntimestamp=2026-09-04T10:32:40.826Z level=INFO run=d9ee8f46 message=\"llm runtime selected\" llm.runtime=ai-sdk llm.provider=openrouter llm.model=z-ai/glm-5.2:free\ntimestamp=2026-09-04T10:32:40.972Z level=ERROR run=d9ee8f46 message=\"stream error\" providerID=openrouter modelID=z-ai/glm-5.2:free session.id=ses_f9405bae6ffep3DRi1CWL9OU46 small=false agent=build mode=primary error.error=\"AI_APICallError: Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"\ntimestamp=2026-09-04T10:32:43.497Z level=INFO run=d9ee8f46 message=stream providerID=openrouter modelID=z-ai/glm-5.2:free session.id=ses_f9405bae6ffep3DRi1CWL9OU46 small=false agent=build mode=primary\ntimestamp=2026-09-04T10:32:43.503Z level=INFO run=d9ee8f46 message=\"llm runtime selected\" llm.runtime=ai-sdk llm.provider=openrouter llm.model=z-ai/glm-5.2:free\ntimestamp=2026-09-04T10:32:43.624Z level=ERROR run=d9ee8f46 message=\"stream error\" providerID=openrouter modelID=z-ai/glm-5.2:free session.id=ses_f9405bae6ffep3DRi1CWL9OU46 small=false agent=build mode=primary error.error=\"AI_APICallError: Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"\ntimestamp=2026-09-04T10:32:48.432Z level=INFO run=d9ee8f46 message=stream providerID=openrouter modelID=z-ai/glm-5.2:free session.id=ses_f9405bae6ffep3DRi1CWL9OU46 small=false agent=build mode=primary\ntimestamp=2026-09-04T10:32:48.435Z level=INFO run=d9ee8f46 message=\"llm runtime selected\" llm.runtime=ai-sdk llm.provider=openrouter llm.model=z-ai/glm-5.2:free\ntimestamp=2026-09-04T10:32:48.544Z level=ERROR run=d9ee8f46 message=\"stream error\" providerID=openrouter modelID=z-ai/glm-5.2:free session.id=ses_f9405bae6ffep3DRi1CWL9OU46 small=false agent=build mode=primary error.error=\"AI_APICallError: Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"\ntimestamp=2026-09-04T10:32:58.525Z level=INFO run=d9ee8f46 message=stream providerID=openrouter modelID=z-ai/glm-5.2:free session.id=ses_f9405bae6ffep3DRi1CWL9OU46 small=false agent=build mode=primary\ntimestamp=2026-09-04T10:32:58.532Z level=INFO run=d9ee8f46 message=\"llm runtime selected\" llm.runtime=ai-sdk llm.provider=openrouter llm.model=z-ai/glm-5.2:free\ntimestamp=2026-09-04T10:32:58.665Z level=ERROR run=d9ee8f46 message=\"stream error\" providerID=openrouter modelID=z-ai/glm-5.2:free session.id=ses_f9405bae6ffep3DRi1CWL9OU46 small=false agent=build mode=primary error.error=\"AI_APICallError: Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"\ntimestamp=2026-09-04T10:33:17.417Z level=INFO run=d9ee8f46 message=stream providerID=openrouter modelID=z-ai/glm-5.2:free session.id=ses_f9405bae6ffep3DRi1CWL9OU46 small=false agent=build mode=primary\ntimestamp=2026-09-04T10:33:17.428Z level=INFO run=d9ee8f46 message=\"llm runtime selected\" llm.runtime=ai-sdk llm.provider=openrouter llm.model=z-ai/glm-5.2:free\ntimestamp=2026-09-04T10:33:17.559Z level=ERROR run=d9ee8f46 message=\"stream error\" providerID=openrouter modelID=z-ai/glm-5.2:free session.id=ses_f9405bae6ffep3DRi1CWL9OU46 small=false agent=build mode=primary error.error=\"AI_APICallError: Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"\ntimestamp=2026-09-04T10:33:49.650Z level=INFO run=d9ee8f46 message=stream providerID=openrouter modelID=z-ai/glm-5.2:free session.id=ses_f9405bae6ffep3DRi1CWL9OU46 small=false agent=build mode=primary\ntimestamp=2026-09-04T10:33:49.658Z level=INFO run=d9ee8f46 message=\"llm runtime selected\" llm.runtime=ai-sdk llm.provider=openrouter llm.model=z-ai/glm-5.2:free\ntimestamp=2026-09-04T10:33:49.772Z level=ERROR run=d9ee8f46 message=\"stream error\" providerID=openrouter modelID=z-ai/glm-5.2:free session.id=ses_f9405bae6ffep3DRi1CWL9OU46 small=false agent=build mode=primary error.error=\"AI_APICallError: Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"\ntimestamp=2026-09-04T10:33:49.775Z level=ERROR run=d9ee8f46 message=process session.id=ses_f9405bae6ffep3DRi1CWL9OU46 messageID=msg_06bfa48d1001I06vW6frcDc0gw error=\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\" stack=\"AI_APICallError: Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\\n    at <anonymous> (/$bunfs/root/chunk-4rhy6j5p.js:12:13862)\\n    at async <anonymous> (/$bunfs/root/chunk-4rhy6j5p.js:12:12417)\\n    at processTicksAndRejections (native:7:39)\"\ntimestamp=2026-09-04T10:33:49.794Z level=INFO run=d9ee8f46 message=\"disposing instance\" directory=[TMP_PATH_REDACTED]\n",
+    "debug_log_fingerprint": "99cc0a442e1ee843f3a6d7ec491d76ccc451e6fa62a8829d34fe821b122ae94d",
+    "failure_class": "RATE_LIMITED",
+    "latency_ms": 72942
+  },
+  "plugin_initialization": {
+    "pass": false,
+    "failure_class": "MODEL_UNAVAILABLE",
+    "paid_calls": 0,
+    "fallback_used": false,
+    "debug_logging_enabled": false,
+    "trace_types": []
+  },
+  "registration_path": "explicit-project-config-plugin",
+  "freeze_path": "docs/reports/issue-43-glm52-free-observation-canary-20260904T103234Z-freeze.json",
+  "contracts": {
+    "tool_contract_fingerprint": "e6c9f7f9aa095578c0138f69c73076a4af7583ed7c8409dc1bb14f0fcd5cd33c",
+    "observation_contract_fingerprint": "638a4d824837ef4d97d1ade5fe59b80b39984e025e01c4e0126b2a7810d5b73d",
+    "adapter_version": "ocae.live.tool-execute-after@1.0.0",
+    "verifier_version": "issue-43-live-verifier.v1",
+    "fixture_identity": "issue-43-read-observation.v1",
+    "canary_definitions": [
+      "CONTROL_0:NO_OBSERVATION_INTERPOSITION",
+      "CANARY_1:IDENTITY_ADAPTER",
+      "CANARY_2:ENVELOPE_ONLY"
+    ],
+    "execution_order": [
+      "CONTROL_0",
+      "CANARY_1_IDENTITY",
+      "CANARY_2_ENVELOPE"
+    ],
+    "execution_order_fingerprint": "503ffbe04835c26752a392659e5051744f91a51ca203daa87877fdd9b6dfecc5",
+    "timeout_ms": 90000,
+    "retry_budget": 0,
+    "logging": {
+      "opencode_print_logs": true,
+      "opencode_log_level": "DEBUG",
+      "cli_args": [
+        "--print-logs",
+        "--log-level",
+        "DEBUG"
+      ]
+    }
+  },
+  "canaries": [],
+  "paid_calls": 0,
+  "fallback_used": false,
+  "model_switch_used": true,
+  "observed_model_ids": [
+    "google/gemini-3.8-flash",
+    "z-ai/glm-5.2:free"
+  ],
+  "infrastructure_blocker": "RATE_LIMIT",
+  "first_failing_layer": "CONTROL",
+  "message_role_preserved": "UNOBSERVABLE",
+  "message_order_preserved": "UNOBSERVABLE",
+  "latency_decomposition": {
+    "tool_execution_latency_ms": null,
+    "adapter_latency_ms": null,
+    "hook_latency_ms": null,
+    "provider_resume_latency_ms": null,
+    "model_latency_ms": null,
+    "total_latency_ms": null
+  },
+  "timeout_class": "RATE_LIMIT",
+  "debug_log_traces": {
+    "CONTROL_0": {
+      "captured": false,
+      "run_count": 0,
+      "log_fingerprints": []
+    },
+    "CANARY_1_IDENTITY": {
+      "captured": false,
+      "run_count": 0,
+      "log_fingerprints": []
+    },
+    "CANARY_2_ENVELOPE": {
+      "captured": false,
+      "run_count": 0,
+      "log_fingerprints": []
+    }
+  },
+  "receipt_authority": {
+    "raw_observation_fingerprinting": false,
+    "model_facing_observation_fingerprinting": false,
+    "call_result_correlation": false,
+    "raw_receipt_propagation": false,
+    "verifier_raw_authority": false
+  },
+  "serialization_diff": {
+    "identity": null,
+    "envelope": null,
+    "identity_fingerprint": null,
+    "envelope_fingerprint": null,
+    "changed_dimensions": [
+      "prefix/schema wrapper",
+      "key names",
+      "key ordering",
+      "JSON escaping/quoting",
+      "status/tool repetition",
+      "length"
+    ]
+  },
+  "serialization_micro_ladder_run": false,
+  "first_harmful_serialization_change": "NONE",
+  "envelope_regression_replicated": false,
+  "root_cause_generalization": "INSUFFICIENT",
+  "final_classification": "AMBER_OCAE_GLM52_FREE_OBSERVATION_DIAGNOSIS_BLOCKED_MODEL_UNAVAILABLE",
+  "promoted_profile": "NONE"
+}

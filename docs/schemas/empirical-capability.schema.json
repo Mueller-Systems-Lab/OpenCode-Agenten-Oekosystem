@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ocae.invalid/schemas/ecosystem.empirical-capability.v1.json",
+  "title": "OCAE empirical capability record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "schema_version", "identity", "evidence_status", "capabilities", "record_fingerprint"],
+  "properties": {
+    "contract": { "const": "ecosystem.empirical-capability.v1" },
+    "schema_version": { "const": 1 },
+    "identity": { "$ref": "#/$defs/identity" },
+    "evidence_status": { "enum": ["COMPLETE", "PARTIAL", "TOOL_GAP"] },
+    "capabilities": { "type": "object" },
+    "record_fingerprint": { "type": "string", "pattern": "^(sha256:)?[a-f0-9]{64}$" }
+  },
+  "$defs": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "model", "runtime_class", "runtime_version_if_known", "opencode_host_version", "opencode_workspace_capability_fingerprint", "tool_contract_fingerprint", "observation_contract_fingerprint", "qualification_corpus_fingerprint", "holdout_corpus_fingerprint", "harness_fingerprint", "verifier_version"],
+      "properties": {
+        "provider": { "type": "string" }, "model": { "type": "string" }, "runtime_class": { "type": "string" }, "runtime_version_if_known": { "type": ["string", "null"] }, "opencode_host_version": { "type": "string" },
+        "opencode_workspace_capability_fingerprint": { "type": "string", "pattern": "^(sha256:)?[a-f0-9]{64}$" }, "tool_contract_fingerprint": { "type": "string", "pattern": "^(sha256:)?[a-f0-9]{64}$" }, "observation_contract_fingerprint": { "type": "string", "pattern": "^(sha256:)?[a-f0-9]{64}$" }, "qualification_corpus_fingerprint": { "type": "string", "pattern": "^(sha256:)?[a-f0-9]{64}$" }, "holdout_corpus_fingerprint": { "type": "string", "pattern": "^(sha256:)?[a-f0-9]{64}$" }, "harness_fingerprint": { "type": "string", "pattern": "^(sha256:)?[a-f0-9]{64}$" }, "verifier_version": { "type": "string" }
+      }
+    }
+  }
+}

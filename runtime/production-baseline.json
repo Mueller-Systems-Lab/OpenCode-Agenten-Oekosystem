@@ -106,7 +106,12 @@
     "MODEL_HARNESS_RESOLVER_RUNTIME_AUTHORITY",
     "WORKER_CANNOT_SELF_SELECT_HARNESS",
     "MODEL_PROFILE_CANNOT_ESCALATE_SCOPE",
-    "GENERIC_HARNESS_FALLBACK_REQUIRED"
+    "GENERIC_HARNESS_FALLBACK_REQUIRED",
+    "MODEL_TRANSPORT_CANONICAL_OPENAI_COMPATIBLE",
+    "NO_PROVIDER_SPECIFIC_CANONICAL_ROUTING",
+    "NO_PROVIDER_SPECIFIC_VERIFIER_SEMANTICS",
+    "GLM53_AND_FREE_MODELS_SHARE_TRANSPORT_CONTRACT",
+    "RAW_OBSERVATION_AUTHORITY_UNCHANGED"
   ],
   "required_artifacts": [
     "runtime/run.mjs",
@@ -136,7 +141,8 @@
     "runtime/harness/product-model-harness-profiles.mjs",
     "runtime/harness/task-role-profiles.mjs",
     "runtime/harness/harness-resolver.mjs",
-    "runtime/harness/apply-harness.mjs"
+    "runtime/harness/apply-harness.mjs",
+    "runtime/harness/openai-compatible-model-transport.mjs"
   ],
   "canonical_test_command": "npm test",
   "legacy_execution_status": "RETIRED",
@@ -145,7 +151,7 @@
     "runtime/agent/start.mjs",
     "scripts/run-completion-canary.mjs"
   ],
-  "baseline_fingerprint": "b6941970274159c968a6d97161144f94d990ac815ec026166c650da195b84965",
+  "baseline_fingerprint": "119a2e9f16220f1e220fcec71722b556d83b8fa6cc65074ec7508dd48d690f1a",
   "baseline_fingerprint_semantics": "commit-based structural fingerprint of core canonical architecture",
   "capability_baselines": {
     "PLAYWRIGHT_VISUAL_QA": {

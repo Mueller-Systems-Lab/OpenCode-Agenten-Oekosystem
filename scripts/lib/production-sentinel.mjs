@@ -118,6 +118,12 @@ export const SENTINEL_INVARIANTS = Object.freeze([
   'WORKER_CANNOT_SELF_SELECT_HARNESS',
   'MODEL_PROFILE_CANNOT_ESCALATE_SCOPE',
   'GENERIC_HARNESS_FALLBACK_REQUIRED',
+  // canonical provider-neutral model transport invariants
+  'MODEL_TRANSPORT_CANONICAL_OPENAI_COMPATIBLE',
+  'NO_PROVIDER_SPECIFIC_CANONICAL_ROUTING',
+  'NO_PROVIDER_SPECIFIC_VERIFIER_SEMANTICS',
+  'GLM53_AND_FREE_MODELS_SHARE_TRANSPORT_CONTRACT',
+  'RAW_OBSERVATION_AUTHORITY_UNCHANGED',
 ])
 
 export const REQUIRED_CONTRACT_IDS = Object.freeze([
@@ -2511,6 +2517,91 @@ export async function checkGenericHarnessFallbackRequired({ repoRoot }) {
 }
 
 // ---------------------------------------------------------------------------
+// Canonical OpenAI-compatible model transport checks (structural, additive)
+// ---------------------------------------------------------------------------
+
+async function readTransportSource(repoRoot, name) {
+  return readIfExists(path.join(repoRoot, 'runtime', 'harness', name))
+}
+
+export async function checkModelTransportCanonicalOpenAICompatible({ repoRoot }) {
+  const issues = []
+  const transport = await readTransportSource(repoRoot, 'openai-compatible-model-transport.mjs')
+  const live = await readTransportSource(repoRoot, 'live-qualification.mjs')
+  if (!transport) return { ok: false, issues: ['MODEL_TRANSPORT_CANONICAL_OPENAI_COMPATIBLE: adapter contract module missing'] }
+  for (const marker of ['ocae.openai-compatible-model-transport.v1', 'MODEL_TRANSPORT_CONTRACT_VERSION', 'createOpenAICompatibleModelAdapter', 'createOpenCodeModelTransportAdapter', 'normalizeTransportError']) {
+    if (!transport.includes(marker)) issues.push(`MODEL_TRANSPORT_CANONICAL_OPENAI_COMPATIBLE: missing ${marker}`)
+  }
+  if (live && !live.includes('createOpenCodeModelTransportAdapter')) issues.push('MODEL_TRANSPORT_CANONICAL_OPENAI_COMPATIBLE: live qualification must use the canonical adapter')
+  if (live && !live.includes('createModelTransportRequest')) issues.push('MODEL_TRANSPORT_CANONICAL_OPENAI_COMPATIBLE: live qualification must construct canonical requests')
+  if (/@ai-sdk|chat\/completions|\/v1\/responses|fetch\s*\(/iu.test(transport)) issues.push('MODEL_TRANSPORT_CANONICAL_OPENAI_COMPATIBLE: OCAE adapter must not embed provider HTTP schemas or SDK calls')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkNoProviderSpecificCanonicalRouting({ repoRoot }) {
+  const issues = []
+  const files = [
+    ['runtime', 'openai-compatible-model-transport.mjs'],
+    ['runtime', 'live-qualification.mjs'],
+    ['runtime', 'qualification-runner.mjs'],
+    ['runtime', 'harness-resolver.mjs'],
+    ['runtime', 'model-harness-contract.mjs'],
+    ['scripts', 'run-issue-43-live-qualification.mjs'],
+    ['scripts', 'run-issue-43-causal-factor-experiment.mjs'],
+    ['scripts', 'run-issue-43-glm52-free-observation-interposition-canary.mjs'],
+    ['scripts', 'run-issue-43-observation-interposition-canary.mjs'],
+    ['scripts', 'run-issue-43-transport-portability-canary.mjs'],
+  ]
+  for (const [root, file] of files) {
+    const source = await readIfExists(path.join(repoRoot, root, root === 'runtime' ? 'harness' : '', file))
+    if (!source) continue
+    if (/@(?:ai-sdk|opencode-ai)\//u.test(source)) issues.push(`NO_PROVIDER_SPECIFIC_CANONICAL_ROUTING: ${file} imports a provider SDK`)
+    if (/https?:\/\/[^\s'"`]*\/(?:v1\/)?(?:chat\/completions|responses)(?:[\s'"`)]|$)/iu.test(source)) issues.push(`NO_PROVIDER_SPECIFIC_CANONICAL_ROUTING: ${file} embeds a provider API schema`)
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkNoProviderSpecificVerifierSemantics({ repoRoot }) {
+  const issues = []
+  const runner = await readTransportSource(repoRoot, 'qualification-runner.mjs')
+  const live = await readTransportSource(repoRoot, 'live-qualification.mjs')
+  if (!runner || !live) return { ok: false, issues: ['NO_PROVIDER_SPECIFIC_VERIFIER_SEMANTICS: canonical verifier sources missing'] }
+  if (/(?<![.])\bprovider\b\s*===\s*['"]|(?<![.])\bmodel\b\s*===\s*['"]|(?<![.])\bprovider\b\s*!==\s*['"]|(?<![.])\bmodel\b\s*!==\s*['"]/u.test(runner)) issues.push('NO_PROVIDER_SPECIFIC_VERIFIER_SEMANTICS: qualification verifier branches on a provider/model literal')
+  if (!live.includes('canonical_verifier: true') || !live.includes('scenario.verify')) issues.push('NO_PROVIDER_SPECIFIC_VERIFIER_SEMANTICS: live verifier must remain scenario/canonical and provider-neutral')
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkGlm53AndFreeModelsShareTransportContract({ repoRoot }) {
+  const issues = []
+  const qualificationScripts = [
+    ['free', 'run-issue-43-live-qualification.mjs'],
+    ['glm53', 'run-issue-43-causal-factor-experiment.mjs'],
+    ['free-observation', 'run-issue-43-glm52-free-observation-interposition-canary.mjs'],
+    ['glm53-observation', 'run-issue-43-observation-interposition-canary.mjs'],
+  ]
+  const transport = 'ocae.openai-compatible-model-transport.v1'
+  for (const [name, file] of qualificationScripts) {
+    const source = await readIfExists(path.join(repoRoot, 'scripts', file))
+    if (!source) {
+      issues.push(`GLM53_AND_FREE_MODELS_SHARE_TRANSPORT_CONTRACT: ${name} qualification script missing`)
+      continue
+    }
+    if (!source.includes('createOpenCodeLiveExecutor') || !source.includes('createOpenCodeModelTransportAdapter') || (!source.includes(transport) && !source.includes('MODEL_TRANSPORT_CONTRACT_ID'))) issues.push(`GLM53_AND_FREE_MODELS_SHARE_TRANSPORT_CONTRACT: ${name} path does not bind the canonical adapter contract`)
+  }
+  return { ok: issues.length === 0, issues }
+}
+
+export async function checkRawObservationAuthorityUnchanged({ repoRoot }) {
+  const issues = []
+  const observation = await readTransportSource(repoRoot, 'observation-adapter.mjs')
+  const runner = await readTransportSource(repoRoot, 'qualification-runner.mjs')
+  if (!observation || !runner) return { ok: false, issues: ['RAW_OBSERVATION_AUTHORITY_UNCHANGED: observation authority sources missing'] }
+  for (const marker of ['DATA_ONLY_RAW_OBSERVATION_REMAINS_AUTHORITATIVE', 'verifyFromRawObservation']) if (!observation.includes(marker)) issues.push(`RAW_OBSERVATION_AUTHORITY_UNCHANGED: missing ${marker}`)
+  if (!runner.includes('canonical_verifier') || !runner.includes('raw_observation_receipt')) issues.push('RAW_OBSERVATION_AUTHORITY_UNCHANGED: qualification records must retain raw observation authority')
+  return { ok: issues.length === 0, issues }
+}
+
+// ---------------------------------------------------------------------------
 // Baseline fingerprint — structural drift only, never file-byte drift
 // ---------------------------------------------------------------------------
 
@@ -2690,6 +2781,11 @@ export async function runProductionSentinel({ repoRoot }) {
   pushResult('WORKER_CANNOT_SELF_SELECT_HARNESS', await checkWorkerCannotSelfSelectHarness({ repoRoot }))
   pushResult('MODEL_PROFILE_CANNOT_ESCALATE_SCOPE', await checkModelProfileCannotEscalateScope({ repoRoot }))
   pushResult('GENERIC_HARNESS_FALLBACK_REQUIRED', await checkGenericHarnessFallbackRequired({ repoRoot }))
+  pushResult('MODEL_TRANSPORT_CANONICAL_OPENAI_COMPATIBLE', await checkModelTransportCanonicalOpenAICompatible({ repoRoot }))
+  pushResult('NO_PROVIDER_SPECIFIC_CANONICAL_ROUTING', await checkNoProviderSpecificCanonicalRouting({ repoRoot }))
+  pushResult('NO_PROVIDER_SPECIFIC_VERIFIER_SEMANTICS', await checkNoProviderSpecificVerifierSemantics({ repoRoot }))
+  pushResult('GLM53_AND_FREE_MODELS_SHARE_TRANSPORT_CONTRACT', await checkGlm53AndFreeModelsShareTransportContract({ repoRoot }))
+  pushResult('RAW_OBSERVATION_AUTHORITY_UNCHANGED', await checkRawObservationAuthorityUnchanged({ repoRoot }))
 
   const issues = results.flatMap((result) => result.issues)
   const warnings = []

@@ -7,6 +7,16 @@ permission:
   task:
     "*": deny
     "swarm-worker": allow
+  bash:
+    "*": allow
+    "git push": allow
+    "git push *": allow
+    "git push --force": deny
+    "git push --force *": deny
+    "git push --force-with-lease": deny
+    "git push --force-with-lease *": deny
+    "git push -f": deny
+    "git push -f *": deny
 ---
 
 <!-- coordinate-blackboard-swarm: managed adapter -->

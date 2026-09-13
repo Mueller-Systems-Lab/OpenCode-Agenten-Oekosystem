@@ -44,6 +44,8 @@ function runProcess(command, args, { timeoutMs }) {
   })
 }
 
+export const OPENCODE_DEBUG_ARGS = Object.freeze(["--print-logs", "--log-level", "DEBUG"])
+
 function parseJsonLines(text) {
   const events = []
   let invalidLines = 0
@@ -208,6 +210,7 @@ export async function runSecureBootstrapAi({
     const executeRound = (message, sessionId = null) => {
       const command = [
         "run",
+        ...OPENCODE_DEBUG_ARGS,
         "--pure",
         "--format", "json",
         "--agent", "bootstrap-agent",

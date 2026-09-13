@@ -21,9 +21,11 @@ describe('model catalog — reality', () => {
     const providers = PROVIDER_INVENTORY.map((entry) => entry.provider)
     assert.ok(providers.includes('deepseek'), 'deepseek must be configured')
     assert.ok(providers.includes('openai'), 'openai must be configured')
+    assert.ok(providers.includes('zai-coding-plan'), 'Z.AI Coding Plan must be configured')
     assert.deepEqual(PROVIDER_INVENTORY.find((entry) => entry.provider === 'deepseek'), { provider: 'deepseek', authenticated: true, reachable: true, auth_type: 'api_key' })
     assert.deepEqual(PROVIDER_INVENTORY.find((entry) => entry.provider === 'openai'), { provider: 'openai', authenticated: true, reachable: true, auth_type: 'oauth' })
     assert.deepEqual(PROVIDER_INVENTORY.find((entry) => entry.provider === 'opencode'), { provider: 'opencode', authenticated: false, reachable: true, auth_type: 'opencode_free_transport' })
+    assert.deepEqual(PROVIDER_INVENTORY.find((entry) => entry.provider === 'zai-coding-plan'), { provider: 'zai-coding-plan', authenticated: true, reachable: true, auth_type: 'opencode_zai_coding_plan' })
   })
 
   it('catalog contains the real configured models', () => {
@@ -31,6 +33,7 @@ describe('model catalog — reality', () => {
     assert.ok(ids.includes('deepseek/deepseek-v4-flash'))
     assert.ok(ids.includes('deepseek/deepseek-chat'))
     assert.ok(ids.includes('openai/gpt-5.4-mini'))
+    assert.ok(ids.includes('zai-coding-plan/glm-5.3'))
   })
 
   it('every entry carries the full metadata shape', () => {
@@ -69,7 +72,7 @@ describe('model catalog — reality', () => {
   it('reachable models are a subset of configured models with real probes', () => {
     const reachable = findReachableModels(DEFAULT_MODEL_CATALOG)
     const ids = reachable.map((entry) => `${entry.provider}/${entry.model}`).sort()
-    assert.deepEqual(ids, ['deepseek/deepseek-chat', 'deepseek/deepseek-v4-flash', 'openai/gpt-5.4-mini', 'opencode/hy3-free', 'opencode/nemotron-3-ultra-free'])
+    assert.deepEqual(ids, ['deepseek/deepseek-chat', 'deepseek/deepseek-v4-flash', 'openai/gpt-5.4-mini', 'opencode/hy3-free', 'opencode/nemotron-3-ultra-free', 'zai-coding-plan/glm-5.3'])
   })
 
   it('getCatalogEntry resolves exact provider/model pairs', () => {

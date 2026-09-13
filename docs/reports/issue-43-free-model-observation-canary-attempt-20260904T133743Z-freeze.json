@@ -1,0 +1,56 @@
+{
+  "contract": "ecosystem.issue-43-free-model-observation-canary-freeze.v1",
+  "experiment_id": "issue-43-free-model-observation-canary-opencode-big-pickle-20260904T121500Z",
+  "attempt_id": "issue-43-free-model-observation-canary-attempt-20260904T133743Z",
+  "target": {
+    "ui_label": "Big Pickle",
+    "provider": "opencode",
+    "model": "big-pickle",
+    "provider_runtime_path": "opencode/big-pickle",
+    "zero_cost_required": true,
+    "fallback_forbidden": true,
+    "model_switch_forbidden": true,
+    "provider_fallback_forbidden": true
+  },
+  "opencode_version": "1.18.27",
+  "runtime_identity": {
+    "runtime_class": "opencode-cli-free-transport",
+    "opencode_host_version": "1.18.27",
+    "tool_contract_fingerprint": "e6c9f7f9aa095578c0138f69c73076a4af7583ed7c8409dc1bb14f0fcd5cd33c",
+    "observation_contract_fingerprint": "638a4d824837ef4d97d1ade5fe59b80b39984e025e01c4e0126b2a7810d5b73d"
+  },
+  "contracts": {
+    "tool_contract_fingerprint": "e6c9f7f9aa095578c0138f69c73076a4af7583ed7c8409dc1bb14f0fcd5cd33c",
+    "observation_contract_fingerprint": "638a4d824837ef4d97d1ade5fe59b80b39984e025e01c4e0126b2a7810d5b73d",
+    "adapter_version": "ocae.live.tool-execute-after@1.0.0",
+    "verifier_version": "issue-43-live-verifier.v1",
+    "fixture_identity": "issue-43-read-observation.v1",
+    "canary_definitions": [
+      "CONTROL_0:NO_OBSERVATION_INTERPOSITION",
+      "CANARY_1:IDENTITY_ADAPTER",
+      "CANARY_2:ENVELOPE_ONLY"
+    ],
+    "execution_order": [
+      "CONTROL_0",
+      "CANARY_1_IDENTITY",
+      "CANARY_2_ENVELOPE"
+    ],
+    "execution_order_fingerprint": "503ffbe04835c26752a392659e5051744f91a51ca203daa87877fdd9b6dfecc5",
+    "timeout_ms": 90000,
+    "retry_budget": 0,
+    "logging": {
+      "opencode_print_logs": true,
+      "opencode_log_level": "DEBUG",
+      "cli_args": [
+        "--print-logs",
+        "--log-level",
+        "DEBUG"
+      ]
+    }
+  },
+  "preflight": {
+    "inventory_free_path": true,
+    "live_model_reachable": true,
+    "plugin_initialization": "PASS"
+  }
+}

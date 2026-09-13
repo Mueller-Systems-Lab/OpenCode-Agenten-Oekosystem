@@ -39,3 +39,20 @@ export {
   applyToolExposure,
   harnessEvidenceFields,
 } from './apply-harness.mjs'
+export {
+  MODEL_TRANSPORT_CONTRACT_ID,
+  MODEL_TRANSPORT_CONTRACT_VERSION,
+  HOST_TRANSPORT,
+  MODEL_TRANSPORT,
+  OPENAI_COMPATIBLE_API_FAMILIES,
+  TRANSPORT_ERROR_CLASSES,
+  transportFingerprint,
+  createModelTransportIdentity,
+  createModelTransportRequest,
+  normalizeTransportResponse,
+  normalizeTransportError,
+  createOpenAICompatibleModelAdapter,
+  createOpenCodeModelTransportAdapter,
+  createHostToolDefinitions,
+  runOpenAICompatibleAdapterConformance,
+} from './openai-compatible-model-transport.mjs'

@@ -1,0 +1,1326 @@
+{
+  "contract": "ecosystem.empirical-qualification-runner.v1",
+  "plan": {
+    "fingerprint": "af7c4b1166450625ce3550315861a93708f7e53a96a7f9f9472f8739c95784e2",
+    "candidate_fingerprint": null,
+    "arms": [
+      "generic"
+    ]
+  },
+  "plan_fingerprint": "af7c4b1166450625ce3550315861a93708f7e53a96a7f9f9472f8739c95784e2",
+  "corpus_fingerprints": {
+    "derivation": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+    "holdout": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590"
+  },
+  "records": [
+    {
+      "contract": "ecosystem.empirical-qualification-runner.v1",
+      "plan_fingerprint": "af7c4b1166450625ce3550315861a93708f7e53a96a7f9f9472f8739c95784e2",
+      "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+      "mode": "DERIVATION_CORPUS",
+      "sequence": 0,
+      "case_id": "grep-observation",
+      "repetition": 1,
+      "arm": "generic",
+      "candidate_fingerprint": null,
+      "provider": "local-openai-compatible",
+      "model": "qwen2.5-coder:3b",
+      "granted_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "exposed_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "metrics": {},
+      "verified_success": false,
+      "functional_correctness": false,
+      "failure_class": "EXECUTOR_FAILURE",
+      "canonical_verifier": false,
+      "canonical_runtime_entry": false,
+      "live_model_evidence": false,
+      "paid_calls": 0,
+      "fallback_used": false,
+      "profile_id": null,
+      "harness_fingerprint": null,
+      "tool_calls": [],
+      "observation_receipts": [],
+      "observation_interposition": [],
+      "model_facing_observation": null,
+      "verifier_result": {
+        "ok": false,
+        "code": "EXECUTOR_FAILURE"
+      },
+      "context_volume": null,
+      "raw_result_volume": null,
+      "adapted_result_volume": null,
+      "retry_count": 0,
+      "latency_ms": null,
+      "retained": true
+    },
+    {
+      "contract": "ecosystem.empirical-qualification-runner.v1",
+      "plan_fingerprint": "af7c4b1166450625ce3550315861a93708f7e53a96a7f9f9472f8739c95784e2",
+      "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+      "mode": "DERIVATION_CORPUS",
+      "sequence": 1,
+      "case_id": "read-observation",
+      "repetition": 1,
+      "arm": "generic",
+      "candidate_fingerprint": null,
+      "provider": "local-openai-compatible",
+      "model": "qwen2.5-coder:3b",
+      "granted_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "exposed_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "metrics": {},
+      "verified_success": false,
+      "functional_correctness": false,
+      "failure_class": "EXECUTOR_FAILURE",
+      "canonical_verifier": false,
+      "canonical_runtime_entry": false,
+      "live_model_evidence": false,
+      "paid_calls": 0,
+      "fallback_used": false,
+      "profile_id": null,
+      "harness_fingerprint": null,
+      "tool_calls": [],
+      "observation_receipts": [],
+      "observation_interposition": [],
+      "model_facing_observation": null,
+      "verifier_result": {
+        "ok": false,
+        "code": "EXECUTOR_FAILURE"
+      },
+      "context_volume": null,
+      "raw_result_volume": null,
+      "adapted_result_volume": null,
+      "retry_count": 0,
+      "latency_ms": null,
+      "retained": true
+    },
+    {
+      "contract": "ecosystem.empirical-qualification-runner.v1",
+      "plan_fingerprint": "af7c4b1166450625ce3550315861a93708f7e53a96a7f9f9472f8739c95784e2",
+      "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+      "mode": "DERIVATION_CORPUS",
+      "sequence": 2,
+      "case_id": "compiler-failure",
+      "repetition": 1,
+      "arm": "generic",
+      "candidate_fingerprint": null,
+      "provider": "local-openai-compatible",
+      "model": "qwen2.5-coder:3b",
+      "granted_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "exposed_tools": [
+        "read",
+        "edit",
+        "bash"
+      ],
+      "metrics": {
+        "tool_selection_correct": true,
+        "tool_argument_validity": false,
+        "required_tool_used": true,
+        "unnecessary_tool_calls": 0,
+        "invalid_tool_calls": 1,
+        "schema_parse_failure": 0,
+        "wrong_argument_name": 0,
+        "missing_required_argument": 0,
+        "invalid_argument_type": 0,
+        "semantic_argument_error": 0,
+        "tool_call_count": 1,
+        "observation_status_comprehension": true,
+        "source_attribution_correct": false,
+        "failure_class_comprehension": true,
+        "truncation_awareness": true,
+        "staleness_awareness": true,
+        "grounded_final_claim": true,
+        "fabricated_result_count": 0,
+        "next_action_correct": true,
+        "parallel_result_correlation_accuracy": true,
+        "cross_result_contamination": 0,
+        "discovery_steps": 1,
+        "files_read": 1,
+        "search_result_count": 0,
+        "latency_ms": 55140,
+        "context_volume": 561,
+        "raw_result_volume": 27,
+        "adapted_result_volume": 0,
+        "retry_count": 0,
+        "subagent_observation_comprehension": true,
+        "verifier_raw_authority": true,
+        "exposed_tool_count": 3,
+        "source_count": 0,
+        "simultaneous_failure_count": 0,
+        "open_hypothesis_count": 1
+      },
+      "verified_success": true,
+      "functional_correctness": true,
+      "failure_class": null,
+      "canonical_verifier": true,
+      "canonical_runtime_entry": true,
+      "live_model_evidence": true,
+      "paid_calls": 0,
+      "fallback_used": false,
+      "profile_id": "local-ollama-qualification",
+      "harness_fingerprint": "0184718580bbf894da970ab86e6d7a3d6dca14aa591159c1adca94db279a8e6d",
+      "tool_calls": [
+        {
+          "tool": "read",
+          "call_id": "text-tool-0",
+          "argument_valid": true,
+          "argument_diagnostic": null,
+          "status": "COMPLETED"
+        }
+      ],
+      "observation_receipts": [
+        {
+          "observation_id": "obs-2-0",
+          "tool_call_id": "text-tool-0",
+          "raw_fingerprint": "4fbc5f9267c2640ea843cfb5f48dda2f29833a5f900bb0d4ad25f0cd69b0d25f",
+          "status": "ERROR",
+          "failure_class": null
+        }
+      ],
+      "observation_interposition": [],
+      "model_facing_observation": {
+        "derived": false,
+        "lossiness": null,
+        "truncated": false,
+        "provenance_preserved": false
+      },
+      "verifier_result": {
+        "ok": true,
+        "code": "LIVE_FIXTURE_VERIFIER_PASS"
+      },
+      "context_volume": 561,
+      "raw_result_volume": 27,
+      "adapted_result_volume": 0,
+      "retry_count": 0,
+      "latency_ms": 55140,
+      "retained": true
+    },
+    {
+      "contract": "ecosystem.empirical-qualification-runner.v1",
+      "plan_fingerprint": "af7c4b1166450625ce3550315861a93708f7e53a96a7f9f9472f8739c95784e2",
+      "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+      "mode": "DERIVATION_CORPUS",
+      "sequence": 3,
+      "case_id": "permission-denial",
+      "repetition": 1,
+      "arm": "generic",
+      "candidate_fingerprint": null,
+      "provider": "local-openai-compatible",
+      "model": "qwen2.5-coder:3b",
+      "granted_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "exposed_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "metrics": {},
+      "verified_success": false,
+      "functional_correctness": false,
+      "failure_class": "EXECUTOR_FAILURE",
+      "canonical_verifier": false,
+      "canonical_runtime_entry": false,
+      "live_model_evidence": false,
+      "paid_calls": 0,
+      "fallback_used": false,
+      "profile_id": null,
+      "harness_fingerprint": null,
+      "tool_calls": [],
+      "observation_receipts": [],
+      "observation_interposition": [],
+      "model_facing_observation": null,
+      "verifier_result": {
+        "ok": false,
+        "code": "EXECUTOR_FAILURE"
+      },
+      "context_volume": null,
+      "raw_result_volume": null,
+      "adapted_result_volume": null,
+      "retry_count": 0,
+      "latency_ms": null,
+      "retained": true
+    },
+    {
+      "contract": "ecosystem.empirical-qualification-runner.v1",
+      "plan_fingerprint": "af7c4b1166450625ce3550315861a93708f7e53a96a7f9f9472f8739c95784e2",
+      "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+      "mode": "DERIVATION_CORPUS",
+      "sequence": 4,
+      "case_id": "timeout",
+      "repetition": 1,
+      "arm": "generic",
+      "candidate_fingerprint": null,
+      "provider": "local-openai-compatible",
+      "model": "qwen2.5-coder:3b",
+      "granted_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "exposed_tools": [
+        "read",
+        "bash"
+      ],
+      "metrics": {
+        "tool_selection_correct": true,
+        "tool_argument_validity": false,
+        "required_tool_used": true,
+        "unnecessary_tool_calls": 1,
+        "invalid_tool_calls": 2,
+        "schema_parse_failure": 0,
+        "wrong_argument_name": 0,
+        "missing_required_argument": 0,
+        "invalid_argument_type": 0,
+        "semantic_argument_error": 0,
+        "tool_call_count": 2,
+        "observation_status_comprehension": true,
+        "source_attribution_correct": false,
+        "failure_class_comprehension": true,
+        "truncation_awareness": true,
+        "staleness_awareness": true,
+        "grounded_final_claim": true,
+        "fabricated_result_count": 0,
+        "next_action_correct": true,
+        "parallel_result_correlation_accuracy": true,
+        "cross_result_contamination": 0,
+        "discovery_steps": 2,
+        "files_read": 1,
+        "search_result_count": 0,
+        "latency_ms": 61119,
+        "context_volume": 890,
+        "raw_result_volume": 73,
+        "adapted_result_volume": 0,
+        "retry_count": 0,
+        "subagent_observation_comprehension": true,
+        "verifier_raw_authority": true,
+        "exposed_tool_count": 2,
+        "source_count": 0,
+        "simultaneous_failure_count": 0,
+        "open_hypothesis_count": 1
+      },
+      "verified_success": true,
+      "functional_correctness": true,
+      "failure_class": null,
+      "canonical_verifier": true,
+      "canonical_runtime_entry": true,
+      "live_model_evidence": true,
+      "paid_calls": 0,
+      "fallback_used": false,
+      "profile_id": "local-ollama-qualification",
+      "harness_fingerprint": "0184718580bbf894da970ab86e6d7a3d6dca14aa591159c1adca94db279a8e6d",
+      "tool_calls": [
+        {
+          "tool": "read",
+          "call_id": "text-tool-0",
+          "argument_valid": true,
+          "argument_diagnostic": null,
+          "status": "COMPLETED"
+        },
+        {
+          "tool": "bash",
+          "call_id": "text-tool-1",
+          "argument_valid": true,
+          "argument_diagnostic": null,
+          "status": "COMPLETED"
+        }
+      ],
+      "observation_receipts": [
+        {
+          "observation_id": "obs-4-0",
+          "tool_call_id": "text-tool-0",
+          "raw_fingerprint": "4fbc5f9267c2640ea843cfb5f48dda2f29833a5f900bb0d4ad25f0cd69b0d25f",
+          "status": "ERROR",
+          "failure_class": null
+        },
+        {
+          "observation_id": "obs-4-1",
+          "tool_call_id": "text-tool-1",
+          "raw_fingerprint": "2ed9f8889a9f577d8f518799c74e907f0f4e670522382bb0cbfa1fee6836efb6",
+          "status": "COMPLETED",
+          "failure_class": null
+        }
+      ],
+      "observation_interposition": [],
+      "model_facing_observation": {
+        "derived": false,
+        "lossiness": null,
+        "truncated": false,
+        "provenance_preserved": false
+      },
+      "verifier_result": {
+        "ok": true,
+        "code": "LIVE_FIXTURE_VERIFIER_PASS"
+      },
+      "context_volume": 890,
+      "raw_result_volume": 73,
+      "adapted_result_volume": 0,
+      "retry_count": 0,
+      "latency_ms": 61119,
+      "retained": true
+    },
+    {
+      "contract": "ecosystem.empirical-qualification-runner.v1",
+      "plan_fingerprint": "af7c4b1166450625ce3550315861a93708f7e53a96a7f9f9472f8739c95784e2",
+      "corpus_fingerprint": "ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5",
+      "mode": "DERIVATION_CORPUS",
+      "sequence": 5,
+      "case_id": "partial-truncation",
+      "repetition": 1,
+      "arm": "generic",
+      "candidate_fingerprint": null,
+      "provider": "local-openai-compatible",
+      "model": "qwen2.5-coder:3b",
+      "granted_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "exposed_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "metrics": {},
+      "verified_success": false,
+      "functional_correctness": false,
+      "failure_class": "EXECUTOR_FAILURE",
+      "canonical_verifier": false,
+      "canonical_runtime_entry": false,
+      "live_model_evidence": false,
+      "paid_calls": 0,
+      "fallback_used": false,
+      "profile_id": null,
+      "harness_fingerprint": null,
+      "tool_calls": [],
+      "observation_receipts": [],
+      "observation_interposition": [],
+      "model_facing_observation": null,
+      "verifier_result": {
+        "ok": false,
+        "code": "EXECUTOR_FAILURE"
+      },
+      "context_volume": null,
+      "raw_result_volume": null,
+      "adapted_result_volume": null,
+      "retry_count": 0,
+      "latency_ms": null,
+      "retained": true
+    },
+    {
+      "contract": "ecosystem.empirical-qualification-runner.v1",
+      "plan_fingerprint": "af7c4b1166450625ce3550315861a93708f7e53a96a7f9f9472f8739c95784e2",
+      "corpus_fingerprint": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+      "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+      "sequence": 6,
+      "case_id": "stale-read",
+      "repetition": 1,
+      "arm": "generic",
+      "candidate_fingerprint": null,
+      "provider": "local-openai-compatible",
+      "model": "qwen2.5-coder:3b",
+      "granted_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "exposed_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "metrics": {},
+      "verified_success": false,
+      "functional_correctness": false,
+      "failure_class": "EXECUTOR_FAILURE",
+      "canonical_verifier": false,
+      "canonical_runtime_entry": false,
+      "live_model_evidence": false,
+      "paid_calls": 0,
+      "fallback_used": false,
+      "profile_id": null,
+      "harness_fingerprint": null,
+      "tool_calls": [],
+      "observation_receipts": [],
+      "observation_interposition": [],
+      "model_facing_observation": null,
+      "verifier_result": {
+        "ok": false,
+        "code": "EXECUTOR_FAILURE"
+      },
+      "context_volume": null,
+      "raw_result_volume": null,
+      "adapted_result_volume": null,
+      "retry_count": 0,
+      "latency_ms": null,
+      "retained": true
+    },
+    {
+      "contract": "ecosystem.empirical-qualification-runner.v1",
+      "plan_fingerprint": "af7c4b1166450625ce3550315861a93708f7e53a96a7f9f9472f8739c95784e2",
+      "corpus_fingerprint": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+      "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+      "sequence": 7,
+      "case_id": "parallel-correlation",
+      "repetition": 1,
+      "arm": "generic",
+      "candidate_fingerprint": null,
+      "provider": "local-openai-compatible",
+      "model": "qwen2.5-coder:3b",
+      "granted_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "exposed_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "metrics": {},
+      "verified_success": false,
+      "functional_correctness": false,
+      "failure_class": "EXECUTOR_FAILURE",
+      "canonical_verifier": false,
+      "canonical_runtime_entry": false,
+      "live_model_evidence": false,
+      "paid_calls": 0,
+      "fallback_used": false,
+      "profile_id": null,
+      "harness_fingerprint": null,
+      "tool_calls": [],
+      "observation_receipts": [],
+      "observation_interposition": [],
+      "model_facing_observation": null,
+      "verifier_result": {
+        "ok": false,
+        "code": "EXECUTOR_FAILURE"
+      },
+      "context_volume": null,
+      "raw_result_volume": null,
+      "adapted_result_volume": null,
+      "retry_count": 0,
+      "latency_ms": null,
+      "retained": true
+    },
+    {
+      "contract": "ecosystem.empirical-qualification-runner.v1",
+      "plan_fingerprint": "af7c4b1166450625ce3550315861a93708f7e53a96a7f9f9472f8739c95784e2",
+      "corpus_fingerprint": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+      "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+      "sequence": 8,
+      "case_id": "unknown-mcp",
+      "repetition": 1,
+      "arm": "generic",
+      "candidate_fingerprint": null,
+      "provider": "local-openai-compatible",
+      "model": "qwen2.5-coder:3b",
+      "granted_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "exposed_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "metrics": {},
+      "verified_success": false,
+      "functional_correctness": false,
+      "failure_class": "EXECUTOR_FAILURE",
+      "canonical_verifier": false,
+      "canonical_runtime_entry": false,
+      "live_model_evidence": false,
+      "paid_calls": 0,
+      "fallback_used": false,
+      "profile_id": null,
+      "harness_fingerprint": null,
+      "tool_calls": [],
+      "observation_receipts": [],
+      "observation_interposition": [],
+      "model_facing_observation": null,
+      "verifier_result": {
+        "ok": false,
+        "code": "EXECUTOR_FAILURE"
+      },
+      "context_volume": null,
+      "raw_result_volume": null,
+      "adapted_result_volume": null,
+      "retry_count": 0,
+      "latency_ms": null,
+      "retained": true
+    },
+    {
+      "contract": "ecosystem.empirical-qualification-runner.v1",
+      "plan_fingerprint": "af7c4b1166450625ce3550315861a93708f7e53a96a7f9f9472f8739c95784e2",
+      "corpus_fingerprint": "d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590",
+      "mode": "CONFIRMATORY_HOLDOUT_CORPUS",
+      "sequence": 9,
+      "case_id": "subagent-result",
+      "repetition": 1,
+      "arm": "generic",
+      "candidate_fingerprint": null,
+      "provider": "local-openai-compatible",
+      "model": "qwen2.5-coder:3b",
+      "granted_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "exposed_tools": [
+        "read",
+        "write",
+        "edit",
+        "list",
+        "glob",
+        "grep",
+        "bash"
+      ],
+      "metrics": {},
+      "verified_success": false,
+      "functional_correctness": false,
+      "failure_class": "EXECUTOR_FAILURE",
+      "canonical_verifier": false,
+      "canonical_runtime_entry": false,
+      "live_model_evidence": false,
+      "paid_calls": 0,
+      "fallback_used": false,
+      "profile_id": null,
+      "harness_fingerprint": null,
+      "tool_calls": [],
+      "observation_receipts": [],
+      "observation_interposition": [],
+      "model_facing_observation": null,
+      "verifier_result": {
+        "ok": false,
+        "code": "EXECUTOR_FAILURE"
+      },
+      "context_volume": null,
+      "raw_result_volume": null,
+      "adapted_result_volume": null,
+      "retry_count": 0,
+      "latency_ms": null,
+      "retained": true
+    }
+  ],
+  "metrics": {
+    "DERIVATION_CORPUS": {
+      "sample_count": 6,
+      "verified_success_count": 2,
+      "metrics": {
+        "tool_selection_correct": {
+          "sample_count": 2,
+          "success_count": 2,
+          "failure_count": 0,
+          "rate": 1,
+          "claim": true
+        },
+        "tool_argument_validity": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "required_tool_used": {
+          "sample_count": 2,
+          "success_count": 2,
+          "failure_count": 0,
+          "rate": 1,
+          "claim": true
+        },
+        "unnecessary_tool_calls": {
+          "sample_count": 2,
+          "success_count": 1,
+          "failure_count": 1,
+          "rate": 0.5,
+          "claim": false
+        },
+        "invalid_tool_calls": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "recovery_after_invalid_call": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "recovery_after_tool_failure": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "tool_call_count": {
+          "sample_count": 2,
+          "success_count": 1,
+          "failure_count": 1,
+          "rate": 0.5,
+          "claim": false
+        },
+        "schema_parse_failure": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "wrong_argument_name": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "missing_required_argument": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "invalid_argument_type": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "semantic_argument_error": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "observation_status_comprehension": {
+          "sample_count": 2,
+          "success_count": 2,
+          "failure_count": 0,
+          "rate": 1,
+          "claim": true
+        },
+        "source_attribution_correct": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "path_line_association_correct": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "failure_class_comprehension": {
+          "sample_count": 2,
+          "success_count": 2,
+          "failure_count": 0,
+          "rate": 1,
+          "claim": true
+        },
+        "truncation_awareness": {
+          "sample_count": 2,
+          "success_count": 2,
+          "failure_count": 0,
+          "rate": 1,
+          "claim": true
+        },
+        "staleness_awareness": {
+          "sample_count": 2,
+          "success_count": 2,
+          "failure_count": 0,
+          "rate": 1,
+          "claim": true
+        },
+        "grounded_final_claim": {
+          "sample_count": 2,
+          "success_count": 2,
+          "failure_count": 0,
+          "rate": 1,
+          "claim": true
+        },
+        "fabricated_result_count": {
+          "sample_count": 2,
+          "success_count": 2,
+          "failure_count": 0,
+          "rate": 1,
+          "claim": true
+        },
+        "next_action_correct": {
+          "sample_count": 2,
+          "success_count": 2,
+          "failure_count": 0,
+          "rate": 1,
+          "claim": true
+        },
+        "cross_result_correlation_correct": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "parallel_call_generation_accuracy": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "parallel_result_correlation_accuracy": {
+          "sample_count": 2,
+          "success_count": 2,
+          "failure_count": 0,
+          "rate": 1,
+          "claim": true
+        },
+        "cross_result_contamination": {
+          "sample_count": 2,
+          "success_count": 2,
+          "failure_count": 0,
+          "rate": 1,
+          "claim": true
+        },
+        "discovery_steps": {
+          "sample_count": 2,
+          "success_count": 1,
+          "failure_count": 1,
+          "rate": 0.5,
+          "claim": false
+        },
+        "files_read": {
+          "sample_count": 2,
+          "success_count": 2,
+          "failure_count": 0,
+          "rate": 1,
+          "claim": true
+        },
+        "symbols_read": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "search_result_count": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "irrelevant_context": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "latency_ms": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "context_volume": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "raw_result_volume": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "adapted_result_volume": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "retry_count": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "information_complexity": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "exposed_tool_count": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "source_count": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "simultaneous_failure_count": {
+          "sample_count": 2,
+          "success_count": 0,
+          "failure_count": 2,
+          "rate": 0,
+          "claim": false
+        },
+        "open_hypothesis_count": {
+          "sample_count": 2,
+          "success_count": 2,
+          "failure_count": 0,
+          "rate": 1,
+          "claim": true
+        },
+        "subagent_observation_comprehension": {
+          "sample_count": 2,
+          "success_count": 2,
+          "failure_count": 0,
+          "rate": 1,
+          "claim": true
+        },
+        "post_compaction_success": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "model_switch_rehydration_success": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        }
+      }
+    },
+    "CONFIRMATORY_HOLDOUT_CORPUS": {
+      "sample_count": 4,
+      "verified_success_count": 0,
+      "metrics": {
+        "tool_selection_correct": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "tool_argument_validity": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "required_tool_used": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "unnecessary_tool_calls": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "invalid_tool_calls": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "recovery_after_invalid_call": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "recovery_after_tool_failure": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "tool_call_count": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "schema_parse_failure": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "wrong_argument_name": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "missing_required_argument": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "invalid_argument_type": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "semantic_argument_error": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "observation_status_comprehension": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "source_attribution_correct": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "path_line_association_correct": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "failure_class_comprehension": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "truncation_awareness": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "staleness_awareness": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "grounded_final_claim": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "fabricated_result_count": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "next_action_correct": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "cross_result_correlation_correct": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "parallel_call_generation_accuracy": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "parallel_result_correlation_accuracy": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "cross_result_contamination": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "discovery_steps": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "files_read": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "symbols_read": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "search_result_count": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "irrelevant_context": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "latency_ms": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "context_volume": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "raw_result_volume": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "adapted_result_volume": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "retry_count": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "information_complexity": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "exposed_tool_count": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "source_count": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "simultaneous_failure_count": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "open_hypothesis_count": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "subagent_observation_comprehension": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "post_compaction_success": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        },
+        "model_switch_rehydration_success": {
+          "sample_count": 0,
+          "success_count": 0,
+          "failure_count": 0,
+          "rate": null,
+          "claim": false
+        }
+      }
+    }
+  }
+}

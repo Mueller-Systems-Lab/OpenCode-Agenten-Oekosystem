@@ -2,6 +2,11 @@
 description: Execute exactly one canonical Blackboard task and return.
 mode: subagent
 hidden: true
+permission:
+  bash:
+    "*": allow
+    "git push": deny
+    "git push *": deny
 ---
 
 <!-- coordinate-blackboard-swarm: managed adapter -->

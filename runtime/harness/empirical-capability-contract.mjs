@@ -29,6 +29,9 @@ const IDENTITY_KEYS = Object.freeze([
   'tool_contract_fingerprint', 'observation_contract_fingerprint',
   'qualification_corpus_fingerprint', 'holdout_corpus_fingerprint',
   'harness_fingerprint', 'verifier_version',
+  'host_transport', 'model_transport', 'model_transport_contract_id',
+  'model_transport_contract_version', 'model_transport_fingerprint',
+  'openai_compatible_api_family',
 ])
 const METRIC_KEYS = new Set(['sample_count', 'success_count', 'failure_count', 'rate', 'claim'])
 const SAFE_ID_RE = /^[a-zA-Z0-9._:/-]+$/u
@@ -98,6 +101,12 @@ export function createQualificationIdentity(input = {}) {
     holdout_corpus_fingerprint: requireFingerprint(input.holdout_corpus_fingerprint, 'holdout_corpus_fingerprint'),
     harness_fingerprint: requireFingerprint(input.harness_fingerprint, 'harness_fingerprint'),
     verifier_version: requireSafeString(input.verifier_version, 'verifier_version'),
+    host_transport: requireSafeString(input.host_transport, 'host_transport'),
+    model_transport: requireSafeString(input.model_transport, 'model_transport'),
+    model_transport_contract_id: requireSafeString(input.model_transport_contract_id, 'model_transport_contract_id'),
+    model_transport_contract_version: requireSafeString(input.model_transport_contract_version, 'model_transport_contract_version'),
+    model_transport_fingerprint: requireFingerprint(input.model_transport_fingerprint, 'model_transport_fingerprint'),
+    openai_compatible_api_family: requireSafeString(input.openai_compatible_api_family, 'openai_compatible_api_family'),
   }
   if (identity.qualification_corpus_fingerprint === identity.holdout_corpus_fingerprint) {
     fail('qualification and holdout corpus fingerprints must differ')

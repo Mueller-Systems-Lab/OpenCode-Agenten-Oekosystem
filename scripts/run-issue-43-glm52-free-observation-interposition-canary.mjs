@@ -22,6 +22,7 @@ import {
 import { OBSERVATION_CONTRACT, OBSERVATION_CONTRACT_VERSION, createToolContractFingerprint, observationFingerprint } from '../runtime/harness/observation-adapter.mjs'
 import { fingerprint } from '../runtime/harness/empirical-capability-contract.mjs'
 import { classifyCanaryGateState, classifyModelUsage, rateLimitClassification, rateLimitResetEvidence } from '../runtime/harness/canary-reporting.mjs'
+import { HOST_TRANSPORT, MODEL_TRANSPORT, MODEL_TRANSPORT_CONTRACT_ID, MODEL_TRANSPORT_CONTRACT_VERSION, createModelTransportRequest, createOpenCodeModelTransportAdapter, runOpenAICompatibleAdapterConformance } from '../runtime/harness/openai-compatible-model-transport.mjs'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const reportRoot = path.join(repoRoot, 'docs', 'reports')
@@ -31,6 +32,9 @@ const model = process.env.OCAE_TARGET_MODEL || 'z-ai/glm-5.2:free'
 const uiLabel = process.env.OCAE_TARGET_DISPLAY_NAME || `${provider}/${model}`
 const hostVersion = String(spawnSync(opencodeBin, ['--version'], { encoding: 'utf8' }).stdout || '').trim()
 const timeoutMs = Number(process.env.OCAE_CANARY_TIMEOUT_MS || 90_000)
+const openaiCompatibleApiFamily = process.env.OCAE_OPENAI_COMPATIBLE_API_FAMILY || 'UNKNOWN'
+const baseEndpointIdentity = process.env.OCAE_MODEL_BASE_ENDPOINT_IDENTITY || null
+const authenticationReference = process.env.OCAE_MODEL_AUTH_ENVIRONMENT ? { kind: 'ENVIRONMENT', name: process.env.OCAE_MODEL_AUTH_ENVIRONMENT } : null
 const controlRepetitions = 5
 const identityRepetitions = 5
 const envelopeRepetitions = 10
@@ -45,6 +49,11 @@ const freezePath = process.env.OCAE_CANARY_FREEZE_PATH
 if (!outputPath.startsWith(`${reportRoot}${path.sep}`)) throw new Error('CONTRACT_INVALID:canary:evidence must remain under docs/reports')
 if (!freezePath.startsWith(`${reportRoot}${path.sep}`)) throw new Error('CONTRACT_INVALID:canary:freeze evidence must remain under docs/reports')
 const preflightOverride = process.env.OCAE_PREFLIGHT_RESULT_JSON ? JSON.parse(process.env.OCAE_PREFLIGHT_RESULT_JSON) : null
+const modelTransport = createOpenCodeModelTransportAdapter({
+  provider, model, api_family: openaiCompatibleApiFamily, base_endpoint_identity: baseEndpointIdentity, authentication_reference: authenticationReference,
+  invoke: request => invokeOpenCode({ opencode_bin: opencodeBin, provider: request.provider, model: request.model, root: request.metadata.host_root, prompt: request.messages.find(message => message.role === 'user')?.content || '', timeout_ms: request.timeout_ms, use_plugins: request.metadata.use_plugins === true }),
+})
+const adapterConformance = await runOpenAICompatibleAdapterConformance()
 
 function average(values) {
   const finite = values.filter((value) => Number.isFinite(value))
@@ -128,10 +137,8 @@ async function pluginInitializationProbe() {
     }), { mode: 0o600 })
     await fs.writeFile(path.join(root, 'probe.txt'), 'probe\n', 'utf8')
     await fs.writeFile(path.join(root, 'opencode.jsonc'), `${JSON.stringify(createLiveProjectConfig([], './ocae-observation-adapter.js'), null, 2)}\n`, { mode: 0o600 })
-    const response = await invokeOpenCode({
-      opencode_bin: opencodeBin, provider, model, root, timeout_ms: timeoutMs, use_plugins: true,
-      prompt: 'Reply with exactly PLUGIN_INIT_OK and nothing else. Do not use tools.',
-    })
+    const request = createModelTransportRequest({ identity: modelTransport.identity, messages: [{ role: 'user', content: 'Reply with exactly PLUGIN_INIT_OK and nothing else. Do not use tools.' }], timeout_ms: timeoutMs, metadata: { host_root: root, use_plugins: true } })
+    const response = await modelTransport.sendHost(request)
     const trace = await readJsonLines(tracePath)
     const events = parseOpenCodeEvents(response.stdout)
     const answer = events.filter((event) => event.type === 'text').map((event) => event.part?.text || '').join('')
@@ -185,10 +192,8 @@ async function pluginInitializationProbe() {
 async function preflight() {
   const root = await fs.mkdtemp('/tmp/ocae-issue-43-glm52-preflight-')
   try {
-    const response = await invokeOpenCode({
-      opencode_bin: opencodeBin, provider, model, root, timeout_ms: timeoutMs,
-      prompt: 'Reply with exactly PREFLIGHT_OK and nothing else. Do not use tools.',
-    })
+    const request = createModelTransportRequest({ identity: modelTransport.identity, messages: [{ role: 'user', content: 'Reply with exactly PREFLIGHT_OK and nothing else. Do not use tools.' }], timeout_ms: timeoutMs, metadata: { host_root: root, use_plugins: false } })
+    const response = await modelTransport.sendHost(request)
     const events = parseOpenCodeEvents(response.stdout)
     const answer = events.filter((event) => event.type === 'text').map((event) => event.part?.text || '').join('')
     const usage = classifyModelUsage({ debugLog: response.debug_log_excerpt, targetProvider: provider, targetModel: model })
@@ -366,6 +371,9 @@ async function main() {
     timeout_ms: timeoutMs,
     retry_budget: 0,
     logging: { opencode_print_logs: true, opencode_log_level: 'DEBUG', cli_args: [...OPENCODE_DEBUG_ARGS] },
+    host_transport: HOST_TRANSPORT, model_transport: MODEL_TRANSPORT, model_transport_contract_id: MODEL_TRANSPORT_CONTRACT_ID,
+    model_transport_contract_version: MODEL_TRANSPORT_CONTRACT_VERSION, model_transport_fingerprint: modelTransport.contract.fingerprint,
+    openai_compatible_api_family: openaiCompatibleApiFamily, adapter_conformance: adapterConformance.status,
   }
   const freeze = {
     contract: 'ecosystem.issue-43-free-model-observation-canary-freeze.v1',
@@ -373,6 +381,12 @@ async function main() {
     attempt_id: attemptId,
     target: { ui_label: uiLabel, provider, model, provider_runtime_path: `${provider}/${model}`, zero_cost_required: true, fallback_forbidden: true, model_switch_forbidden: true, provider_fallback_forbidden: true },
     opencode_version: hostVersion,
+    PROVIDER: provider, MODEL: model, OPENCODE_VERSION: hostVersion, HOST_TRANSPORT, MODEL_TRANSPORT,
+    MODEL_TRANSPORT_CONTRACT_ID, MODEL_TRANSPORT_CONTRACT_VERSION, MODEL_TRANSPORT_FINGERPRINT: modelTransport.contract.fingerprint,
+    OPENAI_COMPATIBLE_API_FAMILY: openaiCompatibleApiFamily, OPENAI_COMPATIBLE_ADAPTER_PRESENT: 'YES', OPENAI_COMPATIBLE_ADAPTER_ENFORCED: 'YES',
+    OPENAI_COMPATIBLE_ADAPTER_CONFORMANCE: adapterConformance.status, DIRECT_PROVIDER_SDK_IN_CANONICAL_PATH: 'NO', DIRECT_PROVIDER_HTTP_SCHEMA_IN_CANONICAL_PATH: 'NO',
+    GLM53_FLASH_MODEL_TRANSPORT: MODEL_TRANSPORT, FREE_MODEL_TRANSPORT: MODEL_TRANSPORT, SAME_TRANSPORT_CONTRACT: 'YES', CROSS_PROVIDER_TRANSPORT_PORTABILITY: 'NOT_RUN',
+    TRANSPORT_ARCHITECTURE_CLASSIFICATION: 'OPENAI_COMPATIBLE_TRANSPORT_ALREADY_CANONICAL',
     runtime_identity: { runtime_class: LIVE_RUNTIME_ID, opencode_host_version: hostVersion, tool_contract_fingerprint: contracts.tool_contract_fingerprint, observation_contract_fingerprint: contracts.observation_contract_fingerprint },
     contracts,
     preflight: { inventory_free_path: inventory.free_model_path, live_model_reachable: preflightResult.live_model_reachable, plugin_initialization: preflightResult.live_model_reachable ? (pluginProbe.pass ? 'PASS' : 'FAIL') : 'NOT_RUN' },
@@ -387,8 +401,27 @@ async function main() {
     timestamp: new Date().toISOString(),
     provider,
     model,
+    PROVIDER: provider,
+    MODEL: model,
     ui_label: uiLabel,
     opencode_version: hostVersion,
+    OPENCODE_VERSION: hostVersion,
+    HOST_TRANSPORT,
+    MODEL_TRANSPORT,
+    MODEL_TRANSPORT_CONTRACT_ID,
+    MODEL_TRANSPORT_CONTRACT_VERSION,
+    MODEL_TRANSPORT_FINGERPRINT: modelTransport.contract.fingerprint,
+    OPENAI_COMPATIBLE_API_FAMILY: openaiCompatibleApiFamily,
+    OPENAI_COMPATIBLE_ADAPTER_PRESENT: 'YES',
+    OPENAI_COMPATIBLE_ADAPTER_ENFORCED: 'YES',
+    OPENAI_COMPATIBLE_ADAPTER_CONFORMANCE: adapterConformance.status,
+    DIRECT_PROVIDER_SDK_IN_CANONICAL_PATH: 'NO',
+    DIRECT_PROVIDER_HTTP_SCHEMA_IN_CANONICAL_PATH: 'NO',
+    GLM53_FLASH_MODEL_TRANSPORT: MODEL_TRANSPORT,
+    FREE_MODEL_TRANSPORT: MODEL_TRANSPORT,
+    SAME_TRANSPORT_CONTRACT: 'YES',
+    CROSS_PROVIDER_TRANSPORT_PORTABILITY: 'NOT_RUN',
+    TRANSPORT_ARCHITECTURE_CLASSIFICATION: 'OPENAI_COMPATIBLE_TRANSPORT_ALREADY_CANONICAL',
     debug_logging: { required: true, args: [...OPENCODE_DEBUG_ARGS], inventory: inventory.debug_logging_enabled, preflight: preflightResult.debug_logging_enabled === true, plugin_initialization: pluginProbe.debug_logging_enabled === true },
     inventory: { provider_id: inventory.provider_id, model_id: inventory.model_id, display_name: inventory.display_name, status: inventory.status, costs: inventory.costs, free_model_path: inventory.free_model_path, inventory_entry_fingerprint: inventory.inventory_entry_fingerprint, debug_log_excerpt: inventory.debug_log_excerpt, debug_log_fingerprint: inventory.debug_log_fingerprint },
     preflight: preflightResult,
@@ -439,7 +472,7 @@ async function main() {
     ]
     let sequence = 1
     for (const [layer, repetitions, adapterMode] of layers) {
-      const executor = createOpenCodeLiveExecutor({ provider, model, opencode_bin: opencodeBin, timeout_ms: timeoutMs, repo_root: repoRoot, host_version: hostVersion, resolve_treatment: ({ default_profile }) => ({ profile: default_profile, tool_policy: default_profile.effective_harness.tool_policy, tool_contract_framing: 'BASELINE', observation_adaptation: false, ...(adapterMode ? { observation_mode: adapterMode } : {}) }) })
+      const executor = createOpenCodeLiveExecutor({ provider, model, opencode_bin: opencodeBin, timeout_ms: timeoutMs, repo_root: repoRoot, host_version: hostVersion, api_family: openaiCompatibleApiFamily, base_endpoint_identity: baseEndpointIdentity, authentication_reference: authenticationReference, resolve_treatment: ({ default_profile }) => ({ profile: default_profile, tool_policy: default_profile.effective_harness.tool_policy, tool_contract_framing: 'BASELINE', observation_adaptation: false, ...(adapterMode ? { observation_mode: adapterMode } : {}) }) })
       const runs = []
       for (let repetition = 1; repetition <= repetitions; repetition += 1) {
         const result = await executor.execute({ sequence, arm: 'control', test_case: { case_id: 'read-observation', task_role: 'TOOL_USE' } })

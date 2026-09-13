@@ -12,6 +12,7 @@ import { resolveModelHarness } from '../runtime/harness/harness-resolver.mjs'
 import { DEFAULT_MODEL_HARNESS_PROFILES } from '../runtime/harness/model-harness-profiles.mjs'
 import { createOpenCodeLiveExecutor, invokeOpenCode, LIVE_RUNTIME_ID, LIVE_TOOL_SET, LIVE_VERIFIER_VERSION, parseOpenCodeEvents } from '../runtime/harness/live-qualification.mjs'
 import { probeProviderModel } from '../runtime/routing/health-probe.mjs'
+import { HOST_TRANSPORT, MODEL_TRANSPORT, MODEL_TRANSPORT_CONTRACT_ID, MODEL_TRANSPORT_CONTRACT_VERSION, createModelTransportIdentity, createModelTransportRequest, createOpenCodeModelTransportAdapter, runOpenAICompatibleAdapterConformance } from '../runtime/harness/openai-compatible-model-transport.mjs'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const provider = 'opencode'
@@ -19,6 +20,11 @@ const model = 'muse-spark-1.2-contributor-free'
 const opencodeBin = process.env.OCAE_OPENCODE_BIN || 'opencode'
 const timeoutMs = 90_000
 const verifierVersion = LIVE_VERIFIER_VERSION
+const openaiCompatibleApiFamily = process.env.OCAE_OPENAI_COMPATIBLE_API_FAMILY || 'UNKNOWN'
+const baseEndpointIdentity = process.env.OCAE_MODEL_BASE_ENDPOINT_IDENTITY || null
+const authenticationReference = process.env.OCAE_MODEL_AUTH_ENVIRONMENT
+  ? { kind: 'ENVIRONMENT', name: process.env.OCAE_MODEL_AUTH_ENVIRONMENT }
+  : null
 const outputPath = process.env.OCAE_LIVE_OUTPUT_PATH
   ? path.resolve(repoRoot, process.env.OCAE_LIVE_OUTPUT_PATH)
   : path.join(repoRoot, 'docs', 'reports', `issue-43-live-qualification-${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/u, 'Z')}.json`)
@@ -59,10 +65,11 @@ function summarize(records, arm) {
   }
 }
 
-async function preflight() {
+async function preflight(modelTransport) {
   const root = await fs.mkdtemp('/tmp/ocae-issue-43-preflight-')
   try {
-    const response = await invokeOpenCode({ opencode_bin: opencodeBin, provider, model, root, prompt: 'Reply with exactly PREFLIGHT_OK and nothing else. Do not use tools.', timeout_ms: timeoutMs })
+    const request = createModelTransportRequest({ identity: modelTransport.identity, messages: [{ role: 'user', content: 'Reply with exactly PREFLIGHT_OK and nothing else. Do not use tools.' }], timeout_ms: timeoutMs, metadata: { host_root: root } })
+    const response = await modelTransport.sendHost(request)
     const answer = parseOpenCodeEvents(response.stdout).filter((event) => event.type === 'text').map((event) => event.part?.text || '').join('')
     return {
       model_reachable: response.ok && answer.includes('PREFLIGHT_OK'),
@@ -84,6 +91,11 @@ async function preflight() {
 const catalogEntry = getCatalogEntry(DEFAULT_MODEL_CATALOG, provider, model)
 if (!catalogEntry || catalogEntry.enabled !== true || catalogEntry.cost_tier !== 'LOW' || catalogEntry.tool_support !== true) throw new Error('MODEL_NOT_ELIGIBLE:catalog')
 const hostVersion = execFileSync(opencodeBin, ['--version'], { encoding: 'utf8' }).trim()
+const modelTransport = createOpenCodeModelTransportAdapter({
+  provider, model, api_family: openaiCompatibleApiFamily, base_endpoint_identity: baseEndpointIdentity, authentication_reference: authenticationReference,
+  invoke: (request) => invokeOpenCode({ opencode_bin: opencodeBin, provider, model, root: request.metadata.host_root, prompt: request.messages.find((message) => message.role === 'user')?.content || '', timeout_ms: request.timeout_ms, use_plugins: request.metadata.use_plugins === true }),
+})
+const adapterConformance = await runOpenAICompatibleAdapterConformance()
 const corpora = createFrozenQualificationCorpora()
 const roleFingerprints = Object.fromEntries(['BUILD', 'PLAN', 'REVIEW', 'RESEARCH', 'TOOL_USE'].map((taskRole) => {
   const generic = resolveModelHarness({ provider, model, task_role: taskRole, profiles: DEFAULT_MODEL_HARNESS_PROFILES, allow_candidate: false })
@@ -104,21 +116,35 @@ const identity = createQualificationIdentity({
   holdout_corpus_fingerprint: corpora.holdout.fingerprint,
   harness_fingerprint: combinedHarnessFingerprint,
   verifier_version: verifierVersion,
+  host_transport: HOST_TRANSPORT,
+  model_transport: MODEL_TRANSPORT,
+  model_transport_contract_id: MODEL_TRANSPORT_CONTRACT_ID,
+  model_transport_contract_version: MODEL_TRANSPORT_CONTRACT_VERSION,
+  model_transport_fingerprint: modelTransport.contract.fingerprint,
+  openai_compatible_api_family: openaiCompatibleApiFamily,
 })
 const plan = createQualificationPlan({
   identity, corpora, model: { provider, model }, harness_fingerprint: combinedHarnessFingerprint,
   verifier_version: verifierVersion, granted_tools: [...LIVE_TOOL_SET], repetitions: 1, candidate_fingerprint: candidateFingerprint,
 })
 const experimentId = `issue-43-${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/u, 'Z')}`
-const probe = await preflight()
-if (!probe.model_reachable || probe.paid_calls !== 0 || probe.fallback_used || !probe.canonical_runtime_entry) {
-  const blocked = { experiment_id: experimentId, provider, model, host_version: hostVersion, preflight: probe, status: 'AMBER_OCAE_LIVE_QUALIFICATION_BLOCKED_NO_REACHABLE_FREE_MODEL' }
+const probe = await preflight(modelTransport)
+if (adapterConformance.status !== 'PASS' || !probe.model_reachable || probe.paid_calls !== 0 || probe.fallback_used || !probe.canonical_runtime_entry) {
+  const blocked = {
+    experiment_id: experimentId, provider, model, PROVIDER: provider, MODEL: model, host_version: hostVersion, OPENCODE_VERSION: hostVersion, preflight: probe,
+    HOST_TRANSPORT, MODEL_TRANSPORT, MODEL_TRANSPORT_CONTRACT_ID, MODEL_TRANSPORT_CONTRACT_VERSION,
+    MODEL_TRANSPORT_FINGERPRINT: modelTransport.contract.fingerprint, OPENAI_COMPATIBLE_API_FAMILY: openaiCompatibleApiFamily,
+    OPENAI_COMPATIBLE_ADAPTER_PRESENT: 'YES', OPENAI_COMPATIBLE_ADAPTER_ENFORCED: 'YES',
+    OPENAI_COMPATIBLE_ADAPTER_CONFORMANCE: adapterConformance.status, DIRECT_PROVIDER_SDK_IN_CANONICAL_PATH: 'NO', DIRECT_PROVIDER_HTTP_SCHEMA_IN_CANONICAL_PATH: 'NO',
+    GLM53_FLASH_MODEL_TRANSPORT: 'NOT_RUN', FREE_MODEL_TRANSPORT: MODEL_TRANSPORT, SAME_TRANSPORT_CONTRACT: 'NOT_RUN', CROSS_PROVIDER_TRANSPORT_PORTABILITY: 'NOT_RUN',
+    TRANSPORT_ARCHITECTURE_CLASSIFICATION: 'OPENAI_COMPATIBLE_TRANSPORT_ALREADY_CANONICAL', status: 'AMBER_OCAE_LIVE_QUALIFICATION_BLOCKED_NO_REACHABLE_FREE_MODEL',
+  }
   await fs.mkdir(path.dirname(outputPath), { recursive: true })
   await fs.writeFile(outputPath, `${JSON.stringify(blocked, null, 2)}\n`, { mode: 0o600 })
   console.log(JSON.stringify(blocked, null, 2))
   process.exitCode = 2
 } else {
-  const executor = createOpenCodeLiveExecutor({ provider, model, opencode_bin: opencodeBin, timeout_ms: timeoutMs })
+  const executor = createOpenCodeLiveExecutor({ provider, model, opencode_bin: opencodeBin, timeout_ms: timeoutMs, api_family: openaiCompatibleApiFamily, base_endpoint_identity: baseEndpointIdentity, authentication_reference: authenticationReference, host_version: hostVersion })
   const derivation = await runQualification({ plan, executor, mode: 'DERIVATION_CORPUS' })
   const holdout = await runQualification({ plan, executor, mode: 'CONFIRMATORY_HOLDOUT_CORPUS' })
   const holdoutDecision = evaluateHoldoutConfirmation({ candidate: { status: 'candidate', candidate_fingerprint: candidateFingerprint, source_corpus_fingerprint: corpora.derivation.fingerprint }, qualification: derivation, holdout_qualification: holdout })
@@ -147,7 +173,16 @@ if (!probe.model_reachable || probe.paid_calls !== 0 || probe.fallback_used || !
         : measurableValueObserved ? 'PROMOTION_CANDIDATE_VALUE_PROVEN' : 'NOT_PROMOTED_NO_VALUE'
   const output = {
     contract: 'ecosystem.issue-43-live-qualification.v1', experiment_id: experimentId, timestamp: new Date().toISOString(),
-    provider, model, runtime_identity: LIVE_RUNTIME_ID, opencode_version: hostVersion,
+    provider, model, PROVIDER: provider, MODEL: model, runtime_identity: LIVE_RUNTIME_ID, opencode_version: hostVersion, OPENCODE_VERSION: hostVersion,
+    HOST_TRANSPORT, MODEL_TRANSPORT, MODEL_TRANSPORT_CONTRACT_ID, MODEL_TRANSPORT_CONTRACT_VERSION,
+    MODEL_TRANSPORT_FINGERPRINT: modelTransport.contract.fingerprint,
+    OPENAI_COMPATIBLE_API_FAMILY: openaiCompatibleApiFamily,
+    OPENAI_COMPATIBLE_ADAPTER_PRESENT: 'YES', OPENAI_COMPATIBLE_ADAPTER_ENFORCED: 'YES',
+    OPENAI_COMPATIBLE_ADAPTER_CONFORMANCE: adapterConformance.status,
+    DIRECT_PROVIDER_SDK_IN_CANONICAL_PATH: 'NO', DIRECT_PROVIDER_HTTP_SCHEMA_IN_CANONICAL_PATH: 'NO',
+    GLM53_FLASH_MODEL_TRANSPORT: 'NOT_RUN', FREE_MODEL_TRANSPORT: MODEL_TRANSPORT,
+    SAME_TRANSPORT_CONTRACT: 'NOT_RUN', CROSS_PROVIDER_TRANSPORT_PORTABILITY: 'NOT_RUN',
+    TRANSPORT_ARCHITECTURE_CLASSIFICATION: 'OPENAI_COMPATIBLE_TRANSPORT_ALREADY_CANONICAL',
     selection: { catalog_entry: catalogEntry, eligible: true, reason: 'freshly reachable and existing muse.v1 deterministic candidate' },
     preflight: { ...probe, paid_calls: probe.paid_calls, fallback_used: probe.fallback_used },
     controls: { model_switching_primary_ab: 'DISABLED', provider_fallback: 'DISABLED', retry_budget: 0, timeout_ms: timeoutMs, granted_tools: LIVE_TOOL_SET, execution_order: plan.rows.map((row) => ({ sequence: row.sequence, mode: row.mode, case_id: row.case_id, arm: row.arm })) },

@@ -1,7 +1,10 @@
 # Issue #43 — First live adaptive-harness qualification
 
-Run date: 2026-09-03. Evidence artifact:
-[`issue-43-live-qualification-20260903T1854Z-control-fix.json`](issue-43-live-qualification-20260903T1854Z-control-fix.json).
+Run date: 2026-09-03 (hosted), 2026-09-13 (local). Evidence artifacts:
+[`issue-43-live-qualification-20260903T1854Z-control-fix.json`](issue-43-live-qualification-20260903T1854Z-control-fix.json)
+(hosted),
+[`local-qualification-2026-09-13T07-41-56Z.json`](../.opencode/reports/local-qualification-2026-09-13T07-41-56Z.json)
+(local Ollama).
 
 ## Result
 
@@ -106,3 +109,63 @@ but does not prove adaptive-harness value. The highest-value next step is a
 larger repeated holdout using the same frozen protocol, plus a genuinely
 interposed model-facing observation path if Issue #43 is intended to measure
 OCAE adaptation rather than host-native observation handling.
+
+---
+
+## Local Ollama model qualification (2026-09-13)
+
+Run date: 2026-09-13. Model: `qwen2.5-coder:3b` (3.1B params, Q4_K_M).
+Endpoint: `http://localhost:11434/v1` (Ollama OpenAI-compatible API).
+Provider: `local-openai-compatible`. PAID_MODEL_CALLS=0.
+
+### Configuration
+
+| Item | Value |
+|---|---|
+| Runtime | `local-openai-compatible` (direct Ollama API, no OpenCode CLI) |
+| Endpoint fingerprint | `sha256:89caf70a6a58a082c8bd16cc0a4ad72d0a2ab0a8d0f495421057ebb5ce6460ee` |
+| Derivation corpus | `ce63fbc19d2fd7294865d565cd107d4f56130cccc289c774e466005350897db5` |
+| Holdout corpus | `d3e181571481511ccbbc630b3ed640eb3453b4f0992b3c39c5a5bd74e1159590` |
+| Plan fingerprint | `af7c4b1166450625ce3550315861a93708f7e53a96a7f9f9472f8739c95784e2` |
+
+### Results
+
+| Measure | Derivation (n=6) | Holdout (n=4) |
+|---|---:|---:|
+| Verified success | 2/6 | 0/4 |
+| Tool selection correct | 2/2 | 0/0 |
+| Tool argument validity | 0/2 | 0/0 |
+| Required tool used | 2/2 | 0/0 |
+| Observation comprehension | 2/2 | 0/0 |
+| Fabricated results | 0/2 | 0/0 |
+
+### Failure analysis
+
+The model `qwen2.5-coder:3b` exhibits two critical limitations:
+
+1. **No native tool calling**: The model returns tool calls as JSON text in the
+   `content` field rather than using the OpenAI `tool_calls` API. The
+   `finish_reason` is `stop`, not `tool_calls`. This requires text-parsing
+   workarounds that are fragile.
+
+2. **Cannot handle tool results**: After receiving a tool result (even as a user
+   message), the model attempts to call a nonexistent `answer` tool instead of
+   processing the result and generating a final answer. The 3B parameter model
+   lacks the instruction-following capacity for multi-step tool-calling loops.
+
+Only two cases passed: `compiler-failure` (single read+edit, model answered
+directly without tool call) and `timeout` (read-only, model answered directly
+without tool call). Both cases succeeded because the model did not attempt tool
+calling and instead processed the file content from its training context.
+
+### Decision
+
+`LOCAL_CLASSIFICATION=RED_NO_TOOL_CALL_CAPABILITY`
+
+`LOCAL_PROMOTION_DECISION=REJECTED`. The model lacks fundamental tool-calling
+capability required for the adaptive harness qualification. A 3B parameter model
+is insufficient for multi-step tool-use scenarios. Larger models (7B+) with
+native tool-calling support would be needed for local qualification.
+
+The hosted qualification (`opencode/muse-spark-1.2-contributor-free`) remains the
+only qualified zero-cost model for Issue #43.

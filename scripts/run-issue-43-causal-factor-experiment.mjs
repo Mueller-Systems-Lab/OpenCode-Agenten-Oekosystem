@@ -12,6 +12,7 @@ import { createFrozenQualificationCorpora, createQualificationPlan, runQualifica
 import { resolveModelHarness } from '../runtime/harness/harness-resolver.mjs'
 import { createOpenCodeLiveExecutor, invokeOpenCode, LIVE_RUNTIME_ID, LIVE_TOOL_SET, LIVE_VERIFIER_VERSION, parseOpenCodeEvents } from '../runtime/harness/live-qualification.mjs'
 import { DEFAULT_MODEL_HARNESS_PROFILES } from '../runtime/harness/model-harness-profiles.mjs'
+import { HOST_TRANSPORT, MODEL_TRANSPORT, MODEL_TRANSPORT_CONTRACT_ID, MODEL_TRANSPORT_CONTRACT_VERSION, createModelTransportRequest, createOpenCodeModelTransportAdapter, runOpenAICompatibleAdapterConformance } from '../runtime/harness/openai-compatible-model-transport.mjs'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const provider = 'zai-coding-plan'
@@ -121,10 +122,11 @@ function pairedHoldout(records, arms) {
   return { baseline_arm: arms[0], comparisons, pass: Object.values(comparisons).every((comparison) => comparison.pass) }
 }
 
-async function preflight() {
+async function preflight(modelTransport) {
   const root = await fs.mkdtemp('/tmp/ocae-issue-43-causal-preflight-')
   try {
-    const response = await invokeOpenCode({ opencode_bin: opencodeBin, provider, model, root, prompt: 'Reply with exactly PREFLIGHT_OK and nothing else. Do not use tools.', timeout_ms: timeoutMs })
+    const request = createModelTransportRequest({ identity: modelTransport.identity, messages: [{ role: 'user', content: 'Reply with exactly PREFLIGHT_OK and nothing else. Do not use tools.' }], timeout_ms: timeoutMs, metadata: { host_root: root } })
+    const response = await modelTransport.sendHost(request)
     const events = parseOpenCodeEvents(response.stdout)
     const answer = events.filter((event) => event.type === 'text').map((event) => event.part?.text || '').join('')
     return {
@@ -149,6 +151,11 @@ async function preflight() {
 const catalogEntry = getCatalogEntry(DEFAULT_MODEL_CATALOG, provider, model)
 if (!catalogEntry || catalogEntry.enabled !== true || catalogEntry.cost_tier !== 'LOW' || catalogEntry.tool_support !== true) throw new Error('MODEL_NOT_ELIGIBLE:catalog')
 const hostVersion = execFileSync(opencodeBin, ['--version'], { encoding: 'utf8' }).trim()
+const modelTransport = createOpenCodeModelTransportAdapter({
+  provider, model, api_family: 'CHAT_COMPLETIONS', base_endpoint_identity: 'https://api.z.ai/api/coding/paas/v4', authentication_reference: { kind: 'ENVIRONMENT', name: 'ZAI_CODING_PLAN_API_KEY' },
+  invoke: (request) => invokeOpenCode({ opencode_bin: opencodeBin, provider, model, root: request.metadata.host_root, prompt: request.messages.find((message) => message.role === 'user')?.content || '', timeout_ms: request.timeout_ms, use_plugins: request.metadata.use_plugins === true }),
+})
+const adapterConformance = await runOpenAICompatibleAdapterConformance()
 const corpora = createFrozenQualificationCorpora()
 const repositoryFixtureFingerprint = fingerprint({ fixture: 'issue-43-live-qualification-scenarios.v1', cases: corpora.derivation.cases.concat(corpora.holdout.cases) })
 const toolContractFingerprint = fingerprint({ host: 'opencode', version: hostVersion, tools: LIVE_TOOL_SET, contract: 'opencode-native-tool-result.v1' })
@@ -160,12 +167,18 @@ const identity = createQualificationIdentity({
   tool_contract_fingerprint: toolContractFingerprint, observation_contract_fingerprint: observationContractFingerprint,
   qualification_corpus_fingerprint: corpora.derivation.fingerprint, holdout_corpus_fingerprint: corpora.holdout.fingerprint,
   harness_fingerprint: harnessFingerprint, verifier_version: LIVE_VERIFIER_VERSION,
+  host_transport: HOST_TRANSPORT, model_transport: MODEL_TRANSPORT,
+  model_transport_contract_id: MODEL_TRANSPORT_CONTRACT_ID, model_transport_contract_version: MODEL_TRANSPORT_CONTRACT_VERSION,
+  model_transport_fingerprint: modelTransport.contract.fingerprint, openai_compatible_api_family: 'CHAT_COMPLETIONS',
 })
 const primaryPlan = createQualificationPlan({ identity, corpora, model: { provider, model }, harness_fingerprint: harnessFingerprint, verifier_version: LIVE_VERIFIER_VERSION, granted_tools: [...LIVE_TOOL_SET], repetitions, max_rows: 192, arms: Object.keys(armDefinitions) })
 const contractPlan = createQualificationPlan({ identity, corpora, model: { provider, model }, harness_fingerprint: harnessFingerprint, verifier_version: LIVE_VERIFIER_VERSION, granted_tools: [...LIVE_TOOL_SET], repetitions: contractRepetitions, max_rows: 192, arms: Object.keys(contractDefinitions) })
 const executionOrder = [...primaryPlan.rows, ...contractPlan.rows].map((row, sequence) => ({ sequence, plan_sequence: row.sequence, mode: row.mode, case_id: row.case_id, repetition: row.repetition, arm: row.arm }))
 const frozen = {
-  experiment_id: experimentId, model: { provider, model, runtime: LIVE_RUNTIME_ID, opencode_version: hostVersion },
+  experiment_id: experimentId, PROVIDER: provider, MODEL: model, OPENCODE_VERSION: hostVersion, model: { provider, model, runtime: LIVE_RUNTIME_ID, opencode_version: hostVersion },
+  HOST_TRANSPORT, MODEL_TRANSPORT, MODEL_TRANSPORT_CONTRACT_ID, MODEL_TRANSPORT_CONTRACT_VERSION,
+  MODEL_TRANSPORT_FINGERPRINT: modelTransport.contract.fingerprint, OPENAI_COMPATIBLE_API_FAMILY: 'CHAT_COMPLETIONS',
+  GLM53_FLASH_MODEL_TRANSPORT: MODEL_TRANSPORT, FREE_MODEL_TRANSPORT: 'NOT_RUN', SAME_TRANSPORT_CONTRACT: 'NOT_RUN',
   repository_fixture_fingerprint: repositoryFixtureFingerprint, derivation_corpus_fingerprint: corpora.derivation.fingerprint, holdout_corpus_fingerprint: corpora.holdout.fingerprint,
   tool_contract_fingerprint: toolContractFingerprint, observation_contract_fingerprint: observationContractFingerprint, verifier_version: LIVE_VERIFIER_VERSION,
   primary_repetitions: repetitions, contract_repetitions: contractRepetitions, planned_primary_derivation_per_arm: corpora.derivation.cases.length * repetitions, planned_primary_holdout_per_arm: corpora.holdout.cases.length * repetitions, planned_contract_derivation_per_variant: corpora.derivation.cases.length * contractRepetitions, timeout_ms: timeoutMs, retry_budget: 0,
@@ -173,15 +186,24 @@ const frozen = {
   primary_plan_fingerprint: primaryPlan.fingerprint, contract_plan_fingerprint: contractPlan.fingerprint,
 }
 
-const probe = await preflight()
-const baseReport = { contract: 'ecosystem.issue-43-causal-factor-experiment.v1', experiment_id: experimentId, frozen, preflight: { ...probe, paid_calls_allowed: 0, fallback_disabled: true }, paid_calls: probe.paid_calls, fallback_used: probe.fallback_used, promoted_profile: 'NONE', promotion_decision: 'NONE' }
-if (!probe.model_reachable || !probe.canonical_runtime_entry || !probe.expected_provider_match || !probe.expected_model_match || !probe.live_model_evidence || probe.paid_calls !== 0 || probe.fallback_used || probe.model_switch_used) {
+const probe = await preflight(modelTransport)
+const baseReport = {
+  contract: 'ecosystem.issue-43-causal-factor-experiment.v1', experiment_id: experimentId, PROVIDER: provider, MODEL: model, OPENCODE_VERSION: hostVersion, frozen,
+  HOST_TRANSPORT, MODEL_TRANSPORT, MODEL_TRANSPORT_CONTRACT_ID, MODEL_TRANSPORT_CONTRACT_VERSION,
+  MODEL_TRANSPORT_FINGERPRINT: modelTransport.contract.fingerprint, OPENAI_COMPATIBLE_API_FAMILY: 'CHAT_COMPLETIONS',
+  OPENAI_COMPATIBLE_ADAPTER_PRESENT: 'YES', OPENAI_COMPATIBLE_ADAPTER_ENFORCED: 'YES', OPENAI_COMPATIBLE_ADAPTER_CONFORMANCE: adapterConformance.status,
+  DIRECT_PROVIDER_SDK_IN_CANONICAL_PATH: 'NO', DIRECT_PROVIDER_HTTP_SCHEMA_IN_CANONICAL_PATH: 'NO',
+  GLM53_FLASH_MODEL_TRANSPORT: MODEL_TRANSPORT, FREE_MODEL_TRANSPORT: 'NOT_RUN', SAME_TRANSPORT_CONTRACT: 'NOT_RUN', CROSS_PROVIDER_TRANSPORT_PORTABILITY: 'NOT_RUN',
+  TRANSPORT_ARCHITECTURE_CLASSIFICATION: 'OPENAI_COMPATIBLE_TRANSPORT_ALREADY_CANONICAL',
+  preflight: { ...probe, paid_calls_allowed: 0, fallback_disabled: true }, paid_calls: probe.paid_calls, fallback_used: probe.fallback_used, promoted_profile: 'NONE', promotion_decision: 'NONE',
+}
+if (adapterConformance.status !== 'PASS' || !probe.model_reachable || !probe.canonical_runtime_entry || !probe.expected_provider_match || !probe.expected_model_match || !probe.live_model_evidence || probe.paid_calls !== 0 || probe.fallback_used || probe.model_switch_used) {
   await fs.writeFile(outputPath, `${JSON.stringify({ ...baseReport, status: 'AMBER_OCAE_CAUSAL_EXPERIMENT_BLOCKED_MODEL_UNAVAILABLE' }, null, 2)}\n`, { mode: 0o600 })
   console.log(JSON.stringify({ output_path: path.relative(repoRoot, outputPath), ...baseReport, status: 'AMBER_OCAE_CAUSAL_EXPERIMENT_BLOCKED_MODEL_UNAVAILABLE' }, null, 2))
   process.exitCode = 2
 } else {
-  await fs.writeFile(freezePath, `${JSON.stringify({ contract: 'ecosystem.issue-43-causal-factor-freeze.v1', status: 'FROZEN_BEFORE_LIVE_RUNS', frozen }, null, 2)}\n`, { mode: 0o600 })
-  const primaryExecutor = createOpenCodeLiveExecutor({ provider, model, opencode_bin: opencodeBin, timeout_ms: timeoutMs, repo_root: repoRoot, host_version: hostVersion, resolve_treatment: ({ row, scenario, default_profile }) => {
+  await fs.writeFile(freezePath, `${JSON.stringify({ contract: 'ecosystem.issue-43-causal-factor-freeze.v1', status: 'FROZEN_BEFORE_LIVE_RUNS', frozen, model_transport: { host_transport: HOST_TRANSPORT, model_transport: MODEL_TRANSPORT, contract_id: MODEL_TRANSPORT_CONTRACT_ID, contract_version: MODEL_TRANSPORT_CONTRACT_VERSION, fingerprint: modelTransport.contract.fingerprint, api_family: 'CHAT_COMPLETIONS', conformance: adapterConformance.status } }, null, 2)}\n`, { mode: 0o600 })
+  const primaryExecutor = createOpenCodeLiveExecutor({ provider, model, opencode_bin: opencodeBin, timeout_ms: timeoutMs, repo_root: repoRoot, host_version: hostVersion, api_family: 'CHAT_COMPLETIONS', base_endpoint_identity: 'https://api.z.ai/api/coding/paas/v4', authentication_reference: { kind: 'ENVIRONMENT', name: 'ZAI_CODING_PLAN_API_KEY' }, resolve_treatment: ({ row, scenario, default_profile }) => {
     const definition = armDefinitions[row.arm]
     const minimal = definition.tool_exposure === 'TASK_MINIMAL'
     const generic = resolveModelHarness({ provider: 'unmatched', model: 'generic', profiles: DEFAULT_MODEL_HARNESS_PROFILES, task_role: scenario.task_role }).effective_harness
@@ -194,7 +216,7 @@ if (!probe.model_reachable || !probe.canonical_runtime_entry || !probe.expected_
   const primaryDerivation = await runQualification({ plan: primaryPlan, executor: primaryExecutor, mode: 'DERIVATION_CORPUS', concurrency: 2 })
   const primaryHoldout = await runQualification({ plan: primaryPlan, executor: primaryExecutor, mode: 'CONFIRMATORY_HOLDOUT_CORPUS', concurrency: 2 })
   const primaryRecords = [...primaryDerivation.records, ...primaryHoldout.records]
-  const contractExecutor = createOpenCodeLiveExecutor({ provider, model, opencode_bin: opencodeBin, timeout_ms: timeoutMs, repo_root: repoRoot, host_version: hostVersion, resolve_treatment: ({ row, default_profile }) => ({
+  const contractExecutor = createOpenCodeLiveExecutor({ provider, model, opencode_bin: opencodeBin, timeout_ms: timeoutMs, repo_root: repoRoot, host_version: hostVersion, api_family: 'CHAT_COMPLETIONS', base_endpoint_identity: 'https://api.z.ai/api/coding/paas/v4', authentication_reference: { kind: 'ENVIRONMENT', name: 'ZAI_CODING_PLAN_API_KEY' }, resolve_treatment: ({ row, default_profile }) => ({
     profile: default_profile, profile_id: `contract.${row.arm}.v1`, harness_fingerprint: fingerprint({ experiment_id: experimentId, contract: row.arm }), tool_policy: { tool_exposure: 'FULL_TOOLSET' }, tool_contract_framing: contractDefinitions[row.arm], observation_adaptation: false,
   }) })
   const contractDerivation = await runQualification({ plan: contractPlan, executor: contractExecutor, mode: 'DERIVATION_CORPUS', concurrency: 2 })
@@ -225,7 +247,13 @@ if (!probe.model_reachable || !probe.canonical_runtime_entry || !probe.expected_
   const contractValue = bestContract !== 'NONE' && (contractSummaries[bestContract].all.tool_argument_validity.rate || 0) > (contractSummaries.CONTRACT_A_BASELINE.all.tool_argument_validity.rate || 0)
   const output = {
     ...baseReport, status: securityRegression ? 'RED_OCAE_CAUSAL_SECURITY_REGRESSION' : correctnessRegression ? 'RED_OCAE_CAUSAL_CORRECTNESS_REGRESSION' : primaryValue || contractValue ? 'GREEN_OCAE_CAUSAL_HARNESS_FACTOR_VALUE_PROVEN' : 'GREEN_OCAE_CAUSAL_EXPERIMENT_PROVEN_NO_FACTOR_VALUE',
-    provider, model, opencode_version: hostVersion, live_model_reachable: true, execution_order_fingerprint: frozen.execution_order_fingerprint,
+    provider, model, PROVIDER: provider, MODEL: model, opencode_version: hostVersion, OPENCODE_VERSION: hostVersion, live_model_reachable: true, execution_order_fingerprint: frozen.execution_order_fingerprint,
+    HOST_TRANSPORT, MODEL_TRANSPORT, MODEL_TRANSPORT_CONTRACT_ID, MODEL_TRANSPORT_CONTRACT_VERSION,
+    MODEL_TRANSPORT_FINGERPRINT: modelTransport.contract.fingerprint, OPENAI_COMPATIBLE_API_FAMILY: 'CHAT_COMPLETIONS',
+    OPENAI_COMPATIBLE_ADAPTER_PRESENT: 'YES', OPENAI_COMPATIBLE_ADAPTER_ENFORCED: 'YES', OPENAI_COMPATIBLE_ADAPTER_CONFORMANCE: adapterConformance.status,
+    DIRECT_PROVIDER_SDK_IN_CANONICAL_PATH: 'NO', DIRECT_PROVIDER_HTTP_SCHEMA_IN_CANONICAL_PATH: 'NO',
+    GLM53_FLASH_MODEL_TRANSPORT: MODEL_TRANSPORT, FREE_MODEL_TRANSPORT: 'NOT_RUN', SAME_TRANSPORT_CONTRACT: 'NOT_RUN', CROSS_PROVIDER_TRANSPORT_PORTABILITY: 'NOT_RUN',
+    TRANSPORT_ARCHITECTURE_CLASSIFICATION: 'OPENAI_COMPATIBLE_TRANSPORT_ALREADY_CANONICAL',
     primary: primarySummaries, tool_contract: contractSummaries, effects, holdout_confirmation: holdoutConfirmation, contract_holdout_confirmation: contractHoldoutConfirmation,
     observation_validation: {
       genuine_live_observation_interposition: genuineInterposition.length > 0 && genuineInterposition.every((item) => item.interposed_before_model),

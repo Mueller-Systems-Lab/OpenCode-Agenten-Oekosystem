@@ -118,7 +118,7 @@ export function createQualificationPlan({ identity, corpora = createFrozenQualif
     }
   }
   if (rows.length > max_rows) fail('planned rows exceed bound')
-  return freeze({ contract: QUALIFICATION_RUNNER_CONTRACT, version: QUALIFICATION_RUNNER_VERSION, identity: { ...identity }, corpora, model: { ...model }, harness_fingerprint, verifier_version, granted_tools: [...granted_tools], repetitions, arms: [...arms], candidate_fingerprint, rows, fingerprint: fingerprint({ version: QUALIFICATION_RUNNER_VERSION, corpora: corpora.fingerprint, rows, harness_fingerprint, verifier_version, candidate_fingerprint }) })
+  return freeze({ contract: QUALIFICATION_RUNNER_CONTRACT, version: QUALIFICATION_RUNNER_VERSION, identity: { ...identity }, corpora, model: { ...model }, harness_fingerprint, verifier_version, granted_tools: [...granted_tools], repetitions, arms: [...arms], candidate_fingerprint, rows, fingerprint: fingerprint({ version: QUALIFICATION_RUNNER_VERSION, identity, corpora: corpora.fingerprint, rows, harness_fingerprint, verifier_version, candidate_fingerprint }) })
 }
 
 function metricForRecords(records, name, { lower_is_better = false } = {}) {
@@ -205,7 +205,13 @@ export function createLiveQualificationExecutor({ execute, metadata } = {}) {
   if (typeof execute !== 'function') fail('live executor callback required')
   if (!isObject(metadata) || metadata.canonical_runtime_entry !== true
     || metadata.provider_executor_contract !== 'ecosystem.provider-executor.v1'
-    || typeof metadata.provider !== 'string' || typeof metadata.model !== 'string') {
+    || typeof metadata.provider !== 'string' || typeof metadata.model !== 'string'
+    || metadata.host_transport !== 'OPENCODE'
+    || metadata.model_transport !== 'OPENAI_COMPATIBLE_ADAPTER'
+    || metadata.model_transport_contract_id !== 'ocae.openai-compatible-model-transport.v1'
+    || typeof metadata.model_transport_contract_version !== 'string'
+    || typeof metadata.model_transport_fingerprint !== 'string'
+    || typeof metadata.openai_compatible_api_family !== 'string') {
     fail('live executor requires canonical runtime/provider metadata')
   }
   return Object.freeze({ kind: 'canonical-live', provenance: 'canonical-opencode-runtime', metadata: { ...metadata }, execute })
@@ -214,7 +220,7 @@ export function createLiveQualificationExecutor({ execute, metadata } = {}) {
 export async function runQualification({ plan, executor, mode = null, concurrency = 1 } = {}) {
   if (!plan || plan.contract !== QUALIFICATION_RUNNER_CONTRACT) fail('qualification plan required')
   if (!executor || !['fixture', 'canonical-live'].includes(executor.kind) || typeof executor.execute !== 'function') fail('fixture or canonical live executor required')
-  if (executor.kind === 'canonical-live' && (!executor.metadata || executor.metadata.provider !== plan.model.provider || executor.metadata.model !== plan.model.model)) fail('live executor identity mismatch')
+  if (executor.kind === 'canonical-live' && (!executor.metadata || executor.metadata.provider !== plan.model.provider || executor.metadata.model !== plan.model.model || executor.metadata.host_transport !== plan.identity.host_transport || executor.metadata.model_transport !== plan.identity.model_transport || executor.metadata.model_transport_contract_id !== plan.identity.model_transport_contract_id || executor.metadata.model_transport_contract_version !== plan.identity.model_transport_contract_version || executor.metadata.model_transport_fingerprint !== plan.identity.model_transport_fingerprint || executor.metadata.openai_compatible_api_family !== plan.identity.openai_compatible_api_family)) fail('live executor identity mismatch')
   if (mode && !QUALIFICATION_MODES.includes(mode)) fail('invalid execution mode')
   if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 2) fail('concurrency must be 1..2')
   const records = []
@@ -249,6 +255,12 @@ export async function runQualification({ plan, executor, mode = null, concurrenc
       raw_observation_receipt: safeObservationReceipt(result.raw_observation_receipt),
       canonical_verifier: result.canonical_verifier === true,
       canonical_runtime_entry: result.canonical_runtime_entry === true,
+      host_transport: result.host_transport === 'OPENCODE' ? 'OPENCODE' : null,
+      model_transport: result.model_transport === 'OPENAI_COMPATIBLE_ADAPTER' ? 'OPENAI_COMPATIBLE_ADAPTER' : null,
+      model_transport_contract_id: typeof result.model_transport_contract_id === 'string' ? result.model_transport_contract_id : null,
+      model_transport_contract_version: typeof result.model_transport_contract_version === 'string' ? result.model_transport_contract_version : null,
+      model_transport_fingerprint: typeof result.model_transport_fingerprint === 'string' ? result.model_transport_fingerprint : null,
+      openai_compatible_api_family: typeof result.openai_compatible_api_family === 'string' ? result.openai_compatible_api_family : null,
       live_model_evidence: result.live_model_evidence === true,
       paid_calls: Number.isInteger(result.paid_calls) ? result.paid_calls : 0,
       fallback_used: result.fallback_used === true,

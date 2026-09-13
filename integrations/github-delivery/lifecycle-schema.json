@@ -1,0 +1,128 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/xxammaxx/opencode-agent-ecosystem/integrations/github-delivery/lifecycle-schema.json",
+  "title": "Issue-to-Merge Delivery Lifecycle Schema",
+  "description": "Machine-readable lifecycle states, transitions, and gates for GitHub delivery workflow",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "lifecycle": {
+      "type": "object",
+      "properties": {
+        "states": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "enum": [
+                  "ISSUE_READY",
+                  "STORY_PLANNED",
+                  "IMPLEMENTATION_IN_PROGRESS",
+                  "TESTING",
+                  "SECURITY_REVIEW",
+                  "COMPLIANCE_REVIEW",
+                  "VISUAL_QA",
+                  "PRE_PR_CHECK",
+                  "PR_DRAFT",
+                  "PR_READY_FOR_REVIEW",
+                  "PR_APPROVED",
+                  "PRE_MERGE_CHECK",
+                  "MERGE_DECISION_PACKET",
+                  "MERGE_BLOCKED",
+                  "MERGED"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "required_gates": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "fail_closed": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "required": ["id", "name", "description", "required_gates", "fail_closed"]
+          }
+        },
+        "transitions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              },
+              "trigger": {
+                "type": "string"
+              },
+              "required_evidence": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "authorized_roles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "fail_closed": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "required": ["from", "to", "trigger", "required_evidence", "authorized_roles", "fail_closed"]
+          }
+        },
+        "gates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["automated", "manual", "hybrid"]
+              },
+              "required_evidence": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "fail_closed": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "required": ["id", "name", "type", "required_evidence", "fail_closed"]
+          }
+        }
+      },
+      "required": ["states", "transitions", "gates"]
+    }
+  },
+  "required": ["schema_version", "lifecycle"]
+}

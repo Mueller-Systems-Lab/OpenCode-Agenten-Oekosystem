@@ -11,6 +11,15 @@ import { applyToolExposure, composeWorkerTaskText } from './apply-harness.mjs'
 import { resolveModelHarness } from './harness-resolver.mjs'
 import { DEFAULT_MODEL_HARNESS_PROFILES } from './model-harness-profiles.mjs'
 import { fingerprint } from './empirical-capability-contract.mjs'
+import {
+  HOST_TRANSPORT,
+  MODEL_TRANSPORT,
+  MODEL_TRANSPORT_CONTRACT_ID,
+  MODEL_TRANSPORT_CONTRACT_VERSION,
+  createHostToolDefinitions,
+  createModelTransportRequest,
+  createOpenCodeModelTransportAdapter,
+} from './openai-compatible-model-transport.mjs'
 
 export const LIVE_VERIFIER_VERSION = 'issue-43-live-verifier.v1'
 export const LIVE_RUNTIME_ID = 'opencode-cli-free-transport'
@@ -362,8 +371,26 @@ export function parseOpenCodeEvents(stdout) {
   return parseEvents(stdout)
 }
 
-export function createOpenCodeLiveExecutor({ provider, model, opencode_bin = 'opencode', timeout_ms = 90000, repo_root = path.resolve(import.meta.dirname, '../..'), resolve_treatment = null, host_version = '1.18.25' } = {}) {
+export function createOpenCodeLiveExecutor({ provider, model, opencode_bin = 'opencode', timeout_ms = 90000, repo_root = path.resolve(import.meta.dirname, '../..'), resolve_treatment = null, host_version = '1.18.25', api_family = 'UNKNOWN', base_endpoint_identity = null, authentication_reference = null } = {}) {
   if (typeof provider !== 'string' || typeof model !== 'string') throw new Error('CONTRACT_INVALID:live-qualification:model identity required')
+  const modelTransport = createOpenCodeModelTransportAdapter({
+    provider,
+    model,
+    api_family,
+    base_endpoint_identity,
+    authentication_reference,
+    invoke: (request) => invokeOpenCode({ opencode_bin, provider, model, root: request.metadata.host_root, prompt: request.messages.find((message) => message.role === 'user')?.content || '', timeout_ms: request.timeout_ms, use_plugins: request.metadata.use_plugins === true }),
+    normalize_host_response: (hostResponse, request) => {
+      const events = parseEvents(hostResponse.stdout)
+      const calls = toolCallsFromEvents(events, request.metadata.host_root)
+      return {
+        text: textFromEvents(events),
+        tool_calls: calls.map((call, index) => ({ id: call.call_id || `host-call-${index + 1}`, type: 'function', function: { name: call.tool || 'unknown', arguments: JSON.stringify(call.input || {}) } })),
+        finish_reason: calls.length > 0 ? 'tool_calls' : hostResponse.ok === false ? 'error' : 'stop',
+        structured_metadata: { host_transport: HOST_TRANSPORT, model_transport: MODEL_TRANSPORT, request_id: request.request_id, event_types: events.map((event) => event.type || null) },
+      }
+    },
+  })
   return createLiveQualificationExecutor({
     metadata: {
       canonical_runtime_entry: true,
@@ -374,6 +401,12 @@ export function createOpenCodeLiveExecutor({ provider, model, opencode_bin = 'op
       live_capable: true,
       fallback_disabled: true,
       model_switching_disabled: true,
+      host_transport: HOST_TRANSPORT,
+      model_transport: MODEL_TRANSPORT,
+      model_transport_contract_id: MODEL_TRANSPORT_CONTRACT_ID,
+      model_transport_contract_version: MODEL_TRANSPORT_CONTRACT_VERSION,
+      model_transport_fingerprint: modelTransport.contract.fingerprint,
+      openai_compatible_api_family: api_family,
     },
     execute: async (row) => {
       const scenario = await scenarioFor(row.test_case)
@@ -397,9 +430,17 @@ export function createOpenCodeLiveExecutor({ provider, model, opencode_bin = 'op
         const tracePath = path.join(root, 'observation-trace.jsonl')
         const workspace = workspaceFingerprint(scenario.files)
         const started = Date.now()
-        const response = await invokeOpenCode({ opencode_bin, provider, model, root, prompt: taskText, timeout_ms, use_plugins: Boolean(adapterMode) })
+        const transportRequest = createModelTransportRequest({
+          identity: modelTransport.identity,
+          messages: [{ role: 'user', content: taskText }],
+          tools: createHostToolDefinitions(exposure.exposed_tools),
+          timeout_ms,
+          metadata: { host_root: root, use_plugins: Boolean(adapterMode) },
+        })
+        const response = await modelTransport.sendHost(transportRequest)
         const events = parseEvents(response.stdout)
-        const answer = textFromEvents(events)
+        const transportResponse = response.normalized_response
+        const answer = transportResponse?.text ?? textFromEvents(events)
         const calls = toolCallsFromEvents(events, root)
         const trace = await readObservationTrace(tracePath)
         const traceObservations = trace.filter((item) => item.type === 'observation')
@@ -460,6 +501,8 @@ export function createOpenCodeLiveExecutor({ provider, model, opencode_bin = 'op
             provenance_preserved: traceObservations.length > 0 && traceObservations.every((observation) => observation.raw_observation_fingerprint === observation.raw_observation?.raw_fingerprint),
           },
           verifier_result: { ok: verified && !adaptationMissing, code: verified && !adaptationMissing ? 'LIVE_FIXTURE_VERIFIER_PASS' : 'LIVE_FIXTURE_VERIFIER_FAIL' },
+          model_transport_response: transportResponse,
+          model_transport_error: response.transport_error,
           answer_fingerprint: fingerprint(answer),
           answer_length: answer.length,
           answer_preview: answer.slice(0, 240),
@@ -519,6 +562,12 @@ export function createOpenCodeLiveExecutor({ provider, model, opencode_bin = 'op
           debug_lifecycle_events: response.debug_lifecycle_events || [],
           debug_log_fingerprint: response.debug_log_fingerprint || null,
           debug_log_excerpt: response.debug_log_excerpt || '',
+          host_transport: HOST_TRANSPORT,
+          model_transport: MODEL_TRANSPORT,
+          model_transport_contract_id: MODEL_TRANSPORT_CONTRACT_ID,
+          model_transport_contract_version: MODEL_TRANSPORT_CONTRACT_VERSION,
+          model_transport_fingerprint: modelTransport.contract.fingerprint,
+          openai_compatible_api_family: api_family,
         }
       } finally {
         await fs.rm(root, { recursive: true, force: true })

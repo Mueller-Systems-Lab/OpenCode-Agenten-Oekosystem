@@ -17,6 +17,43 @@ OCAE_OWNS_DISCOVERY_STRATEGY_AND_POLICY
 
 This decision refines the Issue #43 research direction without changing the stable OCAE product by itself.
 
+## Model transport boundary
+
+The host boundary above is separate from the model-provider transport boundary:
+
+```text
+TASK / AGENT
+    ↓
+OCAE GOVERNANCE + HARNESS
+    ↓
+OPENCODE HOST
+    ├── workspace
+    ├── tools
+    ├── plugins
+    └── sessions
+    ↓
+OPENAI-COMPATIBLE MODEL TRANSPORT v1
+    ↓
+provider / model
+```
+
+The executable contract is
+`ocae.openai-compatible-model-transport.v1` (version `1.0.0`). It normalizes
+provider/model identity, endpoint identity, secret references, messages,
+function definitions, tool calls and IDs, tool results, stop reasons, usage,
+streaming/non-streaming lifecycle, timeouts, rate limits, errors, response text,
+and structured metadata. It never carries raw credentials.
+
+OpenCode remains the host transport and owns provider package resolution,
+session lifecycle, tool execution, plugin execution, and permissions. OCAE owns
+model routing policy and verifies that the selected host adapter is the
+canonical model transport. Z.AI / GLM-5.3 Flash, OpenCode free models,
+OpenRouter-compatible models, local OpenAI-compatible inference, and future
+compatible providers are model identities behind this same boundary; they are
+not OCAE core transport implementations.
+
+The living model-transport map is [opencode-model-transport-boundary.mmd](opencode-model-transport-boundary.mmd).
+
 ## Why this boundary exists
 
 The OpenCode host already provides the project/worktree context and the operational tool surface used by OCAE-managed agents. OCAE's canonical governance plugin receives host project/directory/worktree context and governs OpenCode tool calls such as read, grep, glob, lsp, write/edit, delegation, and external access.

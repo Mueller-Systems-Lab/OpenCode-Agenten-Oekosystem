@@ -1,0 +1,470 @@
+name: GitHub Delivery Lifecycle
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to deliver'
+        required: true
+        type: string
+      branch_name:
+        description: 'Branch name for delivery'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull_requests: write
+  issues: read
+
+concurrency:
+  group: github-delivery-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DELIVERY_ID: "delivery-${{ github.run_id }}"
+  EVIDENCE_DIR: "/tmp/opencode/T3-implementation"
+
+jobs:
+  delivery-lifecycle:
+    name: Delivery Lifecycle
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      pull_requests: write
+      issues: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@49c0513f45e5976beb8b40e8e1a37c0571c1c845 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Validate delivery inputs
+        id: validate
+        env:
+          ISSUE_NUMBER_INPUT: ${{ github.event.inputs.issue_number || '' }}
+          BRANCH_NAME_INPUT: ${{ github.event.inputs.branch_name || '' }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          ISSUE_NUMBER="$ISSUE_NUMBER_INPUT"
+          BRANCH_NAME="$BRANCH_NAME_INPUT"
+          
+          if [ -z "$ISSUE_NUMBER" ] && [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "ERROR: Issue number required for workflow_dispatch"
+            exit 1
+          fi
+          
+          if [ -z "$BRANCH_NAME" ] && [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "ERROR: Branch name required for workflow_dispatch"
+            exit 1
+          fi
+          
+          echo "issue_number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+          echo "validation=PASS" >> "$GITHUB_OUTPUT"
+
+      - name: Initialize delivery evidence
+        if: steps.validate.outputs.validation == 'PASS'
+        run: |
+          mkdir -p "$EVIDENCE_DIR"
+          
+          cat > "$EVIDENCE_DIR/delivery-${{ env.DELIVERY_ID }}.json" << EOF
+          {
+            "delivery_id": "${{ env.DELIVERY_ID }}",
+            "issue_number": "${{ steps.validate.outputs.issue_number }}",
+            "branch_name": "${{ steps.validate.outputs.branch_name }}",
+            "state": "ISSUE_READY",
+            "started_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "evidence": {}
+          }
+          EOF
+
+      - name: Issue readiness check
+        if: steps.validate.outputs.validation == 'PASS' && steps.validate.outputs.issue_number != ''
+        id: issue_check
+        run: |
+          ISSUE_NUMBER="${{ steps.validate.outputs.issue_number }}"
+          
+          # Check issue exists
+          if ! gh issue view "$ISSUE_NUMBER" --repo "${{ github.repository }}" --json title,body,labels,state > "$EVIDENCE_DIR/issue-view-${{ env.DELIVERY_ID }}.json" 2>&1; then
+            echo "ERROR: Issue $ISSUE_NUMBER not found"
+            echo "issue_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          # Check issue is open
+          STATE=$(jq -r '.state' "$EVIDENCE_DIR/issue-view-${{ env.DELIVERY_ID }}.json")
+          if [ "$STATE" != "OPEN" ]; then
+            echo "ERROR: Issue $ISSUE_NUMBER is not open"
+            echo "issue_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          # Check issue has labels
+          LABELS=$(jq -r '.labels | length' "$EVIDENCE_DIR/issue-view-${{ env.DELIVERY_ID }}.json")
+          if [ "$LABELS" -eq 0 ]; then
+            echo "ERROR: Issue $ISSUE_NUMBER has no labels"
+            echo "issue_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          echo "issue_check=PASS" >> "$GITHUB_OUTPUT"
+
+      - name: Story completeness check
+        if: steps.validate.outputs.validation == 'PASS' && steps.issue_check.outputs.issue_check == 'PASS'
+        id: story_check
+        run: |
+          # Check story spec exists
+          if [ ! -f "story-spec-${{ steps.validate.outputs.issue_number }}.md" ]; then
+            echo "ERROR: Story spec not found"
+            echo "story_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          # Check acceptance criteria exist
+          if ! grep -q "Acceptance Criteria" "story-spec-${{ steps.validate.outputs.issue_number }}.md"; then
+            echo "ERROR: Acceptance criteria not found"
+            echo "story_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          # Check size estimate exists
+          if ! grep -q "Story Points" "story-spec-${{ steps.validate.outputs.issue_number }}.md"; then
+            echo "ERROR: Size estimate not found"
+            echo "story_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          echo "story_check=PASS" >> "$GITHUB_OUTPUT"
+
+      - name: Implementation readiness check
+        if: steps.validate.outputs.validation == 'PASS' && steps.story_check.outputs.story_check == 'PASS'
+        id: impl_check
+        run: |
+          BRANCH_NAME="${{ steps.validate.outputs.branch_name }}"
+          
+          # Check branch exists
+          if ! git rev-parse --verify "$BRANCH_NAME" > /dev/null 2>&1; then
+            echo "ERROR: Branch $BRANCH_NAME not found"
+            echo "impl_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          # Check implementation plan exists
+          if [ ! -f "implementation-plan-${{ steps.validate.outputs.issue_number }}.md" ]; then
+            echo "ERROR: Implementation plan not found"
+            echo "impl_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          echo "impl_check=PASS" >> "$GITHUB_OUTPUT"
+
+      - name: Test execution
+        if: steps.validate.outputs.validation == 'PASS' && steps.impl_check.outputs.impl_check == 'PASS'
+        id: test_check
+        run: |
+          # Run tests
+          if ! npm test > "$EVIDENCE_DIR/test-results-${{ env.DELIVERY_ID }}.json" 2>&1; then
+            echo "ERROR: Tests failed"
+            echo "test_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          # Check coverage threshold
+          COVERAGE=$(cat "$EVIDENCE_DIR/test-results-${{ env.DELIVERY_ID }}.json" | jq -r '.coverage.lines')
+          if [ "$COVERAGE" -lt 80 ]; then
+            echo "ERROR: Coverage below threshold (80%)"
+            echo "test_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          echo "test_check=PASS" >> "$GITHUB_OUTPUT"
+
+      - name: Security review check
+        if: steps.validate.outputs.validation == 'PASS' && steps.test_check.outputs.test_check == 'PASS'
+        id: security_check
+        run: |
+          # Check security review exists
+          if [ ! -f "security-review-${{ steps.validate.outputs.issue_number }}.md" ]; then
+            echo "ERROR: Security review not found"
+            echo "security_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          # Check vulnerability scan passed
+          if ! grep -q "VULNERABILITY_SCAN: PASS" "security-review-${{ steps.validate.outputs.issue_number }}.md"; then
+            echo "ERROR: Vulnerability scan not passed"
+            echo "security_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          echo "security_check=PASS" >> "$GITHUB_OUTPUT"
+
+      - name: Compliance review check
+        if: steps.validate.outputs.validation == 'PASS' && steps.security_check.outputs.security_check == 'PASS'
+        id: compliance_check
+        run: |
+          # Check compliance review exists
+          if [ ! -f "compliance-review-${{ steps.validate.outputs.issue_number }}.md" ]; then
+            echo "ERROR: Compliance review not found"
+            echo "compliance_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          # Check DSGVO check passed
+          if ! grep -q "DSGVO_CHECK: PASS" "compliance-review-${{ steps.validate.outputs.issue_number }}.md"; then
+            echo "ERROR: DSGVO check not passed"
+            echo "compliance_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          echo "compliance_check=PASS" >> "$GITHUB_OUTPUT"
+
+      - name: Visual QA check
+        if: steps.validate.outputs.validation == 'PASS' && steps.compliance_check.outputs.compliance_check == 'PASS'
+        id: visual_check
+        run: |
+          # Check if visual changes exist
+          if git diff --name-only HEAD~1 | grep -qE "\.(css|scss|less|vue|jsx|tsx)$"; then
+            # Visual changes detected, run visual QA
+            if ! npx playwright test --grep "visual" > "$EVIDENCE_DIR/visual-qa-${{ env.DELIVERY_ID }}.json" 2>&1; then
+              echo "ERROR: Visual QA failed"
+              echo "visual_check=FAIL" >> "$GITHUB_OUTPUT"
+              exit 1
+            fi
+          else
+            # No visual changes, record N/A
+            echo "VISUAL_QA: N/A - No visual changes detected" > "$EVIDENCE_DIR/visual-qa-${{ env.DELIVERY_ID }}.txt"
+          fi
+          
+          echo "visual_check=PASS" >> "$GITHUB_OUTPUT"
+
+      - name: Pre-PR checks
+        if: steps.validate.outputs.validation == 'PASS' && steps.visual_check.outputs.visual_check == 'PASS'
+        id: prepr_check
+        run: |
+          # Run lint
+          if ! npm run lint > "$EVIDENCE_DIR/lint-results-${{ env.DELIVERY_ID }}.json" 2>&1; then
+            echo "ERROR: Lint failed"
+            echo "prepr_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          # Run build
+          if ! npm run build > "$EVIDENCE_DIR/build-results-${{ env.DELIVERY_ID }}.json" 2>&1; then
+            echo "ERROR: Build failed"
+            echo "prepr_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          echo "prepr_check=PASS" >> "$GITHUB_OUTPUT"
+
+      - name: Create draft PR
+        if: steps.validate.outputs.validation == 'PASS' && steps.prepr_check.outputs.prepr_check == 'PASS' && github.event_name == 'workflow_dispatch'
+        id: create_pr
+        env:
+          ISSUE_NUMBER: ${{ steps.validate.outputs.issue_number }}
+          BRANCH_NAME: ${{ steps.validate.outputs.branch_name }}
+        run: |
+          # Get issue title
+          ISSUE_TITLE=$(jq -r '.title' "$EVIDENCE_DIR/issue-view-${{ env.DELIVERY_ID }}.json")
+          
+          # Create draft PR
+          PR_URL=$(gh pr create \
+            --draft \
+            --title "feat: ${ISSUE_TITLE}" \
+            --body "Closes #${ISSUE_NUMBER}" \
+            --base master \
+            --head "$BRANCH_NAME")
+          
+          # Record PR evidence
+          echo "$PR_URL" > "$EVIDENCE_DIR/pr-url-${{ env.DELIVERY_ID }}.txt"
+          echo "$(git rev-parse HEAD)" > "$EVIDENCE_DIR/pr-sha-${{ env.DELIVERY_ID }}.txt"
+          
+          echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
+          echo "pr_check=PASS" >> "$GITHUB_OUTPUT"
+
+      - name: All gates pass check
+        if: steps.validate.outputs.validation == 'PASS'
+        id: gates_check
+        run: |
+          REQUIRED_GATES=(
+            "issue_check"
+            "story_check"
+            "impl_check"
+            "test_check"
+            "security_check"
+            "compliance_check"
+            "visual_check"
+            "prepr_check"
+          )
+          
+          for gate in "${REQUIRED_GATES[@]}"; do
+            if [ "${!gate}" != "PASS" ]; then
+              echo "ERROR: Gate $gate not passed"
+              echo "gates_check=FAIL" >> "$GITHUB_OUTPUT"
+              exit 1
+            fi
+          done
+          
+          echo "gates_check=PASS" >> "$GITHUB_OUTPUT"
+
+      - name: PR ready for review
+        if: steps.validate.outputs.validation == 'PASS' && steps.gates_check.outputs.gates_check == 'PASS' && steps.create_pr.outputs.pr_url != ''
+        run: |
+          PR_URL="${{ steps.create_pr.outputs.pr_url }}"
+          gh pr ready "$PR_URL"
+
+      - name: Pre-merge check
+        if: steps.validate.outputs.validation == 'PASS' && steps.gates_check.outputs.gates_check == 'PASS' && github.event_name == 'pull_request'
+        id: premerge_check
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          # Run final CI checks
+          if ! gh checks "$PR_URL" --required > "$EVIDENCE_DIR/premerge-checks-${{ env.DELIVERY_ID }}.json" 2>&1; then
+            echo "ERROR: Final CI checks failed"
+            echo "premerge_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          echo "premerge_check=PASS" >> "$GITHUB_OUTPUT"
+
+      - name: Generate decision packet
+        if: steps.validate.outputs.validation == 'PASS' && steps.premerge_check.outputs.premerge_check == 'PASS'
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          ISSUE_NUMBER: ${{ steps.validate.outputs.issue_number }}
+        run: |
+          # Generate decision packet
+          cat > "$EVIDENCE_DIR/decision-packet-${{ env.DELIVERY_ID }}.json" << EOF
+          {
+            "delivery_id": "${{ env.DELIVERY_ID }}",
+            "issue_number": "$ISSUE_NUMBER",
+            "pr_url": "$PR_URL",
+            "pr_sha": "$PR_SHA",
+            "evidence_summary": {
+              "tests_pass": true,
+              "security_review": true,
+              "compliance_review": true,
+              "visual_qa": true,
+              "all_gates_pass": true
+            },
+            "recommendation": "APPROVE",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+
+      - name: Record final evidence
+        if: always()
+        run: |
+          # Record final state
+          jq --arg state "${{ steps.gates_check.outputs.gates_check == 'PASS' && 'MERGE_DECISION_PACKET' || 'MERGE_BLOCKED' }}" \
+             '.state = $state | .completed_at = now | .completed_at_iso = (now | todate)' \
+             "$EVIDENCE_DIR/delivery-${{ env.DELIVERY_ID }}.json" > "$EVIDENCE_DIR/delivery-${{ env.DELIVERY_ID }}-final.json" 2>/dev/null || true
+
+      - name: Upload evidence artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: delivery-evidence-${{ env.DELIVERY_ID }}
+          path: ${{ env.EVIDENCE_DIR }}/
+          retention-days: 30
+
+      - name: Fail on any check failure
+        if: |
+          steps.validate.outputs.validation != 'PASS' ||
+          steps.issue_check.outputs.issue_check == 'FAIL' ||
+          steps.story_check.outputs.story_check == 'FAIL' ||
+          steps.impl_check.outputs.impl_check == 'FAIL' ||
+          steps.test_check.outputs.test_check == 'FAIL' ||
+          steps.security_check.outputs.security_check == 'FAIL' ||
+          steps.compliance_check.outputs.compliance_check == 'FAIL' ||
+          steps.visual_check.outputs.visual_check == 'FAIL' ||
+          steps.prepr_check.outputs.prepr_check == 'FAIL' ||
+          steps.gates_check.outputs.gates_check == 'FAIL' ||
+          steps.premerge_check.outputs.premerge_check == 'FAIL'
+        run: |
+          echo "ERROR: One or more delivery gates failed"
+          exit 1
+
+  merge-gate:
+    name: Merge Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull_requests: write
+    needs: delivery-lifecycle
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Validate merge readiness
+        id: merge_check
+        env:
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Check decision packet exists
+          if [ ! -f "$EVIDENCE_DIR/decision-packet-${{ github.run_id }}.json" ]; then
+            echo "ERROR: Decision packet not found"
+            echo "merge_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          # Check exact SHA matches
+          PACKET_SHA=$(jq -r '.pr_sha' "$EVIDENCE_DIR/decision-packet-${{ github.run_id }}.json")
+          if [ "$PACKET_SHA" != "$PR_SHA" ]; then
+            echo "ERROR: SHA mismatch - expected $PACKET_SHA, got $PR_SHA"
+            echo "merge_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          # Check recommendation is APPROVE
+          RECOMMENDATION=$(jq -r '.recommendation' "$EVIDENCE_DIR/decision-packet-${{ github.run_id }}.json")
+          if [ "$RECOMMENDATION" != "APPROVE" ]; then
+            echo "ERROR: Recommendation is not APPROVE"
+            echo "merge_check=FAIL" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          
+          echo "merge_check=PASS" >> "$GITHUB_OUTPUT"
+
+      - name: Block merge without owner approval
+        if: steps.merge_check.outputs.merge_check == 'PASS'
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          echo "WARNING: Merge ready but blocked pending owner approval"
+          echo "Owner must approve merge with exact SHA token"
+          echo "No autonomous merge allowed"
+          
+          # Create comment on PR
+          gh pr comment "$PR_URL" \
+            --body "## Merge Ready but Blocked
+            
+            All delivery gates have passed. Merge is blocked pending owner approval.
+            
+            **Requirements:**
+            - [ ] Owner decision packet reviewed
+            - [ ] Exact SHA-bound token provided
+            - [ ] Owner approval received
+            
+            **No autonomous merge allowed.**"

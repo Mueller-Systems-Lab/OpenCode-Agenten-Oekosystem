@@ -53,6 +53,10 @@ const identity = (overrides = {}) => createQualificationIdentity({
   tool_contract_fingerprint: A, observation_contract_fingerprint: B,
   qualification_corpus_fingerprint: A, holdout_corpus_fingerprint: B,
   harness_fingerprint: A, verifier_version: 'test-v1',
+  host_transport: 'FIXTURE', model_transport: 'OPENAI_COMPATIBLE_ADAPTER',
+  model_transport_contract_id: 'ocae.openai-compatible-model-transport.v1',
+  model_transport_contract_version: '1.0.0', model_transport_fingerprint: A,
+  openai_compatible_api_family: 'BOTH_NORMALIZED',
   ...overrides,
 })
 

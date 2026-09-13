@@ -1,0 +1,320 @@
+schema_version: "1.0.0"
+lifecycle:
+  id: "issue-to-merge-delivery"
+  name: "Issue-to-Merge Delivery Lifecycle"
+  description: "Complete lifecycle from issue creation to merge decision packet"
+  version: "1.0.0"
+
+  states:
+    - id: "ISSUE_READY"
+      name: "Issue Ready"
+      description: "Issue is triaged and ready for work"
+      required_gates: ["issue_triage"]
+      fail_closed: true
+
+    - id: "STORY_PLANNED"
+      name: "Story Planned"
+      description: "Story is planned with acceptance criteria and size estimate"
+      required_gates: ["story_completeness", "story_size"]
+      fail_closed: true
+
+    - id: "IMPLEMENTATION_IN_PROGRESS"
+      name: "Implementation In Progress"
+      description: "Code implementation is in progress"
+      required_gates: ["implementation_started"]
+      fail_closed: true
+
+    - id: "TESTING"
+      name: "Testing"
+      description: "Tests are being written and executed"
+      required_gates: ["tests_pass", "coverage_threshold"]
+      fail_closed: true
+
+    - id: "SECURITY_REVIEW"
+      name: "Security Review"
+      description: "Security-agent reviews implementation"
+      required_gates: ["security_review_pass"]
+      fail_closed: true
+
+    - id: "COMPLIANCE_REVIEW"
+      name: "Compliance Review"
+      description: "Compliance-agent reviews DSGVO/GDPR compliance"
+      required_gates: ["compliance_review_pass"]
+      fail_closed: true
+
+    - id: "VISUAL_QA"
+      name: "Visual QA"
+      description: "Visual QA runs for visual paths, records N/A otherwise"
+      required_gates: ["visual_qa_pass"]
+      fail_closed: true
+
+    - id: "PRE_PR_CHECK"
+      name: "Pre-PR Check"
+      description: "Final checks before PR creation"
+      required_gates: ["pre_pr_checks"]
+      fail_closed: true
+
+    - id: "PR_DRAFT"
+      name: "PR Draft"
+      description: "Draft PR created against master"
+      required_gates: ["draft_pr_created"]
+      fail_closed: true
+
+    - id: "PR_READY_FOR_REVIEW"
+      name: "PR Ready for Review"
+      description: "PR ready for review when all gates pass"
+      required_gates: ["all_gates_pass"]
+      fail_closed: true
+
+    - id: "PR_APPROVED"
+      name: "PR Approved"
+      description: "PR approved by reviewer"
+      required_gates: ["review_approved"]
+      fail_closed: true
+
+    - id: "PRE_MERGE_CHECK"
+      name: "Pre-Merge Check"
+      description: "Final checks before merge decision"
+      required_gates: ["pre_merge_checks"]
+      fail_closed: true
+
+    - id: "MERGE_DECISION_PACKET"
+      name: "Merge Decision Packet"
+      description: "Owner merge decision packet produced"
+      required_gates: ["decision_packet_ready"]
+      fail_closed: true
+
+    - id: "MERGE_BLOCKED"
+      name: "Merge Blocked"
+      description: "Merge blocked pending owner decision"
+      required_gates: ["owner_decision"]
+      fail_closed: true
+
+    - id: "MERGED"
+      name: "Merged"
+      description: "PR merged to master"
+      required_gates: ["merge_complete"]
+      fail_closed: true
+
+  transitions:
+    - from: "ISSUE_READY"
+      to: "STORY_PLANNED"
+      trigger: "story_planning_complete"
+      required_evidence: ["story_spec", "acceptance_criteria", "size_estimate"]
+      authorized_roles: ["issue-orchestrator", "executor"]
+      fail_closed: true
+
+    - from: "STORY_PLANNED"
+      to: "IMPLEMENTATION_IN_PROGRESS"
+      trigger: "implementation_started"
+      required_evidence: ["implementation_plan", "branch_created"]
+      authorized_roles: ["executor"]
+      fail_closed: true
+
+    - from: "IMPLEMENTATION_IN_PROGRESS"
+      to: "TESTING"
+      trigger: "implementation_complete"
+      required_evidence: ["code_complete", "unit_tests_written"]
+      authorized_roles: ["executor"]
+      fail_closed: true
+
+    - from: "TESTING"
+      to: "SECURITY_REVIEW"
+      trigger: "tests_pass"
+      required_evidence: ["test_results", "coverage_report"]
+      authorized_roles: ["executor"]
+      fail_closed: true
+
+    - from: "SECURITY_REVIEW"
+      to: "COMPLIANCE_REVIEW"
+      trigger: "security_pass"
+      required_evidence: ["security_review_report", "vulnerability_scan"]
+      authorized_roles: ["security-agent"]
+      fail_closed: true
+
+    - from: "COMPLIANCE_REVIEW"
+      to: "VISUAL_QA"
+      trigger: "compliance_pass"
+      required_evidence: ["compliance_review_report", "dsgvo_check"]
+      authorized_roles: ["compliance-agent"]
+      fail_closed: true
+
+    - from: "VISUAL_QA"
+      to: "PRE_PR_CHECK"
+      trigger: "visual_qa_complete"
+      required_evidence: ["visual_qa_report", "screenshot_evidence"]
+      authorized_roles: ["playwright-agent", "ux-review-agent"]
+      fail_closed: true
+
+    - from: "PRE_PR_CHECK"
+      to: "PR_DRAFT"
+      trigger: "pre_pr_checks_pass"
+      required_evidence: ["pre_pr_checklist", "lint_pass", "build_pass"]
+      authorized_roles: ["executor"]
+      fail_closed: true
+
+    - from: "PR_DRAFT"
+      to: "PR_READY_FOR_REVIEW"
+      trigger: "all_gates_pass"
+      required_evidence: ["all_gate_results", "draft_pr_url"]
+      authorized_roles: ["executor"]
+      fail_closed: true
+
+    - from: "PR_READY_FOR_REVIEW"
+      to: "PR_APPROVED"
+      trigger: "review_approved"
+      required_evidence: ["review_approval", "review_comments_resolved"]
+      authorized_roles: ["review-agent"]
+      fail_closed: true
+
+    - from: "PR_APPROVED"
+      to: "PRE_MERGE_CHECK"
+      trigger: "pre_merge_initiated"
+      required_evidence: ["pre_merge_checklist"]
+      authorized_roles: ["executor"]
+      fail_closed: true
+
+    - from: "PRE_MERGE_CHECK"
+      to: "MERGE_DECISION_PACKET"
+      trigger: "decision_packet_ready"
+      required_evidence: ["decision_packet", "evidence_summary"]
+      authorized_roles: ["executor"]
+      fail_closed: true
+
+    - from: "MERGE_DECISION_PACKET"
+      to: "MERGE_BLOCKED"
+      trigger: "awaiting_owner_decision"
+      required_evidence: ["decision_packet_sent"]
+      authorized_roles: ["approval-coordinator"]
+      fail_closed: true
+
+    - from: "MERGE_BLOCKED"
+      to: "MERGED"
+      trigger: "owner_approves_merge"
+      required_evidence: ["owner_approval", "exact_sha_token"]
+      authorized_roles: ["approval-coordinator"]
+      fail_closed: true
+
+  gates:
+    - id: "issue_triage"
+      name: "Issue Triage"
+      type: "manual"
+      required_evidence: ["issue_labels", "issue_priority"]
+      fail_closed: true
+
+    - id: "story_completeness"
+      name: "Story Completeness"
+      type: "automated"
+      required_evidence: ["story_spec", "acceptance_criteria", "size_estimate"]
+      fail_closed: true
+
+    - id: "story_size"
+      name: "Story Size Gate"
+      type: "automated"
+      required_evidence: ["size_estimate", "complexity_analysis"]
+      fail_closed: true
+
+    - id: "implementation_started"
+      name: "Implementation Started"
+      type: "automated"
+      required_evidence: ["branch_created", "implementation_plan"]
+      fail_closed: true
+
+    - id: "tests_pass"
+      name: "Tests Pass"
+      type: "automated"
+      required_evidence: ["test_results", "coverage_report"]
+      fail_closed: true
+
+    - id: "coverage_threshold"
+      name: "Coverage Threshold"
+      type: "automated"
+      required_evidence: ["coverage_report"]
+      fail_closed: true
+
+    - id: "security_review_pass"
+      name: "Security Review Pass"
+      type: "manual"
+      required_evidence: ["security_review_report", "vulnerability_scan"]
+      fail_closed: true
+
+    - id: "compliance_review_pass"
+      name: "Compliance Review Pass"
+      type: "manual"
+      required_evidence: ["compliance_review_report", "dsgvo_check"]
+      fail_closed: true
+
+    - id: "visual_qa_pass"
+      name: "Visual QA Pass"
+      type: "hybrid"
+      required_evidence: ["visual_qa_report", "screenshot_evidence"]
+      fail_closed: true
+
+    - id: "pre_pr_checks"
+      name: "Pre-PR Checks"
+      type: "automated"
+      required_evidence: ["lint_pass", "build_pass", "pre_pr_checklist"]
+      fail_closed: true
+
+    - id: "draft_pr_created"
+      name: "Draft PR Created"
+      type: "automated"
+      required_evidence: ["draft_pr_url", "draft_pr_sha"]
+      fail_closed: true
+
+    - id: "all_gates_pass"
+      name: "All Gates Pass"
+      type: "automated"
+      required_evidence: ["all_gate_results"]
+      fail_closed: true
+
+    - id: "review_approved"
+      name: "Review Approved"
+      type: "manual"
+      required_evidence: ["review_approval", "review_comments_resolved"]
+      fail_closed: true
+
+    - id: "pre_merge_checks"
+      name: "Pre-Merge Checks"
+      type: "automated"
+      required_evidence: ["pre_merge_checklist", "final_ci_pass"]
+      fail_closed: true
+
+    - id: "decision_packet_ready"
+      name: "Decision Packet Ready"
+      type: "automated"
+      required_evidence: ["decision_packet", "evidence_summary"]
+      fail_closed: true
+
+    - id: "owner_decision"
+      name: "Owner Decision"
+      type: "manual"
+      required_evidence: ["owner_approval", "exact_sha_token"]
+      fail_closed: true
+
+    - id: "merge_complete"
+      name: "Merge Complete"
+      type: "automated"
+      required_evidence: ["merge_sha", "merge_timestamp"]
+      fail_closed: true
+
+  metadata:
+    created: "2026-09-13"
+    author: "xxammaxx"
+    license: "MIT"
+    repository: "opencode-agent-ecosystem"
+    target_branch: "master"
+    required_permissions:
+      contents: "read"
+      pull_requests: "write"
+      issues: "write"
+    security_constraints:
+      no_pull_request_target: true
+      no_untrusted_secrets: true
+      sha_pinned_actions: true
+      concurrency_control: true
+      fail_closed_checks: true
+    merge_constraints:
+      exact_sha_bound_token: true
+      owner_decision_packet: true
+      no_autonomous_merge: true

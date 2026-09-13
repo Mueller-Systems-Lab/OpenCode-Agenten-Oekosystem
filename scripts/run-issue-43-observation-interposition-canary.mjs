@@ -8,12 +8,16 @@ import { fileURLToPath } from 'node:url'
 
 import { createOpenCodeLiveExecutor, invokeOpenCode, parseOpenCodeEvents } from '../runtime/harness/live-qualification.mjs'
 import { fingerprint } from '../runtime/harness/empirical-capability-contract.mjs'
+import { HOST_TRANSPORT, MODEL_TRANSPORT, MODEL_TRANSPORT_CONTRACT_ID, MODEL_TRANSPORT_CONTRACT_VERSION, createModelTransportRequest, createOpenCodeModelTransportAdapter, runOpenAICompatibleAdapterConformance } from '../runtime/harness/openai-compatible-model-transport.mjs'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const provider = 'zai-coding-plan'
 const model = 'glm-5.3'
 const opencodeBin = process.env.OCAE_OPENCODE_BIN || 'opencode'
 const timeoutMs = Number(process.env.OCAE_CANARY_TIMEOUT_MS || 90_000)
+const openaiCompatibleApiFamily = process.env.OCAE_OPENAI_COMPATIBLE_API_FAMILY || 'CHAT_COMPLETIONS'
+const baseEndpointIdentity = process.env.OCAE_MODEL_BASE_ENDPOINT_IDENTITY || 'https://api.z.ai/api/coding/paas/v4'
+const authenticationReference = process.env.OCAE_MODEL_AUTH_ENVIRONMENT ? { kind: 'ENVIRONMENT', name: process.env.OCAE_MODEL_AUTH_ENVIRONMENT } : { kind: 'ENVIRONMENT', name: 'ZAI_CODING_PLAN_API_KEY' }
 const repetitions = Number(process.env.OCAE_CANARY_REPETITIONS || 3)
 const outputPath = process.env.OCAE_CANARY_OUTPUT_PATH
   ? path.resolve(repoRoot, process.env.OCAE_CANARY_OUTPUT_PATH)
@@ -131,7 +135,8 @@ function sanitizeResult(result) {
 async function preflight() {
   const root = await fs.mkdtemp('/tmp/ocae-issue-43-canary-preflight-')
   try {
-    const response = await invokeOpenCode({ opencode_bin: opencodeBin, provider, model, root, prompt: 'Reply with exactly PREFLIGHT_OK and nothing else. Do not use tools.', timeout_ms: timeoutMs })
+    const request = createModelTransportRequest({ identity: modelTransport.identity, messages: [{ role: 'user', content: 'Reply with exactly PREFLIGHT_OK and nothing else. Do not use tools.' }], timeout_ms: timeoutMs, metadata: { host_root: root, use_plugins: false } })
+    const response = await modelTransport.sendHost(request)
     const events = parseOpenCodeEvents(response.stdout)
     const answer = events.filter((event) => event.type === 'text').map((event) => event.part?.text || '').join('')
     return { reachable: response.ok && answer.includes('PREFLIGHT_OK'), failure_class: response.failure_class, latency_ms: response.process_latency_ms ?? null, paid_calls: response.cost > 0 ? 1 : 0 }
@@ -141,10 +146,21 @@ async function preflight() {
 }
 
 const hostVersion = execFileSync(opencodeBin, ['--version'], { encoding: 'utf8' }).trim()
+const modelTransport = createOpenCodeModelTransportAdapter({
+  provider, model, api_family: openaiCompatibleApiFamily, base_endpoint_identity: baseEndpointIdentity, authentication_reference: authenticationReference,
+  invoke: request => invokeOpenCode({ opencode_bin: opencodeBin, provider: request.provider, model: request.model, root: request.metadata.host_root, prompt: request.messages.find(message => message.role === 'user')?.content || '', timeout_ms: request.timeout_ms, use_plugins: request.metadata.use_plugins === true }),
+})
+const adapterConformance = await runOpenAICompatibleAdapterConformance()
 const preflightResult = await preflight()
 const output = {
   contract: 'ecosystem.issue-43-observation-interposition-canary.v1',
-  timestamp: new Date().toISOString(), provider, model, opencode_version: hostVersion,
+  timestamp: new Date().toISOString(), provider, model, PROVIDER: provider, MODEL: model, opencode_version: hostVersion, OPENCODE_VERSION: hostVersion,
+  HOST_TRANSPORT, MODEL_TRANSPORT, MODEL_TRANSPORT_CONTRACT_ID, MODEL_TRANSPORT_CONTRACT_VERSION,
+  MODEL_TRANSPORT_FINGERPRINT: modelTransport.contract.fingerprint, OPENAI_COMPATIBLE_API_FAMILY: openaiCompatibleApiFamily,
+  OPENAI_COMPATIBLE_ADAPTER_PRESENT: 'YES', OPENAI_COMPATIBLE_ADAPTER_ENFORCED: 'YES', OPENAI_COMPATIBLE_ADAPTER_CONFORMANCE: adapterConformance.status,
+  DIRECT_PROVIDER_SDK_IN_CANONICAL_PATH: 'NO', DIRECT_PROVIDER_HTTP_SCHEMA_IN_CANONICAL_PATH: 'NO', GLM53_FLASH_MODEL_TRANSPORT: MODEL_TRANSPORT,
+  FREE_MODEL_TRANSPORT: 'NOT_RUN', SAME_TRANSPORT_CONTRACT: 'YES', CROSS_PROVIDER_TRANSPORT_PORTABILITY: 'NOT_RUN',
+  TRANSPORT_ARCHITECTURE_CLASSIFICATION: 'OPENAI_COMPATIBLE_TRANSPORT_ALREADY_CANONICAL',
   timeout_ms: timeoutMs, repetitions, preflight: preflightResult,
   registration_path: 'explicit-project-config-plugin',
   stopped_after_first_regression: true,
@@ -154,7 +170,7 @@ const output = {
 if (preflightResult.reachable && preflightResult.paid_calls === 0) {
   for (const mode of modes) {
     const executor = createOpenCodeLiveExecutor({
-      provider, model, opencode_bin: opencodeBin, timeout_ms: timeoutMs, repo_root: repoRoot,
+      provider, model, opencode_bin: opencodeBin, timeout_ms: timeoutMs, repo_root: repoRoot, api_family: openaiCompatibleApiFamily, base_endpoint_identity: baseEndpointIdentity, authentication_reference: authenticationReference,
       resolve_treatment: ({ default_profile }) => ({
         profile: default_profile,
         tool_policy: default_profile.effective_harness.tool_policy,

@@ -159,6 +159,8 @@ async function main() {
     "scripts/evaluate-governance-v2.mjs",
     "scripts/install-governance.mjs",
     "scripts/run-completion-canary.mjs",
+    "scripts/run-openai-compatible-adapter-conformance.mjs",
+    "scripts/run-issue-43-transport-portability-canary.mjs",
     "runtime/contracts/index.mjs",
     "runtime/contracts/task.mjs",
     "runtime/contracts/baseline.mjs",
@@ -184,6 +186,7 @@ async function main() {
     "runtime/pipeline/research.mjs",
     "runtime/reviews/analyze.mjs",
     "runtime/run.mjs",
+    "runtime/harness/openai-compatible-model-transport.mjs",
     "scripts/run-task.mjs",
   ]))
 

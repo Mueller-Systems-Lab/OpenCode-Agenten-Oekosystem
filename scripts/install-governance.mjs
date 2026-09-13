@@ -253,6 +253,7 @@ function validateSourceRepository(repoRoot) {
     "runtime/harness/harness-resolver.mjs",
     "runtime/harness/apply-harness.mjs",
     "runtime/harness/index.mjs",
+    "runtime/harness/openai-compatible-model-transport.mjs",
   ]
   const missing = []
   for (const rel of required) {
@@ -362,6 +363,7 @@ function getRuntimeFileList() {
     { source: "runtime/harness/harness-resolver.mjs", dest: "harness/harness-resolver.mjs" },
     { source: "runtime/harness/apply-harness.mjs", dest: "harness/apply-harness.mjs" },
     { source: "runtime/harness/index.mjs", dest: "harness/index.mjs" },
+    { source: "runtime/harness/openai-compatible-model-transport.mjs", dest: "harness/openai-compatible-model-transport.mjs" },
     // security/ — tool result egress gate (runtime-critical for MCP tool-executor)
     { source: "runtime/security/tool-result-egress-gate.mjs", dest: "security/tool-result-egress-gate.mjs" },
     // reviews/ — deterministic review analyzers

@@ -22,6 +22,16 @@
   ],
 
   "mcp": {
+    "playwright": {
+      "type": "local",
+      "command": [
+        "sh",
+        "-lc",
+        "exec npx @playwright/mcp@latest --user-data-dir=\"${XDG_STATE_HOME:-$HOME/.local/state}/opencode-agenten-oekosystem/playwright-github-profile\""
+      ],
+      "enabled": true,
+      "timeout": 30000
+    },
     "github": {
       "type": "remote",
       "url": "https://api.githubcopilot.com/mcp/",

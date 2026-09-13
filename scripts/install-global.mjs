@@ -29,6 +29,12 @@ const globalConfigRoot = path.join(
   process.env.XDG_CONFIG_HOME ?? path.join(homeDir, ".config"),
   "opencode",
 )
+const stateRoot = process.env.XDG_STATE_HOME ?? path.join(homeDir, ".local", "state")
+const playwrightProfileRoot = path.join(
+  stateRoot,
+  "opencode-agenten-oekosystem",
+  "playwright-github-profile",
+)
 
 // ---------------------------------------------------------------------------
 // CLI entry
@@ -88,6 +94,11 @@ async function install() {
     throw new Error(`Target exists but is not a directory: ${globalConfigRoot}`)
   }
 
+  // The Playwright MCP profile is deliberately outside the repository and
+  // OpenCode config mirror. It is persistent browser state, not source data.
+  await assertSafePath(stateRoot, playwrightProfileRoot, "Playwright MCP profile")
+  await ensureDirectory(playwrightProfileRoot)
+
   // 3 — Backup existing config if present ------------------------------------
   const backupRoot = path.join(globalConfigRoot, ".backups", timestampSlug())
   if (await pathExists(globalConfigRoot)) {
@@ -131,9 +142,13 @@ async function install() {
     }
   }
 
-  // 7 — Copy opencode.jsonc as opencode.json ---------------------------------
+  // 7 — Copy the canonical OpenCode config into the active global filename.
+  // OpenCode gives opencode.jsonc precedence when both files exist.
   const configSource = path.join(repoRoot, "opencode.jsonc")
-  const configTarget = path.join(globalConfigRoot, "opencode.json")
+  const configTarget = path.join(
+    globalConfigRoot,
+    (await pathExists(path.join(globalConfigRoot, "opencode.jsonc"))) ? "opencode.jsonc" : "opencode.json",
+  )
   await assertSafePath(repoRoot, configSource, "config source")
   await assertSafePath(globalConfigRoot, configTarget, "config target")
   if (await lstatIfExists(configSource)) {
@@ -141,6 +156,7 @@ async function install() {
   }
 
   console.log(`Installed OpenCode config into ${globalConfigRoot}`)
+  console.log(`Playwright MCP profile directory: ${playwrightProfileRoot}`)
   console.log("Restart OpenCode so it reloads the updated configuration.")
 }
 
@@ -155,8 +171,10 @@ async function dryRun() {
   if (repoStat.isSymbolicLink()) throw new Error(`Repository root is a symlink and is not allowed: ${repoRoot}`)
 
   await assertSafePath(homeDir, globalConfigRoot, "OpenCode config root")
+  await assertSafePath(stateRoot, playwrightProfileRoot, "Playwright MCP profile")
 
   console.log(`[DRY-RUN] Would install OpenCode config to: ${globalConfigRoot}`)
+  console.log(`[DRY-RUN] Would use Playwright MCP profile: ${playwrightProfileRoot}`)
   console.log(`[DRY-RUN] Source repository root:     ${repoRoot}`)
 
   const targetStat = await lstatIfExists(globalConfigRoot)
@@ -242,6 +260,7 @@ async function collectExistingFiles(root) {
     path.join(root, "CONTRIBUTING.md"),
     path.join(root, "SECURITY.md"),
     path.join(root, "opencode.json"),
+    path.join(root, "opencode.jsonc"),
     path.join(root, ".opencode"),
     path.join(root, "agents"),
     path.join(root, "skills"),
@@ -282,7 +301,7 @@ async function collectSourceFiles(root = repoRoot) {
     ["AGENTS.md", "AGENTS.md"],
     ["CONTRIBUTING.md", "CONTRIBUTING.md"],
     ["SECURITY.md", "SECURITY.md"],
-    ["opencode.jsonc", "opencode.json"],
+    ["opencode.jsonc", (await pathExists(path.join(globalConfigRoot, "opencode.jsonc"))) ? "opencode.jsonc" : "opencode.json"],
   ]
   for (const [srcName, dstName] of filesToCopy) {
     const source = path.join(root, srcName)

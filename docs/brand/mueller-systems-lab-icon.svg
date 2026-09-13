@@ -1,14 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
-  <title id="title">Mueller-Systems-Lab icon</title>
-  <desc id="desc">Silver angular M and S monogram with cyan signal and system ring.</desc>
-  <rect width="1024" height="1024" rx="160" fill="#071426"/>
-  <g transform="translate(202 197) scale(1.45)" fill="none" stroke-linecap="square" stroke-linejoin="miter">
-    <path d="M72 286V72l150 126L372 72v214" stroke="#E5EAF0" stroke-width="42"/>
-    <path d="M352 153H207c-37 0-62 27-62 62s25 62 62 62h78c37 0 62 27 62 62s-25 62-62 62H143" stroke="#9AA8B8" stroke-width="42"/>
-    <path d="M18 250h72l22-34 24 68 28-112 29 158 25-80h112" stroke="#5ED6FF" stroke-width="13"/>
-    <circle cx="18" cy="250" r="12" fill="#5ED6FF" stroke="none"/>
-    <circle cx="330" cy="250" r="12" fill="#5ED6FF" stroke="none"/>
-    <path d="M84 134A215 215 0 0 1 430 132M76 366A215 215 0 0 0 430 366" stroke="#20B8F2" stroke-width="9"/>
-    <path d="M260 414v25m-43 0h86m-63 18h40" stroke="#5ED6FF" stroke-width="9"/>
+  <title id="title">Mueller Systems Lab mark</title>
+  <desc id="desc">Vector reconstruction of the supplied Mueller Systems Lab branding: silver M and S, cyan segmented system ring, measurement pulse, terminals and ground symbol on deep navy.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="72%"><stop offset="0" stop-color="#071a31"/><stop offset="0.68" stop-color="#031326"/><stop offset="1" stop-color="#020d1c"/></radialGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.28" stop-color="#edf0f3"/><stop offset="0.55" stop-color="#cbd1d8"/><stop offset="0.8" stop-color="#a9b1bb"/><stop offset="1" stop-color="#e5e9ed"/></linearGradient>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#62ddff"/><stop offset="0.55" stop-color="#20b9f0"/><stop offset="1" stop-color="#197ec0"/></linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="72" fill="url(#bg)"/>
+  <g fill="none" stroke="url(#cyan)" stroke-width="13" stroke-linecap="butt" opacity="0.95">
+    <path d="M357 178 A335 335 0 0 1 668 178"/><path d="M276 270 A335 335 0 0 0 273 467"/><path d="M279 513 A335 335 0 0 0 445 699"/><path d="M579 699 A335 335 0 0 0 745 513"/><path d="M751 467 A335 335 0 0 0 748 270"/>
   </g>
+  <path d="M323 236 L323 466 L370 466 L370 329 L512 455 L654 329 L654 515 L706 515 L706 236 L512 405 Z" fill="url(#silver)" stroke="#f7f8fa" stroke-width="2.2"/>
+  <path d="M630 481 H454 C411 481 388 511 388 545 C388 581 415 607 454 607 H576 C608 607 630 629 630 658 C630 689 606 709 573 709 H402" fill="none" stroke="url(#silver)" stroke-width="54" stroke-linecap="butt" stroke-linejoin="round"/>
+  <g fill="none" stroke="url(#cyan)" stroke-width="11" stroke-linecap="square" stroke-linejoin="miter"><circle cx="180" cy="493" r="18"/><path d="M198 493 H322 L337 467 L351 526 L368 450 L384 551 L402 400 L422 510 L438 474"/><path d="M630 518 H827"/><circle cx="846" cy="518" r="18"/></g>
+  <g fill="none" stroke="url(#cyan)" stroke-width="10" stroke-linecap="square"><path d="M512 709 V778"/><path d="M472 778 H552"/><path d="M484 801 H540"/><path d="M496 823 H528"/></g>
 </svg>

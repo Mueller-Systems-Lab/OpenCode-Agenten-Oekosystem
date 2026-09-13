@@ -1,9 +1,9 @@
 # OpenCode + Blackboard Integration Evidence
 
 Date: 2026-09-12
-Repository: canonical repository root
+Repository: `<REPO_ROOT>`
 OpenCode: `1.18.30`
-Binary: installed OpenCode binary
+Binary: `$HOME/.opencode/bin/opencode`
 
 ## Repository and preflight
 

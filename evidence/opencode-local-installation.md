@@ -3,19 +3,18 @@
 Date: 2026-09-12
 
 ```text
-SOURCE_REPOSITORY=canonical repository root
-SOURCE_HEAD=674a37e220c292909955a5d2fde46cc6ff65b8d4
-FINAL_HEAD=529923d2cf4370053bb62e2cab88574bedcc0164
-OPENCODE_BINARY=installed OpenCode binary
+SOURCE_REPOSITORY=<REPO_ROOT>
+SOURCE_HEAD=a568490e8b68ee3984feebda36c28c5b89a461f2
+OPENCODE_BINARY=$HOME/.opencode/bin/opencode
 OPENCODE_VERSION=1.18.30
-GLOBAL_CONFIG_DIR=global OpenCode configuration directory
+GLOBAL_CONFIG_DIR=$HOME/.config/opencode
 
 INSTALL_METHOD=adapters/opencode/install.py --global
-SKILL_INSTALL_PATH=global OpenCode skills/coordinate-blackboard-swarm
-AGENT_INSTALL_PATH=global OpenCode agents/swarm.md
-SUBAGENT_INSTALL_PATH=global OpenCode agents/swarm-worker.md
-TOOL_INSTALL_PATH=global OpenCode tools/swarm.ts
-PLUGIN_INSTALL_PATH=global OpenCode plugins/blackboard-ui
+SKILL_INSTALL_PATH=$HOME/.config/opencode/skills/coordinate-blackboard-swarm
+AGENT_INSTALL_PATH=$HOME/.config/opencode/agents/swarm.md
+SUBAGENT_INSTALL_PATH=$HOME/.config/opencode/agents/swarm-worker.md
+TOOL_INSTALL_PATH=$HOME/.config/opencode/tools/swarm.ts
+PLUGIN_INSTALL_PATH=$HOME/.config/opencode/plugins/blackboard-ui
 
 INSTALL_RUN_1=PASS
 INSTALL_RUN_2=PASS

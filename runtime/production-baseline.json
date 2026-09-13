@@ -151,7 +151,7 @@
     "runtime/agent/start.mjs",
     "scripts/run-completion-canary.mjs"
   ],
-  "baseline_fingerprint": "119a2e9f16220f1e220fcec71722b556d83b8fa6cc65074ec7508dd48d690f1a",
+  "baseline_fingerprint": "126298b5bfbaaa2ebcd27230e7fbd6b63cd42c0791e9e7127f5ca89d50f9ab54",
   "baseline_fingerprint_semantics": "commit-based structural fingerprint of core canonical architecture",
   "capability_baselines": {
     "PLAYWRIGHT_VISUAL_QA": {

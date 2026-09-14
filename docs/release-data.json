@@ -1,9 +1,9 @@
 {
-  "version": "1.1.3",
-  "tag": "v1.1.3",
-  "releaseCommit": "c69bc44d8fcecd314ffe0d9393a8d4f434aafc01",
+  "version": "1.1.4",
+  "tag": "v1.1.4",
+  "releaseCommit": "9157c9fe0425e1a69f0fcd7885c5615f4437f6c7",
   "sourceRepository": "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem",
-  "installCommand": "uv tool install ocae-cli --from git+https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git@v1.1.3",
+  "installCommand": "uv tool install ocae-cli --from git+https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git@v1.1.4",
   "primaryAgent": "issue-orchestrator",
   "agentCount": 13,
   "capabilityProfileCount": 13,

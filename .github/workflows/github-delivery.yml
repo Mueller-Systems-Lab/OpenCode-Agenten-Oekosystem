@@ -20,7 +20,7 @@ on:
 
 permissions:
   contents: read
-  pull_requests: write
+  pull-requests: write
   issues: read
 
 concurrency:
@@ -38,7 +38,7 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: read
-      pull_requests: write
+      pull-requests: write
       issues: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -407,7 +407,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
-      pull_requests: write
+      pull-requests: write
     needs: delivery-lifecycle
     if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     steps:

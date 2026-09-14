@@ -335,13 +335,13 @@ jobs:
           gh pr ready "$PR_URL"
 
       - name: Pre-merge check
-        if: steps.validate.outputs.validation == 'PASS' && steps.gates_check.outputs.gates_check == 'PASS' && github.event_name == 'pull_request'
+        if: steps.validate.outputs.validation == 'PASS' && steps.gates_check.outputs.gates_check == 'PASS' && steps.create_pr.outputs.pr_url != '' && github.event_name == 'pull_request' && github.event.pull_request.html_url == steps.create_pr.outputs.pr_url
         id: premerge_check
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: |
           # Run final CI checks
-          if ! gh checks "$PR_URL" --required > "$EVIDENCE_DIR/premerge-checks-${{ env.DELIVERY_ID }}.json" 2>&1; then
+          if ! gh pr checks "$PR_URL" --required > "$EVIDENCE_DIR/premerge-checks-${{ env.DELIVERY_ID }}.json" 2>&1; then
             echo "ERROR: Final CI checks failed"
             echo "premerge_check=FAIL" >> "$GITHUB_OUTPUT"
             exit 1

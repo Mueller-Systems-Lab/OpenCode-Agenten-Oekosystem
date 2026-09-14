@@ -114,6 +114,7 @@
   ],
   "governance": [
    "test/gates/approval-closure.test.mjs",
+   "test/governance/swarm-capability-registry.test.mjs",
    "test/prompt-governance/prompt-governance.test.mjs",
    "test/validation/validation.test.mjs"
   ],

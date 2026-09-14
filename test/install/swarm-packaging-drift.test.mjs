@@ -120,3 +120,18 @@ test('second apply with swarm runtime stays NOOP_IDEMPOTENT', async (t) => {
   const parsed = JSON.parse(second.stdout)
   assert.equal(parsed.mode, 'NOOP_IDEMPOTENT', `expected NOOP_IDEMPOTENT, got ${parsed.mode}`)
 })
+
+test('generated governance hook resolves parameterized native-tool actions', async (t) => {
+  const { target, env } = await createIsolatedTarget(t)
+  const applied = install(target, env)
+  assert.equal(applied.status, 0, applied.stderr || applied.stdout)
+  const hook = await fs.readFile(
+    path.join(target, '.agent-governance', 'hooks', 'opencode', 'canonical-governance.mjs'),
+    'utf8',
+  )
+  // The hook must pass the swarm tool's args.action into the effect gate and
+  // address the coordination state under the governed blackboard:// namespace;
+  // otherwise every native swarm call fails closed (RED_BLOCK_UNKNOWN_TOOL_EFFECT).
+  assert.match(hook, /nativeAction/, 'generated hook must extract args.action')
+  assert.match(hook, /blackboard:\/\/'/, 'generated hook must use the blackboard:// resource namespace')
+})

@@ -63,14 +63,15 @@ jobs:
           ISSUE_NUMBER="$ISSUE_NUMBER_INPUT"
           BRANCH_NAME="$BRANCH_NAME_INPUT"
           
-          if [ -z "$ISSUE_NUMBER" ] && [ "$EVENT_NAME" != "pull_request" ]; then
-            echo "ERROR: Issue number required for workflow_dispatch"
-            exit 1
-          fi
-          
-          if [ -z "$BRANCH_NAME" ] && [ "$EVENT_NAME" != "pull_request" ]; then
-            echo "ERROR: Branch name required for workflow_dispatch"
-            exit 1
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            if [ -z "$ISSUE_NUMBER" ]; then
+              echo "ERROR: Issue number required for workflow_dispatch"
+              exit 1
+            fi
+            if [ -z "$BRANCH_NAME" ]; then
+              echo "ERROR: Branch name required for workflow_dispatch"
+              exit 1
+            fi
           fi
           
           echo "issue_number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"

@@ -257,6 +257,383 @@
       "validation": "internal-runtime-state",
       "audit_level": "STANDARD"
     },
+    "swarm.next": {
+      "tool": "swarm",
+      "action": "next",
+      "effects": [
+        "READ"
+      ],
+      "effect_class": "LOCAL_READ",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.status": {
+      "tool": "swarm",
+      "action": "status",
+      "effects": [
+        "READ"
+      ],
+      "effect_class": "LOCAL_READ",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.snapshot": {
+      "tool": "swarm",
+      "action": "snapshot",
+      "effects": [
+        "READ"
+      ],
+      "effect_class": "LOCAL_READ",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.watch": {
+      "tool": "swarm",
+      "action": "watch",
+      "effects": [
+        "READ"
+      ],
+      "effect_class": "LOCAL_READ",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.init": {
+      "tool": "swarm",
+      "action": "init",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.add": {
+      "tool": "swarm",
+      "action": "add",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.propose": {
+      "tool": "swarm",
+      "action": "propose",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.admit": {
+      "tool": "swarm",
+      "action": "admit",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.reject": {
+      "tool": "swarm",
+      "action": "reject",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.claim": {
+      "tool": "swarm",
+      "action": "claim",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.renew": {
+      "tool": "swarm",
+      "action": "renew",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.dep": {
+      "tool": "swarm",
+      "action": "dep",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.run-create": {
+      "tool": "swarm",
+      "action": "run-create",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.run-current": {
+      "tool": "swarm",
+      "action": "run-current",
+      "effects": [
+        "READ"
+      ],
+      "effect_class": "LOCAL_READ",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.fact": {
+      "tool": "swarm",
+      "action": "fact",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.result": {
+      "tool": "swarm",
+      "action": "result",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.block": {
+      "tool": "swarm",
+      "action": "block",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.fail": {
+      "tool": "swarm",
+      "action": "fail",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.retry": {
+      "tool": "swarm",
+      "action": "retry",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.done": {
+      "tool": "swarm",
+      "action": "done",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.gate": {
+      "tool": "swarm",
+      "action": "gate",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.green": {
+      "tool": "swarm",
+      "action": "green",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.signal": {
+      "tool": "swarm",
+      "action": "signal",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.inhibit": {
+      "tool": "swarm",
+      "action": "inhibit",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.vote": {
+      "tool": "swarm",
+      "action": "vote",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.quorum": {
+      "tool": "swarm",
+      "action": "quorum",
+      "effects": [
+        "READ"
+      ],
+      "effect_class": "LOCAL_READ",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.scout": {
+      "tool": "swarm",
+      "action": "scout",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.scout-confirm": {
+      "tool": "swarm",
+      "action": "scout-confirm",
+      "effects": [
+        "WRITE"
+      ],
+      "effect_class": "LOCAL_STATE",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
+    "swarm.match": {
+      "tool": "swarm",
+      "action": "match",
+      "effects": [
+        "READ"
+      ],
+      "effect_class": "LOCAL_READ",
+      "approval_class": "A_AUTONOMOUS",
+      "reversibility": "FULLY_REVERSIBLE",
+      "lease_compatible": true,
+      "validation": "blackboard-engine",
+      "audit_level": "STANDARD"
+    },
     "filesystem.write": {
       "tool": "filesystem",
       "action": "write",

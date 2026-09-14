@@ -1589,10 +1589,12 @@ export const CanonicalGovernancePlugin = async ({ directory, worktree, client = 
       }
       if (!currentContext.capsule || !currentContext.intent) throw new Error('[governance-v2] RED_BLOCK_TASK_BOOTSTRAP_NOT_ATTEMPTED');
       const args = output?.args || {};
+      const nativeAction = (args && typeof args.action === 'string' && /^[a-z][a-z-]*$/.test(args.action)) ? args.action : null;
       const resource = input?.tool === 'task' ? (args.subagent_type || input.tool)
         : input?.tool === 'skill' ? (args.name || input.tool)
+        : (input?.tool === 'swarm' && nativeAction) ? 'blackboard://' + nativeAction
         : (args.filePath || args.path || args.url || input?.tool);
-      const decision = await evaluateAction({ ...currentContext, tool: input?.tool, action: (args && typeof args.action === 'string' && /^[a-z][a-z-]*$/.test(args.action)) ? args.action : undefined, command: args.command, args, resource });
+      const decision = await evaluateAction({ ...currentContext, tool: input?.tool, action: nativeAction || undefined, command: args.command, args, resource });
       decisions.set(input?.callID || input?.callId || input?.tool, decision);
       output.__governanceDecision = decision;
       if (!decision.allowed) throw new Error('[governance-v2] ' + decision.code + ': ' + (decision.message || 'effect rejected'));

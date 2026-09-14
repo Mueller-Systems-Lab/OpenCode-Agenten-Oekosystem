@@ -40,6 +40,13 @@ Do not mutate project files before `preflight=PASS`. Preserve unrelated user wor
 
 Resolve `scripts/blackboard.py` relative to this `SKILL.md`. Use its SQLite database for coordination. Default the project database to `.agent/board.sqlite` unless the project already defines another canonical path.
 
+> **OpenCode hosts:** inside an OpenCode session with the native `swarm` tool
+> installed, use that tool for ALL Blackboard transitions instead of the CLI —
+> it maps to this same engine and derives the worker identity from the real
+> OpenCode `context.sessionID`. The CLI examples below apply to environments
+> without the native tool. Never invoke `blackboard.py` through bash from an
+> OpenCode agent and never invent worker IDs.
+
 Initialize once:
 
 ```bash

@@ -7,6 +7,8 @@ permission:
     "*": allow
     "git push": deny
     "git push *": deny
+    "python3 *blackboard.py*": deny
+    "python *blackboard.py*": deny
 ---
 
 <!-- coordinate-blackboard-swarm: managed adapter -->

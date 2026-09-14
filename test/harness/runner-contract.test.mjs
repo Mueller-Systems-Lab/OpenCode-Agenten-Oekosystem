@@ -13,7 +13,12 @@ function createNonRecursiveManifest() {
   const isolatedRoot = fs.mkdtempSync(path.join(fs.realpathSync.native(process.env.TMPDIR || os.tmpdir()), "ocae-runner-contract-manifest-"))
   const childManifestPath = path.join(isolatedRoot, "test-manifest.json")
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"))
-  manifest.groups.unit = manifest.groups.unit.filter((file) => file !== "test/harness/runner-contract.test.mjs")
+  // The runner-contract proofs exercise the RUNNER's per-file diagnostics,
+  // auditing, temp-root creation, and aggregate reporting behavior. A small
+  // deterministic fast unit subset keeps the child run bounded; running the
+  // full unit group twice inside CI e2e contention made the child run flaky
+  // without adding contract coverage.
+  manifest.groups.unit = ["test/gates/kernel.test.mjs", "test/routing/model-catalog.test.mjs", "test/security/redaction.test.mjs"]
   fs.writeFileSync(childManifestPath, JSON.stringify(manifest))
   return { path: childManifestPath, unitFiles: manifest.groups.unit, cleanup: () => fs.rmSync(isolatedRoot, { recursive: true, force: true }) }
 }

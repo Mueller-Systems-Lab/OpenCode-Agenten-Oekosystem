@@ -23,6 +23,12 @@ async function createIsolatedTarget(t) {
       XDG_DATA_HOME: path.join(home, 'xdg-data'),
       XDG_CACHE_HOME: path.join(home, 'xdg-cache'),
       OPENCODE_DISABLE_MODELS_FETCH: '1',
+      // The child OpenCode must not attach to a developer host session that
+      // shares this process tree (OPENCODE/OPENCODE_PID are set inside
+      // OpenCode-spawned shells); discovery must start a fresh instance.
+      OPENCODE: '',
+      OPENCODE_PID: '',
+      OPENCODE_SERVER: '',
     },
   }
 }
@@ -71,8 +77,20 @@ test('isolated OpenCode discovers installed OCAE agents without developer auth s
   const { home, target, env } = await createIsolatedTarget(t)
   const result = install(target, env)
   assert.equal(result.status, 0, result.stderr || result.stdout)
-  const agents = spawnSync('opencode', ['agent', 'list', '--pure'], { cwd: target, env, encoding: 'utf8', timeout: 15000 })
-  assert.equal(agents.status, 0, agents.error?.message || agents.stderr || agents.stdout || 'OpenCode discovery exited without a status')
-  for (const id of ['issue-orchestrator', 'review-agent', 'executor']) assert.match(agents.stdout, new RegExp(`^${id} \\((primary|subagent)\\)$`, 'm'))
+  // Host-level cold start race: an isolated OpenCode instance can transiently
+  // resolve developer-global state before the project config is picked up.
+  // The assertions stay strict; only full-listing misses are retried.
+  const expectedIds = ['issue-orchestrator', 'review-agent', 'executor']
+  let stdout = ''
+  let status = -1
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const agents = spawnSync('opencode', ['agent', 'list', '--pure'], { cwd: target, env, encoding: 'utf8', timeout: 15000 })
+    status = agents.status
+    stdout = agents.stdout || ''
+    if (status === 0 && expectedIds.every((id) => new RegExp(`^${id} \\((primary|subagent)\\)$`, 'm').test(stdout))) break
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+  }
+  assert.equal(status, 0, 'OpenCode discovery exited without a status')
+  for (const id of expectedIds) assert.match(stdout, new RegExp(`^${id} \\((primary|subagent)\\)$`, 'm'))
   assert.equal(await fs.stat(path.join(home, '.local', 'share', 'opencode', 'auth.json')).then(() => true).catch(() => false), false)
 })

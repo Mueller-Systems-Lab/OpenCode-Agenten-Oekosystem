@@ -13,6 +13,7 @@ import { renderDiscoveryMarkdown, renderPlanMarkdown, renderRunReportMarkdown, w
 import { selectMcpCandidates } from "./lib/mcp.mjs"
 import { mergeDeep, mergeManagedSections } from "./lib/merge.mjs"
 import { evaluateAllGates, CLASSIFICATIONS } from "./lib/gates/evaluate-all.mjs"
+import { getSwarmFileList } from "./install-governance.mjs"
 import { evaluateAction } from "../runtime/gates/evaluate-action.mjs"
 import { safeRedactText, secretValuesFromEnv } from "./lib/security/redaction.mjs"
 
@@ -429,6 +430,28 @@ async function buildOverlay({ manifest, discovery, selected, mcpSelection, sourc
     })
   }
 
+  // Canonical Blackboard swarm runtime (T2): materialize the engine at its
+  // canonical relative path plus the derived OpenCode adapter surface.
+  // The mapping is owned by install-governance.mjs (single derivation table);
+  // content is never duplicated here. Copy-if-absent preserves owner content.
+  for (const swarm of getSwarmFileList()) {
+    const swarmSource = path.join(sourceRoot, swarm.source)
+    const swarmDestination = path.join(targetRoot, swarm.dest)
+    if (!(await pathExists(swarmSource))) {
+      conflicts.push(`swarm source missing, skipped: ${swarm.source}`)
+      continue
+    }
+    if (await pathExists(swarmDestination)) {
+      conflicts.push(`existing file preserved: ${relativePath(targetRoot, swarmDestination)} (swarm runtime)`)
+    }
+    overlays.push({
+      destination: swarmDestination,
+      kind: "swarm-file",
+      sourcePath: swarmSource,
+      files: [{ source: swarmSource, destination: swarmDestination }],
+    })
+  }
+
   return { files: flattenOverlayFiles(overlays), overlays, conflicts, manifest, sourceRoot, targetRoot }
 }
 
@@ -445,6 +468,8 @@ function flattenOverlayFiles(overlays) {
       files.push({ destination: overlay.destination, action: "write-json" })
     } else if (overlay.kind === "markdown") {
       files.push({ destination: overlay.destination, action: overlay.sourcePath ? "merge-doc" : "create-doc" })
+    } else if (overlay.kind === "swarm-file") {
+      files.push({ destination: overlay.destination, action: "copy-swarm-file" })
     }
   }
   return files
@@ -483,7 +508,21 @@ async function applyOverlay(overlay) {
       await syncTree(item.sourcePath, item.destination, overlay.sourceRoot, overlay.targetRoot)
       continue
     }
+    if (item.kind === "swarm-file") {
+      await assertSafePath(overlay.sourceRoot, item.sourcePath, "swarm source")
+      await assertSafePath(overlay.targetRoot, item.destination, "swarm destination")
+      await copySwarmFileIfAbsent(item.sourcePath, item.destination)
+      continue
+    }
   }
+}
+
+async function copySwarmFileIfAbsent(sourcePath, destinationPath) {
+  // Mirror syncTree semantics: only missing files are copied, existing owner
+  // content is preserved (plan-time conflict already recorded in buildOverlay).
+  if (await pathExists(destinationPath)) return
+  await ensureParentDirectory(destinationPath)
+  await fs.copyFile(sourcePath, destinationPath)
 }
 
 async function syncTree(sourceDir, destinationDir, sourceRoot, targetRoot) {

@@ -1,0 +1,10 @@
+flowchart TD
+  P[OpenCode swarm primary] --> B[(one project-local SQLite Blackboard)]
+  W[disposable swarm-worker sessions] -->|compact facts/results| B
+  S[read-only scout session] -->|SCOUT_FACT + SIGNAL| B
+  B --> D[deterministic supervisor loop]
+  D -->|priority + TTL + inhibition + capabilities| A[admit / match / recruit]
+  B --> Q[independent quorum]
+  Q --> G[canonical evidence and policy gates]
+  G -->|only after PASS| Done[DONE]
+  X[authority: policy, scope, grants, hard gates] -. never granted by .-> B

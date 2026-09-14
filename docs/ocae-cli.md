@@ -1,6 +1,6 @@
 # OCAE CLI Reference
 
-OCAE CLI v1.0.7 is the versioned distribution layer for the OpenCode Agent
+OCAE CLI v1.1.0 is the versioned distribution layer for the OpenCode Agent
 Ecosystem. It bundles a build-generated, hash-verified closure of the canonical
 Node installer and invokes it from an isolated payload directory.
 
@@ -15,10 +15,10 @@ runtime assets remain owned by
 Install the published release with `uv`:
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git@v1.0.7
+uv tool install ocae-cli --from git+https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git@v1.1.0
 ```
 
-The source ref is pinned to `v1.0.7`. The package does not clone the repository
+The source ref is pinned to `v1.1.0`. The package does not clone the repository
 during target installation.
 
 ## Quick start
@@ -124,7 +124,9 @@ package install does not claim runtime execution when OpenCode is unavailable.
 - Python >= 3.11
 - `uv`
 - Node.js for the canonical installer payload
-- OpenCode for runtime discovery and governed agent execution
+- OpenCode >= 1.18.0 for runtime discovery and governed agent execution
+  (verified against 1.18.30; matches `supported_runtimes.opencode` in
+  `ecosystem.manifest.json`)
 - write access to the target project; root/sudo is not required
 
 ## Classifications and exit codes

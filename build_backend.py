@@ -15,7 +15,9 @@ PAYLOAD_ROOT = PACKAGE_ROOT / "_payload"
 ARCHIVE_PATH = PAYLOAD_ROOT / "canonical-runtime.tar.gz"
 MANIFEST_PATH = PAYLOAD_ROOT / "ocae-payload-manifest.json"
 VERSION_PATH = PACKAGE_ROOT / "_version.py"
-CANONICAL_SOURCE_REPOSITORY = "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
+CANONICAL_SOURCE_REPOSITORY = (
+    "https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem"
+)
 
 RUNTIME_FILES = (
     "scripts/install-governance.mjs",
@@ -63,6 +65,20 @@ RUNTIME_FILES = (
     "scripts/generate-governance.mjs",
     "scripts/check-governance-drift.mjs",
     ".agent-governance/bin/evaluate.mjs",
+    # Canonical Blackboard swarm skill (T2): the wheel payload must ship the
+    # single canonical source under .agents/skills so a URL-installed CLI can
+    # mechanically derive the swarm runtime at install time. Never maintain a
+    # second copy — install-governance.mjs copies these byte-for-byte.
+    ".agents/skills/coordinate-blackboard-swarm/SKILL.md",
+    ".agents/skills/coordinate-blackboard-swarm/scripts/blackboard.py",
+    ".agents/skills/coordinate-blackboard-swarm/adapters/opencode/swarm.ts",
+    ".agents/skills/coordinate-blackboard-swarm/adapters/opencode/swarm.md",
+    ".agents/skills/coordinate-blackboard-swarm/adapters/opencode/swarm-worker.md",
+    ".agents/skills/coordinate-blackboard-swarm/adapters/opencode/install.py",
+    ".agents/skills/coordinate-blackboard-swarm/adapters/opencode/swarm-ui/index.ts",
+    ".agents/skills/coordinate-blackboard-swarm/adapters/opencode/swarm-ui/tui.ts",
+    ".agents/skills/coordinate-blackboard-swarm/references/protocol.md",
+    ".agents/skills/coordinate-blackboard-swarm/agents/openai.yaml",
     "ecosystem.manifest.json",
 )
 
@@ -91,14 +107,20 @@ def _relevant_worktree_status() -> list[str]:
         if " -> " in path:
             path = path.split(" -> ", 1)[1]
         path = path.replace("\\", "/")
-        if path in {".ok"} or path.startswith("evidence/") or path.startswith(".agent-governance/evidence/"):
+        if (
+            path in {".ok"}
+            or path.startswith("evidence/")
+            or path.startswith(".agent-governance/evidence/")
+        ):
             continue
         relevant.append(path)
     return relevant
 
 
 def _source_repository() -> str:
-    value = os.environ.get("OCAE_SOURCE_REPOSITORY") or _git_value("remote", "get-url", "origin")
+    value = os.environ.get("OCAE_SOURCE_REPOSITORY") or _git_value(
+        "remote", "get-url", "origin"
+    )
     if not value:
         return CANONICAL_SOURCE_REPOSITORY
     if value.startswith("git@github.com:"):
@@ -116,7 +138,9 @@ def _source_commit() -> str:
     if dirty:
         if os.environ.get("OCAE_ALLOW_DIRTY_BUILD") == "1":
             return "DIRTY_WORKTREE"
-        raise RuntimeError("refusing a build from a dirty worktree; commit source changes first")
+        raise RuntimeError(
+            "refusing a build from a dirty worktree; commit source changes first"
+        )
     return _git_value("rev-parse", "HEAD") or "UNKNOWN"
 
 
@@ -128,6 +152,89 @@ def _source_ref() -> str:
         _git_value("symbolic-ref", "--short", "-q", "HEAD")
         or _git_value("describe", "--tags", "--exact-match")
         or "UNKNOWN"
+    )
+
+
+def verify_release_consistency(
+    *,
+    manifest_version: str,
+    tag: str,
+    dirty: Iterable[str] | None = None,
+    payload_manifest: dict | None = None,
+    archive_sha256: str | None = None,
+) -> dict:
+    """Deterministic stable-release consistency gate (T11).
+
+    Fails closed when the manifest version differs from the release tag
+    (leading ``v`` stripped), when the worktree is dirty, or when the built
+    payload manifest disagrees with the release (package version or archive
+    hash). Pure function of its inputs so stable releases and tests get
+    identical decisions.
+    """
+    errors: list[str] = []
+    claimed = str(manifest_version).strip()
+    normalized_tag = str(tag).strip()
+    if normalized_tag.startswith("v"):
+        normalized_tag = normalized_tag[1:].strip()
+    if claimed != normalized_tag:
+        errors.append(
+            f"manifest version {claimed!r} != release tag {str(tag).strip()!r}"
+        )
+    dirty_list = list(dirty or [])
+    if dirty_list:
+        errors.append(f"dirty worktree: {', '.join(dirty_list)}")
+    if payload_manifest is not None:
+        payload_version = str(payload_manifest.get("package_version", "")).strip()
+        if payload_version != claimed:
+            errors.append(
+                f"payload manifest package_version {payload_version!r} != {claimed!r}"
+            )
+        expected_digest = payload_manifest.get("archive_sha256")
+        if (
+            archive_sha256 is not None
+            and expected_digest is not None
+            and str(expected_digest).strip() != str(archive_sha256).strip()
+        ):
+            errors.append("payload archive_sha256 mismatch")
+    if errors:
+        raise RuntimeError("release consistency check failed: " + "; ".join(errors))
+    return {
+        "manifest_version": claimed,
+        "tag": normalized_tag,
+        "dirty": dirty_list,
+        "payload_verified": payload_manifest is not None,
+    }
+
+
+def check_release_version(
+    manifest_version: str | None = None, tag: str | None = None
+) -> dict:
+    """Stable-release consistency check against live repository reality."""
+    if manifest_version is None:
+        manifest_data = json.loads(
+            (ROOT / "ecosystem.manifest.json").read_text(encoding="utf-8")
+        )
+        manifest_version = str(manifest_data["version"])
+    if tag is None:
+        tag = os.environ.get("OCAE_RELEASE_TAG") or _git_value(
+            "describe", "--tags", "--exact-match"
+        )
+        if not tag:
+            raise RuntimeError(
+                "release consistency check failed: no release tag "
+                "(pass --tag or set OCAE_RELEASE_TAG)"
+            )
+    payload_manifest = None
+    archive_digest = None
+    if MANIFEST_PATH.is_file() and ARCHIVE_PATH.is_file():
+        payload_manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+        archive_digest = _sha256(ARCHIVE_PATH)
+    return verify_release_consistency(
+        manifest_version=manifest_version,
+        tag=tag,
+        dirty=_relevant_worktree_status(),
+        payload_manifest=payload_manifest,
+        archive_sha256=archive_digest,
     )
 
 
@@ -191,7 +298,12 @@ def _write_archive(files: list[Path]) -> None:
         with gzip.GzipFile(fileobj=raw, mode="wb", mtime=0) as compressed:
             with tarfile.open(fileobj=compressed, mode="w") as archive:
                 for source in files:
-                    archive.add(source, arcname=source.relative_to(ROOT).as_posix(), recursive=False, filter=_tar_filter)
+                    archive.add(
+                        source,
+                        arcname=source.relative_to(ROOT).as_posix(),
+                        recursive=False,
+                        filter=_tar_filter,
+                    )
     temporary.replace(ARCHIVE_PATH)
 
 
@@ -203,8 +315,20 @@ def _prepare_payload() -> None:
             VERSION_PATH.write_text(f'__version__ = "{version}"\n', encoding="utf-8")
             return
         raise RuntimeError("ecosystem.manifest.json is required for a source build")
-    manifest_data = json.loads((ROOT / "ecosystem.manifest.json").read_text(encoding="utf-8"))
+    manifest_data = json.loads(
+        (ROOT / "ecosystem.manifest.json").read_text(encoding="utf-8")
+    )
     version = str(manifest_data["version"])
+    release_tag = os.environ.get("OCAE_RELEASE_TAG")
+    if release_tag:
+        # Stable-release builds fail closed on version/tag drift or a dirty
+        # worktree before any payload bytes are written. Payload-hash
+        # agreement is verified post-build via `check-release`.
+        verify_release_consistency(
+            manifest_version=version,
+            tag=release_tag,
+            dirty=_relevant_worktree_status(),
+        )
     VERSION_PATH.write_text(f'__version__ = "{version}"\n', encoding="utf-8")
     files = _payload_files()
     sources = _validate_paths(files)
@@ -243,7 +367,9 @@ def build_sdist(sdist_directory, config_settings=None):
 
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     _prepare_payload()
-    return _backend().prepare_metadata_for_build_wheel(metadata_directory, config_settings)
+    return _backend().prepare_metadata_for_build_wheel(
+        metadata_directory, config_settings
+    )
 
 
 def get_requires_for_build_wheel(config_settings=None):
@@ -256,9 +382,43 @@ def get_requires_for_build_sdist(config_settings=None):
 
 def prepare_metadata_for_build_editable(metadata_directory, config_settings=None):
     _prepare_payload()
-    return _backend().prepare_metadata_for_build_editable(metadata_directory, config_settings)
+    return _backend().prepare_metadata_for_build_editable(
+        metadata_directory, config_settings
+    )
 
 
 def build_editable(wheel_directory, config_settings=None, metadata_directory=None):
     _prepare_payload()
-    return _backend().build_editable(wheel_directory, config_settings, metadata_directory)
+    return _backend().build_editable(
+        wheel_directory, config_settings, metadata_directory
+    )
+
+
+def _cli(argv: list[str] | None = None) -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="OCAE build backend helpers")
+    sub = parser.add_subparsers(dest="command", required=True)
+    check = sub.add_parser(
+        "check-release",
+        help="fail when manifest version != release tag, worktree dirty, "
+        "or payload manifest hash mismatches",
+    )
+    check.add_argument("--manifest-version", default=None)
+    check.add_argument("--tag", default=None)
+    args = parser.parse_args(argv)
+    if args.command == "check-release":
+        try:
+            result = check_release_version(
+                manifest_version=args.manifest_version, tag=args.tag
+            )
+        except RuntimeError as exc:
+            print(f"FAIL {exc}", flush=True)
+            return 2
+        print(json.dumps(result, indent=2))
+        return 0
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(_cli())

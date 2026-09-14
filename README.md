@@ -24,7 +24,7 @@ and [`ocae.handoff.json`](ocae.handoff.json).
 ## Quick install
 
 ```bash
-uv tool install ocae-cli --from git+https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git@v1.0.7
+uv tool install ocae-cli --from git+https://github.com/Mueller-Systems-Lab/OpenCode-Agenten-Oekosystem.git@v1.1.0
 ```
 
 Then, from the target project:
@@ -42,8 +42,8 @@ verification. The optional `ocae integrate opencode` command installs one
 OCAE-owned global OpenCode adapter for bare-URL handoff; it is idempotent and
 does not rewrite `opencode.jsonc`.
 
-The stable release is `v1.0.7`, published from commit
-`4d6d4586e98e60976e89cb426e77edee35a3bfef`. The install command is pinned to
+The stable release is `v1.1.0`, published from source revision
+`2d327117b6a8eeca087958cc176c01cf3e0ee6dd`. The install command is pinned to
 that release tag; the repository `master` branch may contain documentation
 and publication updates after the product release baseline.
 
@@ -63,7 +63,17 @@ Its main components are:
 - `adapters/opencode/swarm.md` — visible OpenCode `swarm` primary agent
 - `adapters/opencode/swarm-worker.md` — disposable worker subagent
 - `adapters/opencode/swarm.ts` — native OpenCode Blackboard tool
+- `adapters/opencode/install.py` — project-local swarm tool installer
 - `adapters/opencode/swarm-ui/` — read-only live Blackboard observer
+- `references/protocol.md` — coordination protocol reference
+- `agents/openai.yaml` — reference worker profile
+
+The swarm also provides small deterministic, animal-inspired primitives:
+stigmergy through shared SQLite state, scheduling signals with TTL evaporation,
+independent quorum, bounded read-only scouts, recruitment through admission,
+temporary inhibition, and capability-based worker matching. These are routing
+and evidence mechanisms—not a biological simulation. The Blackboard may
+prioritize work but never grants authority; Governance V2 authorizes effects.
 
 Runtime model:
 
@@ -92,7 +102,7 @@ there is no silent bypass.
 
 ## What is OCAE?
 
-OCAE CLI v1.0.7 is the installable distribution layer for this repository. The
+OCAE CLI v1.1.0 is the installable distribution layer for this repository. The
 Python CLI validates inputs, package integrity, provenance, and tool preflight.
 The canonical governance and installation logic remains in
 [`scripts/install-governance.mjs`](scripts/install-governance.mjs), which is

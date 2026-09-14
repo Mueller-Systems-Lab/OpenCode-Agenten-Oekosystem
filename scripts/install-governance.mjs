@@ -255,6 +255,9 @@ function validateSourceRepository(repoRoot) {
     "runtime/harness/index.mjs",
     "runtime/harness/openai-compatible-model-transport.mjs",
   ]
+  // Canonical Blackboard swarm sources must be present so copySwarmRuntime()
+  // can mechanically derive the target runtime (T2).
+  for (const { source } of getSwarmFileList()) required.push(source)
   const missing = []
   for (const rel of required) {
     const abs = path.join(repoRoot, rel)
@@ -378,6 +381,28 @@ function getRuntimeFileList() {
     { source: "governance/generated/policy-core.json", dest: "governance/generated/policy-core.json" },
     { source: "governance/generated/risk-profiles.json", dest: "governance/generated/risk-profiles.json" },
     { source: "PROMPT-KERNEL.md", dest: "PROMPT-KERNEL.md" },
+  ]
+}
+
+function getSwarmFileList() {
+  // Canonical Blackboard swarm runtime (T2), mechanically derived at install
+  // time from the single canonical skill source. Never maintain a second copy:
+  // every entry is a byte-for-byte copy of a payload-shipped canonical file.
+  // Engine entries keep their canonical relative path so the swarm.ts
+  // candidate `<target>/.agents/skills/.../scripts/blackboard.py` resolves.
+  // Adapter entries mirror adapters/opencode/install.py project mapping.
+  const skill = ".agents/skills/coordinate-blackboard-swarm";
+  return [
+    { source: `${skill}/SKILL.md`, dest: `${skill}/SKILL.md` },
+    { source: `${skill}/scripts/blackboard.py`, dest: `${skill}/scripts/blackboard.py` },
+    { source: `${skill}/references/protocol.md`, dest: `${skill}/references/protocol.md` },
+    { source: `${skill}/agents/openai.yaml`, dest: `${skill}/agents/openai.yaml` },
+    { source: `${skill}/adapters/opencode/install.py`, dest: `${skill}/adapters/opencode/install.py` },
+    { source: `${skill}/adapters/opencode/swarm.ts`, dest: ".opencode/tools/swarm.ts" },
+    { source: `${skill}/adapters/opencode/swarm.md`, dest: ".opencode/agents/swarm.md" },
+    { source: `${skill}/adapters/opencode/swarm-worker.md`, dest: ".opencode/agents/swarm-worker.md" },
+    { source: `${skill}/adapters/opencode/swarm-ui/index.ts`, dest: ".opencode/plugins/blackboard-ui/index.ts" },
+    { source: `${skill}/adapters/opencode/swarm-ui/tui.ts`, dest: ".opencode/plugins/blackboard-ui/tui.ts" },
   ]
 }
 
@@ -865,6 +890,17 @@ function buildFilePlan(targetRoot, sourceRoot = repoRoot, runtime = "auto") {
     })
   }
 
+  files.push({ path: relativePath(targetRoot, path.join(opencodeRoot, "tools")), action: "create-directory" })
+  files.push({ path: relativePath(targetRoot, path.join(opencodeRoot, "plugins", "blackboard-ui")), action: "create-directory" })
+  files.push({ path: relativePath(targetRoot, path.join(targetRoot, ".agents", "skills", "coordinate-blackboard-swarm")), action: "create-directory" })
+  for (const swarm of getSwarmFileList()) {
+    files.push({
+      path: swarm.dest,
+      action: "copy-swarm-file",
+      source: path.join(sourceRoot, swarm.source),
+    })
+  }
+
   files.push({
     path: relativePath(targetRoot, governanceRoot),
     action: "create-directory",
@@ -1105,6 +1141,14 @@ async function copyOpenCodeAssets(repoRoot, targetRoot) {
   }
 }
 
+async function copySwarmRuntime(repoRoot, targetRoot) {
+  for (const swarm of getSwarmFileList()) {
+    const destination = path.join(targetRoot, swarm.dest)
+    await assertSafePath(targetRoot, destination, "swarm runtime destination")
+    await copySourceIfSafe(path.join(repoRoot, swarm.source), destination, targetRoot)
+  }
+}
+
 async function copyEcosystemManifest(repoRoot, targetRoot) {
   const source = path.join(repoRoot, "ecosystem.manifest.json")
   const destination = path.join(targetRoot, ".agent-governance", "ecosystem.manifest.json")
@@ -1231,6 +1275,14 @@ async function generateSourceLock(repoRoot, targetRoot) {
     installedPath: path.join(".agent-governance", "scripts", "lib", "mcp-preflight.mjs"),
     kind: "runtime_shared",
   })
+  for (const swarm of getSwarmFileList()) {
+    await addManagedSource({
+      sourcePath: path.join(repoRoot, swarm.source),
+      sourceRelative: swarm.source,
+      installedPath: swarm.dest,
+      kind: "swarm_runtime",
+    })
+  }
 
   const runtimeStatePath = path.join(targetRoot, RUNTIME_STATE_RELATIVE_PATH)
   const runtimeStateHash = await hashIfFile(runtimeStatePath)
@@ -1715,6 +1767,25 @@ async function validatePostApply(targetRoot) {
     if (fs.existsSync(evaluationOnly)) issues.push(`Evaluation-only artifact installed: ${relativePath(targetRoot, evaluationOnly)}`)
   }
 
+  // ── Canonical Blackboard swarm runtime (mechanically derived, T2) ──
+  // Every entry of getSwarmFileList() must exist and be non-empty in the
+  // installed target; derivation happens in copySwarmRuntime().
+  for (const { dest } of getSwarmFileList()) {
+    const destPath = path.join(targetRoot, dest)
+    if (!fs.existsSync(destPath)) {
+      issues.push(`Missing swarm runtime file: ${relativePath(targetRoot, destPath)}`)
+      continue
+    }
+    try {
+      const stat = fs.statSync(destPath)
+      if (stat.size === 0) {
+        issues.push(`Swarm runtime file is empty (corrupt): ${relativePath(targetRoot, destPath)}`)
+      }
+    } catch {
+      issues.push(`Cannot stat swarm runtime file: ${relativePath(targetRoot, destPath)}`)
+    }
+  }
+
   // ── Bin and manifest files ──
   const requiredFiles = [
     path.join(governanceRoot, "manifest.json"),
@@ -2078,6 +2149,8 @@ async function runApplyPhase(args) {
     path.join(targetRoot, ".opencode", "skills"),
     path.join(targetRoot, ".opencode", "policies"),
     path.join(targetRoot, ".opencode", "plugins"),
+    path.join(targetRoot, ".opencode", "tools"),
+    path.join(targetRoot, ".agents"),
     path.join(targetRoot, "opencode.jsonc"),
     path.join(targetRoot, "opencode.json"),
   ]
@@ -2105,6 +2178,7 @@ async function runApplyPhase(args) {
 
   // Phase 7b: Install the actual OpenCode ecosystem surface.
   await copyOpenCodeAssets(repoRoot, targetRoot)
+  await copySwarmRuntime(repoRoot, targetRoot)
   await copyEcosystemManifest(repoRoot, targetRoot)
 
   // The marker is written before source-lock generation so the canonical lock
@@ -2514,7 +2588,7 @@ async function main() {
   await runDryRunPhase(args)
 }
 
-export { validatePostApply, getRuntimeFileList }
+export { validatePostApply, getRuntimeFileList, getSwarmFileList }
 
 // Only call main when run directly (not imported by tests or other modules)
 const isDirectlyInvoked = process.argv[1] && (

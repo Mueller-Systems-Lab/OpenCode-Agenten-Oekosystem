@@ -47,7 +47,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
-      - uses: actions/setup-node@49c0513f45e5976beb8b40e8e1a37c0571c1c845 # v4.4.0
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
 

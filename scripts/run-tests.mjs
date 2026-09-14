@@ -23,12 +23,14 @@ const suiteRoot = path.basename(manifestPath) === "test-manifest.json" && path.b
 await ensureTempRoot()
 const manifest = await loadManifest(manifestPath)
 const manifestTimeouts = manifest.timeouts && typeof manifest.timeouts === "object" && !Array.isArray(manifest.timeouts) ? manifest.timeouts : {}
-const filesByGroup = validateManifest(manifest, suiteRoot)
+const filesByGroup = validateManifest(manifest, suiteRoot, {
+  canonical: manifestPath === path.join(repoRoot, "test", "test-manifest.json"),
+})
 const availableGroups = Object.keys(filesByGroup)
 const canonicalGroups = process.env.OCAE_SECURE_SANDBOX_NOT_APPLICABLE === "1"
   ? requiredGroups.map((group) => group === "integration" ? "integration_portable" : group)
   : requiredGroups
-const groups = args.all ? canonicalGroups.filter((group) => filesByGroup[group].length > 0) : args.groups
+const groups = args.all ? canonicalGroups.filter((group) => filesByGroup[group] !== undefined && filesByGroup[group].length > 0) : args.groups
 
 if (groups.length === 0) fail("No test groups selected")
 for (const group of groups) {
@@ -152,9 +154,11 @@ async function loadManifest(manifestPath) {
   }
 }
 
-function validateManifest(manifest, suiteRoot) {
+function validateManifest(manifest, suiteRoot, { canonical = false } = {}) {
   if (!manifest || manifest.version !== 1 || !manifest.groups) fail("Invalid test manifest")
-  for (const group of requiredGroups) if (!Array.isArray(manifest.groups[group])) fail(`Missing manifest group: ${group}`)
+  // Required-group presence protects the canonical manifest. Custom probe
+  // manifests (harness fixtures) may legitimately define a subset of groups.
+  if (canonical) for (const group of requiredGroups) if (!Array.isArray(manifest.groups[group])) fail(`Missing manifest group: ${group}`)
   const seen = new Set()
   const result = {}
   for (const [group, entries] of Object.entries(manifest.groups)) {

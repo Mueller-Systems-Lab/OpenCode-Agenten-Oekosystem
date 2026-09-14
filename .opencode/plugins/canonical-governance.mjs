@@ -152,6 +152,13 @@ function mapToolToDescriptor(tool, args) {
     case 'question':
       return { ...base, action: 'ask-user' };
     default:
+      // Parameterized native tools (e.g. the blackboard swarm adapter) carry
+      // their effect in args.action. Pass it through so the capability
+      // registry can resolve the exact tool.action pair; fail closed only
+      // when the tool exposes no deterministic action.
+      if (args && typeof args.action === 'string' && /^[a-z][a-z-]*$/.test(args.action)) {
+        return { ...base, action: args.action, resource: `blackboard://${args.action}`, rawArgs: JSON.stringify(args) };
+      }
       return { ...base, action: 'unknown', rawArgs: JSON.stringify(args) };
   }
 }

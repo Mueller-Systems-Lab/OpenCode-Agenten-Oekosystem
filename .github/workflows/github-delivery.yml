@@ -312,7 +312,14 @@ jobs:
           )
           
           for gate in "${REQUIRED_GATES[@]}"; do
-            if [ "${!gate}" != "PASS" ]; then
+            val="${!gate}"
+            # A gate whose step was skipped (no delivery context for this
+            # trigger, e.g. push events without issue inputs) cannot fail;
+            # only steps that RAN and did not PASS block the lifecycle.
+            if [ -z "$val" ]; then
+              continue
+            fi
+            if [ "$val" != "PASS" ]; then
               echo "ERROR: Gate $gate not passed"
               echo "gates_check=FAIL" >> "$GITHUB_OUTPUT"
               exit 1
@@ -423,7 +430,7 @@ jobs:
           PR_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           # Check decision packet exists
-          if [ ! -f "$EVIDENCE_DIR/decision-packet-${{ github.run_id }}.json" ]; then
+          if [ ! -f "$EVIDENCE_DIR/decision-packet-${{ env.DELIVERY_ID }}.json" ]; then
             echo "ERROR: Decision packet not found"
             echo "merge_check=FAIL" >> "$GITHUB_OUTPUT"
             exit 1

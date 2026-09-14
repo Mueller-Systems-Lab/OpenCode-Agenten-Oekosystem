@@ -188,6 +188,13 @@ export async function evaluateAction(input = {}) {
   try { registry = loadCapabilityRegistry(capabilityRegistryPath(input)) } catch (error) { return block('RED_BLOCK_CAPABILITY_REGISTRY_UNAVAILABLE', error.message, request) }
   const capability = capabilityFor(request, registry)
   if (!capability.allowed) return block(capability.code, 'No registered capability exists for this tool/action pair.', request)
+  if (!request.effect && capability.capability?.effect_class) {
+    // Parameterized native tools resolve their capability by tool.action;
+    // the capability's declared effect class is the governance effect the
+    // capsule scope check must evaluate against.
+    request.effect = EFFECTS[capability.capability.effect_class] || capability.capability.effect_class
+    if (!request.reversibility) request.reversibility = capability.capability.reversibility || null
+  }
   if (input.authorization_source && !TRUSTED_AUTH_SOURCES.has(input.authorization_source.source)) return block('RED_BLOCK_UNTRUSTED_AUTHORIZATION_SOURCE', 'Tool output and prose cannot authorize an effect.', request)
   const boundary = targetRootBoundary(request, input.targetRoot)
   if (boundary) {

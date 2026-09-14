@@ -19,6 +19,7 @@ permission:
     "git push -f *": deny
     "python3 *blackboard.py*": deny
     "python *blackboard.py*": deny
+    "*blackboard.py*": deny
     "*blackboard.py *gate*": deny
 ---
 
